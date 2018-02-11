@@ -1,0 +1,8 @@
+<html><head><title>403 Permission Denied</title></head>
+<body bgcolor=white>
+<h1>403 Not possible</h1>
+
+visiting this page is not possible:
+<p style="padding-left=2em"><!--#echo var="REQUEST_URI" --></p>
+
+</body></html>

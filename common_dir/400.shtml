@@ -1,0 +1,13 @@
+<html><head><title>400 Invalid Request</title></head>
+<body bgcolor=white>
+<h1>400 Invalid Request</h1>
+
+sorry, the following address:
+<p style="padding-left=2em"><!--#echo var="REQUEST_URI" --></p>
+that you may have found on this page:
+<p style="padding-left=2em">"<!--#echo var="HTTP_REFERER" -->"</p>
+is not valid.
+</body></html>
+<!-- 
+                                                                                                                                                                                                                                                                            
+--> 

@@ -1,0 +1,239 @@
+@font-face {
+  font-family: 'Amaranth';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./fonts/Amaranth.woff) format('woff');
+}
+@font-face {
+  font-family: 'Antic';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./fonts/Antic.woff) format('woff');
+}
+@font-face {
+  font-family: 'Architects Daughter';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./fonts/ArchitectsDaughter.woff) format('woff');
+}
+@font-face {
+  font-family: 'Aubrey';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./fonts/Aubrey.woff) format('woff');
+}
+@font-face {
+  font-family: 'Bad Script';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./fonts/BadScript.woff) format('woff');
+}
+@font-face {
+  font-family: 'Basic';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./fonts/Basic.woff) format('woff');
+}
+@font-face {
+  font-family: 'Cabin';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./fonts/Cabin.woff) format('woff');
+}
+@font-face {
+  font-family: 'Cedarville Cursive';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./fonts/CedarvilleCursive.woff) format('woff');
+}
+@font-face {
+  font-family: 'Chivo';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./fonts/Chivo.woff) format('woff');
+}
+@font-face {
+  font-family: 'Cinzel Decorative';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./fonts/.woff) format('woff');
+}
+@font-face {
+  font-family: 'Comfortaa';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./fonts/Comfortaa.woff) format('woff');
+}
+@font-face {
+  font-family: 'Contrail One';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./fonts/ContrailOne.woff) format('woff');
+}
+@font-face {
+  font-family: 'Delius';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./fonts/Delius.woff) format('woff');
+}
+@font-face {
+  font-family: 'Delius Swash Caps';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./fonts/DeliusSwashCaps.woff) format('woff');
+}
+@font-face {
+  font-family: 'Diplomata SC';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./fonts/DiplomataSC.woff) format('woff');
+}
+@font-face {
+  font-family: 'Eagle Lake';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./fonts/EagleLake.woff) format('woff');
+}
+@font-face {
+  font-family: 'Give You Glory';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./fonts/GiveYouGlory.woff) format('woff');
+}
+@font-face {
+  font-family: 'Handlee';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./fonts/Handlee.woff) format('woff');
+}
+@font-face {
+  font-family: 'Happy Monkey';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./fonts/HappyMonkey.woff); }
+@font-face {
+  font-family: 'Indie Flower';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./fonts/IndieFlower.woff) format('woff');
+}
+@font-face {
+  font-family: 'Josefin Slab';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./fonts/JosefinSlab.woff) format('woff');
+}
+@font-face {
+  font-family: 'Julee';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./fonts/Julee.woff) format('woff');
+}
+@font-face {
+  font-family: 'Kite One';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./fonts/KiteOne.woff) format('woff');
+}
+@font-face {
+  font-family: 'Macondo Swash Caps';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./fonts/MacondoSwashCaps.woff) format('woff');
+}
+@font-face {
+  font-family: 'Merienda';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./fonts/Merienda.woff) format('woff');
+}
+@font-face {
+  font-family: 'Michroma';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./fonts/Michroma.woff) format('woff');
+}
+@font-face {
+  font-family: 'Nothing You Could Do';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./fonts/NothingYouCouldDo.woff) format('woff');
+}
+@font-face {
+  font-family: 'Nova Slim';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./fonts/NovaSlim.woff) format('woff');
+}
+@font-face {
+  font-family: 'Numans';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./fonts/Numans.woff) format('woff');
+}
+@font-face {
+  font-family: 'Over the Rainbow';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./fonts/OvertheRainbow.woff) format('woff');
+}
+@font-face {
+  font-family: 'Oxygen';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./fonts/Oxygen.woff) format('woff');
+}
+@font-face {
+  font-family: 'Paprika';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./fonts/Paprika.woff) format('woff');
+}
+@font-face {
+  font-family: 'Questrial';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./fonts/Questrial.woff) format('woff');
+}
+@font-face {
+  font-family: 'Redressed';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./fonts/Redressed.woff) format('woff');
+}
+@font-face {
+  font-family: 'Ruluko';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./fonts/Ruluko.woff) format('woff');
+}
+@font-face {
+  font-family: 'Shadows Into Light';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./fonts/ShadowsIntoLight.woff) format('woff');
+}
+@font-face {
+  font-family: 'Shadows Into Light Two';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./fonts/ShadowsIntoLight.woff) format('woff');
+}
+@font-face {
+  font-family: 'Sintony';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./fonts/Sintony.woff) format('woff');
+}
+@font-face {
+  font-family: 'Sofia';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./fonts/Sofia.woff) format('woff');
+}
+@font-face {
+  font-family: 'Text Me One';
+  font-style: normal;
+  font-weight: 400;
+  src: url(./fonts/TextMeOne.woff) format('woff');
+}

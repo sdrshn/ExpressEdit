@@ -1,0 +1,13 @@
+<html><head><title>500 Internal Server Error</title></head>
+<body bgcolor=white>
+<h1>500 Server Error</h1>
+
+sorry, the following address:
+<p style="padding-left=2em"><!--#echo var="REQUEST_URI" --></p>
+that you may have found on this page:
+<span style="padding-left=2em">"<!--#echo var="HTTP_REFERER" -->"</span>
+triggered a 'server error'.
+</body></html>
+<!-- 
+                                                                                                                                                                                                                                                           
+--> 

@@ -1,0 +1,19 @@
+* HTML .horiz_nav UL UL A, * HTML .horiz_nav UL UL A:visited,.horiz_nav UL UL A,.horiz_nav UL UL A:visited,.horiz_nav UL UL A:hover, * HTML .horiz_nav UL UL,.horiz_nav UL UL,.horiz_nav UL UL A:active{width:150px;}	 
+			.horiz_nav {font-size:16px;   margin: 0 auto;}
+			.horiz_nav UL UL li A:visited, .horiz_nav UL UL li A:link{Z-INDEX: 100; padding: .4em 0.5em .4em 0.5em; }
+			.horiz_nav UL UL li A:visited, .horiz_nav UL UL li A:link,
+			  .horiz_nav UL {  LIST-STYLE-TYPE: none; }
+				.horiz_nav LI { vertical-align: top; position: relative; display:inline-block;   LIST-STYLE-TYPE: none;}
+			 .horiz_nav A,.horiz_nav A:visited, .horiz_nav A:active {DISPLAY: block;   padding: .4em 0.5em .4em 0.5em; TEXT-DECORATION: none;}
+		    .horiz_nav ul ul a:hover,  .horiz_nav ul ul li a:hover   { text-align:left; padding: .4em 0 .4em 5px;  color:#adddad;  background:#ffddff; }
+			.horiz_nav ul :hover ul li {width:150px;}
+			 .horiz_nav ul li a:hover { color:#adddad;  background:#ffddff; }
+			 .horiz_nav UL UL A,.horiz_nav UL UL A:active,.horiz_nav UL UL A:visited,.horiz_nav UL UL A:active {text-align:left; padding:.4em 0 .4em 5px; MARGIN-TOP: 0px; DISPLAY: block;}
+		   .horiz_nav UL UL {Z-INDEX: 100; LEFT: 0px; POSITION: absolute;}
+			.horiz_nav UL UL {LEFT: 0px; VISIBILITY: hidden;   POSITION: absolute;  }
+			  .horiz_nav UL :hover UL :hover UL  { VISIBILITY: visible;}
+		    .horiz_nav UL LI:hover UL  { VISIBILITY: visible }
+			 .horiz_nav UL A:hover UL  { VISIBILITY: visible; }
+		    .horiz_nav UL :hover UL UL { VISIBILITY: hidden }
+			.horiz_nav UL UL  { VISIBILITY: hidden }
+		    .horiz_nav ul ul  li  {background:#00aaff; padding-right:0.5em; width:150px; }

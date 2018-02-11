@@ -1,0 +1,14 @@
+
+.boxes li { 
+	cursor: move;
+	position: relative;
+	float: left;
+	margin: 2px 2px 0px 0px;
+	border: 1px solid #000;
+	text-align: left;
+	padding-top: 5px;
+	background-color: #EEF;
+	list-style-type: none; text-align:left;font-family:monospace;}
+ 
+ 
+ 
