@@ -19,12 +19,12 @@ ExpressEdit is an integrated Theme Creation CMS
 
 static function file_folder_generate(){ #this will generate all folders and some general files for all folders such as default.html and robots.txt
 	$files_copy=Cfg::Background_image_dir.Cfg::Default_image.','.Cfg::Small_thumb_dir.Cfg::Default_image.','.Cfg::Large_image_dir.Cfg::Default_image.','.Cfg::Master_thumb_dir.Cfg::Default_image.','.Cfg::Upload_dir.Cfg::Default_image.','.Cfg::Page_images_expand_dir.Cfg::Default_image.','.Cfg::Page_images_dir.Cfg::Default_image.','.
-Cfg::Background_image_dir.Cfg::Pass_image.','.Cfg::Small_thumb_dir.Cfg::Pass_image.','.Cfg::Large_image_dir.Cfg::Pass_image.','.Cfg::Master_thumb_dir.Cfg::Pass_image.','.Cfg::Upload_dir.Cfg::Pass_image.','.Cfg::Page_images_expand_dir.Cfg::Pass_image.','.Cfg::Page_images_dir.Cfg::Pass_image.','.Cfg::Include_dir.'expandgallery_loc.class.php,refresh_button.png,styling/utility.css,fonts.css,OmFabicon.ico,apple-touch-icon-precomposed.png,resize_image.php,blank.gif,php.ini,robots.txt,400.shtml,401.shtml,403.shtml,404.shtml,500.shtml,501.shtml,HelveticaNeue-Roman.otf,mailsend.php,text_image_gen.php,photonav_prev2.gif,photonav_next2.gif,sha512.js,fonts.html,cssHoverFix.htc,plus.jpg,minus.jpg,navimage_prev.gif,navimage_next.gif,default.jpg,default_vid.jpg,file_gen.php,ftp.php,next_gallery.gif,prev_gallery.gif';
+Cfg::Background_image_dir.Cfg::Pass_image.','.Cfg::Small_thumb_dir.Cfg::Pass_image.','.Cfg::Large_image_dir.Cfg::Pass_image.','.Cfg::Master_thumb_dir.Cfg::Pass_image.','.Cfg::Upload_dir.Cfg::Pass_image.','.Cfg::Page_images_expand_dir.Cfg::Pass_image.','.Cfg::Page_images_dir.Cfg::Pass_image.','.Cfg::Include_dir.'expandgallery_loc.class.php,refresh_button.png,'.Cfg::Style_dir.'.utility.css,fonts.css,OmFabicon.ico,apple-touch-icon-precomposed.png,resize_image.php,blank.gif,php.ini,robots.txt,400.shtml,401.shtml,403.shtml,404.shtml,500.shtml,501.shtml,HelveticaNeue-Roman.otf,mailsend.php,text_image_gen.php,photonav_prev2.gif,photonav_next2.gif,sha512.js,fonts.html,cssHoverFix.htc,plus.jpg,minus.jpg,navimage_prev.gif,navimage_next.gif,default.jpg,default_vid.jpg,file_gen.php,ftp.php,next_gallery.gif,prev_gallery.gif';
 	#B
   	#full_copy copies entire directory
 	if (Sys::Debug)echo NL. "Generating ".__METHOD__." for current Database";
 	#here we are simply creating empty folders.
-	$folder_array=array(Cfg::Vid_background_dir,Cfg::Data_dir,Cfg::Data_dir.Cfg::Image_info_dir,Cfg::Data_dir.Cfg::Gall_info_dir,Cfg::Data_dir.Cfg::Page_info_dir,Cfg::Image_noresize_dir,Cfg::Vid_image_dir,Cfg::Data_dir,Cfg::Auto_slide_dir,Cfg::Contact_dir,Cfg::Watermark_dir,Cfg::Background_image_dir,Cfg::Page_images_dir,Cfg::Page_images_expand_dir,Cfg::Backup_dir,Cfg::Backup_dir.Cfg::Logfile_dir,Cfg::Backup_ext_folder,Cfg::PrimeEditDir,Cfg::PrimeEditDir.Cfg::Include_dir,Cfg::Display_dir.Cfg::Include_dir,Cfg::PrimeEditDir.Cfg::Style_dir,Cfg::Style_dir,Cfg::Upload_dir,Cfg::Include_dir,Cfg::Small_thumb_dir,Cfg::Large_image_dir,Cfg::Master_thumb_dir);
+	$folder_array=array(Cfg::Vid_background_dir,Cfg::Data_dir,Cfg::Data_dir.Cfg::Image_info_dir,Cfg::Data_dir.Cfg::Gall_info_dir,Cfg::Data_dir.Cfg::Page_info_dir,Cfg::Image_noresize_dir,Cfg::Vid_image_dir,Cfg::Data_dir,Cfg::Auto_slide_dir,Cfg::Contact_dir,Cfg::Watermark_dir,Cfg::Background_image_dir,Cfg::Page_images_dir,Cfg::Page_images_expand_dir,Cfg::Backup_dir,Cfg::Backup_dir.Cfg::Logfile_dir,Cfg::Backup_ext_folder,Cfg::PrimeEditDir,Cfg::PrimeEditDir.Cfg::Include_dir,Cfg::Display_dir.Cfg::Include_dir,Cfg::PrimeEditDir.Cfg::Style_dir,Cfg::Upload_dir,Cfg::Include_dir,Cfg::Small_thumb_dir,Cfg::Large_image_dir,Cfg::Master_thumb_dir);
 	//********Use  edit pages  $folder_array_foreign_tesite instead for foreign and testsite
 	 (!is_dir(Sys::Home_pub.Cfg::Theme_dir))&&mkdir(Sys::Home_pub.Cfg::Theme_dir,0755,1);
 	foreach($folder_array as $folder){#if not exist folder create folder only
@@ -39,6 +39,7 @@ Cfg::Background_image_dir.Cfg::Pass_image.','.Cfg::Small_thumb_dir.Cfg::Pass_ima
 		 if (!is_dir($dir))mkdir( $dir,0755,1);
 		 } 
 	if (Sys::Common_dir !== Sys::Home_pub){echo 'entering list for full copy';
+		self::full_copy(Sys::Common_dir.Cfg::Style_dir,Sys::Home_pub.Cfg::Style_dir); 
 	   	self::full_copy(Sys::Common_dir.Cfg::Menu_icon_dir,Sys::Home_pub.Cfg::Menu_icon_dir);
 		self::full_copy(Sys::Common_dir.Cfg::Graphics_dir,Sys::Home_pub.Cfg::Graphics_dir); 
 		self::full_copy(Sys::Common_dir.Cfg::Script_dir,Sys::Home_pub.Cfg::Script_dir);
