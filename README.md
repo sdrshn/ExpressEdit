@@ -19,7 +19,7 @@ See the file LICENSE.txt for details.
 
 Interested in moving the project forward? Contributors welcome.
 
-Video Demos Page:  http://expressedit.org/express_video.php
+Video Demos Page:  http://expressedit.org/
 See   installation.txt  for the installation proceedure
 This Integrated Theme  creating CMS system is built on PHP, MYSQL, JS with flatfiles generated in editmode to replace  MYSQL queries for normal webpage mode.
 
