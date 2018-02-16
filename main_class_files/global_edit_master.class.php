@@ -9247,9 +9247,10 @@ function parse_menu_edit($dir_menu_id){
 		$q="select dir_ref,dir_filename from $this->directory_table where dir_menu_id=".$arr[0].' and dir_menu_order='.$arr[1].'  and dir_sub_menu_order=0';  
 		$r2=$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);
 		list($dir_ref,$dir_filename)=$this->mysqlinst->fetch_row($r2,__LINE__);
-		if ($dir_filename!='index'){  
+		if ($dir_filename!='index'){  //passed the check
 			#first change the present index filenames
-			$newindex=process_data::new_file($dir_ref,$this->ext);
+			#CHANGE BACK TO DIR_REF
+			//$newindex=process_data::new_file($dir_ref,$this->ext);
 			$q="select dir_menu_id,dir_title,dir_ref from $this->directory_table where dir_filename='index'";
 			$r2=$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__);
 			
@@ -9257,19 +9258,24 @@ function parse_menu_edit($dir_menu_id){
 				$dir_menu_id2=$rows2['dir_menu_id'];
 				$dir_ref2=$rows2['dir_ref'];
 				$dir_title=$rows2['dir_title'];
-				$index_msg.=NL.'The Old Opening/Homepage having the title '.$dir_title.' and the data_ref: '.$dir_ref2.' has had a filename change from index ('.$this->ext.')  to '.$newindex. ' ('.$this->ext.') in dir menu id '.$dir_menu_id2;
-				}//end while rename index pages to newindex 
-			$q="UPDate $this->directory_table  set dir_update='".date("dMY-H-i-s")."',dir_time='".time()."',token='".mt_rand(1,mt_getrandmax()). "',dir_filename='$newindex' where dir_filename='index'";
-			$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__);
-			$q="UPDate $this->master_page_table  setpage_time='".time()."',token='".mt_rand(1,mt_getrandmax()). "',page_filename='$newindex' where page_filename='index'";
-			$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__);
+				$index_msg.=NL.'The Old Opening/Homepage having the title '.$dir_title.' and the data_ref: '.$dir_ref2.' has had a filename change from index ('.$this->ext.')  to '.$dir_ref2. '('.$this->ext.') in dir menu id '.$dir_menu_id2;
+				
 			
-			if (!copy('index'.$this->ext,$newindex.$this->ext)){
-				mail::alert("failure to copy index  to $newname$this->ext  Having the title $dir_title in editpages");
-				}
-			if (!copy(Cfg_loc::Root_dir.'index'.$this->ext,Cfg_loc::Root_dir.$newindex.$this->ext)){
+				if (!copy('index'.$this->ext,$dir_ref2.$this->ext)){
+					mail::alert("failure to copy index  to $newname$this->ext  Having the title $dir_title in editpages");
+					}
+				if (!copy(Cfg_loc::Root_dir.'index'.$this->ext,Cfg_loc::Root_dir.$dir_ref2.$this->ext)){
 				mail::alert("failure to copy index  to $newname$this->ext  Having the title $dir_title in Root dir");
-				}
+					}
+				}//end while rename index pages to newindex 
+			$q="UPDate $this->directory_table  set dir_update='".date("dMY-H-i-s")."',dir_time='".time()."',token='".mt_rand(1,mt_getrandmax()). "',dir_filename=dir_ref where dir_filename='index'";
+			$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__);
+			$q="UPDate $this->master_page_table  set page_time='".time()."',token='".mt_rand(1,mt_getrandmax()). "',page_filename=page_ref where page_filename='index'";
+			$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__);
+			#now set the chosen dir_ref to index.php
+			 
+			
+			
 			$q="select dir_menu_id,dir_title,dir_filename from $this->directory_table where dir_ref='$dir_ref'";
 			$r2=$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);
 			while($rows2=$this->mysqlinst->fetch_assoc($r2,__LINE__)){
@@ -9280,6 +9286,9 @@ function parse_menu_edit($dir_menu_id){
 				}//end while rename index pages to newindex 
 			$q="UPDate $this->directory_table  set dir_update='".date("dMY-H-i-s")."',dir_time='".time()."',token='".mt_rand(1,mt_getrandmax()). "',dir_filename='index' where dir_ref='$dir_ref'";
 			$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);
+			$q="UPDate $this->master_page_table  set page_time='".time()."',token='".mt_rand(1,mt_getrandmax()). "',page_filename='index' where page_filename='$dir_ref'";
+			$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__);
+			#now set the chosen dir_ref to index.php
 			if (is_file($dir_filename.$this->ext)){
 				if (!copy($dir_filename.$this->ext,'index'.$this->ext)){
 					mail::alert("failure to copy $dir_filename  to index$this->ext  Having the title $dir_title in editpages");
@@ -11441,8 +11450,8 @@ $transition_time=(!empty($blog_data2[$transition_index]))?$blog_data2[$transitio
 		
 		$allowSizeReduction=($this->edit)?'hs.allowSizeReduction: false':'hs.allowSizeReduction:true';
 echo <<<eol
-<script > 
-if (hs.addSlideshow) hs.addSlideshow({
+<script >   
+if (hs.addSlideshow) hs.addSlideshow({  
 	slideshowGroup: "$this->blog_data1",
 	interval: 7000, 
 	dimmingDuration : $transition_time,
