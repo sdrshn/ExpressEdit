@@ -179,7 +179,7 @@ function return_url($tablename,$listed='',$style='navr1 floatleft',$show_all=fal
 	$flag=true;    
 	$return_url=check_data::check_array_strpos(Sys::Self,Cfg::Aux_scripts); #no return url for addgallerycore.php etc.
 	$appendReturnUrl='';//(!$return_url)?'?returnedit='.Sys::Self :'?returnedit='.Cfg_loc::PrimeEditDir;
-	if (!empty($listed)){// this means do not return to these master galleries..!! used in imaginge the land with nav3...
+	if (!empty($listed)){// this is not used anymore
 		$list=(is_array($listed))?$listed:explode(',',$listed);
 		foreach ($list as $var){
 			if ($tablename==$var){
@@ -188,7 +188,7 @@ function return_url($tablename,$listed='',$style='navr1 floatleft',$show_all=fal
 				}
 			}
 		}      
-	if (!$flag)$file='../index.php';
+	if (!$flag)$file='../index.php';//send to default page if flag reset to false
 	elseif (strpos(Sys::Self,'expandgalleryedit')!==false&&is_file('../expand-'.$tablename.'-1.php')&&isset($_GET['pic'])){ 
 		$pic=$_GET['pic'];
 		$file=(is_file('../expand-'.$tablename.'-'.$pic.'.php'))?'../expand-'.$tablename.'-'.$pic.'.php':'../expand-'.$tablename.'-1.php';
