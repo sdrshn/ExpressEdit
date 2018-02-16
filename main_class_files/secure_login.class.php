@@ -232,13 +232,13 @@ function checkbrute() {
 	$valid_attempts = $now - $wait; 
 	$q="select time,salt from login_attempting where lockout='locked_out' and time  > '$valid_attempts' and salt='".$_SESSION[Cfg::Owner.'logcheck']."'";     
      $r=$this->mysqli->query($q,__METHOD__,__LINE__,__FILE__,false);
-     if ($this->mysqli->num_rows($r)>0){ 
+     if ($this->mysqli->affected_rows()){ 
           list($time)=$this->mysqli->fetch_row($r);
           $timeleft=round(($time+$wait-$now)/60,1);    
           return $timeleft;
           } 
      #first we check if locked out then we if we need to lockout
-	$q="SELECT time FROM login_attempting WHERE  time > '$valid_attempts'";
+	$q="SELECT time FROM login_attempting WHERE  time > '$valid_attempts'"; 
      $r=$this->mysqli->query($q,__METHOD__,__LINE__,__FILE__,false); 
      if ($this->mysqli->num_rows($r) > 5) {  
           $q="insert into login_attempting (user_id, time, salt,lockout) VALUES (1000, '$now','".$_SESSION[Cfg::Owner.'logcheck']."','locked_out')"; 

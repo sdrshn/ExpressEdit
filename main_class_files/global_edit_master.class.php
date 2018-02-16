@@ -3002,13 +3002,16 @@ function custom_style($style, $val,$field=''){
 		#mediafor
 		for ($i=0; $i < $count; $i++){
 			$class_suffix=(array_key_exists($i,$media_added_style_arr)&&array_key_exists(0,$media_added_style_arr[$i])&&!is_numeric($media_added_style_arr[$i][0]))?$media_added_style_arr[$i][0]:'';
+			$newref=(isset($this->data))?str_replace('.'.$this->data,'#'.$idref,$this->pelement):$this->pelement;//so here we wish to get in the id of each post in order that advanced styles always take precedence regardless of its css order!
+		 
+		$css_class_id= ($newref===$this->pelement)?$this->pelement.$class_suffix:$this->pelement.$class_suffix.','.$newref;
 			$customcss=(array_key_exists($i,$media_added_style_arr)&&array_key_exists(1,$media_added_style_arr[$i]))?str_replace('=>',',',str_replace('break',"\n",$media_added_style_arr[$i][1])):'';   
 			$media_maxpx=(array_key_exists($i,$media_added_style_arr)&&array_key_exists(2,$media_added_style_arr[$i])&&$media_added_style_arr[$i][2]>199&&$media_added_style_arr[$i][2]<2001)?$media_added_style_arr[$i][2]:'';
 			$media_minpx=(array_key_exists($i,$media_added_style_arr)&&array_key_exists(3,$media_added_style_arr[$i])&&!empty($media_added_style_arr[$i][3]))?$media_added_style_arr[$i][3]:'';
 			echo '<div class="editbackground"><!--media array wrap-->';
 			echo '<div class="fs4orange editbackground"><!--array wrapper media inner-->';
 			echo '<div class="fs1green editbackground editcolor"><!--array wrapper media css-->';
-			printer::printx('<p class="info floatleft">#'.$idref.'</p>'); 
+			printer::printx('<p class="info floatleft">'.$css_class_id.'</p>'); 
 			echo '<div class="floatleft"><!--floatwrap css suffix-->';
 			if (empty($class_suffix))$this->show_more('Suffix','','tiny info','Add a class suffix');
 			$msg=(empty($class_suffix))?'Add optional additional class specifier Here: ':'';
@@ -8217,7 +8220,8 @@ function text_render($data,$tablename='',$style_list='',$columns=20,$style_open=
 		#ok here if marked as global the results of these styles choices will directly style this blog type but also the parent column.text..  as shown...
 	$type=$this->blog_type;
 	$global_field=($this->blog_global_style==='global')?',.'.$this->clone_ext.$this->col_table.' .'.$type:'';
-	$this->edit_styles_close($data,'blog_style','.'.$data.'.'.$type.$global_field, $style_list ,$this->styler_blog_instructions. 'Post#'.$this->blog_order_mod.' Col#'.$this->column_order_array[$this->column_level]);
+	$globalmsg=($this->blog_global_style==='global')?' Global Style':'';
+	$this->edit_styles_close($data,'blog_style','.'.$data.'.'.$type.$global_field, $style_list ,$this->styler_blog_instructions. 'Post#'.$this->blog_order_mod.' Col#'.$this->column_order_array[$this->column_level].$globalmsg);
 	}
  
 	
@@ -8609,8 +8613,10 @@ function video_post($data,$vidinfo,$viddir=''){
 			}//if vid_upload
 		}//if ! clone 
 	$style_list='background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,text_align,borders,box_shadow,outlines,radius_corner'; #do not display edit styling for padding top and bottom
-	$global_field=($this->blog_global_style==='global')?',.'.$this->clone_ext.$this->col_table.' .'.$this->blog_type:''; 	
-	$this->edit_styles_close($data,'blog_style','.'.$data.'.'.$this->blog_type.$global_field, $style_list ,'Style Video');
+	$global_field=($this->blog_global_style==='global')?',.'.$this->clone_ext.$this->col_table.' .'.$this->blog_type:'';
+	$globalmsg=($this->blog_global_style==='global')?' Global Style':'';
+	
+	$this->edit_styles_close($data,'blog_style','.'.$data.'.'.$this->blog_type.$global_field, $style_list ,'Style Video'.$globalmsg);
 	
 	 }
  
@@ -9112,17 +9118,21 @@ function build_pic($data,$picdir='',$style_ref='blog_style',$styles_open=true,$b
 	$original_width=$this->current_net_width;
 	$this->current_net_width=$fwidth;
 	$this->background_img_px=$fwidth+$pad_width;
-	$global_field=($this->blog_global_style==='global')?',.'.$this->clone_ext.$this->col_table.' .'.$this->blog_type.'_img':''; 
-	$this->edit_styles_close($data,'blog_data4','.'.$data.'_img'.$global_field,'background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,borders,box_shadow,outlines,radius_corner','Style Image Border &amp; Image Spacing ',false,'Style an Image Border and background effect here. Remember that Margin spacing is outside the image border whereas Padding spacing will put space between a border and the image.');  
+	$global_field=($this->blog_global_style==='global')?',.'.$this->clone_ext.$this->col_table.' .'.$this->blog_type.'_img':'';
+	$globalmsg=($this->blog_global_style==='global')?' Global Style':'';
+	
+	$this->edit_styles_close($data,'blog_data4','.'.$data.'_img'.$global_field,'background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,borders,box_shadow,outlines,radius_corner','Style Image Border &amp; Image Spacing '.$globalmsg,false,'Style an Image Border and background effect here. Remember that Margin spacing is outside the image border whereas Padding spacing will put space between a border and the image.');  
 	$this->background_img_px=$orginal_bip; 
 	$this->current_net_width=$original_width;
 	printer::pclear();
 	#ok here if marked as global the results of these styles choices will directly style this blog type but also the parent column.text..  as shown...
 	#all fields done cause blog_global_style equalling global applies to all fields that are chosen to be included
 	$type=($this->blog_type==='float_image_left'||$this->blog_type==='float_image_right')?'float_image':$this->blog_type;
-	$global_field=($this->blog_global_style==='global')?',.'.$this->clone_ext.$this->col_table.' .'.$type:''; 
+	$global_field=($this->blog_global_style==='global')?',.'.$this->clone_ext.$this->col_table.' .'.$type:'';
+	$globalmsg=($this->blog_global_style==='global')?' Global Style':'';
+	
 	$style_list='';  
-	$this->edit_styles_close($data,$style_ref,'.'.$data.'.'.$type.$global_field, $style_list,'Style the Overall Post');
+	$this->edit_styles_close($data,$style_ref,'.'.$data.'.'.$type.$global_field, $style_list,'Style the Overall Post'.$globalmsg);
 	}//end build  #end build
  
 function float_pic($data,$picdir){  

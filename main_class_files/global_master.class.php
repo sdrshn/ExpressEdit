@@ -178,7 +178,7 @@ class global_master extends global_edit_master{
 	
 function temp(){
 	
-	if (strpos(Sys::Self,'express_video')!==false){
+	if (!$this->edit&&Sys::Web&&strpos(Sys::Self,'express_video')!==false){
 		mail('info@expressedit.org','Entered Express Video','Video Express Alert');mail::alert('Entered Express Video','Video Express Alert'); } 
 	return;
 	 

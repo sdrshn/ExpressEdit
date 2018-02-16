@@ -15,21 +15,25 @@ ExpressEdit is an integrated Theme Creation CMS
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.*/
-
-    #the following are general system constants that don't generally need to be changed here
 class Cfg_master {
-	const View_db='';//set in Cfg.class.php
+	const View_db='ekarasac_viewdb';
 	const Spacings_off=true;
 	const Debug_backtrace=true;
 	const Override=true;//set to true to override common file overwrites  ie custom gallery prev next navigation images etc.
 	const Error_exit=true;//false for production may be true for development exits on non fatal errors .       const Local_site='htdocs,localhost';//use comma separated of more than one development system. to determine whether local development system or production environment  may be changed in local Cfg files also
-	 
+	const Test_site_dir=null; //not used anymore..  
+	const Session_save_path='session_XaByzrt5';//customize a  session save path directory .. may be specified in local Cfg.class.php  use no special characters
 	const Mysqlserver='';//dir can be manually configured here if not auto detected which may affect backups..   ie  ='C:/xampp/mysql/bin  on xampp windows default settings where the entire path needs to be specified for mysqldump backups
-	 	#******Database Info**************
+	const Prevent_default=0;//for debugging only
+     const Timecheck=2; //if more than 2 seconds to render a page then a alert email is sent. Usually happens with search engines over doing it
+	#******Database Info**************
    //const Restrict=true;  //set to true to emulate logging in for live server on your devlopement system.  set to false to bypass logging in for edit pages and other restricted files  affects the local system only
+     const Admin_key='sedreplace';
+     const Time_zone='America/New_York';
      const Secure_session=false;
 	const Local_site='htdocs,localhost';//use comma separated of more than one development system. to determine whether local development system or production environment  may be changed in local Cfg files also
      const Dbhost = 'localhost'; 
+     const Dbase_update='ekarasawebsite,florencewebsite,imaginewebsite,karmawebsite';//for development only
      const Hello = 'hello world';
      const Fonts_browser='Arial, Helvetica, sans-serif; Arial Black, Gadget, sans-serif; Constantia, cambria, sans-serif; Comic Sans MS, Comic Sans MS5, cursive; Courier New, monospace; Georgia1, Georgia, serif; Helvetica, sans-serif; Impact, Impact5, Charcoal6, sans-serif; Lucida Console, Monaco5, monospace; Lucida Sans Unicode, Lucida Grande, sans-serif; Palatino Linotype, Book Antiqua3, Palatino, serif; Tahoma, Geneva, sans-serif; Times New Roman, Times New Roman, Times, serif; Trebuchet MS1, Trebuchet MS, sans-serif; Verdana, Verdana, Geneva, sans-serif';
      const Fonts_extended='Questrial, sans-serif;Nova Slim, cursive;Cabin, sans-serif;Julee, cursive;Macondo Swash Caps, cursive;Michroma, sans-serif;Give You Glory, cursive;Delius Swash Caps, cursive;Bad Script, cursive;Sofia, cursive;Eagle Lake, cursive;Kite One, sans-serif;Contrail One, cursive;Paprika, cursive;Redressed, cursive;Shadows Into Light, cursive;Josefin Slab, serif;Antic, sans-serif;Nothing You Could Do, cursive;Indie Flower, cursive;Delius, cursive;Amaranth, sans-serif;Over the Rainbow, cursive;Aubrey, cursive;Text Me One, sans-serif;Cinzel Decorative, cursive;Shadows Into Light Two, cursive;Comfortaa, cursive;Handlee, cursive;Oxygen, sans-serif;Basic, sans-serif;Ruluko, sans-serif;Chivo, sans-serif;Architects Daughter, cursive;Merienda, cursive;Diplomata SC, cursive;Cedarville Cursive, cursive;Numans, sans-serif;Happy Monkey, cursive;Sintony, sans-serif';
@@ -186,9 +190,12 @@ class Cfg_master {
      const Db_ext='.sql';
      const Aux_scripts='add_page_pic,add_page_vid';//like to prevent return link when editing
      //const Table_suffix='data,highslide,expand,_thumbs';
-     const Request_pass=''; 
+     const Request_pass='';
+     const Exclude='jpgraph,tinymce-Orig,1downloaded internet files,fvd suite,zen cart,secure apache ssl,.,..,$recycle.bin,system volume information,temp,phplist,compress,zen,phpMyAdmin,phpsite,ellen,design,css,create,arthur,attachment,highslide,fonts,langs,plugins,themes,utils,graphics,tmp,cgi-bin,forum,zen,wordpress,tinymce,tiny-mce';#these files are excluded from search and other generation programs
      const Skip_it='data,expand,undo_temp,gallery_storage,gallery_temp_restore,setupmaster';#setupmaster used in gallery setup table creation
-      const Valid_pdf_mime='application/pdf,application/acrobat,application/x-pdf,applications/vnd.pdf,text/pdf,text/x-pdf';
+    const Test_site='false';
+     #pdf
+     const Valid_pdf_mime='application/pdf,application/acrobat,application/x-pdf,applications/vnd.pdf,text/pdf,text/x-pdf';
      const Pdf_max=15000000;
 	const Pass_class_page='passclass.php';
 	const Expand_pass_page='expand-passclass.php';
@@ -230,26 +237,6 @@ class Cfg_master {
      const Page_images_expand_dir='page_images_expanded/';
      #***Image Info*****************************
      #Image_response values must asccend
-     const Default_video_img='default_vid.jpg';
-	const Pass_image='default_pass.jpg';
-	const Default_image='default.jpg';
-     const Text_images=false;
-     const Valid_pic_mime =   'image/pjpeg,image/jpeg,image/JPG,image/gif,image/GIF,image/X-PNG,image/PNG,image/png,image/x-png,image/svg+xml'; 
-     const Valid_pic_ext='jpg,gif,png,jpeg,svg';
-     const Valid_watermark_ext="gif,png";
-	 const Last_log='last_logfile.txt'; //file with the last log only
-     #**Video+++++++++++
-     const Vid_button='playvid.gif';  //watermark  play button automatically added to uploaded video still images
-     const Vid_background_dir='video_background/'; 
-     const Vid_dir='video/'; 
-     const Vid_image_dir='video_image/';                   
-     //const Valid_vid_mime =  'application/x-shockwave-flash,video/mp4,application/vnd.adobe.flash.movie,video/x-flv,video/quicktime,application/octet-stream,application/x-zip-compressed,application/zip,video/x-ms-wmv,video/webm,video/ogg,video/m4v';
-	const Valid_vid_mime =  'video/mp4,video/webm,video/ogg,video/m4v';
-     //const Valid_vid_ext='flv,mov,zip,mp4,mp4,ogg,m4v,webm';
-     const Valid_vid_ext='mp4,ogg,m4v,webm';
-   
-	#The following constants provide default values that are generally configured for changes on the editor page
-	
       const Image_response='100,200,300,400,500,700,900,1100,1300,1700,2100';
      //const Image_response='2100,1300,1100,900,700,500,400,300,200,100';//in an effort to deliver quicker browser page load times and minimize bandwidth images at the px widths specified here are created to deliver the minimum size equal or larger to the request. These resized Images are created once and only if the particular size is requested. The master upload file is the source from which all resized images are created and should be large enough to accom0date sizes and expanded images.  For image intensive sites running low on server space, you can clear the resized image folders and only essential sized images will be auto regenerated from the original master upload image.
      //Page_pic_plus and Page_pic_expand_plus if set will override Page_width and  Page_pic_expand 
@@ -259,27 +246,50 @@ class Cfg_master {
      const Page_pic_expand_width='';// normally for expanded view both height and width are considered.  If you prefer to set the width then be sure to set the  Pic_expand_plus value to empty (='';)
      #image size configs may be changed when uploading a photo 
      const Page_width=1280;//default  which is changed in page options  or col options 
+     const Default_video_img='default_vid.jpg';
+	const Pass_image='default_pass.jpg';
+	const Default_image='default.jpg';
      const Max_pic_width=1800;//max pic width for body background images
+     const Text_images=false;
      const Check_gallery='reorder,expand,gallery';
      const Default_watermark=false;
      const Title= '';
      const Subtitle= '';
+     const Contact_title_pic='contactsudarshan.gif';
      const Gall_topbot_pad=70;
      const Gall_container_width='720';
-     const Master_gall_pic_plus='200';//master gall setting  stipulates width_heighty
      const Gallery_row_width='560';
      const Small_gall_pic_plus='180';
+	const Master_gall_pic_plus='200';//master gall setting  stipulates width_height
      const Large_gall_pic_plus='700';
      const Small_gall_pic_width='';
      const Large_gall_pic_width=''; 
+     const Valid_pic_mime =   'image/pjpeg,image/jpeg,image/JPG,image/gif,image/GIF,image/X-PNG,image/PNG,image/png,image/x-png,image/svg+xml'; 
+     const Valid_pic_ext='jpg,gif,png,jpeg,svg';
+     const Valid_watermark_ext="gif,png";
      const Pic_max=12000000;
-     const Pic_quality=95; 
+     const Pic_quality=95;
+     const Expandgallery='';
+     const Gallery_global=false;
 	const Col_maxwidth=4000;
      const Master_gall_pic_width=300;//this is the large thumbnails to go to expanded gallery that doesn't seem set with value anywhere
      const Default_background_image_width=1600;
      #*********Gallery Management*********
-       #*************
-       const Vid_max=15000000; 
+     const Master_galls='';#replaces Gallery content tables
+     const Gallery_content='';//blank default   gallery for master gallery
+     
+     #*************
+     const Last_log='last_logfile.txt'; //file with the last log only
+     #**Video+++++++++++
+     const Vid_button='playvid.gif';  //watermark  play button automatically added to uploaded video still images
+     const Vid_background_dir='video_background/'; 
+     const Vid_dir='video/'; 
+     const Vid_image_dir='video_image/';                   
+     //const Valid_vid_mime =  'application/x-shockwave-flash,video/mp4,application/vnd.adobe.flash.movie,video/x-flv,video/quicktime,application/octet-stream,application/x-zip-compressed,application/zip,video/x-ms-wmv,video/webm,video/ogg,video/m4v';
+	const Valid_vid_mime =  'video/mp4,video/webm,video/ogg,video/m4v';
+     //const Valid_vid_ext='flv,mov,zip,mp4,mp4,ogg,m4v,webm';
+     const Valid_vid_ext='mp4,ogg,m4v,webm';
+      const Vid_max=15000000; 
      const Vid_width_max=1000;
      const Vid_height_max=1000;
      const Vid_min=50;
@@ -293,7 +303,11 @@ class Cfg_master {
      const Aspect_m4v=1.333;
      const Aspect_webm=1.333;
      const Aspect_swf=1.333;
-       #backup configuration for cleaning sql and gzipped backups   settings may be tweaked based on your available server disk space
+     #**Contact++++++++++
+     const Mail_from='ekarasa@ekarasa.com';
+     const Contact_master_email_pic='sudarshanemail.gif';
+     const Contact_master_pic='sudarshan_design.jpg'; 
+     #backup configuration for cleaning sql and gzipped backups   settings may be tweaked based on your available server disk space
      const Max_sql_backups=10;//keeps these many backups..
 	const Max_gz_backups=10;
 	const Max_gz_days=5;//for gzipped files

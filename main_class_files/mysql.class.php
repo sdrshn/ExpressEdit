@@ -124,7 +124,7 @@ public function affected_rows($line='',$method=''){if (Sys::Methods) Sys::Debug(
     }
            
 public function num_rows($r){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-    return $r->num_rows;
+    return $r->num_rows;//return mysqli_num_rows($r);
     }
     
 public function fetch_assoc($r,$line='',$method=''){  
