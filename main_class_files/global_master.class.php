@@ -2221,8 +2221,7 @@ blockquote, q {
 	a:link.alist{text-decoration: underline;color:#5340D1;}
 	 a:visited.alistblue {color:#9D97E3;}
 	a:link.alistblue:hover, a.alistblue:visited:hover,a:link.alistblue:visited:hover, a.alistblue:visited:hover{color:blue}
-	a:link.alist{text-decoration: underline;color:#5340D1;}
-	 a:visited.alist {text-decoration: underline;color:purple;}
+	a:link.alist,a.alist:visited{text-decoration: underline;color:inherit;} 
 	a:link.alist:hover,a.alist:visited:hover,a:link.alist:visited:hover,a.alist:visited:hover{color:blue}
 	a:link.info,a:visited.link {color:#'.$this->info.';background:rgba(255,255,255,0.33)}
 	a:link.click,a:visited.click {text-decoration: underline;padding:3px 3px;display:inline-block;text-align:left; cursor: pointer;  text-decoration: underline;}

@@ -4726,6 +4726,7 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 			#For unclones which are not immediately recloned they will contain information directly...
 			#Here we get main values of post to be displayed using the table and blog_order of the regular post, or clone, or uncloned post..     
 			$this->editpages_obj($this->master_post_table,'blog_id,'.Cfg::Post_fields,'','blog_order',$blog_order,'blog_table',$blog_table,'populate_data');
+			 
 			if ($this->blog_type==='nested_column'){  
 				if ($blog_status==='clone'&&$blog_unstatus==='unclone'&&!empty($blog_clunc_id)){ 
 					$this->is_clone=true;//this is questionable! and need to check out this situation further.. not sure why direct clone is uncloned..     
@@ -5236,10 +5237,11 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 				} 
 			}//if nested column...
 		
-		($this->is_clone&&$this->blog_unstatus!=='unclone')&&$blog_order=$this->blog_order=$orig_val['blog_order'];// here we are replacing blog order with orig_val blog_order which was actually derived from data_col_list_col_id which is original cloned column values so that if a post is newly added the updated blog orders will take effect immediately.. perhaps another reason to switch to ids !!
+		 
 		$this->fieldmax=$this->mysqlinst->get('fieldmax'); 
 		$this->clone_ext=($this->is_clone&&$this->clone_local_style)?'clone_':'';
 		$this->data=$data=$this->clone_ext.$this->blog_table.'_'.$blog_order;//form  name fields
+		 
 		if(($this->blog_type==='nested_column'&&$this->column_use_grid_array[$this->column_level]==='use_grid')||($this->blog_type!=='nested_column'&&$this->column_options[$this->column_use_grid_index]==='use_grid')){
 			 
 			$floatnew=true;
