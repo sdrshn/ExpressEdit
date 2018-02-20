@@ -1349,7 +1349,7 @@ function configure(){if(Sys::Custom)return; if (Sys::Quietmode) return;
 	$page_configs='RWD settings, Image Cache Sizes, Default Primary Column Width, Editor Colors, Styles, Page Slide Show settings';
 	$this->is_page=true;//for styling
 	echo '<div class="inline floatleft"><!-- float buttons-->';
-	$this->show_more('Configure this Page','noback',$this->column_lev_color.' smallest editbackground button'.$this->column_lev_color,'',800);
+	$this->show_more('Configure this Page','noback',$this->column_lev_color.' smallest editbackground button'.$this->column_lev_color,'',1000);
 	echo '<div class="editcolor fsminfo Os3darkolivegreen floatleft editbackground"><!--configure wrap-->'; 
 	$this->show_more('Some Basic Pointers on the editor system','noback','','',800); 
      echo '<p class="editcolor fsmcolor editbackground"><br> 
@@ -1647,8 +1647,20 @@ function configure(){if(Sys::Custom)return; if (Sys::Quietmode) return;
 	printer::print_tip($msg);
 	$this->edit_styles_close('body','page_link', 'body A:LINK,body A:visited','font_family,font_weight,font_color,text_shadow,letter_spacing,italics_font,small_caps,text_underline','Style Text Links');
 	printer::close_print_wrap('alinks');
+	###########
 	$this->show_close('Style A Links');
+	$this->show_more('Custom Page Style','','','','700');
+	printer::print_wrap('Custom Page Style');
+	//function textarea($dataname,$name,$width,$fontsize=16,$turn_on='',$float='left',$percent=90,$inherit=false,$class=''){
+	printer::print_tip('Place Custom CSS Must Include Classname or Id. Include CSS complete, Everything except the style Tags. CAUTION; Mistakes in this may likely affect all CSS');
+	$this->textarea($this->page_custom_css,'page_custom_css','100','16');
+	$this->submit_button();
+	$this->css.=$this->page_custom_css;
 	
+	printer::close_print_wrap('Custom Page Style');
+	$this->show_close('Custom Page Style');
+	printer::pclear(5);
+	##################################
 	$this->show_more('Maintenance');
 	printer::print_wrap('maintenance');
 	#################
@@ -1703,7 +1715,7 @@ function configure(){if(Sys::Custom)return; if (Sys::Quietmode) return;
 	$this->show_close('Maintenance');
 	printer::pclear(5); 
 	
-	//$this->edit_metadata();
+	 $this->edit_metadata();
 	$this->is_page=false;
 	$this->submit_button('SUBMIT ALL'); 
 	echo '</div><!--configure wrap-->';  
@@ -8175,7 +8187,7 @@ function misc($data){echo 'under construction'; return;  //outdated option
 	
 	
 #textarea    
-function textarea($dataname,$name,$width,$fontsize=16,$turn_on='',$float='left',$percent=90,$inherit=false,$class=''){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
+function textarea($dataname,$name,$width,$fontsize=16,$turn_on='',$float='left',$percent=100,$inherit=false,$class=''){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
 	$styling=($inherit)?'background:inherit;color:inherit;':'background:#'.$this->editor_background.';color:#'.$this->editor_color.';';
 	$display_editor=($turn_on)?'mytextarea ':'';
 	$cols= 'cols="'.(process_data::width_to_col($width,$fontsize)).'"'; 
