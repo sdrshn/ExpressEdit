@@ -1643,22 +1643,36 @@ function configure(){if(Sys::Custom)return; if (Sys::Quietmode) return;
 	##############################333
 	$this->show_more('Style A Links');
 	printer::print_wrap('alinks','Os3salmon fsmaqua');
-	$msg="Style default text link styles here .";
+	$msg="Style default anchor links styles here .";
 	printer::print_tip($msg);
 	$this->edit_styles_close('body','page_link', 'body A:LINK,body A:visited','font_family,font_weight,font_color,text_shadow,letter_spacing,italics_font,small_caps,text_underline','Style Text Links');
 	printer::close_print_wrap('alinks');
 	###########
 	$this->show_close('Style A Links');
-	$this->show_more('Custom Page Style','','','','700');
-	printer::print_wrap('Custom Page Style');
+	$msg='Add links, tags, scripts to head';
+	$this->show_more($msg,'','','','700');
+	printer::print_wrap($msg);
 	//function textarea($dataname,$name,$width,$fontsize=16,$turn_on='',$float='left',$percent=90,$inherit=false,$class=''){
-	printer::print_tip('Place Custom CSS Must Include Classname or Id. Include CSS complete, Everything except the style Tags. CAUTION; Mistakes in this may likely affect all CSS');
+	printer::print_tip('Append Custom links to css and script files or additional meta tags and css or scripts to the head section');
+	$this->textarea($this->page_head,'page_head','100','16');
+	$this->submit_button();
+	$this->css.=$this->page_custom_css;
+	
+	printer::close_print_wrap($msg);
+	$this->show_close($msg);
+	printer::pclear(5);
+	###########
+	$this->show_close('Style A Links');
+	$this->show_more('Custom Page CSS','','','','700');
+	printer::print_wrap('Custom Page CSS');
+	 
+	printer::print_tip('Add Custom CSS Must Include Classname or Id. Include CSS complete, Everything except the style Tags. CAUTION; Mistakes in this may likely affect all CSS');
 	$this->textarea($this->page_custom_css,'page_custom_css','100','16');
 	$this->submit_button();
 	$this->css.=$this->page_custom_css;
 	
-	printer::close_print_wrap('Custom Page Style');
-	$this->show_close('Custom Page Style');
+	printer::close_print_wrap('Custom Page CSS');
+	$this->show_close('Custom Page CSS');
 	printer::pclear(5);
 	##################################
 	$this->show_more('Maintenance');

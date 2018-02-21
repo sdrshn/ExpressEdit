@@ -1358,17 +1358,8 @@ function render_header_open() { if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,_
 		else include_once ('includes/'.$this->header_type);
 		} 
 	else include ('includes/'.$this->header_type); 
-     /*if ($this->edit){//this refresh  obsolete
-	if (isset($_GET['refresh']) || isset($_POST['submitted']) ||isset($_SESSION[Cfg::Owner.'refresh'])&& $_SESSION[Cfg::Owner.'refresh']>0 && $_SESSION[Cfg::Owner.'refresh']<3){
-		if (isset($_GET['refresh'])|| isset($_POST['submitted'])){
-			$_SESSION[Cfg::Owner.'refresh']=1;
-			}
-		else $_SESSION[Cfg::Owner.'refresh']++;
-		
-	   //echo '<META HTTP-EQUIV="REFRESH" CONTENT="1;URL='.Sys::Self.'">';
-		}
-	else  unset ($_SESSION[Cfg::Owner.'refresh']);
-    }*/
+     if (!empty($this->page_head)) 
+		printer::printx( "\n".$this->page_head);
      printer::printx( "\n".'<link href="'.$this->roots.Cfg::Style_dir.$this->tablename.$this->css_suffix.'.css?'.rand(0,32323).'" rel="stylesheet" type="text/css">'); 
 	(Sys::Advanced||!$this->edit||(!Sys::Advancedoff&&$this->page_options[$this->page_advanced_index]!=='disabled'))&&printer::printx( "\n".'<link href="'.$this->roots.Cfg::Style_dir.$this->tablename.'_adv'.$this->css_suffix.'.css?'.rand(0,32323).'" rel="stylesheet" type="text/css">');
 	($this->edit)&&printer::printx( "\n".'<link href="'.$this->roots.Cfg::Style_dir.$this->tablename.$this->css_suffix.'edit.css?'.rand(0,32323).'" rel="stylesheet" type="text/css">');
@@ -1455,7 +1446,7 @@ function header_insert(){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD
 	//use individual page class ie about.class.php for the same but page specific..
 	}
 
-function header_close(){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
+function header_close(){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__); 
 	echo'</head>';
     }    
     
