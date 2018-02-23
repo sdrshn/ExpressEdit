@@ -1661,8 +1661,7 @@ function configure(){if(Sys::Custom)return; if (Sys::Quietmode) return;
 	printer::close_print_wrap($msg);
 	$this->show_close($msg);
 	printer::pclear(5);
-	###########
-	$this->show_close('Style A Links');
+	########### 
 	$this->show_more('Custom Page CSS','','','','700');
 	printer::print_wrap('Custom Page CSS');
 	 
@@ -1786,9 +1785,7 @@ function abs_spacing($style,$val,$css_class,$msg,$title){
 		 
 		   
 	echo'  </div>';
-	printer::pclear(1);
-	    
-	 	
+	printer::pclear(1); 
 	$final=$sizepx.';';
 	$fstyle='final_'.$style; 
     $this->{$fstyle}[$val]=($sizepx==='None')?'':$css_class.':'.$final;
@@ -3465,8 +3462,10 @@ function background($style, $val,$field='',$msg='Background color'){
 			 
 		echo '</div><!--Upload background image-->';
 		echo '<div class="fsminfo editbackground rad3 '.$this->column_lev_color.'"><!--configure background image -->Configure Your Background Image:<br>';
-		 
+		$background_image_render=true; 
 		if(!empty($background_array[$background_image_index])&&!empty($background_array[$background_image_use_index])){
+			printer::print_info("Background Image is enabled: ".$background_array[$background_image_index]);
+			
 			$quality=(!empty($this->page_options[$this->page_image_quality_index])&&$this->page_options[$this->page_image_quality_index]<101&&$this->page_options[$this->page_image_quality_index]>9)?$this->page_options[$this->page_image_quality_index]:Cfg::Pic_quality;
 			if (!is_file(Cfg_loc::Root_dir.Cfg::Background_image_dir.$background_array[$background_image_index])){
 				if (is_file(Cfg_loc::Root_dir.Cfg::Upload_dir.$background_array[$background_image_index])){
@@ -3482,7 +3481,10 @@ function background($style, $val,$field='',$msg='Background color'){
 					}
 				else {
 					$tid=($this->is_blog)?$this->blog_id:(($this->is_column)?$this->col_id:'pageback '.$this->tablename);
-					mail::alert('Missing Background image: '.$background_array[$background_image_index]. ' in Ref:'.$tid);
+					$msg='Missing Background image: '.$background_array[$background_image_index]. ' in Ref:'.$tid ;
+					printer::alert_neg($msg);
+					(Sys::Web)&&mail::alert($msg);
+					$background_image_render=false;
 					}
 				}
 			
@@ -3495,7 +3497,10 @@ function background($style, $val,$field='',$msg='Background color'){
 			    }
 			}
 		printer::pclear();
-		 if (is_file(Cfg_loc::Root_dir.Cfg::Background_image_dir.$background_array[$background_image_index])&&$background_array[$background_image_use_index]==1){
+		if (!is_file(Cfg_loc::Root_dir.Cfg::Background_image_dir.$background_array[$background_image_index])&&$background_array[$background_image_use_index]==1){
+			printer::alert('<input name="'.$style.'['.$val.']['.$background_image_use_index.']" type="checkbox" value="0" >Turn off Background Image<br>');
+			}
+		else if (is_file(Cfg_loc::Root_dir.Cfg::Background_image_dir.$background_array[$background_image_index])&&$background_array[$background_image_use_index]==1){
 			
 			if ($this->edit&&(empty($background_array[$background_repeat_index])||$background_array[$background_repeat_index]=='no-repeat'||$background_array[$background_repeat_index]=='repeat-y')&&!$background_array[$background_image_noresize_index]){  
 				list($width,$height)=$this->get_size($background_array[$background_image_index],Cfg_loc::Root_dir.Cfg::Background_image_dir);
@@ -5195,12 +5200,15 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 					//else $this->$field='';
 					}
 				$this->blog_id=$collect['blog_id'];
-				if(!$this->blog_pub&&!isset($_GET['showallunpub'])&&!Sys::Pass_class)continue;//main foreach
+				if(!$this->blog_pub&&!isset($_GET['showallunpub'])&&!Sys::Pass_class){
+			 
+			continue;//main foreach
+			} 
 				}//
 			else if (!Sys::Pass_class){
 				mail::alert('flat file '.Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'post_subbed_row_data_'.$subbed_row_id.' not found line '.__LINE__);
 				return;
-				}
+				}  //echo "$this->blog_id is blog id and pub is $this->blog_pub";
 			}//end if not edit 
 		if (!$this->edit&&!Sys::Pass_class&&$this->is_clone&&$this->clone_local_data){//now for local clone data if true we must flatfile the relevant localclonedata fields...
 		 	$data_arr=array();

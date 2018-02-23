@@ -245,6 +245,7 @@ return;
 #__con	
 function __construct($edit=false,  $return=false){
 	if($return)return;
+	//echo Sys::Dbname." is sys dbname";
 	// printer::vert_print($_POST);
 	$this->viewport_current_width=process_data::get_viewport();
 	$this->color_arr_long=explode(',',Cfg::Light_editor_color_order);//default value
@@ -254,61 +255,12 @@ function __construct($edit=false,  $return=false){
 	$this->ext=request::check_request_ext();  
 	$this->page_initiate();    
 	#****** Require login for  editsites and restricted  access ie.   display_user_db.php   display/    file_gen.php 
-	if ((($this->edit&&!Sys::Pass_class)||Sys::Check_restricted)){//this is always on for security for editpages and other restricted utilities such as file_gen.php and display user pages see (Sys.php)
+	if ((Sys::Web||(Sys::Loc&&Cfg::Local_login))&&(($this->edit&&!Sys::Pass_class)||Sys::Check_restricted)){//this is always on for security for editpages and other restricted utilities such as file_gen.php and display user pages see (Sys.php)
 #logged_in #login
 		new secure_login('ownerAdmin',false); //for access to editpages  
 		}  
 	$this->css_suffix=$this->passclass_ext=(Sys::Pass_class)?Cfg::Temp_ext:'';		 
-	if ($this->edit && (isset($_POST['page_restore_view'])&&!empty($_POST['page_restore_view']))||(isset($_SESSION[Cfg::Owner.'db_to_restore'])&&isset($_GET['page_restore_dbopt']))){//Cfg::Backups_db
-		if (isset($_POST['page_restore_view'])){  
-		    list($fname,$time)=explode('@@',$_POST['page_restore_view']);
-		    $dbname=Cfg::View_db;
-		    }
-		else if(isset($_GET['page_restore_dbopt'])){
-			if (!empty($_GET['page_restore_dbopt'])) //direct
-				list($fname,$time)=explode('@@',$_GET['page_restore_dbopt']);
-			else {
-				list($fname,$time)=explode('@@',$_SESSION[Cfg::Owner.'db_to_restore']);//from viewpages first
-				unset($_SESSION[Cfg::Owner.'db_to_restore']);
-				}
-			$dbname=Cfg::Dbname;
-			
-			}
-		
-		$bfile=str_replace('.gz','',$fname);
-		$fullpathfile=Sys::Home_pub.Cfg::Backup_dir.$bfile;
-		$flag=false;
-		if (is_file(Sys::Home_pub.Cfg::Backup_dir.$bfile)){
-			$cmd1='';
-			$flag=true;
-			}
-		elseif (is_file(Sys::Home_pub.Cfg::Backup_dir.$fname)){ 
-			$cmd1='gunzip -k '.Sys::Home_pub.Cfg::Backup_dir.$fname.';';
-			//$bfile=process_data::gunzip(Sys::Home_pub. Cfg::Backup_dir.$fname); php unzip response not doing it
-			$flag=true;
-			
-			}
-			
-		if ($flag){
-			$host=Cfg::Dbhost;
-			$user=Cfg::Dbuser;
-			$pass=Cfg::Dbpass; 
-			$cmd2=Sys::Mysqlserver.'mysql  -h'.$host.' -u'.$user.' -p'.$pass.' '. $dbname.'  < '.$fullpathfile.';';
-			
-			system($cmd1. $cmd2); 
-			if(isset($_GET['page_restore_dbopt'])){
-				$this->backupinst->backupdb(Sys::Dbname,'',$time,$fname);
-				$msg='Chosen Db was restored: '.$fname;
-				printer::alert_pos($msg);
-				}
-			else {
-				$_SESSION[Cfg::Owner.'viewdb']=true;
-				$this->success[]='Db View initated from '.$this->get_time_ago($time);
-				$_SESSION[Cfg::Owner.'db_to_restore']=$_POST['page_restore_view'];
-				}
-			}
-		else $this->message[]='Problem with Backup restore fullfilepath of '.$fullpathfile.' in '.__METHOD__.__LINE__;	 
-		}
+	if ($this->edit && (isset($_POST['page_restore_view'])&&!empty($_POST['page_restore_view']))||(isset($_SESSION[Cfg::Owner.'db_to_restore'])&&isset($_GET['page_restore_dbopt'])))$this->db_backup_restore();
 		
 	$this->ajax_check();   
 	(Sys::Onsubmitoff)&&$this->onsubmit='';
@@ -388,8 +340,60 @@ function __construct($edit=false,  $return=false){
 	    // $this->request_redirect_check();
 		$this->page_script();   
 		}
-	}
+	}//end __construct
 	
+function db_backup_restore(){//const View_db='viewbackupdb';
+	#so here we are either using page_restore view to populate viewdb for viewing or  we are going to restore the present databse with the backup (page_restore_dbopt)
+		if (isset($_POST['page_restore_view'])){  
+		    list($fname,$time)=explode('@@',$_POST['page_restore_view']);
+		    $dbname=Cfg::View_db;
+		    }
+		else if(isset($_GET['page_restore_dbopt'])){
+			if (!empty($_GET['page_restore_dbopt'])) //direct
+				list($fname,$time)=explode('@@',$_GET['page_restore_dbopt']);
+			else {
+				list($fname,$time)=explode('@@',$_SESSION[Cfg::Owner.'db_to_restore']);//from viewpages first
+				unset($_SESSION[Cfg::Owner.'db_to_restore']);
+				}
+			$dbname=Cfg::Dbname;
+			
+			}
+		$bfile=str_replace('.gz','',$fname);
+		$fullpathfile=Sys::Home_pub.Cfg::Backup_dir.$bfile;
+		$flag=false;
+		if (is_file(Sys::Home_pub.Cfg::Backup_dir.$bfile)){
+			$cmd1='';
+			$flag=true;
+			}
+		elseif (is_file(Sys::Home_pub.Cfg::Backup_dir.$fname)){ 
+			$cmd1='gunzip -k '.Sys::Home_pub.Cfg::Backup_dir.$fname.';';
+			//$bfile=process_data::gunzip(Sys::Home_pub. Cfg::Backup_dir.$fname); php unzip response not doing it
+			$flag=true;
+			
+			}
+			
+		if ($flag){
+			$host=Cfg::Dbhost;
+			$user=Cfg::Dbuser;
+			$pass=Cfg::Dbpass; 
+			$cmd2=Sys::Mysqlserver.'mysql  -h'.$host.' -u'.$user.' -p'.$pass.' '. $dbname.'  < '.$fullpathfile.';';
+			
+			system($cmd1. $cmd2);
+			echo printer::print_info(NL.'View DB system() populated');
+			if(isset($_GET['page_restore_dbopt'])){
+				$this->backupinst->backupdb(Sys::Dbname,'',$time,$fname);
+				$msg='Chosen Db was restored: '.$fname;
+				printer::alert_pos($msg);
+				}
+			else {
+				$_SESSION[Cfg::Owner.'viewdb']=true;
+				$this->success[]='Db View initated from '.$this->get_time_ago($time);
+				$_SESSION[Cfg::Owner.'db_to_restore']=$_POST['page_restore_view'];
+				}
+			}
+		else $this->message[]='Problem with Backup restore fullfilepath of '.$fullpathfile.' in '.__METHOD__.__LINE__;	 
+	}//end db_backup_restore
+		
 function page_populate_options(){
 	if (empty($this->page_options)){ 
 			$this->page_options=array();

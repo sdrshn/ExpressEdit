@@ -2,7 +2,6 @@
 /*
 ExpressEdit is an integrated Theme Creation CMS
 	Copyright (c) 2018  Brian Hayes expressedit.org  
-
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -16,7 +15,9 @@ ExpressEdit is an integrated Theme Creation CMS
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.*/
 class Cfg_master {
-	const View_db='ekarasac_viewdb';
+	const Local_login=false;//localhost login not true for developement system
+	//name of database with identical fields to main db for use in viewing backups 
+	const View_db='viewbackupdb';
 	const Spacings_off=true;
 	const Debug_backtrace=true;
 	const Override=true;//set to true to override common file overwrites  ie custom gallery prev next navigation images etc.

@@ -43,37 +43,37 @@ Cfg::Background_image_dir.Cfg::Pass_image.','.Cfg::Small_thumb_dir.Cfg::Pass_ima
 	   	self::full_copy(Sys::Common_dir.Cfg::Menu_icon_dir,Sys::Home_pub.Cfg::Menu_icon_dir);
 		self::full_copy(Sys::Common_dir.Cfg::Graphics_dir,Sys::Home_pub.Cfg::Graphics_dir); 
 		self::full_copy(Sys::Common_dir.Cfg::Script_dir,Sys::Home_pub.Cfg::Script_dir);
-		self::full_copy(Sys::Common_dir.Cfg::Script_dir,Sys::Home_pub.Cfg::Theme_dir.Cfg::Script_dir);
+		//self::full_copy(Sys::Common_dir.Cfg::Script_dir,Sys::Home_pub.Cfg::Theme_dir.Cfg::Script_dir);
 		self::full_copy(Sys::Common_dir.Cfg::Font_dir,Sys::Home_pub.Cfg::Font_dir);
-		self::full_copy(Sys::Common_dir.Cfg::Font_dir,Sys::Home_pub.Cfg::Theme_dir.Cfg::Font_dir);
+		//self::full_copy(Sys::Common_dir.Cfg::Font_dir,Sys::Home_pub.Cfg::Theme_dir.Cfg::Font_dir);
 		self::full_copy(Sys::Common_dir.Cfg::Social_dir,Sys::Home_pub.Cfg::Social_dir); 
-		self::full_copy(Sys::Common_dir.Cfg::Social_dir,Sys::Home_pub.Cfg::Theme_dir.Cfg::Social_dir);
+		//self::full_copy(Sys::Common_dir.Cfg::Social_dir,Sys::Home_pub.Cfg::Theme_dir.Cfg::Social_dir);
 		self::full_copy(Sys::Common_dir.Cfg::Display_dir,Sys::Home_pub.Cfg::Display_dir);
 		self::full_copy(Sys::Common_dir.Cfg::Watermark_dir,Sys::Home_pub.Cfg::Watermark_dir);
 		self::full_copy(Sys::Common_dir.Cfg::Playbutton_dir,Sys::Home_pub.Cfg::Playbutton_dir);
 		self::full_copy(Sys::Common_dir.Cfg::Vid_dir,Sys::Home_pub.Cfg::Vid_dir); #copy video contents to each website root dir
 	 
-		self::full_copy(Sys::Common_dir.Cfg::Vid_dir,Sys::Home_pub.Cfg::Theme_dir.Cfg::Vid_dir); #copy video contents to each website root dir   
+		//self::full_copy(Sys::Common_dir.Cfg::Vid_dir,Sys::Home_pub.Cfg::Theme_dir.Cfg::Vid_dir); #copy video contents to each website root dir   
 		}
   
 	 
 #Here we are copying a list of files from the Common_dir to Current Directory root
 self::gen_copy_files(Sys::Common_dir,Sys::Home_pub,$files_copy);
-self::gen_copy_files(Sys::Common_dir,Sys::Home_pub.Cfg::Theme_dir,$files_copy);	#copy files from  Pub to Home Pub
+//self::gen_copy_files(Sys::Common_dir,Sys::Home_pub.Cfg::Theme_dir,$files_copy);	#copy files from  Pub to Home Pub
 //$for_test_arr=array();
 
 
-copy(Sys::Common_dir.'passclass.php',Sys::Home_pub.Cfg::Theme_dir.'passclass.php');
-copy(Sys::Common_dir.'expand-passclass.php',Sys::Home_pub.Cfg::Theme_dir.'expand-passclass.php');
+//copy(Sys::Common_dir.'passclass.php',Sys::Home_pub.Cfg::Theme_dir.'passclass.php');
+//opy(Sys::Common_dir.'expand-passclass.php',Sys::Home_pub.Cfg::Theme_dir.'expand-passclass.php');
 self::config_generate();
 if (!is_file(Sys::Home_pub.Cfg::Backup_dir.Cfg::Logfile_dir.Cfg::Log_file)){
 	file_put_contents(Sys::Home_pub.Cfg::Backup_dir.Cfg::Logfile_dir.Cfg::Log_file
 	,'In the beginning');
 	}
-if (!is_file(Sys::Home_pub.Cfg::Theme_dir.Cfg::Backup_dir.Cfg::Logfile_dir.Cfg::Log_file)){
-	file_put_contents(Sys::Home_pub.Cfg::Theme_dir.Cfg::Backup_dir.Cfg::Logfile_dir.Cfg::Log_file
-	,'In the beginning');
-	}
+//if (!is_file(Sys::Home_pub.Cfg::Theme_dir.Cfg::Backup_dir.Cfg::Logfile_dir.Cfg::Log_file)){
+	//file_put_contents(Sys::Home_pub.Cfg::Theme_dir.Cfg::Backup_dir.Cfg::Logfile_dir.Cfg::Log_file
+	//,'In the beginning');
+	//}
 
 $default_html='<!DOCTYPE html>
 <html lang="en"> 
@@ -401,8 +401,8 @@ class Cfg_loc  {
 ?>
 eol;
 if (!file_put_contents(Cfg::Include_dir.'Cfg_loc.class.php',$config))exit('Problem with initial config');
-if (is_dir(Cfg::Theme_dir.Cfg::Include_dir)) 
-	if (!file_put_contents(Cfg::Theme_dir.Cfg::Include_dir.'Cfg_loc.class.php',$config))exit('Problem with theme config');
+//if (is_dir(Cfg::Theme_dir.Cfg::Include_dir)) 
+	//if (!file_put_contents(Cfg::Theme_dir.Cfg::Include_dir.'Cfg_loc.class.php',$config))exit('Problem with theme config');
 }
 
 static function config_generate(){

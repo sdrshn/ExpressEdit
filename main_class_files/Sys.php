@@ -156,8 +156,8 @@ elseif (!empty(Cfg::Mysqlserver)&&!is_dir(Cfg::Mysqlserver))
 else $mysqlserver=Cfg::Mysqlserver; 
 
 #**********check if this site is restricted  if so it will require login if live server and if restrict value = true in local check
-$check_restricted=(strpos($_SERVER['PHP_SELF'],'file_gen.php')===false&&strpos($_SERVER['PHP_SELF'],'display_user_db.php')===false)?false:true;//check if file should require admin login access 
-$pass_class=($logged_in&&!isset($_GET['viewdboff'])&&((strpos($_SERVER['PHP_SELF'],Cfg::Pass_class_page)!==false&&strpos($_SERVER['PHP_SELF'],Cfg::Expand_pass_page)!==false)||(isset($_SESSION[Cfg::Owner.'viewdb'])&&$_SESSION[Cfg::Owner.'viewdb']==true)||isset($_GET['viewdb'])))?true:false; 
+$check_restricted=($web&&(strpos($_SERVER['PHP_SELF'],'file_gen.php')!==false||strpos($_SERVER['PHP_SELF'],'display_user_db.php')!==false))?true:false;//check if file should require admin login access 
+$pass_class=(($logged_in||($loc&&!Cfg::Local_login))&&!isset($_GET['viewdboff'])&&((strpos($_SERVER['PHP_SELF'],Cfg::Pass_class_page)!==false&&strpos($_SERVER['PHP_SELF'],Cfg::Expand_pass_page)!==false)||(isset($_SESSION[Cfg::Owner.'viewdb'])&&$_SESSION[Cfg::Owner.'viewdb']==true)||isset($_GET['viewdb'])))?true:false; 
 $pass_class=(!isset($_POST['submit']))?$pass_class:false;  
 $returnpass=(isset($_GET['returnpass']))?$_GET['returnpass']:'';
 (isset($_GET['logout']))&&secure_login::logout(); //logout if requested
@@ -169,7 +169,7 @@ $testsite=0;//no longer used
 	
 
 $nl = "<br>\n";    
-$dbname=($logged_in&&!isset($_GET['viewdboff'])&&((isset($_SESSION[Cfg::Owner.'viewdb'])&&$_SESSION[Cfg::Owner.'viewdb']==true)||isset($_GET['viewdb'])))?Cfg::View_db:Cfg::Dbname;   
+$dbname=(($logged_in||($loc&&!Cfg::Local_login))&&!isset($_GET['viewdboff'])&&((isset($_SESSION[Cfg::Owner.'viewdb'])&&$_SESSION[Cfg::Owner.'viewdb']==true)||isset($_GET['viewdb'])))?Cfg::View_db:Cfg::Dbname;   
 $gall_pic_path=Cfg_loc::Root_dir.Cfg::Small_thumb_dir;
 $gall_pic_path2=Cfg_loc::Root_dir.Cfg::Large_image_dir;
 $gall_pic_path3=Cfg_loc::Root_dir.Cfg::Master_thumb_dir;
