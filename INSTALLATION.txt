@@ -35,9 +35,9 @@ and then when configuring the Cfg.class.php file (see below) be sure to specify 
 For All installations:
 
 Install yourDatabase.sql database starter to mysql with appropriate name.
-For viewing any database you wish to reinstall:
-Make a copy of this database (no data required) and rename to your Cfg.class.php  const View_db configuration setting: ie viewbackupdb..
- 
+Make a copy of installed yourDatase  (no data required) and rename to your Cfg.class.php  const View_db configuration setting: ie viewbackupdb..
+This is necessary for viewing any backup database you wish to reinstall:
+
 Inside of the public includes folder is the Cfg.class.php which you need to configure with your database name,  database password, and database host, editpages directory and other configurations.  Also for backing up a second database is used with identical fields to the main database and you give it an appropriate name in the const Db_view field. Any backup file will then populate this db to be viewed.
 
 Be sure to place the common_dir folder which holds system files that will be moved to necessary subfolders during installation  into the same parent directory where you placed the includes directory holding the main class files 
