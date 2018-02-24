@@ -177,7 +177,9 @@ class global_master extends global_edit_master{
 	protected $css_view=array(); 
 	
  
-#__con	
+#__con
+function temp(){
+	}
 function __construct($edit=false,  $return=false){
 	if($return)return;
 	//echo Sys::Dbname." is sys dbname";
