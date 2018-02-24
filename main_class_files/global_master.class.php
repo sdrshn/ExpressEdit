@@ -176,72 +176,7 @@ class global_master extends global_edit_master{
 	protected $large_images_arr=array();//hold current gallery large_image_dir images and quality info
 	protected $css_view=array(); 
 	
-function temp(){
-	
-	if (!$this->edit&&Sys::Web&&strpos(Sys::Self,'express_video')!==false){
-		mail('info@expressedit.org','Entered Express Video','Video Express Alert');mail::alert('Entered Express Video','Video Express Alert'); } 
-	return;
-	 
- $q="update $this->master_post_table as c, $this->master_col_table as p set c.blog_grid_width=p.col_grid_width,c.blog_gridspace_right=p.col_gridspace_right,c.blog_gridspace_left=p.col_gridspace_left where c.blog_data1=p.col_id and c.blog_type='nested_column'";
-   //$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);  
-   	 echo $q; exit();
-	
-	
-	return;
- $q="update $this->master_post_table as p, $this->master_post_table as g set p.blog_grid_width=g.blog_grid_class where p.blog_id=g.blog_id";
-   $this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);  
-   	
-
-	
- return;
- $q="update $this->master_post_data_table as p, $this->master_gall_table as g set p.blog_tiny_data4=g.imagetitle,p.blog_tiny_data5=g.subtitle where p.blog_data1=g.master_gall_ref ";
-   $this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);  
-   	
-	echo $q;   exit();
-
-return;
-	 $q="update $this->master_post_data_table as p, $this->master_gall_table as g set p.blog_data1=g.gall_ref where p.blog_table_base=g.gall_table and g.pic_order=1";
-   $this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);  
-   	
-	echo $q;
-	return;
-	$q="select distinct gall_table from $this->master_gall_table where master_gall_status=''";
-	$r = $this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
-	$garr=array();
-	while (list($page_ref) = $this->mysqlinst->fetch_row($r,__LINE__)){
-		$newpage_ref=process_data::clean_filename($page_ref);
-		$where=" where page_ref='$newpage_ref'";
-		$count=$this->mysqlinst->count_field($this->master_page_table,'page_id','',false,$where);
-		if ($count >0 ){
-			printer::alert_neg("NL. page ref $page_ref already created");
-			continue;
-			}
-		echo NL." trying $page_ref ";
-		$_POST['create_page']=$page_ref;
-		$_POST['use_newpage_ref']='events';
-		$this->add_new_page(true);
-		}
-	exit('done'); 
-	
-	return;
-	$q="select blog_id,blog_table,blog_col from $this->master_post_table where blog_type='nested_column' and blog_table_base='$this->tablename'";
-	$temp=$this->mysqlinst->query($q);
-	
-	while(list($blog_id,$blog_table,$blog_col)=$this->mysqlinst->fetch_row($temp)){ 
-		$arr=explode('post_id',$blog_table);
-		if (count($arr)!==2){
-			printer::alert_neg("blog id $blog_id has table $blog_table");
-			}
-		else {
-			if ($blog_col !==$arr[1]){
-				$q="update $this->master_post_table set blog_col='{$arr[1]}' where blog_id=$blog_id";
-				$this->mysqlinst->query($q);
-				printer::alert_pos("blog_col was $blog_col and now updating with $q");
-				}
-			else printer::alert_pos("No changes ncess with $blog_id");
-			}
-		}//end while
-	}//end temp
+ 
 #__con	
 function __construct($edit=false,  $return=false){
 	if($return)return;
