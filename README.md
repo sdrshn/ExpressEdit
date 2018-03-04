@@ -18,6 +18,8 @@ ExpressEdit is an integrated Theme Creation CMS
 See the file LICENSE.txt for details.
 
 Interested in moving the project forward? Contributors welcome.
+Currently installing animations.
+Needs security review, designing, integration with additional plugin features.
 
 Video Demos Page:  http://expressedit.org/
 See   installation.txt  for the installation proceedure
