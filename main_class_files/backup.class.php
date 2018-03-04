@@ -139,6 +139,7 @@ function backup_gallery_global_db($masterTablename,$ext,$tables=''){//clone tabl
 
 function backupdb ($dbname=Sys::Dbname,$tablename='',$restoredate='',$restorefname=''){ if (Sys::Debug)  Sys::Debug(__LINE__,__FILE__,__METHOD__); if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
 	if (isset($_POST['page_restore_dbopt'])&&empty($restoredate))return;
+	if (isset($_POST['page_restore_view']))return;
 	if (isset($_GET['iframepos']))return;// is iframe doing style/config  backup only
 
 	$table_backup=false;

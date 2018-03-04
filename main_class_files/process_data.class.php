@@ -3,7 +3,7 @@ class process_data extends Singleton{
 private static $instance=false; //store instance
 
  
-static function spam_scrubber($value,$strict=false,$trim=true) {if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
+static function spam_scrubber($value,$strict=false,$trim=true,$real_escape=true) {if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
 	   $block=array('?','head');// by default <script> allowed
 	#for checkbox's repopulate keys....
        #psuedo implode the keys, make sure 0 is placed in for any missing key that wasn't posted
@@ -23,8 +23,10 @@ static function spam_scrubber($value,$strict=false,$trim=true) {if (Sys::Methods
 	     }  
 	 $value=self::cleanup($value);//multifunction conversion
 	#$value=self::explode_breaks($value);//converts spaces following line breaks to &nbsp;
-     $mysqlinst = mysql::instance(); 
-	$value=$mysqlinst->escape($value);
+     if ($real_escape){
+		$mysqlinst = mysql::instance(); 
+		$value=$mysqlinst->escape($value);
+		}
 	if ($trim)
 	return trim($value);
 	return ($value);   
@@ -138,13 +140,32 @@ static function cleanup ($value){//used during editpages submitted for updating 
 	 
 	$value=str_replace ('&amp; nbsp;','&nbsp;',$value);
 	$value=str_replace (' &nbsp;','&nbsp;',$value);
-	$value=str_replace('<in.scribe>','&#60;in.scribe&#62;',$value);
-	$value=str_replace('<In.scribe>','&#60;In.scribe&#62;',$value);
-	$value=str_replace('<IN.SCRIBE>','&#60;IN.SCRIBE&#62;',$value);
 	$value = str_replace("& ","&amp; ", $value); //convert back
 	return $value;
 	} 		
- 
+static function import_cleanup ($value){//used during editpages submitted for updating database values
+	if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__); #run for processor
+		$value = str_replace(array("'"),'&#8217;', $value); #had used other quotes from mac 
+	$value = str_replace("&lt;a","<a", $value); //convert back
+	$value = str_replace("&lt;/a&gt;","</a>", $value);//convert back
+	//$value = str_replace("&lt;","<", $value); //convert back
+	// $value = str_replace("&gt;",">", $value);//convert back
+	 //$pattern='/&([^\ #])/';// if not a space.. the following cleans up sea&sand to sea &amp; sand
+	 //$value =preg_replace($pattern,'& $1',$value);//$1 in parenthesis
+	//$pattern='/([^\ ])&[^#]/'; //means everything but a space or a number
+	//$value =preg_replace($pattern,'$1 &',$value);
+	$value=str_replace('& amp;','&amp;',$value);
+	$value=str_replace('& lt;','&lt;',$value); 
+	$value=str_replace('& gt;','&gt;',$value);
+	$value=str_replace ('& nbsp;','&nbsp;',$value);
+	//$value=str_replace ('& #8217;','&#8217;',$value);
+	//$value=str_replace ('& #169;','&#169;',$value);
+	 
+	$value=str_replace ('&amp; nbsp;','&nbsp;',$value);
+	$value=str_replace (' &nbsp;','&nbsp;',$value);
+	$value = str_replace("& ","&amp; ", $value); //convert back
+	return $value;
+	} 	 
 static function clean_break($value){  
 	$patterns = "/<br >|< br>|<br \/>|<br\/>|<br  >|<br \/>|<br >/i";
      $replacements = "<br>";
@@ -294,11 +315,11 @@ static function email_scrubber($value){
 	return $value;
 	}
 
-static function clean_filename($value,$length=30){
+static function clean_filename($value,$length=30,$replacement=''){
 	While ($value[0]=='.'||$value[0]=='_'){ 
 		$value=substr_replace($value,'',0,1);
 		}  
-	return substr(self::spam_scrubber(preg_replace('/[^a-zA-Z0-9_.]/', '',str_replace(' ','_',strtolower($value)))),0,$length);
+	return substr(self::spam_scrubber(preg_replace('/[^a-zA-Z0-9_.]/', $replacement,str_replace(' ',$replacement,strtolower($value)))),0,$length);
 	}
 static function clean_title($value,$length=60){ 
 	$value=substr(self::spam_scrubber($value),0,$length); 

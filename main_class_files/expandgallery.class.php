@@ -113,26 +113,7 @@ function pre_render_data(){
 		$ajson[$key]=$value;
 		}
 	 
-	/*$this->gall_table=$json['gall_table'];
-	$this->blog_id=$json['blog_id'];
-	$this->next_gallery=$json['next_gallery']; 
-	$this->parent_wid=$json['parent_wid']; 
-	$this->data=$json['data'];
-	
-	$this->gall_expand_menu_icon=$json['gall_expand_menu_icon'];
-	$this->maxexpand=$json['maxexpand'];  
-	$this->thumbnail_height=$json['thumbnail_height'];
-	$this->transition=$json['transition'];
-	$this->transition_time=$json['transition_time'];
-	$this->current_net_width=$json['current_net_width'];
-	$this->page_cache_arr=$json['page_cache_arr'];
-	$this->page_width=$json['page_width'];
-	$this->new_page_effect=$json['new_page_effect'];
-	$this->default_imagetitle=trim($json['default_imagetitle']);
-	$this->default_subtitle=trim($json['default_subtitle']);
-	$this->default_description=trim($json['default_description']);
-	$this->show_under_preview=$json['show_under_preview'];
-	*/
+	 
 	if (isset($_GET['pic_order']))$this->pic_order=$_GET['pic_order']; 
 	else $this->pic_order=1;
 	
@@ -254,10 +235,10 @@ echo'
 
  
 docReady(function () {
-	document.body.style.backgroundImage=gen_Proc.getComputedStyle(\''.$this->data.'\',"background-image");
-	document.body.style.backgroundColor=gen_Proc.getComputedStyle(\''.$this->data.'\',"background-color");
-	gen_Proc.styleit(\''.$this->data.'\','.$style.');
-	//gen_Proc.addClass(\'body\',\''.$this->data.'\')
+	document.body.style.backgroundImage=gen_Proc.getComputedStyle(\''.$this->dataCss.'\',"background-image");
+	document.body.style.backgroundColor=gen_Proc.getComputedStyle(\''.$this->dataCss.'\',"background-color");
+	gen_Proc.styleit(\''.$this->dataCss.'\','.$style.');
+	//gen_Proc.addClass(\'body\',\''.$this->dataCss.'\')
 	gen_Proc.scroll_to_view("mainPicInfo_'.$this->blog_id.'");
 	window.scrollBy(0, -200);
 	fadeTo.preloading('.$this->preload.');
@@ -319,7 +300,7 @@ function nav(){
 		echo '<div class="prevD menu-icon"><a href="'.$url.'" onclick="fadeTo.fadeTo_init(\''.$this->fadeout_id.'\','.$this->transition_time.',100,0,-2);gen_Proc.delayGoTo(this,'.$this->transition_time.');return false;"><img src="'.Cfg_loc::Root_dir.Cfg::Menu_icon_dir.$this->gall_expand_menu_icon.'" alt="menu icon" width="50" height="30"></a></div>';
 	
 	printer::pclear(80);
-	echo '<div class="'.$this->data.'" id="'.$this->data.'"  style="display:block; margin:0 auto;">';
+	echo '<div class="'.$this->dataCss.'" id="'.$this->dataCss.'"  style="display:block; margin:0 auto;">';
 	
 	}//close nav
 function browser_size_display(){
@@ -398,7 +379,7 @@ function render_body_main(){ //process_data::write_to_file('lookout.txt','no pre
 	 if ($this->page_source) echo '<div id="holder_'.$this->blog_id.'" '.$fade_opacity.'><!--holder ps-->';
 	  
 	 elseif ($this->new_page_effect&&!$this->no_prev_page) {//simulate and not displaying page previews  
-		echo ' <div class="'.$this->data.'" id="'.$this->data.'" style="display:block; margin:0 auto;"><!--holdback--><div id="holder_'.$this->blog_id.'"><!--used for fading display-->';
+		echo ' <div class="'.$this->dataCss.'" id="'.$this->dataCss.'" style="display:block; margin:0 auto;"><!--holdback--><div id="holder_'.$this->blog_id.'"><!--used for fading display-->';
 		if (Sys::Pass_class){
 			printer::alert_neg('Viewing Database: '.Sys::Dbname);
 			printer::alert_neu('<a class="acolor click" href="'.Sys::Returnpass.'">Return Back to Edit Pages</a>');
@@ -406,7 +387,7 @@ function render_body_main(){ //process_data::write_to_file('lookout.txt','no pre
 			}
  
 		echo '
-		 <div class="menu-icon"><a '.$class.' href="'.$this->returnto.'?gen'. mt_rand(1,mt_getrandmax()).'=differ&amp:#'.$this->data.'" onclick="gen_Proc.goTo(this); return false; "><img src="'.Cfg_loc::Root_dir.Cfg::Menu_icon_dir.$this->gall_expand_menu_icon.'"" alt="menu icon" width="50" height="30"></a></div> ';
+		 <div class="menu-icon"><a '.$class.' href="'.$this->returnto.'?gen'. mt_rand(1,mt_getrandmax()).'=differ&amp:#'.$this->dataCss.'" onclick="gen_Proc.goTo(this); return false; "><img src="'.Cfg_loc::Root_dir.Cfg::Menu_icon_dir.$this->gall_expand_menu_icon.'"" alt="menu icon" width="50" height="30"></a></div> ';
 		 printer::pclear(80);
 		 }
 		 if (!is_file(Cfg_loc::Root_dir.Cfg::Large_image_dir.$image_dir. $this->picname)){
@@ -546,19 +527,7 @@ function render_body_main(){ //process_data::write_to_file('lookout.txt','no pre
 		</div>';
 		printer::pclear();
 		 
-		}//end show preview
-	
-	 
-	 
-	/* 
-	if ($this->new_page_effect&&$this->navigated){ 
-		$style='{background: \'none\', border : \'none\', boxShadow:\'none\'}';
-		echo '<script type="text/javascript">
-		document.body.style.backgroundImage=gen_Proc.getComputedStyle(\''.$this->data.'\',"background-image");
-	document.body.style.backgroundColor=gen_Proc.getComputedStyle(\''.$this->data.'\',"background-color");
-	gen_Proc.styleit(\''.$this->data.'\','.$style.');
-		</script>';
-		}*/
+		}//end show preview 
 	printer::pclear(100);
 	if ($this->new_page_effect&&!$this->no_prev_page)   print ('</div><!--holdback--></div><!--holder_.. used for fading display-->');
 	
@@ -570,7 +539,7 @@ function render_body_main(){ //process_data::write_to_file('lookout.txt','no pre
 		$json[]=str_replace('  ',' ',$data);
 		$json[]=$this->preload;
 		if ($this->new_page_effect&&$this->navigated){
-			$json[]=$this->data;
+			$json[]=$this->dataCss;
 			}
 		echo  json_encode($json); exit();
 		}  

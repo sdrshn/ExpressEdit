@@ -1207,7 +1207,7 @@ function add_new_page($batch_create=false){ if (Sys::Quietmode) return; if (Sys:
 		}
 	if (empty($indexref)){
 		echo '</div></div>';
-		printer::alert_neg("Proper filename for the index page not found",1);
+		printer::alert_neg("Proper filename for the index page not found ie index.php",1);
 		$q="select   page_id, page_title, page_filename from $this->master_page_table where page_filename like 'index%'";
 		$r = $this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
 		if ($this->mysqlinst->num_rows($r)>0&&$this->mysqlinst->num_rows($r)<2){
@@ -1652,8 +1652,7 @@ function configure(){if(Sys::Custom)return; if (Sys::Quietmode) return;
 	$msg='Add links, tags, scripts to head';
 	$this->show_more($msg,'','','','700');
 	printer::print_wrap($msg);
-	//function textarea($dataname,$name,$width,$fontsize=16,$turn_on='',$float='left',$percent=90,$inherit=false,$class=''){
-	printer::print_tip('Append Custom links to css and script files or additional meta tags and css or scripts to the head section');
+	 printer::print_tip('Append Custom links to css and script files or additional meta tags and css or scripts to the head section');
 	$this->textarea($this->page_head,'page_head','100','16');
 	$this->submit_button();
 	$this->css.=$this->page_custom_css;
@@ -1742,11 +1741,11 @@ function full_nav(){ if (Sys::Quietmode) return;
 	$this->show_more('Full Pages Navigation','','navr2 smallest','',400);
 	echo '<div class="fsminfo Os3darkolivegreen editbackground editcolor editfont" style="padding-left:30px;">';
 	printer::alertx('<p class="tip">This is a full navigation list to edit created pages whether published yet or not. </p>');
-	$q="select distinct page_ref, page_title, page_filename from $this->master_page_table  order by page_title ASC";  
+	$q="select distinct page_ref, page_title, page_filename from $this->master_page_table  order by page_ref ASC";  
 	$r = $this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false); 
 	while (list($page_ref,$title,$filename) = $this->mysqlinst->fetch_row($r,__LINE__)){
 		if (trim($filename)=='')continue;
-		echo '<span ><a class="alink editcolor editbackground" href="'.$filename.$this->ext.'">'.$title.'</a></span><br>'; 
+		echo '<span ><a class="alink editcolor editbackground" href="'.$filename.$this->ext.'">'.$page_ref.'</a></span><br>'; 
 		} 
 	echo '</div><!--full nav -->';
 	$this->show_close('full pages nav'); 
@@ -3919,6 +3918,7 @@ function col_data($prime=false){
 	//(!$prime)&&$this->col_blog_data=$this->data;//when using nested column parent blog data names
 	//used in styling suchas advanced styles
 	$col_id=$this->col_id;
+	
 	$this->col_order=self::$col_count++;   
 	//$this->col_order_max=max($this->col_order,$this->col_order_max); 
 	#&&&&&&&&&&&&&&&& END CLONE STYLING OPTION  &&&&&&&&&&&&&7*/
@@ -4245,7 +4245,7 @@ function col_data($prime=false){
 				printer::alert('Column Vertical Positioning Choice','','left editcolor editbackground');
 				$current_vert_val=($this->column_options[$this->column_vert_pos_index]!=='middle'&&$this->column_options[$this->column_vert_pos_index]!=='bottom')?'top':$this->column_options[$this->column_vert_pos_index];
 				forms::form_dropdown(array('top','middle','bottom'),'','','',$tablename.'_['.$this->column_vert_pos_index.']',$current_vert_val,false,'editcolor editbackground left');
-				$this->css.="\n.".$tablename.'{vertical-align:'.$current_vert_val.'}';
+				$this->css.="\n.".'col_'.$col_id.'{vertical-align:'.$current_vert_val.'}';
 				printer::alertx('</div>');	 
 		
 		#colopt  #colconf 
@@ -4273,7 +4273,7 @@ function col_data($prime=false){
 	 $msg='Add Spacing Within (padding) or Outside (margin) this Column,  Change the Column Background Color or Create a Column Border or Box Shadow Here. Column Borders and Box Shadows style an edge or edge(s) of the column based on the colors, the edges chosen, and type of style you choose. Radius the corners of the column Here. In addition,  set new <span class="bold">Column Specific Text Style Defaults</span> Here. Each Post has its own styling options (a wide choice for text based posts) for further Changes as Needed. !!';
 	$class=($prime)?'primary':'nested';
 	$class='';// note cautioon primary used for special tweaking @mediaminwidth for margins in # br
-	  $this->edit_styles_close($tablename,'col_style','.'.$tablename,'background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,padding_left_percent,padding_right_percent,margin_left_percent,margin_right_percent,borders,box_shadow,outlines,radius_corner,font_color,text_shadow,font_size,font_family','Edit Column Styles','noback',$msg);
+	  $this->edit_styles_close($tablename,'col_style','.col_'.$col_id,'background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,padding_left_percent,padding_right_percent,margin_left_percent,margin_right_percent,borders,box_shadow,outlines,radius_corner,font_color,text_shadow,font_size,font_family','Edit Column Styles','noback',$msg);
 	  	printer::pclear(2);
 		 
 	
@@ -4283,14 +4283,14 @@ function col_data($prime=false){
 			$this->show_more('Style Group, Tags,Date, and Comment for Column','noback');
 			echo '<div class="fsm'.$this->column_lev_color.' Os2darkslategray editbackground editcolor"><!--Style Group,Date-->';
 	   	printer::printx('<p class="fsminfo">Group Styles are a quick way to wrap several posts with Style. YSet default Group, Comments and date styles Here and Adjust as necessary with column specific options for the same. Finally style HR tags here which will be in affect page wise.</p>');
-	    $this->edit_styles_close($tablename,'col_grp_bor_style','.'.$tablename.' .style_groupstyle','','Set &#34;Group Styles&#34;','noback',$msg);
+	    $this->edit_styles_close($tablename,'col_grp_bor_style','.col_'.$col_id.' .style_groupstyle','','Set &#34;Group Styles&#34;','noback',$msg);
 	    $msg='Set style HR tags.  HR can be placed anywhere in text and the styles you set here will be expressed. HR are theme breaks, typically bordered lines with spacing';
-	    $this->edit_styles_close($tablename,'col_hr','.'.$tablename.' hr','width_special,width_percent_special,width_max_special,width_min_special,background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,padding_left_percent,padding_right_percent,margin_left_percent,margin_right_percent,borders,box_shadow,outlines,radius_corner','Set Col Specific HR Tags if needed','noback',$msg);
+	    $this->edit_styles_close($tablename,'col_hr','.col_'.$col_id.' hr','width_special,width_percent_special,width_max_special,width_min_special,background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,padding_left_percent,padding_right_percent,margin_left_percent,margin_right_percent,borders,box_shadow,outlines,radius_corner','Set Col Specific HR Tags if needed','noback',$msg);
 	    
-	    $this->edit_styles_close($tablename,'col_comment_style','.'.$tablename.' .posted_comment','','Style Comment Entries','noback','Comment Styles will affect all comment post feedback styles for posts made directly in this column');	
-	    $this->edit_styles_close($tablename,'col_date_style','.'.$tablename .' .style_date','','Style Post Date Entries','noback','Date Styling Affects Posts within this Column (And within any nested columns unless set there) with Show Post Date Enabled');
-	    $this->edit_styles_close($tablename,'col_comment_date_style','.'.$tablename.' .style_comment_date','','Style Comment Date Entries','noback','Comment Date Styling Affects Comments within this Column (And within any nested columns unless set there)');
-	     $this->edit_styles_close($tablename,'page_comment_view_style','.'.$tablename.' .style_comment_view','','Style #/view/Leave Comments','noback','Style the #of Comments  and View/Leave Comments Link');
+	    $this->edit_styles_close($tablename,'col_comment_style', '.col_'.$col_id.' .posted_comment','','Style Comment Entries','noback','Comment Styles will affect all comment post feedback styles for posts made directly in this column');	
+	    $this->edit_styles_close($tablename,'col_date_style','.col_'.$col_id.' .style_date','','Style Post Date Entries','noback','Date Styling Affects Posts within this Column (And within any nested columns unless set there) with Show Post Date Enabled');
+	    $this->edit_styles_close($tablename,'col_comment_date_style','.col_'.$col_id.' .style_comment_date','','Style Comment Date Entries','noback','Comment Date Styling Affects Comments within this Column (And within any nested columns unless set there)');
+	     $this->edit_styles_close($tablename,'page_comment_view_style','.col_'.$col_id.' .style_comment_view','','Style #/view/Leave Comments','noback','Style the #of Comments  and View/Leave Comments Link');
 		}
 	    
 	     if(!$this->is_clone||$this->clone_local_style){
@@ -4340,7 +4340,7 @@ function unclone_options($id,$post_target_clone_column_id){if(Sys::Custom)return
 #br	#blogrender# this is the main method to process posts for a given column and send them with populated values to their repective functions for content rendering 
 function blog_render($col_id,$prime=false,$col_table_base=''){
 	if (in_array($col_id,$this->column_moved))return; 
-	$this->col_id=$col_id;  
+	$this->col_id=$col_id;
 	$this->col_table_base=$col_table_base;
 	$tablename=$col_table_base.Cfg::Post_suffix.$col_id;
 	($prime)&&$this->total_float_mod(true);//initiates some prime column values concerning the total width including borders margins padding etc. 
@@ -4352,6 +4352,7 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 	$show_new_blog=false;
 	$clearfloat=false;//clear float after float no next and other circumstances
 	$this->clone_ext=($this->is_clone&&$this->clone_local_style)?'clone_':'';
+	$this->col_dataCss=$this->clone_ext.'col_'.$col_id;
 	if ($col_table_base!==$this->tablename&&!$this->clone_local_style)
 	#page stylesheet will collect additional page references for the expression of cloned css. 
 		$this->page_stylesheet_inc[]=$col_table_base;
@@ -4371,7 +4372,7 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 	#primary
 	#Note if prime column,  data for this column has been populated already in method   render_body_main in file global master class
 	if($prime&&!$this->edit)
-		print '<div id="'.$this->clone_ext.'col_'.$this->col_id.'"  class="'.$this->clone_ext.$tablename.' primary" style="max-width:'.$this->current_total_width.'px;"><!--Begin Primary Column id'.($this->col_id).'-->';
+		print '<div id="'.$this->clone_ext.'col_'.$this->col_id.'"  class="'.$this->col_dataCss.' primary" style="max-width:'.$this->current_total_width.'px;"><!--Begin Primary Column id'.($this->col_id).'-->';
 	elseif ($prime){// this is edit 
 		list($bw,$bh)=$this->border_calc($this->col_style);
 		if (!empty($bw)) 
@@ -4379,13 +4380,13 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 		$addclass=(empty($bw))?' bdot3'.$this->column_lev_color.' ':((empty($bs))?' bshad3'.$this->column_lev_color.' ':'');
 		
 		#fieldset no longer used switched to class containing border in editmode
-		print '<div  id="'.$this->clone_ext.'col_'.$this->col_id.'" class="'.$addclass.' '.$this->clone_ext.$tablename.' primary" style="max-width:'.$this->current_total_width.'px;"><p class="lineh90 shadowoff editcolor editbackground">Primary Column</p><!--Begin edit  Primary Column id'.($this->col_id).'-->';
+		print '<div  id="'.$this->clone_ext.'col_'.$this->col_id.'" class="'.$addclass.' '.$this->col_dataCss.' primary" style="max-width:'.$this->current_total_width.'px;"><p class="lineh90 shadowoff editcolor editbackground">Primary Column</p><!--Begin edit  Primary Column id'.($this->col_id).'-->';
 		printer::pclear();
 		list($padding_total,$margin_total)=$this->pad_mar_calc($this->col_style);
 		##width## @media tweak setting for primary column if margins are set then enable margin values.. margin auto will be set only when minimum width is > than the total column width!
 		$this->css.='
 		@media screen and (min-width:'.($margin_total+$this->current_total_width).'px){
-			.'.$tablename.'.primary{margin-left:auto;margin-right:auto;}
+			 .'.$this->col_dataCss.'.primary{margin-left:auto;margin-right:auto;}
 			}';
 		if (!$this->is_clone){
 			#subbed post for prime column
@@ -5274,8 +5275,9 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 		 
 		$this->fieldmax=$this->mysqlinst->get('fieldmax'); 
 		$this->clone_ext=($this->is_clone&&$this->clone_local_style)?'clone_':'';
-		$this->data=$data=$this->clone_ext.$this->blog_table.'_'.$blog_order;//form  name fields
-		 
+		$this->data=$data=$this->clone_ext.$this->blog_table.'_'.$blog_order;//form  name fields 
+		$this->dataCss=$this->clone_ext.$this->blog_table_base.'_colId_'.$this->blog_col.'_postId_'.$this->blog_id;//this id is to form immutable css for clones and such..
+		$this->col_dataCss='col_'.$this->col_id;
 		if(($this->blog_type==='nested_column'&&$this->column_use_grid_array[$this->column_level]==='use_grid')||($this->blog_type!=='nested_column'&&$this->column_options[$this->column_use_grid_index]==='use_grid')){
 			 
 			$floatnew=true;
@@ -5334,7 +5336,7 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 				printer::pclear();echo '<!--clear border float-->';
 			endif;
 			 
-			($this->blog_type!=='nested_column')&& $this->css.="\n.$data{".$floatstyle.'}'; 
+			($this->blog_type!=='nested_column')&& $this->css.="\n.$this->dataCss{".$floatstyle.'}'; 
 			(!$this->edit)&&$floatnew=false;
 			}//not rwd
 		($this->fieldmax==$blog_order)&&$show_new_blog=true; 
@@ -5391,7 +5393,7 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 		 #stylewidth
 		#altrespon 
 		if ($this->edit&&!$this->rwd_post&&strpos($this->blog_float,'float')===false){//here we checking if responsive width will apply at all.. if the post is not sharing space on the column then use max-width only
-			$cb_data=($this->blog_type==='nested_column')?$this->col_table:$data; 
+			$cb_data=($this->blog_type==='nested_column')?$this->col_dataCss:$this->dataCss; 
 			$this->css.='
 				.'.$cb_data.'{max-width:'.$this->current_total_width.'px;}';
 				#providing css external style sheet with max-width
@@ -5402,7 +5404,7 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 			$minwidth_per=($this->blog_alt_rwd[$this->blog_min_width_index]>0&&$this->blog_alt_rwd[$this->blog_min_width_index]<101)?$this->blog_alt_rwd[$this->blog_min_width_index]:Cfg::Default_min_width;
 			$mode=($this->blog_alt_rwd[$this->blog_width_mode_index]=='maxwidth'||$this->blog_alt_rwd[$this->blog_width_mode_index]=='compress_full_width'||$this->blog_alt_rwd[$this->blog_width_mode_index]=='compress_to_percentage')?$this->blog_alt_rwd[$this->blog_width_mode_index]:Cfg::Default_width_mode;
 			
-			$cb_data=($this->blog_type==='nested_column')?$this->col_table:$data; 
+			$cb_data=($this->blog_type==='nested_column')?$this->col_dataCss:$this->dataCss; 
 			//echo "mode is ".$this->blog_options[$this->blog_width_mode_index]."  and data is $cb_data"; 
 			$minwidth=$minwidth_per*$this->current_total_width/100;
 			$screen_min_bounceback=$this->column_total_width[0]*$minwidth_per/100;//check screen width for compression and reset post to original width as max-width
@@ -5447,13 +5449,13 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 				$bs=$this->calc_border_shadow($this->col_style);
 			$addclass=(empty($bw))?' bs3'.$this->column_lev_color.' ':((empty($bs))?' bshad3'.$this->column_lev_color.' ':'');
 			 
-			 $class=($this->rwd_post)?$data.' '.str_replace(',',' ',$this->blog_grid_width).' '.str_replace(',',' ',$this->blog_gridspace_right).' '.str_replace(',',' ',$this->blog_gridspace_left):$data;
+			 $class=($this->rwd_post)?$this->dataCss.' '.str_replace(',',' ',$this->blog_grid_width).' '.str_replace(',',' ',$this->blog_gridspace_right).' '.str_replace(',',' ',$this->blog_gridspace_left):$this->dataCss;
 			$nav_class='';
 			if ($this->blog_type=='navigation_menu'){
 				$nav_class=($this->blog_tiny_data2==='force_vert')?' vert':' horiz';
 				$nav_class.=($this->blog_tiny_data3=='nav_display')?' display':' hover';
 				}
-		#maindiv blog
+		#maindiv blog 
 			$float_image=($this->blog_type==='float_image_left'||$this->blog_type==='float_image_right')?' float_image':'';//this is used for globalizing styles within a column with float image right and left we dont want to copy the image styles because of necessary padding between right and left but we do want to copy the text styles..  whereas image styles can also be globalized if type matches. to accomadate this in render textarea we use the css extenstion : float images and in images we use the the full blog type css extension.  Here we include both to cover all situations
 		#maindiv
 			$classHeight=($this->blog_height>9)?' respondHeight ':'';
@@ -5647,11 +5649,11 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 			 
 			$fscss=(!$this->rwd_post)?$floatstyle:'';
 			$textalign=' text-align:center;';//this is applied for cases in which rwd is not used and center float (inline-block) is used for posts within this column in order that ..  also use when rwd is in play for consistency 
-			($this->edit&&!$this->rwd_post)&&$this->css.="\n.$this->clone_ext$this->col_table{ ".$fscss.$textalign.'}';
+			($this->edit&&!$this->rwd_post)&&$this->css.="\n.$this->clone_ext$this->col_dataCss{ ".$fscss.$textalign.'}';
 			#NON RWD WIDTHS HANDLED BY CSS IN maindiv
 			 $width_express='';//($this->width_max_px)?'style="max-width:'.($this->current_net_width).'px;"':'style="width:'.($this->current_net_width_percent).'%;"'; 
 			$stylewidth=($this->column_use_grid_array[$this->column_level]==='use_grid')?'':((!empty($this->current_total_width))?$width_express:'style="width:auto;"'); //echo NL. ' now '.$stylewidth.NL;
-			 $class=($this->rwd_post)?$this->clone_ext.$this->col_table.' '.str_replace(',',' ',$this->col_grid_width).' '.str_replace(',',' ',$this->col_gridspace_right).' '.str_replace(',',' ',$this->col_gridspace_left):$this->clone_ext.$this->col_table;
+			 $class=($this->rwd_post)?$this->clone_ext.'col_'.$this->col_id.' '.str_replace(',',' ',$this->col_grid_width).' '.str_replace(',',' ',$this->col_gridspace_right).' '.str_replace(',',' ',$this->col_gridspace_left):$this->clone_ext.'col_'.$this->col_id;
 			list($bw,$bh)=$this->border_calc($this->col_style); 
 			if (!empty($bw)) 
 				$bs=$this->calc_border_shadow($this->col_style);
@@ -5709,7 +5711,7 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 			 
 			($floatnew)&&$this->blog_new($data,$this->blog_table,$blog_order, $this->blog_order_mod.' in'); 
 			$this->current_net_width=$this->column_net_width[$this->column_level];
-			$data=$tablename.'_'.$this->blog_order_arr[$this->column_level];//this appears to be used for html div <!-- reference only -->
+			 
 			print '</div><!--End Nested Column id:'. $this->column_id_array[$this->column_level+1].' -->';
 			}//end nested column.... 
 		else {
@@ -5721,7 +5723,7 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 		#reinit clone status for all
 		$this->is_clone=(array_key_exists($this->column_level,$this->column_clone_status_arr)&&$this->column_clone_status_arr[$this->column_level])?true:false;
 		if ($this->blog_type!=='nested_column')
-			print '</div><!--'.$data.' id#'.$this->blog_id.' '.$this->blog_type.'-->';
+			print '</div><!-- id#'.$this->blog_id.' '.$this->blog_type.'-->';
 		if ($this->edit&&$this->show_more_on){
 			$this->show_more_on=false;
 			$this->show_close('show more on');echo '<!--close show more on-->';
@@ -7299,7 +7301,7 @@ function blog_options($data,$tablename){if(Sys::Custom)return;
 		printer::alert('Post Vertical Positioning Choice','','left editcolor editbackground');
 		$current_vert_val=($this->blog_options[$this->blog_vert_pos_index]!=='middle'&&$this->blog_options[$this->blog_vert_pos_index]!=='bottom')?'top':$this->blog_options[$this->blog_vert_pos_index];
 		forms::form_dropdown(array('top','middle','bottom'),'','','',$data.'_blog_options['.$this->blog_vert_pos_index.']',$current_vert_val,false,'editcolor editbackground left');
-		$this->css.="\n.".$data.'{vertical-align:'.$current_vert_val.'}';
+		$this->css.="\n.".$this->dataCss.'{vertical-align:'.$current_vert_val.'}';
 		printer::alertx('</div>');
 		}
 #postrwd
@@ -8210,7 +8212,7 @@ function misc($data){echo 'under construction'; return;  //outdated option
 	
 #textarea    
 function textarea($dataname,$name,$width,$fontsize=16,$turn_on='',$float='left',$percent=100,$inherit=false,$class=''){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-	$styling=($inherit)?'background:inherit;color:inherit;':'background:#'.$this->editor_background.';color:#'.$this->editor_color.';';
+	$styling=($inherit=='none')?'':(($inherit)?'background:inherit;color:inherit;':'background:#'.$this->editor_background.';color:#'.$this->editor_color.';');
 	$display_editor=($turn_on)?'mytextarea ':'';
 	$cols= 'cols="'.(process_data::width_to_col($width,$fontsize)).'"'; 
 	//$width= (empty($colsoff))?'width:100%; ':'';
@@ -8255,9 +8257,9 @@ function text_render($data,$tablename='',$style_list='',$columns=20,$style_open=
 		}//if edit
 		#ok here if marked as global the results of these styles choices will directly style this blog type but also the parent column.text..  as shown...
 	$type=$this->blog_type;
-	$global_field=($this->blog_global_style==='global')?',.'.$this->clone_ext.$this->col_table.' .'.$type:'';
+	$global_field=($this->blog_global_style==='global')?',.'.$this->clone_ext.$this->col_dataCss.' .'.$type:'';
 	$globalmsg=($this->blog_global_style==='global')?' Global Style':'';
-	$this->edit_styles_close($data,'blog_style','.'.$data.'.'.$type.$global_field, $style_list ,$this->styler_blog_instructions. 'Post#'.$this->blog_order_mod.' Col#'.$this->column_order_array[$this->column_level].$globalmsg);
+	$this->edit_styles_close($data,'blog_style','.'.$this->dataCss.'.'.$type.$global_field, $style_list ,$this->styler_blog_instructions. 'Post#'.$this->blog_order_mod.' Col#'.$this->column_order_array[$this->column_level].$globalmsg);
 	}
  
 	
@@ -8405,9 +8407,8 @@ function comment_display($data){
 		printer::printx('<p class="floatleft smaller" style="background:white;color:red;float:left; margin-left:2px;">'.$this->comment.':</p>'); 
 		printer::pclear(7);
 		printer::printx('<textarea   id="comment_text_'.$this->blog_id.'" class="width100 editbackground fs1'.$this->column_lev_color.'" name="comment_text['.$this->blog_id.']" rows="3"    onkeyup="gen_Proc.autoGrowFieldScroll(this);"></textarea>');
-		echo '</div><!--leave comment-->';
-		forms::form_close('','Submit '.$this->comment,'feedback_submit');
 		 $this->show_close('Leave '.$this->comment.'');
+		forms::form_close('','Submit '.$this->comment,'feedback_submit');
 		}//!edit and leave feedback	 
 	if ($count>0 || ($this->edit&&$accept_count>0)){
 		if($this->edit){
@@ -8463,13 +8464,13 @@ function comment_display($data){
 	if ($this->edit){ 
 		$this->css.='
 		@media screen and (max-width: 400px){
-			.'.$data.' input{max-width:250px;}
+			.'.$this->dataCss.' input{max-width:250px;}
 			}
 		@media screen and (max-width: 350px){
-			.'.$data.' input{max-width:200px;}
+			.'.$this->dataCss.' input{max-width:200px;}
 			}
 		@media screen and (max-width: 300px){
-			.'.$data.' input{max-width:160px;}
+			.'.$this->dataCss.' input{max-width:160px;}
 			}';
 		}
 	}//end comment_display
@@ -8649,14 +8650,137 @@ function video_post($data,$vidinfo,$viddir=''){
 			}//if vid_upload
 		}//if ! clone 
 	$style_list='background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,text_align,borders,box_shadow,outlines,radius_corner'; #do not display edit styling for padding top and bottom
-	$global_field=($this->blog_global_style==='global')?',.'.$this->clone_ext.$this->col_table.' .'.$this->blog_type:'';
+	$global_field=($this->blog_global_style==='global')?',.'.$this->clone_ext.$this->col_dataCss.' .'.$this->blog_type:'';
 	$globalmsg=($this->blog_global_style==='global')?' Global Style':'';
 	
-	$this->edit_styles_close($data,'blog_style','.'.$data.'.'.$this->blog_type.$global_field, $style_list ,'Style Video'.$globalmsg);
+	$this->edit_styles_close($data,'blog_style','.'.$this->dataCss.'.'.$this->blog_type.$global_field, $style_list ,'Style Video'.$globalmsg);
 	
 	 }
  
-	
+function animation(){
+	echo '
+	<!--animate.css -http://daneden.me/animate-->
+	<select class="input input--dropdown js--animations">
+        <optgroup label="Attention Seekers">
+          <option value="bounce">bounce</option>
+          <option value="flash">flash</option>
+          <option value="pulse">pulse</option>
+          <option value="rubberBand">rubberBand</option>
+          <option value="shake">shake</option>
+          <option value="swing">swing</option>
+          <option value="tada">tada</option>
+          <option value="wobble">wobble</option>
+          <option value="jello">jello</option>
+        </optgroup>
+
+        <optgroup label="Bouncing Entrances">
+          <option value="bounceIn">bounceIn</option>
+          <option value="bounceInDown">bounceInDown</option>
+          <option value="bounceInLeft">bounceInLeft</option>
+          <option value="bounceInRight">bounceInRight</option>
+          <option value="bounceInUp">bounceInUp</option>
+        </optgroup>
+
+        <optgroup label="Bouncing Exits">
+          <option value="bounceOut">bounceOut</option>
+          <option value="bounceOutDown">bounceOutDown</option>
+          <option value="bounceOutLeft">bounceOutLeft</option>
+          <option value="bounceOutRight">bounceOutRight</option>
+          <option value="bounceOutUp">bounceOutUp</option>
+        </optgroup>
+
+        <optgroup label="Fading Entrances">
+          <option value="fadeIn">fadeIn</option>
+          <option value="fadeInDown">fadeInDown</option>
+          <option value="fadeInDownBig">fadeInDownBig</option>
+          <option value="fadeInLeft">fadeInLeft</option>
+          <option value="fadeInLeftBig">fadeInLeftBig</option>
+          <option value="fadeInRight">fadeInRight</option>
+          <option value="fadeInRightBig">fadeInRightBig</option>
+          <option value="fadeInUp">fadeInUp</option>
+          <option value="fadeInUpBig">fadeInUpBig</option>
+        </optgroup>
+
+        <optgroup label="Fading Exits">
+          <option value="fadeOut">fadeOut</option>
+          <option value="fadeOutDown">fadeOutDown</option>
+          <option value="fadeOutDownBig">fadeOutDownBig</option>
+          <option value="fadeOutLeft">fadeOutLeft</option>
+          <option value="fadeOutLeftBig">fadeOutLeftBig</option>
+          <option value="fadeOutRight">fadeOutRight</option>
+          <option value="fadeOutRightBig">fadeOutRightBig</option>
+          <option value="fadeOutUp">fadeOutUp</option>
+          <option value="fadeOutUpBig">fadeOutUpBig</option>
+        </optgroup>
+
+        <optgroup label="Flippers">
+          <option value="flip">flip</option>
+          <option value="flipInX">flipInX</option>
+          <option value="flipInY">flipInY</option>
+          <option value="flipOutX">flipOutX</option>
+          <option value="flipOutY">flipOutY</option>
+        </optgroup>
+
+        <optgroup label="Lightspeed">
+          <option value="lightSpeedIn">lightSpeedIn</option>
+          <option value="lightSpeedOut">lightSpeedOut</option>
+        </optgroup>
+
+        <optgroup label="Rotating Entrances">
+          <option value="rotateIn">rotateIn</option>
+          <option value="rotateInDownLeft">rotateInDownLeft</option>
+          <option value="rotateInDownRight">rotateInDownRight</option>
+          <option value="rotateInUpLeft">rotateInUpLeft</option>
+          <option value="rotateInUpRight">rotateInUpRight</option>
+        </optgroup>
+
+        <optgroup label="Rotating Exits">
+          <option value="rotateOut">rotateOut</option>
+          <option value="rotateOutDownLeft">rotateOutDownLeft</option>
+          <option value="rotateOutDownRight">rotateOutDownRight</option>
+          <option value="rotateOutUpLeft">rotateOutUpLeft</option>
+          <option value="rotateOutUpRight">rotateOutUpRight</option>
+        </optgroup>
+
+        <optgroup label="Sliding Entrances">
+          <option value="slideInUp">slideInUp</option>
+          <option value="slideInDown">slideInDown</option>
+          <option value="slideInLeft">slideInLeft</option>
+          <option value="slideInRight">slideInRight</option>
+
+        </optgroup>
+        <optgroup label="Sliding Exits">
+          <option value="slideOutUp">slideOutUp</option>
+          <option value="slideOutDown">slideOutDown</option>
+          <option value="slideOutLeft">slideOutLeft</option>
+          <option value="slideOutRight">slideOutRight</option>
+          
+        </optgroup>
+        
+        <optgroup label="Zoom Entrances">
+          <option value="zoomIn">zoomIn</option>
+          <option value="zoomInDown">zoomInDown</option>
+          <option value="zoomInLeft">zoomInLeft</option>
+          <option value="zoomInRight">zoomInRight</option>
+          <option value="zoomInUp">zoomInUp</option>
+        </optgroup>
+        
+        <optgroup label="Zoom Exits">
+          <option value="zoomOut">zoomOut</option>
+          <option value="zoomOutDown">zoomOutDown</option>
+          <option value="zoomOutLeft">zoomOutLeft</option>
+          <option value="zoomOutRight">zoomOutRight</option>
+          <option value="zoomOutUp">zoomOutUp</option>
+        </optgroup>
+
+        <optgroup label="Specials">
+          <option value="hinge">hinge</option>
+          <option value="jackInTheBox">jackInTheBox</option>
+          <option value="rollIn">rollIn</option>
+          <option value="rollOut">rollOut</option>
+        </optgroup>
+      </select>';
+	 }//end func animation
 function padding_calc($field,$widmax,$total=true){// for caluculating  background image full size...
 	$styles_arr=explode(',',$field); 
 	$padding_left_percent=(array_key_exists($this->padding_left_index,$styles_arr)&&is_numeric($styles_arr[$this->padding_left_index]))? $styles_arr[$this->padding_left_index]:0;
@@ -9018,14 +9142,14 @@ function build_pic($data,$picdir='',$style_ref='blog_style',$styles_open=true,$b
 		#set minimum width for image in image text
 		if (!empty($image_min)){  
 			$this->imagecss.='
-			 .'.$data.' p.imagewrap {min-width:'.$image_min.'px;}
+			 .'.$this->dataCss.' p.imagewrap {min-width:'.$image_min.'px;}
 			';
 			}
 			
 		if ($this->blog_tiny_data1==='maintain_width'&&$this->column_use_grid_array[$this->column_level]==='use_grid'){
 			$bp_arr=$this->page_break_arr;
 			$this->imagecss.='
-			 .'.$data.'_img {width:'.($this->grid_width_chosen_arr['max'.$bp_arr[0]]*$wpercent/100-$shadowcalc).'px;max-width:'.$maxwidth_adjust_shadow_calc.'%;
+			 .'.$this->dataCss.'_img {width:'.($this->grid_width_chosen_arr['max'.$bp_arr[0]]*$wpercent/100-$shadowcalc).'px;max-width:'.$maxwidth_adjust_shadow_calc.'%;
 			 }
 			';
 			
@@ -9036,9 +9160,9 @@ function build_pic($data,$picdir='',$style_ref='blog_style',$styles_open=true,$b
 			@media screen and (max-width: '.$maxdisplay_maintain.'px){';
 			
 			$this->imagecss.='
-			 .'.$data.' p.imagewrap {  float:none; text-align:center; padding-left:0; padding-right:0;
+			 .'.$this->dataCss.' p.imagewrap {  float:none; text-align:center; padding-left:0; padding-right:0;
 			 } 
-			 .'.$data.'_img { text-align:center; /*padding-left:0; padding-right:0;*/
+			 .'.$this->dataCss.'_img { text-align:center; /*padding-left:0; padding-right:0;*/
 			 }
 			';
 			$this->imagecss.='}
@@ -9046,7 +9170,7 @@ function build_pic($data,$picdir='',$style_ref='blog_style',$styles_open=true,$b
 			 }
 		else {
 			$this->imagecss.='
-			.'.$data.'_img {width:'.$maxwidth_adjust_shadow_calc.'% 
+			.'.$this->dataCss.'_img {width:'.$maxwidth_adjust_shadow_calc.'% 
 				 }
 				';
 			}
@@ -9056,12 +9180,12 @@ function build_pic($data,$picdir='',$style_ref='blog_style',$styles_open=true,$b
 	$imagerespond=(!$image_noresize)?'imagerespond':'';
 	if(!$this->edit||$this->is_clone){
 		if (is_file(Cfg_loc::Root_dir.Cfg::Page_images_expand_dir. $picname)&&$img_opt_arr[$image_noexpand_index]==='display'){   
-			printer::printx('<p class="'.$imagerespond.' imagewrap '.$fstyle. '" '.$respond_data.' style="'. $width_min_mode.'"><a href="'.Cfg_loc::Root_dir.Cfg::Page_images_expand_dir. $picname .'" class="center highslide" onclick="return hs.expand(this,{ slideshowGroup: \'col_'.$this->column_id_array[$this->column_level].'\' , wrapperClassName: \'page_image\' })"><img class="'.$data.'_img '.$this->blog_type.'_img" src="'.$fullpicdir.$picname.'" alt="'.$alt.'" ></a></p>');
+			printer::printx('<p class="'.$imagerespond.' imagewrap '.$fstyle. '" '.$respond_data.' style="'. $width_min_mode.'"><a href="'.Cfg_loc::Root_dir.Cfg::Page_images_expand_dir. $picname .'" class="center highslide" onclick="return hs.expand(this,{ slideshowGroup: \'col_'.$this->column_id_array[$this->column_level].'\' , wrapperClassName: \'page_image\' })"><img class="'.$this->dataCss.'_img '.$this->blog_type.'_img" src="'.$fullpicdir.$picname.'" alt="'.$alt.'" ></a></p>');
 			($this->blog_type!=='image')&&
 			$this->blog_text_float_box($data);
 			}
 		else {
-			printer::printx('<p class="'.$imagerespond.' imagewrap '.$fstyle. '"'.$respond_data.'style="'.$width_min_mode.'"> <img class="'.$data.'_img '.$this->blog_type.'_img" src="'.$fullpicdir. $picname.'"   alt="'.$alt.'" ></p>');
+			printer::printx('<p class="'.$imagerespond.' imagewrap '.$fstyle. '"'.$respond_data.'style="'.$width_min_mode.'"> <img class="'.$this->dataCss.'_img '.$this->blog_type.'_img" src="'.$fullpicdir. $picname.'"   alt="'.$alt.'" ></p>');
 			($this->blog_type!=='image')&&
 			$this->blog_text_float_box($data);
 			}
@@ -9074,7 +9198,7 @@ function build_pic($data,$picdir='',$style_ref='blog_style',$styles_open=true,$b
 	if (!$this->is_clone){ 	
 		printer::alert('Click the photo to upload a new one','',' left floatleft fsminfo editbackground infoback rad5 info maroonshadow');
 		printer::pclear();
-		printer::alertx('<p class="'.$imagerespond.' imagewrap '.$fstyle. '"'.$respond_data.'style="'.$width_min_mode.'"><a  href="add_page_pic.php?blog_image_noexpand='.$image_expand.'&amp;wwwexpand='.$maxplus.'&amp;expandfield=blog_tiny_data2&amp;www='.$fwidth.'&amp;ttt='.$this->blog_table.'&amp;fff=blog_data1&amp;id='.$this->blog_id.'&amp;id_ref=blog_id&amp;pgtbn='.$this->tablename.'&amp;postreturn='.Sys::Self.'&amp;css='.$this->roots.Cfg::Style_dir.$this->tablename.'&amp;quality='.$quality.'&amp;sess_override&amp;sess_token='.$this->sess->sess_token.'"><img class="'.$data.'_img '.$this->blog_type.'_img"  src="'.$fullpicdir. $picname.'"   alt="'.$alt.'"  ></a></p>');
+		printer::alertx('<p class="'.$imagerespond.' imagewrap '.$fstyle. '"'.$respond_data.'style="'.$width_min_mode.'"><a  href="add_page_pic.php?blog_image_noexpand='.$image_expand.'&amp;wwwexpand='.$maxplus.'&amp;expandfield=blog_tiny_data2&amp;www='.$fwidth.'&amp;ttt='.$this->blog_table.'&amp;fff=blog_data1&amp;id='.$this->blog_id.'&amp;id_ref=blog_id&amp;pgtbn='.$this->tablename.'&amp;postreturn='.Sys::Self.'&amp;css='.$this->roots.Cfg::Style_dir.$this->tablename.'&amp;quality='.$quality.'&amp;sess_override&amp;sess_token='.$this->sess->sess_token.'"><img class="'.$this->dataCss.'_img '.$this->blog_type.'_img"  src="'.$fullpicdir. $picname.'"   alt="'.$alt.'"  ></a></p>');
 		}
 	if($this->blog_type!=='image'&&!$this->is_clone){
 		$this->blog_text_float_box($data);
@@ -9108,7 +9232,7 @@ function build_pic($data,$picdir='',$style_ref='blog_style',$styles_open=true,$b
 		else printer::printx('<p  class="info floatleft fsminfo" title="Check to prevent Image Expansion when this Image is clicked"><input type="checkbox" name="'.$data.'_'.$img_opt.'['.$image_noexpand_index.']" value="no_display">Prevent Image Click Expanded Image</p>');
 		printer::pclear();
 		$maxplus=(!empty($img_opt_arr[$image_max_expand_index])&&$img_opt_arr[$image_max_expand_index]>50)?$img_opt_arr[$image_max_expand_index]:((!empty($this->page_options[$this->page_max_expand_image_index])&&$this->page_options[$this->page_max_expand_image_index]>50)?$this->page_options[$this->page_max_expand_image_index]:Cfg::Page_pic_expand_plus);
-		printer::printx('<div title="Change this default maximum width or height value '.$maxplus.' for this image." id="'.$data.'_expandsize_show" '.$genstyle.' class="fsminfo info floatleft"><!--imageplus-->Change Expanded Image height or width setting whichever is larger:');
+		printer::printx('<div title="Change this default maximum width or height value '.$maxplus.' for this image." id="'.$this->dataCss.'_expandsize_show" '.$genstyle.' class="fsminfo info floatleft"><!--imageplus-->Change Expanded Image height or width setting whichever is larger:');
 		$this->mod_spacing($data.'_'.$img_opt.'['.$image_max_expand_index.']',$maxplus,25,1500,10,'px');
 		printer::printx('</div><!--imageplus-->');
 		printer::close_print_wrap('image expand');	
@@ -9135,7 +9259,7 @@ function build_pic($data,$picdir='',$style_ref='blog_style',$styles_open=true,$b
 		printer::alertx('<p class="fs1'.$this->column_lev_color.'" title="In Maintain Image Size Mode, Images with width limiting or Images with float text size will not scale down proportionally but maintain size up to the post max width!"><input type="radio"  name="'.$data.'_blog_tiny_data1" '.$checked1.' value="maintain_width">Maintain Image Size<span class="info"> more info</span<p>');
 		$stylemin=($this->blog_tiny_data1==='maintain_width')?'style="display:none;':'';		 
 		echo '<div class="fs1'.$this->column_lev_color.'" title="In image Scale mode Mode images will scale down proportionally  with spaces or text on smaller view screens"><!--scale images--><input type="radio" onclick="gen_Proc.showIt(\''.$data.'_showmin\');" name="'.$data.'_blog_tiny_data1" '.$checked2.' value="0">Scale Images<span class="info"> more info</span>';
-		echo '<div id="'.$data.'_showmin" '.$stylemin.'><!--show min width-->';
+		echo '<div id="'.$this->dataCss.'_showmin" '.$stylemin.'><!--show min width-->';
 		printer::alert('Optionally Choose a minimum width for scaled images as necessary',0,'fsmredAlert editbackground editcolror editfont');
 		$this->mod_spacing($data.'_'.$img_opt.'['.$image_min_index.']',$image_min,10,600,1,'px');
 		echo '</div><!--show min width-->';
@@ -9154,21 +9278,21 @@ function build_pic($data,$picdir='',$style_ref='blog_style',$styles_open=true,$b
 	$original_width=$this->current_net_width;
 	$this->current_net_width=$fwidth;
 	$this->background_img_px=$fwidth+$pad_width;
-	$global_field=($this->blog_global_style==='global')?',.'.$this->clone_ext.$this->col_table.' .'.$this->blog_type.'_img':'';
+	$global_field=($this->blog_global_style==='global')?',.'.$this->clone_ext.$this->col_dataCss.' .'.$this->blog_type.'_img':'';
 	$globalmsg=($this->blog_global_style==='global')?' Global Style':'';
 	
-	$this->edit_styles_close($data,'blog_data4','.'.$data.'_img'.$global_field,'background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,borders,box_shadow,outlines,radius_corner','Style Image Border &amp; Image Spacing '.$globalmsg,false,'Style an Image Border and background effect here. Remember that Margin spacing is outside the image border whereas Padding spacing will put space between a border and the image.');  
+	$this->edit_styles_close($data,'blog_data4','.'.$this->dataCss.'_img'.$global_field,'background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,borders,box_shadow,outlines,radius_corner','Style Image Border &amp; Image Spacing '.$globalmsg,false,'Style an Image Border and background effect here. Remember that Margin spacing is outside the image border whereas Padding spacing will put space between a border and the image.');  
 	$this->background_img_px=$orginal_bip; 
 	$this->current_net_width=$original_width;
 	printer::pclear();
 	#ok here if marked as global the results of these styles choices will directly style this blog type but also the parent column.text..  as shown...
 	#all fields done cause blog_global_style equalling global applies to all fields that are chosen to be included
 	$type=($this->blog_type==='float_image_left'||$this->blog_type==='float_image_right')?'float_image':$this->blog_type;
-	$global_field=($this->blog_global_style==='global')?',.'.$this->clone_ext.$this->col_table.' .'.$type:'';
+	$global_field=($this->blog_global_style==='global')?',.'.$this->clone_ext.$this->col_dataCss.' .'.$type:'';
 	$globalmsg=($this->blog_global_style==='global')?' Global Style':'';
 	
 	$style_list='';  
-	$this->edit_styles_close($data,$style_ref,'.'.$data.'.'.$type.$global_field, $style_list,'Style the Overall Post'.$globalmsg);
+	$this->edit_styles_close($data,$style_ref,'.'.$this->dataCss.'.'.$type.$global_field, $style_list,'Style the Overall Post'.$globalmsg);
 	}//end build  #end build
  
 function float_pic($data,$picdir){  
@@ -10766,7 +10890,7 @@ function nav_menu($data,$dir_menu_id,$text){
 	 
 	 #navstyle
 	printer::pclear(15); 
-	$this->edit_styles_close($data,'blog_style','.'.$data,'background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,text_align,borders,box_shadow,outlines,radius_corner,transform',"Edit Overall Post Styling",'','Edit Overall Post Styling and align Links left right or center using Text align. Use Detailed Link Styling for Link Text Styling',true,true,true); //last true prevents text_align hiding	
+	$this->edit_styles_close($data,'blog_style','.'.$this->dataCss,'background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,text_align,borders,box_shadow,outlines,radius_corner,transform',"Edit Overall Post Styling",'','Edit Overall Post Styling and align Links left right or center using Text align. Use Detailed Link Styling for Link Text Styling',true,true,true); //last true prevents text_align hiding	
 	
 	
 	$this->{'blog_tiny_data1_arrayed'}=$this->{$data.'_blog_tiny_data1_arrayed'} =$nav_params;
@@ -10827,18 +10951,17 @@ function nav_menu($data,$dir_menu_id,$text){
 		
 		printer::printx('<p class="fsminfo editbackground floatleft '.$this->column_lev_color.' left">Customize Your Menu Links <br>Style the  background area around each link with borders, colors, images, box shadow, creating a link button if you wish, and set the distance between the &#34;link button&#34; areas: </p>');
 		}//clone local style
-	/* $this->edit_styles_close($data,'blog_tiny_data4','.'.$data.' .nav_gen ul li  ul li ,.'.$data.' .nav_gen li ','padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom','Link Spacing W/O Hover Sub Menu',false,'Margins and Spacings to pad Main Menu links Will Trigger the Hover Sub Menu if used. However these choices provide spacing around link without increasing the Hover trigger ARea and without increasing the Background area if used.' );      
-	*/   
+	  
 	$style_list='background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,font_family,font_size,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform';
-	$this->edit_styles_close($data,'blog_data4','.'.$data.' .nav_gen ul li  ul li a,.'.$data.' .nav_gen li a',$style_list,'Style General Menu Link',false,'Styles You Make Here will affect Normal and  Hover or Active Links. Use Nav General Post styling to set nav link alignment center or left. For additional Hover and Active Link effects Style Below<br><span class="pos">To Enlarge Background Area for Images and Background Color Use Padding Spacing<br>To Enlarge Spacing between Background styled links use margin spacing',false );
+	$this->edit_styles_close($data,'blog_data4','.'.$this->dataCss.' .nav_gen ul li  ul li a,.'.$this->dataCss.' .nav_gen li a',$style_list,'Style General Menu Link',false,'Styles You Make Here will affect Normal and  Hover or Active Links. Use Nav General Post styling to set nav link alignment center or left. For additional Hover and Active Link effects Style Below<br><span class="pos">To Enlarge Background Area for Images and Background Color Use Padding Spacing<br>To Enlarge Spacing between Background styled links use margin spacing',false );
 		printer::pclear(5);
-		$this->edit_styles_close($data,'blog_data2','.'.$data.' .nav_gen ul li  ul li a',$style_list,'Style Sub Menu Links Differently',false,'Optionally Style a Dropdown Menu Link Differently than the General Menu Link Settings you Made ',false );
+		$this->edit_styles_close($data,'blog_data2','.'.$this->dataCss.' .nav_gen ul li  ul li a',$style_list,'Style Sub Menu Links Differently',false,'Optionally Style a Dropdown Menu Link Differently than the General Menu Link Settings you Made ',false );
 		 printer::pclear(5); 
-		$this->edit_styles_close($data,'blog_data6','.'.$data.' .nav_gen ul li  li a:hover, .'.$data.' .nav_gen ul li a:hover','background,font_family,font_size,font_weight,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform','Style Hover Link',false,'When You Hover Over a Link with the cursor it wil change according to Any Styles set Here' );   
+		$this->edit_styles_close($data,'blog_data6','.'.$this->dataCss.' .nav_gen ul li  li a:hover, .'.$this->dataCss.' .nav_gen ul li a:hover','background,font_family,font_size,font_weight,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform','Style Hover Link',false,'When You Hover Over a Link with the cursor it wil change according to Any Styles set Here' );   
 		printer::pclear(5);
-		$this->edit_styles_close($data,'blog_data5','.'.$data.' .nav_gen .active','background,font_family,font_size,font_weight,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform','Style the Active Link',false,'An Active Link is the Particluar Link to the Current Page and its optionaly styled here');   
+		$this->edit_styles_close($data,'blog_data5','.'.$this->dataCss.' .nav_gen .active','background,font_family,font_size,font_weight,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform','Style the Active Link',false,'An Active Link is the Particluar Link to the Current Page and its optionaly styled here');   
 		printer::pclear(5);
-		$this->edit_styles_close($data,'blog_data7','.'.$data.' .nav_gen ul:hover ul,.'.$data.' .nav_gen ul ul','background,padding_top,padding_bottom,padding_left,padding_right,left,top,right,borders,box_shadow,outlines,radius_corner,transform','Style the Sub Menu Background Panel',false,'If you have optionally made sub menus that can be styled the dropdown Panel which contains the dropdown menu links',false);   
+		$this->edit_styles_close($data,'blog_data7','.'.$this->dataCss.' .nav_gen ul:hover ul,.'.$this->dataCss.' .nav_gen ul ul','background,padding_top,padding_bottom,padding_left,padding_right,left,top,right,borders,box_shadow,outlines,radius_corner,transform','Style the Sub Menu Background Panel',false,'If you have optionally made sub menus that can be styled the dropdown Panel which contains the dropdown menu links',false);   
 		printer::pclear(5);
 	/*echo '<div class="fsminfo editbackground  '.$this->column_lev_color.' floatleft"><!--shift panel-->';
 		echo '<p class="info left"  title="Optionally Shift Sub Menu Background Panel Rightwards. By Default the Dropdown menu is left 0 aligned with its Parent. Note: Shifting More than the parent link width will Break Dropdown Clicking!!">Optionally right Shift Sub Menu Background Panel</p>';
@@ -10915,21 +11038,10 @@ function nav_menu($data,$dir_menu_id,$text){
 		echo '<div class="fsminfo editbackground  '.$this->column_lev_color.' floatleft"><!--Icon Float-->';
 		echo '<p class="info left" title="Select your icon responsive position from left at 0%  to right at 100% or somewhere between. Caution: Values Near 100 may disappear Icon off right end, whereas using 100 gives correct far right positioning">Icon Position (Use 100% for correct Adjusted Far Right Positioning)</p>';
 		
-		$this->mod_spacing($data.'_blog_tiny_data1_arrayed['.$nav_icon_position_index.']',$icon_position_choice,0,100,1,'%');
-		/*echo '<p class="info left" title="Select your icon responsive position from top at 0%  to bottom at 100% or somewhere between. Caution: Values Near 100 may disappear Icon off bottom">Icon Vertical Position (Use 0% for Top)</p>';
-		
-		$this->mod_spacing($data.'_blog_tiny_data1_arrayed['.$nav_icon_position_vert_index.']',$icon_position_vert_choice,0,100,1,'%');  */
+		$this->mod_spacing($data.'_blog_tiny_data1_arrayed['.$nav_icon_position_index.']',$icon_position_choice,0,100,1,'%'); 
 		echo '</div><!-- Icon  Float-->';
 		printer::pclear(5);
-		/*echo '<div class="fsminfo editbackground  '.$this->column_lev_color.' floatleft"><!--Icon Bottom Space-->';
-		echo '<p class="info left" title="Space the menu icon over the menu During Menu Icon Response or next to">Position Menu Icon over or next to Menu</p>'; 
-		
-		foreach (array('Over','Next To') as $value){
-			$checked=($icon_over_choice===$value)?'checked="checked"':'';
-			echo '<p><input type="radio" value="'.$value.'" name="'.$data.'_blog_tiny_data1['.$nav_icon_over_index.']." '.$checked.'>'.$value.'</p>';
-			}
-		echo '</div><!-- Icon  Bottom Space-->';*/
-		printer::pclear(5);
+	  
 		echo '<div class="fsminfo editbackground  '.$this->column_lev_color.' floatleft"><!--Respond Vertical-->';
 		echo '<p class="info left" title="Respond Menus Vertical when enabled means horizontal menus will respond vertical only when the menu-icon is clicked below the width threshold chosen">Choose whether Horizontal Menus Will Appear Vertically when Icon is clicked</p>';
 		 
@@ -10980,13 +11092,13 @@ function nav_menu($data,$dir_menu_id,$text){
 	if ($nav_width_manage){
 		if ($this->grid_width_chosen_arr['max'.$bp_arr[0]]>200)
 		$this->navcss.='
-		.'.$data.' .nav_gen UL.top-level>LI>A {  max-width:200px;}
+		.'.$this->dataCss.' .nav_gen UL.top-level>LI>A {  max-width:200px;}
 		';
 		else
 		$this->navcss.='
-		.'.$data.' .nav_gen UL.top-level>LI>A {display:block;  width:100%; }
-		.'.$data.' .nav_gen UL.top-level>LI {display:block;  width:95%;margin:0 auto; }/*background tweak prevents menu overflow */
-		.'.$data.' .nav_gen UL.top-level>LI.show_icon {display:none;}
+		.'.$this->dataCss.' .nav_gen UL.top-level>LI>A {display:block;  width:100%; }
+		.'.$this->dataCss.' .nav_gen UL.top-level>LI {display:block;  width:95%;margin:0 auto; }/*background tweak prevents menu overflow */
+		.'.$this->dataCss.' .nav_gen UL.top-level>LI.show_icon {display:none;}
 		
 		';
 		}
@@ -11008,13 +11120,13 @@ function nav_menu($data,$dir_menu_id,$text){
 		if ($nav_width_manage){
 			if (isset($this->grid_width_chosen_arr)&&$this->grid_width_chosen_arr[$bp]>200) 
 				$this->navcss.='
-				.'.$data.' .nav_gen UL.top-level>LI>A {  max-width:200px;}
+				.'.$this->dataCss.' .nav_gen UL.top-level>LI>A {  max-width:200px;}
 				';
 			else 
 			$this->navcss.='
-			.'.$data.' .nav_gen UL.top-level>LI>A {display:block; width:100%; }
-			.'.$data.' .nav_gen UL.top-level>LI {display:block; width:95%; }/*background tweak prevents menu overflow*/
-			.'.$data.' .nav_gen UL.top-level>LI.show_icon {display:none;}
+			.'.$this->dataCss.' .nav_gen UL.top-level>LI>A {display:block; width:100%; }
+			.'.$this->dataCss.' .nav_gen UL.top-level>LI {display:block; width:95%; }/*background tweak prevents menu overflow*/
+			.'.$this->dataCss.' .nav_gen UL.top-level>LI.show_icon {display:none;}
 			';
 			}
 			
@@ -11030,31 +11142,31 @@ $icon_position_choice=($icon_position_choice==100)?'right:0; ':'left:'.$icon_pos
 $respond_menu_dimension=($respond_menu_dimension==='icon full on')?5000:$respond_menu_dimension;//always show
 #at respond_menu_dimension convert hover to display css...
 $this->navcss.= '
-.'.$data.' .nav_gen UL.top-level>LI>A {'.$nav_link_width.$nav_link_height.'} 
-/*.'.$data.'.hover .nav_gen  UL UL {'.$nav_drop_shift.'}  */ 
-.'.$data.' .nav_gen UL UL A { '.$nav_sub_link_width.'height:auto; } 
+.'.$this->dataCss.' .nav_gen UL.top-level>LI>A {'.$nav_link_width.$nav_link_height.'} 
+/*.'.$this->dataCss.'.hover .nav_gen  UL UL {'.$nav_drop_shift.'}  */ 
+.'.$this->dataCss.' .nav_gen UL UL A { '.$nav_sub_link_width.'height:auto; } 
  @media screen and (max-width:'.$respond_menu_dimension.'px) {
-  .'.$data.'.horiz .nav_gen ul.top-level li,.vert .nav_gen ul.top-level li,.nav_gen ul.top-level li {display: none;}
-    .'.$data.'.horiz .nav_gen ul.top-level li.show_icon,.vert .nav_gen ul.top-level li.show_icon,.nav_gen ul.top-level li.show_icon {
+  .'.$this->dataCss.'.horiz .nav_gen ul.top-level li,.vert .nav_gen ul.top-level li,.nav_gen ul.top-level li {display: none;}
+    .'.$this->dataCss.'.horiz .nav_gen ul.top-level li.show_icon,.vert .nav_gen ul.top-level li.show_icon,.nav_gen ul.top-level li.show_icon {
     position:absolute;
     top:0;
     '.$icon_position_choice.'
     display: inline-block;
     background:none;
   } 
-.'.$data.'.hover  .nav_gen UL LI {display: block; vertical-align: top; position:static; VISIBILITY: visible } 
-.'.$data.'.hover  .nav_gen UL UL {display: block; vertical-align: top; position:static; VISIBILITY: visible }  
-.'.$data.'.hover   .nav_gen  ul.sub-level,.display .nav_gen  UL UL LI  {margin-right:auto; margin-left:auto; display:block;}
+.'.$this->dataCss.'.hover  .nav_gen UL LI {display: block; vertical-align: top; position:static; VISIBILITY: visible } 
+.'.$this->dataCss.'.hover  .nav_gen UL UL {display: block; vertical-align: top; position:static; VISIBILITY: visible }  
+.'.$this->dataCss.'.hover   .nav_gen  ul.sub-level,.display .nav_gen  UL UL LI  {margin-right:auto; margin-left:auto; display:block;}
 }
-.'.$data.' .nav_gen ul.top-level li.show_icon p.aShow img{ width:'.$icon_width.'px; height:auto;}
+.'.$this->dataCss.' .nav_gen ul.top-level li.show_icon p.aShow img{ width:'.$icon_width.'px; height:auto;}
 @media screen and (max-width:'.$respond_menu_dimension.'px) {
-   .'.$data.' {position: relative; 
+   .'.$this->dataCss.' {position: relative; 
     padding:0; margin:0;}
-  .'.$data.' ul.top-level.menuRespond li.show_icon {
+  .'.$this->dataCss.' ul.top-level.menuRespond li.show_icon {
     position: absolute; 
     top: 0; 
   }
- .'.$data.'{
+ .'.$this->dataCss.'{
  '. $icon_over_bottom.'
  }
  
@@ -11066,7 +11178,7 @@ overflow:hidden;
   -o-transition: max-height 1s ease-in;
   transition: max-height 1s ease-in;  
 	}
- .'.$data.'.horiz .nav_gen ul.top-level.transitionEase li,.vert .nav_gen ul.top-level li,.nav_gen ul.top-level.transitionEase li {display: block;}
+ .'.$this->dataCss.'.horiz .nav_gen ul.top-level.transitionEase li,.vert .nav_gen ul.top-level li,.nav_gen ul.top-level.transitionEase li {display: block;}
 .nav_gen ul.top-level.transitionEase {
  max-height:0;
  overflow:hidden;
@@ -11075,17 +11187,15 @@ overflow:hidden;
   -o-transition: max-height 1s ease;
   transition: max-height 1s ease;  
 		}	
-  .'.$data.'.horiz .nav_gen ul.top-level.menuRespond li,.vert .nav_gen ul.top-level.menuRespond li,.nav_gen ul.top-level.menuRespond li{
+  .'.$this->dataCss.'.horiz .nav_gen ul.top-level.menuRespond li,.vert .nav_gen ul.top-level.menuRespond li,.nav_gen ul.top-level.menuRespond li{
     display: block;'.$icon_vertical_choice.'
   }
-	 .'.$data.'.horiz .nav_gen ul.top-level.menuRespond,.vert .nav_gen ul.top-level.menuRespond,.nav_gen ul.top-level.menuRespond{
+	 .'.$this->dataCss.'.horiz .nav_gen ul.top-level.menuRespond,.vert .nav_gen ul.top-level.menuRespond,.nav_gen ul.top-level.menuRespond{
 	 '. $icon_over.'
   }
    
 } 
 ';    
-		 
-  
 		(Sys::Deltatime)&&$this->deltatime->delta_log('End of '.__LINE__.' @ '.__method__.'  ');
 	}// end function
   	
@@ -11526,26 +11636,7 @@ eol;
 	$controlbar=(!empty($blog_data2[$controlbar_index]))?$blog_data2[$controlbar_index]:'controlbar-white.gif';
 	$caption_vertical_align=($blog_data2[$caption_vertical_align_index]!=='middle'&&$blog_data2[$caption_vertical_align_index]!=='bottom')?'top':$blog_data2[$caption_vertical_align_index];
 	if(empty($gall_ref)){ // printer::alert_neg('reinitiate creat new gall ref');
-		/*
-		//this was moved above and may be obsolete 
-			//$msg='Because copied or moved galleries are page specific config information has been copied but new Pictures must be selected';
-			//$this->instruct[]=$msg; 
-		$q="select distinct gall_ref from $this->master_gall_table where gall_ref!=master_gall_ref and gall_table='$this->tablename'";
-		$r=$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
-		if ($this->mysqlinst->affected_rows()){
-			$tb_arr=array();
-			while  (list($gall_tbn)=$this->mysqlinst->fetch_row($r,__LINE__)){
-				$tbn_arr[]=$gall_tbn;
-				}
-			$n=1;
-			While (in_array($this->tablename.'_'.$n,$tbn_arr)){
-				$n++;
-				}
-			$gall_ref=$this->tablename.'_'.$n; 
-			}//affected rows
-		else $gall_ref=$this->tablename.'_1';
-		$q="update $this->master_post_table set blog_data1='$gall_ref'  where blog_id='$this->blog_id'";
-		$r=$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);*/
+		 
 		if (!$this->edit){ 
 			printer::printx('<p class="fsminfo editbackground  '.$this->column_lev_color.'">New Gallery Coming Soon</p>');
 			return;
@@ -11829,11 +11920,7 @@ eol;
 			echo '</div><!--global captions-->';
 			$this->show_close('Default Caption Option');
 			printer::pclear();
-			}//edit not is clone || is clone data	//if(!$this->clone_local_style&&(empty($gall_ref)||strpos($gall_ref,$this->tablename.'_')===false)){
-		
-	
-	//$background_color=(preg_match(Cfg::Preg_color,$this->{$data.'_blog_data2_arrayed'}[6]))?'background:#'.$this->{$data.'_blog_data2_arrayed'}[6].';':'background:#fff;';
-	//$back_color=(preg_match(Cfg::Preg_color,$this->{$data.'_blog_data2_arrayed'}[6]))?$this->{$data.'_blog_data2_arrayed'}[6]:'';
+			}//edit not is clone || is clone data	 
 	
 	if ($this->master_gallery&&$gall_display==='display_single_row'&&$blog_data2[$galltype_index]!=='center'){  
 		$caption_width=(!empty($caption_width))?$caption_width:300;
@@ -11878,6 +11965,7 @@ eol;
 	$gallery->thumbnail_height=$thumbnail_height;
 	$gallery->transition_time=500;//hard coding as is optimal time -removing user editing
 	$gallery->data=$data;
+	$gallery->dataCss=$this->dataCss;
 	$gallery->smallpicplus=$smallpicplus; 
 	$gallery->caption_width=$caption_width;
 	$gallery->largepicplus=min($largepicplus,$this->current_net_width);
@@ -11930,7 +12018,7 @@ eol;
 		return;
 		}
 	$msg=($this->master_gallery)?'Edit general Master Gallery Styles':'Edit General Gallery Styles';
-	 $this->edit_styles_close($data,'blog_style','.'.$data.',.highslide-dimming.dimming_gall_img_'.$this->blog_id,'background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,font_family,font_size,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner',$msg,true,'Background Styles will also affect the Expanded image Background (in Normal Galleries). Set General Caption Styles Here. Individual Caption Styles for Title Subtitle and Description May be set below');
+	 $this->edit_styles_close($data,'blog_style','.'.$this->dataCss.',.highslide-dimming.dimming_gall_img_'.$this->blog_id,'background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,font_family,font_size,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner',$msg,true,'Background Styles will also affect the Expanded image Background (in Normal Galleries). Set General Caption Styles Here. Individual Caption Styles for Title Subtitle and Description May be set below');
 	if (!$this->master_gallery){
 		$this->edit_styles_close($data,'blog_tiny_data3','.preview_border_'.$this->blog_id,'borders,box_shadow,outlines,radius_corner','Style Borders for Preview Images',false); 
 		printer::pclear();
@@ -11973,11 +12061,11 @@ eol;
 #holder_'.$this->blog_id.'{text-align:center}
 .holder{text-align:center}
 
-.'.$data.' .gall_preview_'.$this->blog_id.'{margin-left: auto; margin-right:auto;padding-top:'.$preview_padtop.'px;}
+.'.$this->dataCss.' .gall_preview_'.$this->blog_id.'{margin-left: auto; margin-right:auto;padding-top:'.$preview_padtop.'px;}
 	.gall_img_'.$this->blog_id.' .highslide-controls{width:200px;height:40px;background:url(graphics/'.$controlbar.') 0 -90px no-repeat;margin:20px 15px 10px 0;}
 	.gall_img_'.$this->blog_id.' .highslide-controls ul{position:relative;left:15px;height:40px;list-style:none;background:url(graphics/'.$controlbar.') right -90px no-repeat;margin:0;padding:0;}
 	.gall_img_'.$this->blog_id.' .highslide-controls a{background-image:url(graphics/'.$controlbar.');display:block;float:left;height:30px;width:30px;outline:none;}
-	.'.$data.' .thumbnail_'.$this->blog_id.'{float: left; padding-bottom:'.$thumbnail_pad_bottom.'px; padding-right:'.$thumbnail_pad_right.'px;}
+	.'.$this->dataCss.' .thumbnail_'.$this->blog_id.'{float: left; padding-bottom:'.$thumbnail_pad_bottom.'px; padding-right:'.$thumbnail_pad_right.'px;}
 	    ';
 	   }
 	}//end gallery
@@ -12494,7 +12582,7 @@ function auto_slide($data,$type){
 		
 	$this->edit_styles_close($data,'blog_data4','.thePhoto'.$inc.''.$inc,'borders,box_shadow','Style Slide Image Border',false);
 	
-	 $this->edit_styles_close($data,$style_field,'.'.$data,'background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,borders,box_shadow,outlines,radius_corner','Edit Auto General Post Styles',true);
+	 $this->edit_styles_close($data,$style_field,'.'.$this->dataCss,'background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,borders,box_shadow,outlines,radius_corner','Edit Auto General Post Styles',true);
 	 }
 	
 if ($background_slide){ 
@@ -12848,7 +12936,7 @@ function social_icons($data,$style_list='',$global=false,$mod_msg="Edit styling"
 		echo '</div><!--Edit Icon Shape spacing-->';
 		$this->show_close('shape vert spacing');//<!--shape vert spacing-->
 		printer::pclear(8);
-		$this->edit_styles_close($data,'blog_style','.'.$data,'background,text_align,padding_top,padding_bottom,padding_left,padding_right',"Edit Social Icon styling",'','',true,true,true); 
+		$this->edit_styles_close($data,'blog_style','.'.$this->dataCss,'background,text_align,padding_top,padding_bottom,padding_left,padding_right',"Edit Social Icon styling",'','',true,true,true); 
 		}
 	}//end function social icons..
 #contact	
@@ -12894,7 +12982,7 @@ function contact_form($data,$style_list,$global=false,$mod_msg="Edit styling",$b
 	$this->textarea_contact_default=$blog_data1[4];
 	if (isset($_POST['mailsubmitted_'.$data])) $this->contact_mail_process($data,$blog_data1); 
 	$color2=(preg_match(Cfg::Preg_color,$blog_data6[0]))?'#'.$blog_data6[0]:'inherit'; //input and textarea font color
-	$background2=(preg_match(Cfg::Preg_color,$blog_data6[1]))?'#'.$blog_data6[1]:'inherit';//input and textarea fields
+	$background2=(preg_match(Cfg::Preg_color,$blog_data6[1]))?$blog_data6[1]:'inherit';//input and textarea fields
 	$color='inherit';//$this->current_color;
 	$background='inherit';//$this->current_background_color;
 	$upper_maxwidth=500*$this->current_font_px/16;//upper contact form max width
@@ -12941,7 +13029,7 @@ function contact_form($data,$style_list,$global=false,$mod_msg="Edit styling",$b
 	</div><!--End Narrow Contact-->';
 printer::pclear(1); 
 echo '<div class="ht0">'; 
-$this->textarea('Enter message Here','contact_message_check',$this->current_net_width,$this->current_font_px,'','left',98,true);
+$this->textarea('Enter message Here','contact_message_check',$this->current_net_width,$this->current_font_px,'','left',98,false);
 echo '</div><!-- class="ht0"-->';	
 echo '
 <p class="form_message floatleft">'.$blog_data1[4].'<br></p>';
@@ -13001,7 +13089,7 @@ $this->textarea($vmsg,$messagename,$this->current_net_width,$this->current_font_
 	elseif (!$this->edit):
 		print '<p class="alertnotice">' . $this->nomessage . '</p>';
 		printer::pclear();
-		echo'<p><input type="submit" name="submit" value="Send Email" ></p>
+		echo'<p class="pt25"><input type="submit" name="submit" value="Send Email" ></p>
 		 <p><input type="hidden" name="sess_token" value="'.$this->sess->sess_token.'" ></p>
 		<p><input type="hidden" name="mailsubmitted_'.$data.'" value="TRUE" ></p>
 		<p><input type="hidden" name="sentto" value="'.Cfg::Owner.'" ></p>
@@ -13011,26 +13099,26 @@ $this->textarea($vmsg,$messagename,$this->current_net_width,$this->current_font_
 	($this->edit)&&print '</fieldset><!-- Wrap Normal Display Contact-->'; 
 	###end display for edit and non edit 
 	$this->css.='     
-      .'.$data.' textarea {background:#'.$background2.'; color:'. $color2.';}
+      .'.$this->dataCss.' textarea {background:#'.$background2.'; color:'. $color2.';}
 	.alertnotice {font-weight:800; color:#'.$this->redAlert.';}
-	 .'.$data.' input {color: '.$color2.';
+	 .'.$this->dataCss.' input {color: '.$color2.';
 	 background-color: '.$background2.';max-width:100%;}
-	 .'.$data.' .clear{clear:both; height:0px;} 
-      .'.$data.' .form_message {padding:.7em 0 .15em 0; background:'.$background.'; color: '. $color.';text-align: left; font-size: .9em; text-align: left; } 
-	.'.$data.' p.wide{text-align:left;float:left;max-width:300px;}
+	 .'.$this->dataCss.' .clear{clear:both; height:0px;} 
+      .'.$this->dataCss.' .form_message {padding:.7em 0 .15em 0; background:'.$background.'; color: '. $color.';text-align: left; font-size: .9em; text-align: left; } 
+	.'.$this->dataCss.' p.wide{text-align:left;float:left;max-width:300px;}
 	@media screen and (max-width: 400px){
-		.'.$data.' p.wide{max-width:250px;}
+		.'.$this->dataCss.' p.wide{max-width:250px;}
 		}
 	@media screen and (max-width: 350px){
-		.'.$data.' p.wide{max-width:200px;}
+		.'.$this->dataCss.' p.wide{max-width:200px;}
 		}
 	@media screen and (max-width: 300px){
-		.'.$data.' p.wide{max-width:160px;}
+		.'.$this->dataCss.' p.wide{max-width:160px;}
 		}
-	.'.$data.'  p.narrow,.'.$data.'  td.narrow label {background:#'.$background.'; color: '. $color.'; text-align: left;float:left; width:100px; }
+	.'.$this->dataCss.'  p.narrow,.'.$this->dataCss.'  td.narrow label {background:#'.$background.'; color: '. $color.'; text-align: left;float:left; width:100px; }
 	
-	.'.$data.'  p.narrow label.information {color:#'.Cfg::Info_color.';}
-	.'.$data.'  .contact {background:#'.$background.'; color: '. $color.';} 
+	.'.$this->dataCss.'  p.narrow label.information {color:#'.Cfg::Info_color.';}
+	.'.$this->dataCss.'  .contact {background:#'.$background.'; color: '. $color.';} 
 	';
 	 
 	if ($this->clone_local_style||!$this->is_clone){
@@ -13086,7 +13174,7 @@ $this->textarea($vmsg,$messagename,$this->current_net_width,$this->current_font_
 		 
 		   echo '</div><!--choose colors-->';
 		 $this->show_close('Change Colors');//<!--Show More Change Colors-->';
-		  $this->edit_styles_close($data,'blog_style','.'.$data,'',$mod_msg); 
+		  $this->edit_styles_close($data,'blog_style','.'.$this->dataCss,'',$mod_msg); 
 		}
 	echo '</div><!--configure contact-->';
 }// end render_form

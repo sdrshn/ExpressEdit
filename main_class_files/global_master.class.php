@@ -35,12 +35,12 @@ class global_master extends global_edit_master{
 	protected $blog_date_on=0;  
 	protected $edit_font_size=Cfg::Edit_font_size;
 	protected $edit_font_family=Cfg::Edit_font_family;
-	protected $header_style='';
-	protected $header_script='docReady.js';
+	protected $header_style='styling/daneden-animate.css';
+	protected $header_script='docReady.js,jquery.min.js';
 	protected $header_script_function='onload,gen_Proc,imgSizer,autoShow,fadeTo';  //outscript for normal page
 	protected $header_edit_script_function='onload_edit,edit_Proc'; //scripts for edit pageprotected $tablename='contact';
 	protected $header_edit_script='jscolor.js,tool-man/core.js,tool-man/events.js,tool-man/css.js,tool-man/coordinates.js,tool-man/drag.js,tool-man/dragsort.js'; //outsidescript for edit page
-	protected $header_include='';
+	protected $header_include='';//add included php file::   use header_insert function to add to head  links ie css external files etc. 
 	protected $onload='';
 	protected $edit_onload='';#other copies of edit onload in gallery master addgallerypiccore add page pic core add video
 	protected $roots=Cfg_loc::Localroot_dir;// so test sites render new css etc.  in local root dir  this is antiquated
@@ -315,8 +315,7 @@ function db_backup_restore(){//const View_db='viewbackupdb';
 			$pass=Cfg::Dbpass; 
 			$cmd2=Sys::Mysqlserver.'mysql  -h'.$host.' -u'.$user.' -p'.$pass.' '. $dbname.'  < '.$fullpathfile.';';
 			
-			system($cmd1. $cmd2);
-			echo printer::print_info(NL.'View DB system() populated');
+			system($cmd1. $cmd2); 
 			if(isset($_GET['page_restore_dbopt'])){
 				$this->backupinst->backupdb(Sys::Dbname,'',$time,$fname);
 				$msg='Chosen Db was restored: '.$fname;
@@ -451,7 +450,7 @@ function iframe_list_gen($pages){
 	return $frames;	
 	}
 
-function gen_display_styles($data){
+function gen_display_styles($data){//ajax style parser for quick reference
 	$arr=explode('@@',$data);
 	//'.$type.'@@'.$id.'@@'.$field
 	
@@ -1073,7 +1072,7 @@ function render_body_main(){ //if (isset($_POST))print_r($_POST);
 			$this->current_background_color=$this->column_background_color_arr[0];//reset to top level level colors and font px///  will track through color and individual posts...
 			$this->current_color=$this->column_color_arr[0];
 			$this->current_font_px=$this->column_font_px_arr[0];   
-			($this->edit)&&$this->css.="\n.$this->clone_ext$this->col_table{margin-left:auto;margin-right:auto; text-align:center;}";//text align used for non rwd posts using  center float  ie  inline-block
+			($this->edit)&&$this->css.="\n.$this->clone_ext.'col_'.$this->col_id{margin-left:auto;margin-right:auto; text-align:center;}";//text align used for non rwd posts using  center float  ie  inline-block
 			$this->blog_render($this->col_id,true,$this->col_table_base); 
 			if ($this->edit){   
 				$this->submit_button('SUBMIT ALL');
@@ -1379,8 +1378,14 @@ function render_header_open() { if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,_
 		    include($this->roots.$var);
 		    }
 		}  
-	$this->header_insert(); 
+	$this->header_insert();
+	$this->header_global();
     }
+function header_global(){
+	return;
+	echo '
+	<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>';
+	}
 function header_insert(){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
 	//add site wide custom scripts   styles or links to .css and .js files in
 	//site_master.class.php for site wide effect that will not be updated over
@@ -1689,8 +1694,7 @@ function update_image_arr(){
 	
 function destructor(){// css is rendered to file before destructor
 	($this->edit)&&$this->update_image_arr(); 
-	$this->deltatime->delta_log('begin destructor'); 
-//$this->tinymce();f
+	$this->deltatime->delta_log('begin destructor');  
 	echo '<div class="inline floatleft"><!-- float buttons-->';
 	$msg='Advanced Style Css is Always Displayed On in Normal Webpage but toggled in the editor. Toggle here';
 	if (!Sys::Advanced) 
@@ -1767,13 +1771,14 @@ function destructor(){// css is rendered to file before destructor
 	if ($this->edit&&$count>0){  
 		$this->styleoff=true;//redundant
 		echo '<div class="editbackground width600 editfont fd5brightgreen" id="leftovers"><!--begin Unclone Orphans-->';
-		$q="select blog_id,blog_type,blog_order,blog_table,blog_data1 from $this->master_post_table where blog_unclone!='' and blog_unstatus='unclone' AND blog_table_base='$this->tablename'";  
+		$q="select blog_id,blog_col,blog_type,blog_order,blog_table,blog_data1 from $this->master_post_table where blog_unclone!='' and blog_unstatus='unclone' AND blog_table_base='$this->tablename'";  
 		$r=$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);	 
 		if ($this->mysqlinst->affected_rows()) {
 			printer::printx('<p class="fsminfo editbackground large editcolor width500">This is a list of <span class="info" title="leftover unclones are unclones of deleted parents previously cloned on this page"> leftover unclones </span> which you may Delete or Move elsewhere.</p>');// <span class="red">Caution: </span> Unclones remain active if the parent is ReCloned they Will Again Arise and Unclone!</p>');
-			while(list($blog_id,$blog_type,$blog_order,$blog_table,$blog_data1)=$this->mysqlinst->fetch_row($r,__line__,__method__)){
+			while(list($blog_id,$blog_col,$blog_type,$blog_order,$blog_table,$blog_data1)=$this->mysqlinst->fetch_row($r,__line__,__method__)){
 				$this->edit=false;
-				$data=$blog_table.'_'.$blog_order;
+				 
+				$data=$this->tablename.'_colId_'.$blog_col.'_postId_'.$blog_id;
 				if (in_array($blog_id,$this->current_unclone_table)) continue;
 				 echo '<div class="fs4aqua maxwidth500"><!--Wrap View-->';
 				 //
@@ -2359,18 +2364,6 @@ body{text-align:center;}
     file_put_contents($this->roots.Cfg::Style_dir.$this->tablename.$this->css_suffix.'.css',$this->css);//for add pages Pics etc.
     file_put_contents($this->roots.Cfg::Style_dir.'gen_page.css','@charset "UTF-8";'. $this->sitecss);//for add pages Pics etc.
      file_put_contents($this->roots.Cfg::Style_dir.$this->tablename.'_adv'.$this->css_suffix.'.css','@charset "UTF-8";'. $this->advancedmediacss);//for add pages Pics etc.
-       
-    /*if ($this->gallery_global===true&&strpos(Sys::Self,'expand')!==false){  
-	  	$mastertablename=check_data::return_field_value(__METHOD__,__LINE__,__FILE__,Cfg::Master_gall_table,$this->tablename,'gall_ref','master_gall_ref');
-		if (empty($mastertablename))return;
-		$table_list=check_data::return_gall_list(__METHOD__,__LINE__,__FILE__,$mastertablename);
-		foreach ($table_list as $tablename){ 
-			file_put_contents($this->roots.Cfg::Style_dir.$tablename.$this->css_suffix.'.css', $this->css); // echo 'tablename css expand is '.$this->css_suffix.$tablename;
-			}
-	   }//backs up all the expand css tables *///file_put_contents(Cfg_loc::Localroot_dir.'includes/'.$this->tablename.$this->data28.'.css', $this->css);
-   // if (is_file(Cfg_loc::Localroot_dir.'includes/'.$this->tablename.$data_unlink.'.css')){
-	 //  unlink(Cfg_loc::Localroot_dir.'includes/'.$this->tablename.$data_unlink.'.css');
-	 //  }
 	printer::alert_pos('Css file Gen Complete');
     }
     

@@ -499,6 +499,7 @@ function gallery_display(){ if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__MET
 		$json['returnto']=Sys::Self;
 		$json['page_cache_arr']=$this->page_cache_arr;//sizes of cache..
 		$json['data']=$this->data;
+		$json['dataCss']=$this->dataCss;
 		//$json['img_array']=$ia;
 		$json['clone_local_style']=$this->clone_local_style;
 		$json['clone_local_data']=$this->clone_local_data; 

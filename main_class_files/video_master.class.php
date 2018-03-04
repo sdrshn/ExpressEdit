@@ -3,6 +3,10 @@ class video_master {
 private static $instance='';
 
 function render_video($vidname,$image='',$width=400,$aspect=1.2,$viddir='',$autostart=0,$loop=0,$mute=0,$cc=0,$controls=1){
+     if (Sys::Edit){
+          echo $viddir.$vidname;
+          return;
+         }
 	$this->autostart=$autostart; 
      $this->mute=$mute;
      $this->loop=$loop;
