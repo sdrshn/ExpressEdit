@@ -20,12 +20,13 @@ Interested in incorporating a project: contact me  info@expressedit.org<br>
 <h3>The core system is:</h3>
 
 An Integrated Theme creating CMS system<br>
+Develops themes from scratch or from pre-existing pages/templates<b>
+An advanced mirroring system enabling any page to become an editable template for other pages.<br>
 Super Quick!! It has:<br>
 An open format for express editing of multiple posts, including template features simultaneously.<br>
-An advanced mirroring system enabling any page to become an editable template for other pages.<br>
-Complete dropdown styling choices for column layouts and posts. <br>
+Extensive dropdown styling choices for column layouts and posts. <br>
 Color coding of posts to parent column wrappers.<br>
-Speed copy configuations.<br>
+Speed copy configuations betweem pages posts and columns<br>
 
 <h3>Responsive features include:</h3>
 Posts are built-in fluid RWD.<br>
