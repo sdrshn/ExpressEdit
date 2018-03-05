@@ -18,33 +18,33 @@ Project suggestions welcome.
 Currently incorporating Animation css
 Interested in incorporating a project: contact me  info@expressedit.org
 
-<p style="font-size:1.5em;font-weight:600">The core system is:</p>
+<h3>The core system is:</h3>
 
-An Integrated Theme creating CMS system
-Super Quick!! It has:
-An open format for express editing of multiple posts, including template features simultaneously.
-An advanced mirroring system enabling any page to become an editable template for other pages.
-Complete dropdown styling choices for column layouts and posts. 
-Color coding of posts to parent column wrappers.
-Speed copy configuations.
+An Integrated Theme creating CMS system<br>
+Super Quick!! It has:<br>
+An open format for express editing of multiple posts, including template features simultaneously.<br>
+An advanced mirroring system enabling any page to become an editable template for other pages.<br>
+Complete dropdown styling choices for column layouts and posts. <br>
+Color coding of posts to parent column wrappers.<br>
+Speed copy configuations.<br>
 
-<p style="font-size:1.5em;font-weight:600">Responsive features include:</p>
-Posts are built-in fluid RWD.
-A 100 grid-unit (percentage system) with margin options   (only chosen css is generated)
-An quick alternative RWD system.
-Advanced styling options with max-width, min-width options
-Complete responsive image cache system
+<h3>Responsive features include:</h3>
+Posts are built-in fluid RWD.<br>
+A 100 grid-unit (percentage system) with margin options   (only chosen css is generated)<br>
+An quick alternative RWD system.<br>
+Advanced styling options with max-width, min-width options<br>
+Complete responsive image cache system<br>
 
-<p style="font-size:1.5em;font-weight:600">Additional Features:</p>
-Currently has slides shows, galleries, navigation menu 
-Complete automatic backup system and preview backup-restore system    
-Unique Styling tools including advanced styling tools for general and RWD styling.
-Easily customize functions that survive updates!
-Much More
+<h3>Additional Features:</h3>
+Currently has slides shows, galleries, navigation menu <br>
+Complete automatic backup system and preview backup-restore system    <br>
+Unique Styling tools including advanced styling tools for general and RWD styling.<br>
+Easily customize functions that survive updates!<br>
+Much More<br>
 
-<p style="font-size:1.5em;font-weight:600">To Do List:</p>
-currently adding animations
-add yet more choices for galleries from other OS projects
-add navigation OS project
+<h3>To Do List:</h3>
+currently adding animations<br>
+add yet more choices for galleries from other OS projects<br>
+add navigation OS project<br>
 
-<p style="font-size:1.5em;font-weight:600">Contributor developers, suggestions welcome</p>
+<h3>Contributor developers, suggestions welcome</h3>
