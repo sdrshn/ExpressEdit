@@ -1,37 +1,50 @@
 # ExpressEdit
-ExpressEdit is an integrated Theme Creation CMS
-	Copyright (c) 2018  Brian Hayes expressedit.org  
+     ExpressEdit is an integrated Theme Creation CMS
+	Copyright (c) 2018  Brian Hayes expressedit.org
+     
+     Under the terms of the GNU General Public License  
+     See the file LICENSE.txt for details.  
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+     See   installation.txt  for the installation proceedure
+     
+     Demo video page being updated..
+     
+     www.bmtacupuncture.com
+     imaginetheland.com
+     built on core system and will be undergoing updating with new features
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+This CMS platform is designed to further incorporate other open source projects
+Project suggestions welcome.
+Currently incorporating Animation css
+Interested in incorporating a project: contact me  info@expressedit.org
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
- 
-See the file LICENSE.txt for details.
+<p style="font-size:1.5em;font-weight:600">The core system is:</p>
 
-Interested in moving the project forward? Contributors welcome.
-Currently installing animations.
-Needs security review, designing, integration with additional plugin features.
+An Integrated Theme creating CMS system
+Super Quick!! It has:
+An open format for express editing of multiple posts, including template features simultaneously.
+An advanced mirroring system enabling any page to become an editable template for other pages.
+Complete dropdown styling choices for column layouts and posts. 
+Color coding of posts to parent column wrappers.
+Speed copy configuations.
 
-Video Demos Page:  http://expressedit.org/
-See   installation.txt  for the installation proceedure
-This Integrated Theme  creating CMS system is built on PHP, MYSQL, JS with flatfiles generated in editmode to replace  MYSQL queries for normal webpage mode.
+<p style="font-size:1.5em;font-weight:600">Responsive features include:</p>
+Posts are built-in fluid RWD.
+A 100 grid-unit (percentage system) with margin options   (only chosen css is generated)
+An quick alternative RWD system.
+Advanced styling options with max-width, min-width options
+Complete responsive image cache system
 
-Build theme templates, slides shows, galleries, navigation menus all RWD responsive from scratch with built in RWD response and for more complicated multi-column layouts use one of two RWD response systems (a 100 grid unit or alternative RWD system). With this system any layout is possible.
+<p style="font-size:1.5em;font-weight:600">Additional Features:</p>
+Currently has slides shows, galleries, navigation menu 
+Complete automatic backup system and preview backup-restore system    
+Unique Styling tools including advanced styling tools for general and RWD styling.
+Easily customize functions that survive updates!
+Much More
 
-Developers will find advanced styling options for general and RWD styling and the ability to easily customize functions that survive updates! The system is built to maximize customization options providing mobile response tools, detailed styling options, configuration options, and tools to enable exporting and importing of previously configurations.
+<p style="font-size:1.5em;font-weight:600">To Do List:</p>
+currently adding animations
+add yet more choices for galleries from other OS projects
+add navigation OS project
 
-With cloning, the original content is mirrored exactly on another page and changes on the parent are reflected automatically on all pages whether its a complete theme or any part of one.
-And for cloned content which may be a whole page now serving as a mirrored template on another page you can unclone any portion of it whether a column with its associated content or a single content post and substitute in newly created content/columns or clone, move, or copy content types including columns of content from elsewhere.
- 
-Like this any portion of a page can be used for  building other pages and the site can use any number of different templates as needed. Once made pages (primary columns containing columns of organized posts) are importable to other websites built on the system which in turn can use them in part or as a complete template.  The system also has a mechanism where templates can be easily switched out and page specific data retained.
- 
-Choose to locally style or configure any cloned posts types as required making page specific changes. Or locally change the actual data of a cloned post and keep the styling and configurations of the parent which is very handy for sites having multiple galleries.
+<p style="font-size:1.5em;font-weight:600">Contributor developers, suggestions welcome</p>
