@@ -1,16 +1,13 @@
 # ExpressEdit
-     ExpressEdit is an integrated Theme Creation CMS<br>
-	Copyright (c) 2018  Brian Hayes expressedit.org<br>
-     Under the terms of the GNU General Public License<br>  
-     See the file LICENSE.txt for details. <br> 
+     ExpressEdit is an integrated Theme Creation CMS 
+	Copyright (c) 2018  Brian Hayes expressedit.org 
+     Under the terms of the GNU General Public License   
+     See the file LICENSE.txt for details.  
 
-     See installation.txt  for the installation proceedure<br>
+     See installation.txt  for the installation proceedure 
      
-     Demo video page being updated..<br>
-     
-     www.bmtacupuncture.com<br>
-     imaginetheland.com<br>
-     these are built on the core system and will be undergoing updating with new features and styling<br>
+     Demo video page being updated..  
+       
 
 This CMS platform is designed to further incorporate other open source projects<br>
 Project suggestions welcome.<br>
