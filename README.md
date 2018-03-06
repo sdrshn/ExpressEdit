@@ -24,9 +24,10 @@ Develops themes from scratch or from pre-existing pages/templates<br>
 An advanced mirroring system enabling any page to become an editable template for other pages.<br>
 Super Quick!! It has:<br>
 An open format for express editing of multiple posts, including template features simultaneously.<br>
-Extensive dropdown styling choices for column layouts and posts. <br>
-Color coding of posts to parent column wrappers.<br>
+Extensive dropdown styling choices for column layouts (divs) and posts. <br>
 Speed copy configuations betweem pages posts and columns<br>
+copy, move or mirror columns/posts between/within  pages<br>
+quickly create virtally any div/nested div page structure<br>
 
 <h3>Responsive features include:</h3>
 Posts are built-in fluid RWD.<br>
@@ -36,10 +37,12 @@ Advanced styling options with max-width, min-width options<br>
 Complete responsive image cache system<br>
 
 <h3>Additional Features:</h3>
+Color coding of posts to parent column wrappers.<br>
 Currently has slides shows, galleries, navigation menu <br>
 Complete automatic backup system and preview backup-restore system    <br>
 Unique Styling tools including advanced styling tools for general and RWD styling.<br>
 Easily customize functions that survive updates!<br>
+
 Much More<br>
 
 <h3>To Do List:</h3>
