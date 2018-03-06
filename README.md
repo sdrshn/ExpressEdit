@@ -48,11 +48,11 @@ gridify system for creating text and image grids<br>
 add navigation OS project<br>
 redesigning ;-) <br>
 
-Plugins currently utilized:
-editor only: 
-jscolor: Jan Odvarko, color selector
-tool-man: Tim Taylor Consulting, drag-drop sorting
-tiny-mce: by Ephox
-webpages:
-highslide: Torstein Hønsi
+Plugins currently utilized:<br>
+editor only: <br>
+jscolor: Jan Odvarko, color selector<br>
+tool-man: Tim Taylor Consulting, drag-drop sorting<br>
+tiny-mce: by Ephox<br>
+webpages:<br>
+highslide: Torstein Hønsi<br>
 <h3>Contributor developers, suggestions welcome</h3>
