@@ -1,4 +1,4 @@
-# ExpressEdit
+
      ExpressEdit is an integrated Theme Creation CMS 
 	Copyright (c) 2018  Brian Hayes expressedit.org 
      Under the terms of the GNU General Public License   
@@ -19,12 +19,12 @@ Interested in incorporating a project: contact me  info@expressedit.org<br>
 An Integrated Theme creating CMS system<br>
 Develops themes from scratch or from pre-existing pages/templates<br>
 An advanced mirroring system enabling any page to become an editable template for other pages.<br>
-Super Quick!! It has:<br>
+<h6>Super Quick!! It has:<br></h6>
 An open format for express editing of multiple posts, including template features simultaneously.<br>
 Extensive dropdown styling choices for column layouts (divs) and posts. <br>
-Speed copy configuations betweem pages posts and columns<br>
-copy, move or mirror columns/posts between/within  pages<br>
-quickly create virtally any div/nested div page structure<br>
+Speed copy, move or mirror columns/posts between/within pages<br>
+Speed copy configuations betweem pages posts or columns<br>
+Easily creates virtally any div/nested div page structure<br>
 
 <h3>Responsive features include:</h3>
 Posts are built-in fluid RWD.<br>
@@ -39,8 +39,7 @@ Currently has slides shows, galleries, navigation menu <br>
 Complete automatic backup system and preview backup-restore system    <br>
 Unique Styling tools including advanced styling tools for general and RWD styling.<br>
 Easily customize functions that survive updates!<br>
-
-Much More<br>
+ 
 
 <h3>To Do List:</h3>
 currently adding animations<br>
@@ -49,4 +48,11 @@ gridify system for creating text and image grids<br>
 add navigation OS project<br>
 redesigning ;-) <br>
 
+Plugins currently utilized:
+editor only: 
+jscolor: Jan Odvarko, color selector
+tool-man: Tim Taylor Consulting, drag-drop sorting
+tiny-mce: by Ephox
+webpages:
+highslide: Torstein Hønsi
 <h3>Contributor developers, suggestions welcome</h3>
