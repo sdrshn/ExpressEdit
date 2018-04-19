@@ -8,7 +8,12 @@
      
      Demo video page being updated..  
        
-
+Huge update coming later this week!!
+adding animations,
+code update,
+new gallery and slide show based on slippry
+position and display features
+etc. 
 This CMS platform is designed to further incorporate other open source projects<br>
 Project suggestions welcome.<br>
 Currently incorporating Animation css<br>
