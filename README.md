@@ -8,19 +8,19 @@
      
      Demo video page being updated..  
        
-Huge updates made but all will be update following the new version completion!!
-What's been done:
+Wait for version update for downloading.  
+What's been completed:
 programmable animations & simple click animations,
 code update,
-new gallery and slide show based on slippry
-position and display features
+new gallery and slide show based on slippry and another on photoswipe
+masonry for both gallery preview image arrangement and as post arrangement assist
+new  absolute positioning, height, and display full feature options
 
-What's in progress:
-adding Masonry
-adding photoswipe
-This CMS platform is designed to further incorporate other open source projects<br>
-Project suggestions welcome.<br> 
-Interested in incorporating a project: contact me  info@expressedit.org<br>
+What's in progress: 
+Need to make video of expressedit.com home page being created and update the current summary video to demostrate masonry and other new features in action.
+video to show editor new features
+Need to update installation instructions
+Need to update download files to new version follow completion of what's in progress
 
 <h3>The core system is:</h3>
 
@@ -43,18 +43,12 @@ Advanced styling options with max-width, min-width options<br>
 Complete responsive image cache system<br>
 
 <h3>Additional Features:</h3>
-Color coding of posts to parent column wrappers.<br>
-Currently has slides shows, galleries, navigation menu <br>
+Color coding of posts to parent column wrappers.<br> 
 Complete automatic backup system and preview backup-restore system    <br>
 Unique Styling tools including advanced styling tools for general and RWD styling.<br>
 Easily customize functions that survive updates!<br>
  
 
-<h3>To Do List:</h3> 
-add yet more choices for galleries from other OS projects<br>
-gridify system for creating text and image grids<br>
-add navigation OS project<br>
-redesigning ;-) <br>
 
 Plugins currently utilized:<br>
 editor only: <br>
@@ -63,6 +57,8 @@ tool-man: Tim Taylor Consulting, drag-drop sorting<br>
 tiny-mce: by Ephox<br>
 webpages:<br>
 slippry: Daniel Eden<br>
+photoswipe:Dmitry Semenov<br>
+masonry:  David DeSandro<br>
 highslide: Torstein Hønsi<br>
 <h3>Contributor developers, suggestions welcome</h3>
-Note: latest version with completed animation, slippry, major code updates not updated on github. Waiting for completion of further  updates  and making of new video. 
+ 
