@@ -9,7 +9,7 @@
      Demo video page being updated..  
        
 Wait for version update for downloading.  
-What's been completed:
+What's been completed for new version upload:
 programmable animations & simple click animations,
 code update,
 new gallery and slide show based on slippry and another on photoswipe
