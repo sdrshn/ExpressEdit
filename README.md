@@ -24,8 +24,8 @@ An Integrated Theme creating CMS system<br>
 Develops themes from scratch or from pre-existing pages/templates<br>
 An advanced mirroring/cloning system enabling any page or parts to become an editable template for other pages.<br>
 Super Quick!!<br>
-Webpage Mode uses flat files generated in Edit Mode..
-Edit Mode uses Minimal initial download of html then XMLHttpRequest for style/config options
+Webpage Mode uses flat files generated in Edit Mode..<br>
+Edit Mode uses Minimal initial download of html then XMLHttpRequest for style/config options.<br>
 An open format for express editing of multiple posts, including template features simultaneously.<br>
 Full dropdown styling/config choices for all column layouts (divs) and content posts. <br>
 Speed copy, move or mirror columns/posts between/within pages<br>
