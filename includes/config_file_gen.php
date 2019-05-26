@@ -1,5 +1,4 @@
 <?php
-#ExpressEdit 2.0
     if(!defined('xinstall')&&!is_file('./includes/Cfg.class.php')) {
           die('Direct access not permitted from this location. Move to and Run from Your Domain/SubDirectory Root'); 
      //taken from php.net  pages zelnaga at gmail dot com ¶
@@ -70,12 +69,6 @@ function autoloading($file){
           } 
      }//end autoloading
  spl_autoload_register("autoloading");
-     foreach(array('Cfg_master','Cfg','file_generate') as $incfile){echo $incfile;
-          new $incfile();
-          }
-     printer::alert('The following common_files will be auto regenerated if missing and configurations will be updated');
-      
-     file_generate::config_gen_init();//this is done first in case...  for primordial file generation of config files....
-     new Sys(); return;
+      new Sys();  
      
 ?>
