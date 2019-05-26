@@ -1,4 +1,5 @@
 <?php
+#ExpressEdit 2.0
 #testchange 336333
 class mail {
 	private static $instance=false; //store instance 
@@ -17,11 +18,11 @@ class mail {
 /*  
 echo 'sapi.name = '.php_sapi_name().'; ';
 #f (substr(php_sapi_name(),0,3)=='cgi') {
-    echo 'server.new()'."\n";
+    echo 'server.new()'.NL;
     $srv = new Server();
-    echo 'server.render(), '."\n";
+    echo 'server.render(), '.NL;
     $srv->render();
-    echo 'server.done'."\n";
+    echo 'server.done'.NL;
 #    }*/     
 function user_info(){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
 	$usr=users::instance();
@@ -41,41 +42,41 @@ static function country_subject(){
 
 static function iplookup($ipaddress=''){
 	$usr=users::instance();#this->usr will be referred to in contact master!
-	$print="\n".'The following Location Information is Provided to identify Where this email was sent from:'."\n";
-	$print.="\n"."ip is ".$usr->get('ip');
-	$print.="\n". "3 letter country code is: " . $usr->get('country_code3') . " name is: " . $usr->get('country') ."\n";
-	$print.="\n". "Region is: ".$usr->get('region');
-	$print.="\n". "City/town of Internet Provider (close or same as sender's location): ". $usr->get('city') ."\n";
-	$print.="\n". "continent is: " .$usr->get('continent') ."\n";
+	$print=NL.'The following Location Information is Provided to identify Where this email was sent from:'.NL;
+	$print.=NL."ip is ".$usr->get('ip');
+	$print.=NL. "3 letter country code is: " . $usr->get('country_code3') . " name is: " . $usr->get('country') .NL;
+	$print.=NL. "Region is: ".$usr->get('region');
+	$print.=NL. "City/town of Internet Provider (close or same as sender's location): ". $usr->get('city') .NL;
+	$print.=NL. "continent is: " .$usr->get('continent') .NL;
 	return $print;
 	}
-	#" " . $GEOIP_REGION_NAME[$usr->country_code][$usr->region] ."\n";
-	#$print.= $usr->postal_code ."\n";
-	#$print.= "latitude is: ".$usr->latitude ."\n";
-	#$print.= "longitude is: ". $usr->longitude ."\n";
-	#$print.= $usr->metro_code ."\n";
-	#$print.= $usr->area_code ."\n";
+	#" " . $GEOIP_REGION_NAME[$usr->country_code][$usr->region] .NL;
+	#$print.= $usr->postal_code .NL;
+	#$print.= "latitude is: ".$usr->latitude .NL;
+	#$print.= "longitude is: ". $usr->longitude .NL;
+	#$print.= $usr->metro_code .NL;
+	#$print.= $usr->area_code .NL;
 
-static function user_full_lookup(){ 
+static function user_full_lookup(){
+     $print=NL.'The following Location Information is Provided to identify Where this email was sent from:'.NL;
 	$usr=users::instance();#this->usr will be referred to in contact master!
-	$print="\n". "full url is ". request::return_full_url();
-	$print.="\n". "3 letter country code is: " . $usr->get('country_code3') . " name is: " . $usr->get('country') ."\n";
-	$print.="\n". "Region is: ".$usr->get('region');
-	$print.="\n". "City/town of Internet Provider (close or same as sender's location): ". $usr->get('city') ."\n";
-	$print.="\n".'OS and browser: '.$usr->get('OS');
-	$print.="\n". "continent is: " .$usr->get('continent') ."\n";
-	$print.="\n"."ip is ".$usr->get('ip');  
+	$print.=NL. "3 letter country code is: " . $usr->get('country_code3') . " name is: " . $usr->get('country') .NL;
+	$print.=NL. "Region is: ".$usr->get('region');
+	$print.=NL. "City/town of Internet Provider (close or same as sender's location): ". $usr->get('city') .NL;
+	$print.=NL.'OS and browser: '.$usr->get('OS');
+	$print.=NL. "continent is: " .$usr->get('continent') .NL;
+	$print.=NL."ip is ".$usr->get('ip');  
 	return $print;
 	}
 	
-function mailwebmaster($succmessage, $errmessage, $vars='',$echo=true){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);  if (Sys::Debug) echo "\n".'made it function mailwebmaster'."\n". 'address is '.Cfg::Admin_email; 
+function mailwebmaster($succmessage, $errmessage, $vars='',$echo=true){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);  if (Sys::Debug) echo NL.'made it function mailwebmaster'.NL. 'address is '.Cfg::Admin_email; 
 	$storeinst=store::instance();
 	$backtrace=false;
 	$succmessage=(!is_array($succmessage))? explode(',',$succmessage):$succmessage; 
 	$errmessage=(!is_array($errmessage))? explode(',',$errmessage):$errmessage; 
 	if ($this->printmaildata)  echo printer::print_wordwrap($vars);   
-	//if ($arrayhandle->is_empty_array($succmessage)==true){echo "\n".  'success is true';}else echo 'success is false'; 
-	//if ($arrayhandle->is_empty_array($errmessage)==true){echo "\n".  'mess is true';}else echo 'mess is false'; 
+	//if ($arrayhandle->is_empty_array($succmessage)==true){echo NL.  'success is true';}else echo 'success is false'; 
+	//if ($arrayhandle->is_empty_array($errmessage)==true){echo NL.  'mess is true';}else echo 'mess is false'; 
 	if (!empty($succmessage[0])&& !empty($errmessage[0])){
 		$subject='Success and Error in '. Sys::Self.' @'.$storeinst->tablename;  
 		$new_message=array_merge($succmessage, $errmessage);
@@ -97,20 +98,20 @@ function mailwebmaster($succmessage, $errmessage, $vars='',$echo=true){if (Sys::
 	if (!Cfg::Debug_backtrace)$data="If necessary Enable debug backtrace by setting Cfg::Debug_backtrace to true in Config file";
 	elseif (!empty($errmessage[0])){
 		ob_start();
-		echo  "\n". 'debug print'."\n";
+		echo  NL. 'debug print'.NL;
 		debug_print_backtrace();
 		#print_r(debug_backtrace());
-		echo "\n".' end debug print ';
+		echo NL.' end debug print ';
 		$data = ob_get_contents();
 		ob_end_clean();
-		$data=wordwrap($data,Cfg::Wordwrap,"\n",true);
+		$data=wordwrap($data,Cfg::Wordwrap,NL,true);
 		}
      else $data='';
 	$subject_append= self::country_subject();  
 	$subject=$subject_append.' '.$subject;   
-	$my_message="\n".'Mail Class Message: the date is '.date("dMY-H-i-s"). self::user_full_lookup()."\n".  " database is ". Sys::Dbname;
+	$my_message=NL.'Mail Class Message: the date is '.date("dMY-H-i-s"). self::user_full_lookup().NL.  " database is ". Sys::Dbname;
 	foreach ($new_message as $msg) { 
-		$my_message.= "\n"."\n"."\n"." direct message= \n \n \n". $msg;
+		$my_message.= NL.NL.NL." direct message= \n \n \n". $msg;
 		}
      $my_message.= "\n \n \n";
 	if (isset($_POST)&&self::Post_vars){  
@@ -124,10 +125,10 @@ function mailwebmaster($succmessage, $errmessage, $vars='',$echo=true){if (Sys::
 	else $my_message.="\n post variables verbose is false. Set mail::Post_vars to true for Reqest Vars";
 	if (isset($_GET)&&self::Post_vars){
 		foreach ($_GET as $key =>$var) { // Print each error.
-			$my_message.= "\n".'$_get variable '. $key .'='. $var ."\n";
+			$my_message.= NL.'$_get variable '. $key .'='. $var .NL;
 			}
 		}//if $-GET 
-	$my_message=wordwrap($my_message,Cfg::Wordwrap)."\n". $data;
+	$my_message=wordwrap($my_message,Cfg::Wordwrap).NL. $data;
 	
 	 if (empty($vars)&&self::Defined_vars&&!empty($errmessage[0])){
 		$vars=get_defined_vars();
@@ -161,7 +162,7 @@ function mailwebmaster($succmessage, $errmessage, $vars='',$echo=true){if (Sys::
 		} 
 	catch (FileException $fe) {
 		if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-		$my_message= " The process could not be completed. Debugging information:" . "\n". $fe->__tostring() . "\n" . $fe->get_details() ."\n";
+		$my_message= " The process could not be completed. Debugging information:" . NL. $fe->__tostring() . NL . $fe->get_details() .NL;
 		if (!Sys::Web) return;
 		$addresses=explode(',',Cfg::Admin_email);
 		foreach ($addresses as $address){
@@ -240,8 +241,8 @@ static function email_scrubber($value) {if (Sys::Methods) Sys::Debug(__LINE__,__
  static function mail_send($email,$subject,$message,$from=''){
 	 	if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);if (Sys::Debug) echo 'made it to mail:mail_send';
      if (Sys::Loc){
-	   echo "\n".$subject;
-	   echo "\n".$message;
+	   echo NL.$subject;
+	   echo NL.$message;
 	  return;
 	   }
     
@@ -274,24 +275,24 @@ if(Sys::Debug)echo "mail is $email subject is $subject body is $body and header 
   }
   */
 static function error($msg,$subject='Mail error called:'){
-	$msg='  **  url: '.request::return_full_url()."\n".$subject.' '. $msg;
-	process_data::log_to_file($subject."\n".$msg."\n");
-	process_data::write_to_file('error_last_log',$subject."\n".$msg."\n");
+	$msg='  **  url: '.request::return_full_url().NL.$subject.' '. $msg;
+	process_data::log_to_file($subject.NL.$msg.NL);
+	process_data::write_to_file('error_last_log',$subject.NL.$msg.NL);
 	if (Sys::Loc){
 		printer::alert_neg($msg,1.2);
 		debug_print_backtrace();
 		}
 	else {
-		process_data::log_to_file($subject."\n".$msg."\n"); 
+		process_data::log_to_file($subject.NL.$msg.NL); 
 		ob_start();
-		echo  "\n". 'debug print'."\n";
+		echo  NL. 'debug print'.NL;
 		debug_print_backtrace();
 		print_r(debug_backtrace());
-		echo "\n".' end debug print ';
+		echo NL.' end debug print ';
 		$data = ob_get_contents();
 		ob_end_clean();
-		$data=wordwrap($data,Cfg::Wordwrap,"\n",true);
-		$msgx="\n". wordwrap($msg,Cfg::Wordwrap) .  $data;
+		$data=wordwrap($data,Cfg::Wordwrap,NL,true);
+		$msgx=NL. wordwrap($msg,Cfg::Wordwrap) .  $data;
 		$addresses=explode(',',Cfg::Admin_email);
 		foreach ($addresses as $address){
 			if (!mail($address,$subject, $msgx, "From: ".Cfg::Mail_from)){
@@ -304,21 +305,21 @@ static function error($msg,$subject='Mail error called:'){
     
 static function alert($msg,$subject='mail::alert'){   
 	$subject= self::country_subject()." ".$subject;  
-	$msg.= '  **  url: '.request::return_full_url()."\n".self::user_full_lookup();
-	process_data::log_to_file($subject."\n".$msg."\n"); 
-	process_data::write_to_file('error_last_log',$subject."\n".$msg."\n");
+	$msg.= '  **  url: '.request::return_full_url().NL.self::user_full_lookup();
+	process_data::log_to_file($subject.NL.$msg.NL); 
+	process_data::write_to_file('error_last_log',$subject.NL.$msg.NL);
 	if (Sys::Loc){
-		printer::alert($subject."\n".$msg."\n");
+		printer::alert($subject.NL.$msg.NL);
 		# print_r(debug_backtrace());
 		//debug_print_backtrace();
 		}
 	else {
 		 $msg.=print_r(debug_backtrace(),true);
-		 #$msg.="\n".printer::print_wordwrap(get_defined_vars());
+		 #$msg.=NL.printer::print_wordwrap(get_defined_vars());
 		$addresses=explode(',',Cfg::Admin_email);
 		foreach ($addresses as $address){
 			if (!mail($address,$subject, $msg, "From: ".Cfg::Mail_from)){
-				echo 'alert mail error in mail::alert';
+				echo 'alert mail error in mail::alert trying to send msg using SysWeb is true';
 				}
 			}
 		}
@@ -326,16 +327,16 @@ static function alert($msg,$subject='mail::alert'){
     
 static function alert2($msg,$subject='mail::alert'){   
 	$subject= self::country_subject()." ".$subject;  
-	$msg.= '  **  url: '.request::return_full_url()."\n".self::user_full_lookup();
-		process_data::log_to_file($subject."\n".$msg."\n"); 
+	$msg.= '  **  url: '.request::return_full_url().NL.self::user_full_lookup();
+		process_data::log_to_file($subject.NL.$msg.NL); 
 	if (Sys::Loc){	
-		printer::alert($subject."\n".$msg."\n");
+		printer::alert($subject.NL.$msg.NL);
 		# print_r(debug_backtrace());
 		//debug_print_backtrace();
 		}
 	else {
 		 $msg.=print_r(debug_backtrace(),true);
-		 #$msg.="\n".printer::print_wordwrap(get_defined_vars());
+		 #$msg.=NL.printer::print_wordwrap(get_defined_vars());
 		if (!mail(Cfg::Admin_email,$subject, $msg, "From: ".Cfg::Mail_from)){
 			echo 'mail send error in mail::alert2';
 			}
@@ -345,8 +346,8 @@ static function alert2($msg,$subject='mail::alert'){
 static function success($msg,$subject='Successful Update: '){
 	$storeinst=store::instance();
 	$subject= self::country_subject()." ".$subject; 
-	$msg='  **  url: '.request::return_full_url()."\n".$subject.' '. $msg;
-		process_data::log_to_file($subject."\n".$msg."\n"); 
+	$msg='  **  url: '.request::return_full_url().NL.self::user_full_lookup().NL. $msg;
+		process_data::log_to_file($subject.NL.$msg.NL); 
 		if (Sys::Loc){
 		printer::alert_pos($msg,1); 
 		}
@@ -365,7 +366,8 @@ static function mininfo($msg,$subject='Update Info: '){
 		process_data::write_to_file('mail',$msg,false,true); 
 		}
 	else { 
-		$addresses=explode(',',Cfg::Admin_email);
+		$msg=$msg.NL. Self::user_full_lookup();
+          $addresses=explode(',',Cfg::Admin_email);
 		foreach ($addresses as $address){
 			if (!mail($address,$subject, $msg, "From: ".Cfg::Mail_from)){
 				echo 'mail send error in update info with '. $address;
@@ -376,13 +378,13 @@ static function mininfo($msg,$subject='Update Info: '){
 static function info($msg,$subject='Update Info: '){
 	$storeinst=store::instance();
 	$subject= self::country_subject()." ".$subject; 
-	$msg='  **  url: '.request::return_full_url()."\n".$subject.' '. $msg;
-		process_data::log_to_file($subject."\n".$msg."\n"); 
-		if (Sys::Loc){
+	$msg='  **  url: '.request::return_full_url().NL.self::user_full_lookup().NL. $msg;
+		process_data::log_to_file($subject.NL.$msg.NL); 
+	if (Sys::Loc){
 		printer::alert_neu($msg,1); 
 		}
-	else { 
-		$addresses=explode(',',Cfg::Admin_email);
+	else {
+          $addresses=explode(',',Cfg::Admin_email);
 		foreach ($addresses as $address){
 			if (!mail($address,$subject, $msg, "From: ".Cfg::Mail_from)){
 				echo 'mail send error in update info with '. $address;
@@ -393,9 +395,9 @@ static function info($msg,$subject='Update Info: '){
  
 static function alert_min($msg,$subject='Update Info: '){
 	
-	$msg='  **  url: '.request::return_full_url()."\n".$subject.' '. $msg;
-		process_data::log_to_file($subject."\n".$msg."\n"); 
-		if (Sys::Loc){
+	$msg='  **  url: '.request::return_full_url().NL.self::user_full_lookup().NL.$msg;
+		process_data::log_to_file($subject.NL.$msg.NL); 
+	if (Sys::Loc){
 		printer::alert_neu($msg,1); 
 		}
 	else { 

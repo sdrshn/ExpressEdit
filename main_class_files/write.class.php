@@ -1,12 +1,13 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<!DOCTYPE html>
+<html lang="en"> 
 <head>
-	<meta http-equiv="content-type" content="text/html; charset=iso-8859-1" >
-	<title>Handling Exceptions, Part 2</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Handling Exceptions</title>
 </head>
 <body>
-<?php # Script 8.3 - write_to_file2.php   original source needed for attribute
+<?php # Script 8.3 - write_to_file2.php
+ //original source needed for attribute
 
 /*	This page attempts to write some data
  *	to a text file.
@@ -54,9 +55,7 @@ class FileException extends Exception {
 				return 'No further information is available.';
 				break;
 		} // End of SWITCH.
-	
 	} // End of get_details() function.
-	
 } // End of FileException class.
 
 
@@ -67,11 +66,8 @@ class FileException extends Exception {
 // Class has a write() method for writing data.
 // Class has a close() method to close the pointer.
 class WriteToFile {
-
-	// Attributes:
 	private $fp = null;
 	private $message = '';
-	
 	// Constructor:
 	function __construct($file = null, $mode = 'w') {if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
 	
@@ -136,10 +132,8 @@ class WriteToFile {
 
 // Identify the file:
 $file = 'data.txt';
-
 // Data to be written:
 $data = "This is a line of data.\n";
-
 // Start the try...catch block:
 try {
 
@@ -151,9 +145,7 @@ try {
 	echo '<p>The data has been written.</p>';
 
 } catch (FileException $fe) {
-
 	echo '<p>The process could not be completed. Debugging information:<br>' . $fe->getMessage() . '<br>' . $fe->get_details() . '</p>';
-
 }
 
 

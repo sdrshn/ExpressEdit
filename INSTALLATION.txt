@@ -2,23 +2,29 @@
 
 tar -xvf expressEditInstall.tar.gz   decompress files/folders
 
-Relocate files/folders within expressEditInstall directory as follows:
+Relocate files/folders within the resulting expressEditInstall directory as follows:
 
-If your running a single site using this system directly in the public html file: 
+There are two ways to run this system.  Using one set of class files to run multiple websites (with one set of class files placed in folder directly in the Server Home directory ie a level above public_html)  or using one set of class files for each website placed in folder within public_html.
+
+If your running a single site using the class files files directly in the public html file: 
 ie   /home/youracc/public_html   or /var/www/
-merge/rename main_class_files to includes folder
+merge/rename main_class_files to the includes folder already within the expressEditInstall directory which contains other 'local' files.
+Then move the includes dir:
 Relocation Sample:
-/home/youracc/public_html/includes  or  /var/www/includes (containing merged main class files and the Cfg.class.php file)
+/home/youracc/public_html/includes  or  /var/www/includes (containing merged main class files and the Cfg.class.php and also a site_master, navigate_loc,gallery_loc,expandgallery_loc class files for adding custom changes if ever needed.)
+Move the install_file_gen.php file to:
 /home/youracc/public_html/install_file_gen.php  or /var/www/install_file_gen.php
+Move the common_dir to:
 /home/youracc/public_html/common_dir    or  /var/www/common_dir
  
 if you are using a subdirectory/subdomain then it becomes /home/youracc/public_html/mysubdomain/includes 
 /home/youracc/public_html/mysubdomain/install_file_gen.php  
 /home/youracc/public_html/mysubdomain/common_dir
-when configuring the Cfg.class.php file (see below) be sure to specify the ie. Owner_dir=”mysubdomain”;
 
-For running multiple sites rename main_class_files folder to includes and place in server home directory above the public dir.  As this folder contains included files add this  directory address to your php.ini include_path directive: for example if it is initially
-change include_path=".:/usr/lib/php:/usr/local/lib/php" then change to include_path=".:/home/youracc:/usr/lib/php:/usr/local/lib/php"  and the __autoload function in Sys.php will locate the “includes” directory
+for subdomains when configuring the Cfg.class.php file (see below) be sure to specify the ie. Owner_dir=”mysubdomain”;
+
+
+For running multiple sites rename main_class_files folder to includes and place in server home directory above the public dir. 
 Also place the common_dir in this same home folder. 
 The original includes dir and the install_file_gen.php file goes into your public_html (or subdomain folder).
 
@@ -34,19 +40,21 @@ and then when configuring the Cfg.class.php file (see below) be sure to specify 
 
 For All installations:
 
-Install yourDatabase.sql database starter to mysql with appropriate name.
-Make a copy of installed yourDatase  (no data required) and rename to your Cfg.class.php  const View_db configuration setting: ie viewbackupdb..
-This is necessary for viewing any backup database you wish to reinstall:
 
-Inside of the public includes folder is the Cfg.class.php which you need to configure with your database name,  database password, and database host, editpages directory and other configurations.  Also for backing up a second database is used with identical fields to the main database and you give it an appropriate name in the const Db_view field. Any backup file will then populate this db to be viewed.
+Install yourDatabase.sql database starter to mysql with appropriate name.
+
+
+Inside of the public includes folder is the Cfg.class.php which you need to configure with your database name,  database password, and database host, and specify an editpages directory name that that is not easy to guess to prevent unwanted logins. Specify email address for success/error messages and any other configuration you may wish to change the default.
+
+Also for backing up a second database is used with identical fields to the main database and you give it an appropriate name in the const Db_view field. Any backup file will then populate this db to be viewed. Copy yourdatabase to this database and it gets overriden for viewing backup files.
 
 Be sure to place the common_dir folder which holds system files that will be moved to necessary subfolders during installation  into the same parent directory where you placed the includes directory holding the main class files 
 
-Lastly navigate to your site url adding the filename install_file_gen.php to the url which should generate the necessary files, set up login credentials and click the link to go to your editor and begin to add your content!! 
+Lastly navigate to your site url adding the filename install_file_gen.php to the url which should generate the necessary files.
+Then you'll be prompted to set up login credentials and click the link to go to your editor and begin to add your content!! 
  
 Contact me if any installations problems  etc.
-
-If you are logged in you can get debugging info using various queries. See the Sys.php file for more info  
+ 
 
 
 

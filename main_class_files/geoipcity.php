@@ -1,4 +1,5 @@
 <?php
+#ExpressEdit 2.0
 /* geoipcity.inc
  *
  * Copyright (C) 2004 Maxmind LLC
@@ -28,15 +29,10 @@
  */
 
 define("FULL_RECORD_LENGTH",50);
-
-if (is_file(Cfg_loc::Root_dir.'includes/geoip.php'))
-    require_once Cfg_loc::Root_dir.'includes/geoip.php';
-else require_once 'includes/geoip.php';
-
-if (is_file(Cfg_loc::Root_dir.'includes/geoipregionvars.php'))
-      require_once Cfg_loc::Root_dir.'includes/geoipregionvars.php';
-else require_once 'includes/geoipregionvars.php';
-
+$loader= new fullloader();
+$loader->fullpath('geoip.php');
+$loader->fullpath('geoipregionvars.php'); 
+ 
 
 class geoiprecord {
   var $country_code;

@@ -1,4 +1,5 @@
 <?php
+#ExpressEdit 2.0
 class FileException extends Exception {
       //original source of this class needed for attribute      
 	// Define the get_details() method...

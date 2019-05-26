@@ -1,25 +1,11 @@
 <?php
-/*
-ExpressEdit is an integrated Theme Creation CMS
-	Copyright (c) 2018  Brian Hayes expressedit.org  
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.*/
+#ExpressEdit 2.0
+#based on Larry Ullman php5 & 6 writings
     
 class secure_login {
-protected $login_msg='';
-private $registration='true';
-private $register=false;
+     protected $login_msg='';
+     private $registration='true';
+     private $register=false;
 
 function __construct($login_type, $register=false){
 	if (isset($_GET['logout']))secure_login::logout(); 
@@ -47,7 +33,6 @@ function __construct($login_type, $register=false){
 			self::render_login_form('Error Logging In!'); exit();		//give login again....
 			}
 		}
-	 
 	//no login parameters
 	if ($this->login_type==='ownerAdmin'){  
 		if ($stmt=$this->mysqli->prepare("SELECT count(id) AS count_id  FROM members WHERE   login_type = ?")) { //  
@@ -95,18 +80,13 @@ function get_salt($user,$login_type){
 /*
 This function makes your login script a whole lot more secure. It stops hackers been able to access the session id cookie through javascript (For example in an XSS attack).
 Also by using the "session_regenerate_id()" function, which regenerates the session id on every page reload, helping prevent session hijacking.
-
 Note: If you are using https in your login application set the "$secure" variable to true.
 2Create Login Function.
 This function will check the email and password against the database, it will return true if there is a match.
-
 Secure Login Function:
-
 $rc4 = new encrypt; 
-
 $thestring = $rc4->endecrypt($thepasswd,$thestring); 
- echo $thestring;
-
+echo $thestring;
 $thestring = $rc4->endecrypt($thepasswd,$thestring,'de'); */ 
 
 function login($user, $password) {  
@@ -139,8 +119,7 @@ function login($user, $password) {
                     
 				exit("too many login attempts try again in $num minutes");
 				}
-			else {  
-				 
+			else { 
 				$now = time();
 				 if ($stmt=$this->mysqli->prepare("INSERT INTO login_attempting (user_id, time, salt,lockout) VALUES (?, '$now','".$_SESSION[Cfg::Owner.'logcheck']."','')")) {  
 					$stmt->bind_param('s', $user_id); 
@@ -148,21 +127,19 @@ function login($user, $password) {
 					$stmt->execute();
                           
 					$valid_attempts =  (.33 * 60 * 60);
-					$q="DELETE FROM `ekarasac_secure_login`.`login_attempting` WHERE `login_attempting`.`time` < ($now-$valid_attempts)"; 
+					$q="DELETE FROM `vwpkbpmy_secure_login`.`login_attempting` WHERE `login_attempting`.`time` < ($now-$valid_attempts)"; 
 					$this->mysqli->query($q,__METHOD__,__LINE__,__FILE__,false);
 					self::render_login_form('Invalid Login Attempt!!');exit();
 					}
 				}
-			}
-			 	
+			}	
 		else {// If the user does not exists
-
                $now = time();
                if ($stmt=$this->mysqli->prepare("INSERT INTO login_attempting (user_id, time, salt,lockout) VALUES ('1000', '$now','".$_SESSION[Cfg::Owner.'logcheck']."','')")) {    
                    // Execute the prepared query.
                    $stmt->execute(); 
                    $valid_attempts =  (.33 * 60 * 60);
-                   $q="DELETE FROM `ekarasac_secure_login`.`login_attempting` WHERE `login_attempting`.`time` < ($now-$valid_attempts)"; 
+                   $q="DELETE FROM `vwpkbpmy_secure_login`.`login_attempting` WHERE `login_attempting`.`time` < ($now-$valid_attempts)"; 
                    $this->mysqli->query($q,__METHOD__,__LINE__,__FILE__,false);
                    }
 			 self::render_login_form('Invalid Login Attempt!!');exit();
@@ -182,7 +159,6 @@ function login_check() {
 		$login_string = $_SESSION[Cfg::Owner.'login_string'];
 		$ip_address = $_SERVER['REMOTE_ADDR']; // Get the IP address of the user. 
 		$user_browser = $_SERVER['HTTP_USER_AGENT']; // Get the user-agent string of the user.
-		 
 		if ($stmt=$this->mysqli->prepare("SELECT password FROM members WHERE id = ? LIMIT 1")) { 
 			$stmt->bind_param('i', $user_id); // Bind "$user_id" to parameter.
 			$stmt->execute(); // Execute the prepared query.
@@ -216,13 +192,6 @@ function login_check() {
 		return false;
 		}
 	}
- 
- /*
-3Brute Force Function.
-Brute force attacks are when a hacker will try 1000s of different passwords on an account, either randomly generated passwords or from a dictionary. In our script if a user account has a failed login more than 5 times their account is locked.
-
-Create login_check function:
-*/
 
 function checkbrute() {
 	// Get timestamp of current time
@@ -250,7 +219,6 @@ function checkbrute() {
           }	
 		 
 	}
- 
 /*
 Registration Page.
 To create the password hash you will need to use the following code:
@@ -326,8 +294,8 @@ function registration($regmsg=''){//retrieves registration information and passe
 </body>
 </html>
 eol;
-echo $html;
-}//end function
+     echo $html;
+     }//end function
 
 function render_login_form($error=''){//error message
      $gotowebpage=
@@ -337,21 +305,8 @@ function render_login_form($error=''){//error message
 	$_SESSION[Cfg::Owner.'session_salt']=$session_salt; 
 	//send the salt to the javascript in the browser.. apend it the password to be hashed...
 	//use the heredoc syntax to send to sent javascript to the browser...
-	/*if ($stmt=$this->mysqli->prepare("SELECT   salt  FROM members WHERE   username = ? LIMIT 1")) { 
-		if (!$stmt->bind_param('s', $this->login_type)) {
-			echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
-			} 
-		$stmt->execute(); // Execute the prepared query.
-		$stmt->store_result();
-		$stmt->bind_result($salt); // get variables from result.
-		$stmt->fetch();
-		if($stmt->num_rows != 1) { 
-			mail::alert('problem with login form retrieval', 'login form difficulty');
-			}// The hashed password from the form
-		}//end prepare
- */
-$register_msg=($this->register)?'<a href="'.Sys::Self.'?registration">Or Register Here</a>':'';
-$html=<<<eol
+     $register_msg=($this->register)?'<a href="'.Sys::Self.'?registration">Or Register Here</a>':'';
+     $html=<<<eol
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
@@ -373,8 +328,6 @@ function submitenter(myform, password,user,e){
 	else
 	return true;
 	}
- 
-
 var ax = false;
      if (window.XMLHttpRequest) {
           ax = new XMLHttpRequest();
@@ -429,26 +382,16 @@ $register_msg
 </body>
 </html>
 eol;
-echo $html;
-}//end render_login_form
+     echo $html;
+     }//end render_login_form
 
 static function logout(){  
 	$_SESSION[Cfg::Owner.'user_id']= $_SESSION[Cfg::Owner.'login_string']='';
 	echo('you have been logged out');
 	session_destroy();
 	exit();
-	
-	// Unset all session values
-	// get session parameters 
-	//$params = session_get_cookie_params();
-	// Delete the actual cookie.
-	//setcookie(session_name(), '', time() - 42000, $params["path"], $params["domain"], $params["secure"], $params["httponly"]);
-	// Destroy session
-	//session_destroy();
-	//echo('you have been logged out');
 	}
-//Note: It might be a good idea to add CSRF protection here as if someone send a link with this page hidden somehow. The user will be logged out.
-   
+
 }//end class
 
 ?>

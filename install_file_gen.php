@@ -1,13 +1,10 @@
-<?php
-     require_once('includes/file_generate.class.php');
-     require_once('includes/file_generator.class.php');
-     include ('includes/Cfg_master.class.php');
-     include ('includes/Cfg.class.php');
+<?php 
+     require_once('includes/config_file_gen.php');
      $cfg_included=true;//for prevent includes Cfg in Sys.php
      file_generate::config_gen_init();//this is done first in case...  for primordial file generation of config files....   
-     include ('includes/Sys.php');
      file_generate::file_folder_generate(); 
      file_generate::editMaster_generate();
+     file_generate::config_gen_edit();//after file folder gen
      file_generate::class_local_gen();
      $pagetables=check_data::return_pages(__METHOD__,__LINE__,__FILE__,""); #set to   remove expand,highslide, and data tables
      $table_assoc=check_data::dir_to_file(__METHOD__,__LINE__,__FILE__,'',true);
@@ -18,6 +15,7 @@
           //echo NL. $filename .' is filename'; continue;
           file_generate::pageEdit_generate($tablename);//to generate editpages table reorder.php 
           file_generate::page_generate($tablename);// this will create gallery master file
+          file_generate::create_new_page_class($tablename);
           } 
      $galltables=check_data::return_gallery_info(__METHOD__,__LINE__,__FILE__); #set to   remove expand,highslide, and data tables
      foreach ($galltables as $array){

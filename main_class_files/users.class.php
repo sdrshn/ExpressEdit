@@ -1,4 +1,5 @@
 <?php
+#ExpressEdit 2.0
 class users extends server {
 	private static $instance=false; //store instance
 	protected $OS='unk';
@@ -30,26 +31,22 @@ class users extends server {
 	public $session_log_id=0;
 	public $browser_info=false;
 	public $diff_request_ini='';
-function __construct(){ 
+function __construct(){  
 	$this->deltatimeinst=time::instance();
 	$this->return_vars['remote_array']=array();
 	if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-     
-	//modified june12 17 
 	parent::__construct();  
 	self::gen_user_dat();
 	}
-	
 
  function gen_user_dat(){#date count
      //ini_set('memory_limit','500M');
-     	$this->timestamp=time(); 
+      $this->timestamp=time(); 
 	if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
 	if (isset($_SERVER['HTTP_USER_AGENT'])){
 		$this->OS=$_SERVER['HTTP_USER_AGENT'];
 		}
-	else $this->OS='user agent not found';	 
-	 
+	else $this->OS='user agent not found';	
 	if (isset($_SERVER['HTTP_REFERER'])){
 		$this->refer=$_SERVER['HTTP_REFERER'];
 		}
@@ -68,28 +65,26 @@ function __construct(){
 	$this->date=date("dMY-H-i-s");
 	$this->month=date("m");
 	$this->day=date("d");
-      //echo NL.__line__." not real: ".(memory_get_peak_usage(false)/1024/1024)." MiB\n";
- // echo NL.__line__." real: ".(memory_get_peak_usage(true)/1024/1024)." MiB\n\n";
-	
      if (!function_exists('mb_internal_encoding')||!extension_loaded('mbstring')) {
-          
           $msg=('Enable mbstring module in your apache server for user lookup info');
           printer::alert_neg($msg);
           mail::alert_min($msg);
           return;
           }
-      
-	if (!empty($this->ip)){ 
-		  if (is_file(Cfg_loc::Root_dir."includes/geoipcity.php"))
-			   include_once(Cfg_loc::Root_dir."includes/geoipcity.php");
-		  else  include_once("includes/geoipcity.php");
-		   if (is_file(Cfg_loc::Root_dir."includes/geoipregionvars.php"))
-			   include_once("includes/geoipregionvars.php"); 
-		  else include_once("includes/geoipregionvars.php");
-		  if (is_file(Cfg_loc::Root_dir."includes/GeoLiteCity.dat"))  
-			   $gi = geoip_open(Cfg_loc::Root_dir."includes/GeoLiteCity.dat",GEOIP_STANDARD);
-		  else $gi = geoip_open(Sys::Base_dir."includes/GeoLiteCity.dat",GEOIP_STANDARD);
-		$record =geoip_record_by_addr($gi,$this->ip);
+     if (!empty($this->ip)){
+          $loader=new fullloader(); 
+           $loader->fullpath('geoipcity.php');
+          $loader->fullpath('geoipregionvars.php');
+		 if (is_file(Cfg_loc::Root_dir."includes/GeoLiteCity.dat"))  
+			 $gi = geoip_open(Cfg_loc::Root_dir."includes/GeoLiteCity.dat",GEOIP_STANDARD);
+		 elseif (is_file(Sys::Two_up."includes/GeoLiteCity.dat")) 
+               $gi = geoip_open(Sys::Two_up."includes/GeoLiteCity.dat",GEOIP_STANDARD);
+           elseif (is_file(Sys::One_up."includes/GeoLiteCity.dat")) 
+               $gi = geoip_open(Sys::One_up."includes/GeoLiteCity.dat",GEOIP_STANDARD);
+          elseif (defined('PATHINC')&&is_file(PATHINC."includes/GeoLiteCity.dat"))
+               $gi = geoip_open(PATHINC."includes/GeoLiteCity.dat",GEOIP_STANDARD);
+             else  $gi = geoip_open("includes/GeoLiteCity.dat",GEOIP_STANDARD);
+          $record =geoip_record_by_addr($gi,$this->ip);
 		$this->country_code3=(!empty($record->country_code3))?$record->country_code3:$this->country_code3;
 		$this->country=(!empty($record->country_name))?$record->country_name:'unknown';
 		$this->region=(!empty($record->region))?$record->region:$this->region;
@@ -101,28 +96,24 @@ function __construct(){
 	
 function user_info (){ 
 	$info="the users Identifying info  Operating System and Browser is :=>$this->OS \n  ip: $this->ip"; 
-		$info.= "country: ". $this->country_code3." city: " .$this->city;  
+	$info.= "country: ". $this->country_code3." city: " .$this->city;  
 	return $info;
 	}
-	
-	
-	
-	
-  
  
 public static function instance(){ if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);//static allows it to create an instance without creating a new object
      if  (empty(self::$instance)) {
-	   self::$instance = new users(); 
-        } 
-    return self::$instance; 
-    }
+          self::$instance = new users(); 
+          } 
+     return self::$instance; 
+     }
+     
 function get($vname){ 
 	$vname=trim($vname);
 	if  (isset($this->$vname)){
 		return $this->$vname;
 		}
 	$msg="the var: $vname does not exist in ".__FILE__;	
-	  mail::error($msg,$vname.'problem');
+	mail::error($msg,$vname.'problem');
 	}
 
 public function put($reference,$vname){

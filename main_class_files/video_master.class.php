@@ -1,12 +1,14 @@
 <?php
+#ExpressEdit 2.0
 class video_master {
 private static $instance='';
 
 function render_video($vidname,$image='',$width=400,$aspect=1.2,$viddir='',$autostart=0,$loop=0,$mute=0,$cc=0,$controls=1){
      if (Sys::Edit){
-          echo $viddir.$vidname;
+          printer::alert_neu($viddir.$vidname. ' uploaded video playing here',1.3);
           return;
          }
+     //height and width no longer relevant to new video type...
 	$this->autostart=$autostart; 
      $this->mute=$mute;
      $this->loop=$loop;
@@ -22,7 +24,6 @@ function render_video($vidname,$image='',$width=400,$aspect=1.2,$viddir='',$auto
      if  (strpos($this->vidname, '.flv')){ 
 		$this->flv();
 		}
-   
 	else if  (strpos($this->vidname, '.wmv')){
 		$this->wmv();
 		}
@@ -46,8 +47,10 @@ function render_video($vidname,$image='',$width=400,$aspect=1.2,$viddir='',$auto
 		$this->yt_api();
 		}*/
 	else{
-          Mail::error('error in video class: fileytype not recognized: '.$this->vidname);
-	    }
+          if ($this->edit)mail::error('error in video class: fileytype not recognized: '.$this->vidname);
+	    else printer::alert_neu('New Video Coming Soon');
+         return;
+         }
     }
 function  yt_api(){
      $yt_id=str_replace('youtube','',$this->vidname);
@@ -92,8 +95,7 @@ echo <<<EOL
  // Written by @labnol 
 </script> 
 EOL;
-}//end function
-
+     }//end function
     
 function webm(){
 	$controls=($this->controls)?' controls ': '';
@@ -104,7 +106,7 @@ function webm(){
 	<source src="'.$this->vidname.'" type="video/webm">
 	</video>';
 	}
-//width="'.$this->width.'" height="'.$this->height.'"	
+
 function m4v(){ 
 	$controls=($this->controls)?' controls ': '';
      $loop=($this->loop)?' loop ': '';
@@ -136,19 +138,18 @@ function mp4(){
 	<!--<source src="'.$backupVid.'" type="video/ogg" /> Firefox / Opera / Chrome10  -->
 	<!--<source src="'.$backupVid2.'" type="video/webm"> -->';
 	$this->flv();//add backup
-echo '</video>';
-}
-
+     echo '</video>';
+     }
  
  function flv(){  
-    static $count=0;
-    $count++;
-    if ($count==1)echo '<script type="text/javascript" src="'.Cfg_loc::Root_dir.Cfg::Vid_dir.'swfobject.js"></script>'; 
-   $pic_display=($this->autostart)?'':'so.addVariable("image","'.$this->image.'");';
-   $autostart=(!empty($this->autostart))?'so.addVariable("autostart","true");' :'so.addVariable("autostart","false");';
-    echo '<div id="mediaspace'.$count.'"><p class="ramana">to View this Video Update your Flash Plugin!
+     static $count=0;
+     $count++;
+     if ($count==1)echo '<script src="'.Cfg_loc::Root_dir.Cfg::Vid_dir.'swfobject.js"></script>'; 
+     $pic_display=($this->autostart)?'':'so.addVariable("image","'.$this->image.'");';
+     $autostart=(!empty($this->autostart))?'so.addVariable("autostart","true");' :'so.addVariable("autostart","false");';
+     echo '<div id="mediaspace'.$count.'"><p class="ramana">to View this Video Update your Flash Plugin!
     Go to http://get.adobe.com/flashplayer/ or click </p> <a href="http://get.adobe.com/flashplayer/">  here</a></div>
-<script type="text/javascript">
+<script>
   var so = new SWFObject("'.$this->viddir.'player.swf","ply","'.$this->width.'","'.$this->height.'","9","#000000");
   so.addParam("allowfullscreen","true");
   so.addParam("allowscriptaccess","always");
@@ -161,14 +162,7 @@ echo '</video>';
   so.addVariable("stretching","fill");
   so.write("mediaspace'.$count.'");
 </script>';
-	
-}
-
- 
-
-
- 
-
+     }
  
 function swf(){ 
 	echo'
@@ -179,22 +173,15 @@ function swf(){
 	<param name="quality" value="high">
 	</object>'; 
 	}
-	
-	
-	
-	 
-
 
 function mov4(){
-//<link href="http://www.apple.com/library/quicktime/stylesheets/qtp_library.css" rel="StyleSheet" type="text/css" >  // will show extra link to play with poster text 'Play video'
-$autostart=(!empty($this->autostart))?'autoplay="true"':'autoplay="false"';
-$autostart2=(!empty($this->autostart))?"'autoplay', 'true',":"'autoplay', 'false',";
-echo <<<EOL
-<script src="http://www.apple.com/library/quicktime/scripts/ac_quicktime.js" language="JavaScript" type="text/javascript"></script>
-<script src="http://www.apple.com/library/quicktime/scripts/qtp_library.js" language="JavaScript" type="text/javascript"></script>
-
+     $autostart=(!empty($this->autostart))?'autoplay="true"':'autoplay="false"';
+     $autostart2=(!empty($this->autostart))?"'autoplay', 'true',":"'autoplay', 'false',";
+     echo <<<EOL
+<script src="http://www.apple.com/library/quicktime/scripts/ac_quicktime.js" language="JavaScript"></script>
+<script src="http://www.apple.com/library/quicktime/scripts/qtp_library.js" language="JavaScript"></script>
  <div id="quicktimevideo">
-<script type="text/javascript"><!--
+<script><!--
 QT_WritePoster_XHTML('Play Video', '$this->image',
 '$this->vidname',
 '$this->width', '$this->height', '',
@@ -224,12 +211,7 @@ scale="aspect">
 </noscript>
 </div>
 EOL;
-}
-
- 
-
- 
- 
+     }
 
 public static function instance(){ if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);//static allows it to create an instance without creating a new object
     if  (empty(self::$instance)) {

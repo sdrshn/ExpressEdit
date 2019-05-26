@@ -1,4 +1,5 @@
 <?php
+#ExpressEdit 2.0
 echo '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html lang="en">
 <head>
@@ -13,7 +14,4 @@ if ($this->edit)
 else {
  echo'
    <title> '.$this->page_title .'</title>';}
-   //<meta http-equiv="X-UA-Compatible" content="ie=Emulateie7" >
-   //echo'<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-   // "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 ?>

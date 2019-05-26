@@ -1,4 +1,5 @@
 <?php
+#ExpressEdit 2.0
 class session {
 public  $session_check=''; 
 public $token; 
@@ -6,8 +7,7 @@ public $page_referrer_1='';
 public $page_referrer_2='';
 public $page_referrer_3='';
 public $sess_var=0;
-private static $instance; //store instance
-
+private static $instance; //store instance 
 
 function sec_session_start() {
 	$session_name = 'sec_session_id'; // Set a custom session name
@@ -22,44 +22,34 @@ function sec_session_start() {
 	}
 	
 function referrer(){    
-    if (isset($_GET['iframepos']))return; #this file is from an iframe and need not be register
-    if (isset($_SESSION[Cfg::Owner."filename"])) {  //create referrer reference for header redircect bypassing php::self submitting
-        $this->page_referrer_1= $_SESSION[Cfg::Owner."filename"];
-	   if (isset($_SESSION[Cfg::Owner.'page_referrer_1'])){
-		  $this->page_referrer_2= $_SESSION[Cfg::Owner.'page_referrer_1'];
-		  if (isset($_SESSION[Cfg::Owner.'page_referrer_2'])){
-			 $this->page_referrer_3= $_SESSION[Cfg::Owner.'page_referrer_2'];
-			 }
-		  $_SESSION[Cfg::Owner.'page_referrer_2'] =$this->page_referrer_2;
-		  }
-	   $_SESSION[Cfg::Owner.'page_referrer_1'] =$this->page_referrer_1;
-	   }
-    $_SESSION[Cfg::Owner."filename"]=$_SERVER["PHP_SELF"];  
- //echo "this->page_referrer_2 is $this->page_referrer_2  this->page_referrer_1 is $this->page_referrer_1  this->page_referrer_3=$this->page_referrer_3 "; echo "php self is ".$_SERVER['PHP_SELF'];
-    }
+     if (isset($_GET['iframepos']))return; #this file is from an iframe and need not be register
+     if (isset($_SESSION[Cfg::Owner."filename"])) {  //create referrer reference for header redircect bypassing php::self submitting
+          $this->page_referrer_1= $_SESSION[Cfg::Owner."filename"];
+          if (isset($_SESSION[Cfg::Owner.'page_referrer_1'])){
+               $this->page_referrer_2= $_SESSION[Cfg::Owner.'page_referrer_1'];
+               if (isset($_SESSION[Cfg::Owner.'page_referrer_2'])){
+                    $this->page_referrer_3= $_SESSION[Cfg::Owner.'page_referrer_2'];
+                    }
+               $_SESSION[Cfg::Owner.'page_referrer_2'] =$this->page_referrer_2;
+               }
+          $_SESSION[Cfg::Owner.'page_referrer_1'] =$this->page_referrer_1;
+          }
+     $_SESSION[Cfg::Owner."filename"]=$_SERVER["PHP_SELF"];  
+     }
     
 static function session_check($check) {
 	if (isset($_SESSION[Cfg::Owner.$check]))return 1;
 	return 0;  
-	}   
-    
-    
-//function session_check() {  // if  (isset($_POST['submitted'])) { echo $_SESSION[Cfg::Owner.'token'] . ' is session token'. $_POST['token']. ' is post token' ; }
-//    if (isset($_SESSION[Cfg::Owner.'token']) && isset($_POST['token'])  && $_POST['token'] == $_SESSION[Cfg::Owner.'token']){  
-//       $this->session_check=true;   
-  //  }  
-   //  }//end function check_sessions
+	} 
    
-function create_token() {//  echo 'token created';
-
+function create_token() {
      $this->token = md5(uniqid(rand(), true));//microtime(); date("dMYHis");//
-    $_SESSION[Cfg::Owner.'token'] =$this->sess_token= $this->token;  //make new token session for security form submissions
-   
-}//end function token
+     $_SESSION[Cfg::Owner.'token'] =$this->sess_token= $this->token;  //make new token session for security form submissions
+     }//end function token
 
 static function session_batch_create($sess_name,$allon_arr='',$prefix=''){//creates session onload and sets return value to true  if request value is present
 	if (isset($_GET[$prefix.'allon'])&&is_array($allon_arr)&&in_array($sess_name,$allon_arr)){ 
-		$_SESSION[Cfg::Owner.$sess_name]=true;
+		$_SESSION[$prefix.Cfg::Owner.$sess_name]=true;
 		return true;
 		}
 	if ((isset($_GET[$prefix.'alloff']))){
@@ -68,25 +58,23 @@ static function session_batch_create($sess_name,$allon_arr='',$prefix=''){//crea
 		}
      if (isset($_GET[$prefix.$sess_name.'off'])){
 		unset($_SESSION[$prefix.Cfg::Owner.$sess_name]);
-		return false;
+		return 0;
 		}
 	if (isset($_GET[$prefix.$sess_name])){
 		$_SESSION[Cfg::Owner.$sess_name]=true;
 		return true;
 		}
-	if (isset($_SESSION[Cfg::Owner.$sess_name]))
+	if (isset($_SESSION[$prefix.Cfg::Owner.$sess_name]))
 		return true;
 	return 0;	
 	}
 
 static function session_create($sess_name,$unset=false){//creates session onload and sets return value to true  if request value is present
-		if($unset==false) 
-			$_SESSION[Cfg::Owner.$sess_name]=true;
-		else 
-			unset($_SESSION[Cfg::Owner.$sess_name]);
-		 
-		}
-	 
+     if($unset==false) 
+          $_SESSION[Cfg::Owner.$sess_name]=true;
+     else 
+          unset($_SESSION[Cfg::Owner.$sess_name]);
+     }
 
 static function session_batch_create_value($sess_name,$prefix=''){//creates session onload and sets return value to value of request  if request value is present
 	if (isset($_GET[$prefix.'allon'])){ 
@@ -110,10 +98,7 @@ static function session_batch_create_value($sess_name,$prefix=''){//creates sess
 	if (isset($_SESSION[Cfg::Owner.$sess_name]))
 		return $_SESSION[Cfg::Owner.$sess_name];
 	return 0;	
-	}	 
- 
- 
-  
+	}
  
 public static function instance(){ //static allows it to create an instance without creating a new object
     if  (empty(self::$instance)) {

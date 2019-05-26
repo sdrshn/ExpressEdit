@@ -1,4 +1,5 @@
 <?php
+#ExpressEdit 2.0
 /*
 ExpressEdit is an integrated Theme Creation CMS
 	Copyright (c) 2018  Brian Hayes expressedit.org  
@@ -14,13 +15,32 @@ ExpressEdit is an integrated Theme Creation CMS
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.*/
-class Cfg_master {
+class Cfg_master { 
+	#the following php.ini directives pertain to image uploading and manipulation or video uploading and limits set in php.ini file in edit directory and in html files upload.  
+     const Time_zone='';//optionally set local time zone overrides date_default_timezone_get(); ie 'America/New_York' or 'UTF' 
+     const Pic_upload_max='10M';//limit image max size in Mbs..
+     const Vid_upload_max='100M';//limit Video max size in Mbs..
+     const Pdf_upload_max='10M';//upload pdf max size
+     // run phpinfo() to see other limiting currently loaded ini configuration files for filesize   ie.  post_max_size  or upload_max_filesize
+	const Memory_limit='300M';//set in Megabytes 
+	const Max_execution_time=60;//set in seconds
+	###################
+	const Override=true;//file generate over icons and other page files
+     const Override_page_class=true;//file generate over local class files for each page which may be customized..
+     const Conserve_image_cachespace=false;//limits cache where possible.
+	##The following three settings will determine whether the local server development system if used requires a password..
+	#use comma separated of more than one development system. to determine whether local development system or production environment.  May be changed in local Cfg files also
+	const Local_site='htdocs,localhost';// url matches for local sites prints error messages to screen 
+	const Force_local_login=false;//if true lmust login for local developement system
+	const Local_server='/media/VolH,xamp';//comma separated of local dev servers to allow login bypass unless Force_local_login is set to true... 
+	###################
+	#The following affects secure login from Local Server Development
+     const Local_dir='/media/VolH/htdocs/'; 
 	const Local_login=false;//localhost login not true for developement system
 	//name of database with identical fields to main db for use in viewing backups 
-	const View_db='viewbackupdb';
+	const View_db='vwpkbpmy_viewbackupdb';
 	const Spacings_off=true;
 	const Debug_backtrace=true;
-	const Override=true;//set to true to override common file overwrites  ie custom gallery prev next navigation images etc.
 	const Error_exit=true;//false for production may be true for development exits on non fatal errors .       const Local_site='htdocs,localhost';//use comma separated of more than one development system. to determine whether local development system or production environment  may be changed in local Cfg files also
 	const Test_site_dir=null; //not used anymore..  
 	const Session_save_path='session_XaByzrt5';//customize a  session save path directory .. may be specified in local Cfg.class.php  use no special characters
@@ -28,97 +48,33 @@ class Cfg_master {
 	const Prevent_default=0;//for debugging only
      const Timecheck=2; //if more than 2 seconds to render a page then a alert email is sent. Usually happens with search engines over doing it
 	#******Database Info**************
-   //const Restrict=true;  //set to true to emulate logging in for live server on your devlopement system.  set to false to bypass logging in for edit pages and other restricted files  affects the local system only
-     const Admin_key='sedreplace';
-     const Time_zone='America/New_York';
      const Secure_session=false;
-	const Local_site='htdocs,localhost';//use comma separated of more than one development system. to determine whether local development system or production environment  may be changed in local Cfg files also
-     const Dbhost = 'localhost'; 
-     const Dbase_update='ekarasawebsite,florencewebsite,imaginewebsite,karmawebsite';//for development only
+	const Dbhost = 'localhost'; 
      const Hello = 'hello world';
+     const Request_pass='';//customized url requests
+     const Check_request='returnedit'; 
      const Fonts_browser='Arial, Helvetica, sans-serif; Arial Black, Gadget, sans-serif; Constantia, cambria, sans-serif; Comic Sans MS, Comic Sans MS5, cursive; Courier New, monospace; Georgia1, Georgia, serif; Helvetica, sans-serif; Impact, Impact5, Charcoal6, sans-serif; Lucida Console, Monaco5, monospace; Lucida Sans Unicode, Lucida Grande, sans-serif; Palatino Linotype, Book Antiqua3, Palatino, serif; Tahoma, Geneva, sans-serif; Times New Roman, Times New Roman, Times, serif; Trebuchet MS1, Trebuchet MS, sans-serif; Verdana, Verdana, Geneva, sans-serif';
-     const Fonts_extended='Questrial, sans-serif;Nova Slim, cursive;Cabin, sans-serif;Julee, cursive;Macondo Swash Caps, cursive;Michroma, sans-serif;Give You Glory, cursive;Delius Swash Caps, cursive;Bad Script, cursive;Sofia, cursive;Eagle Lake, cursive;Kite One, sans-serif;Contrail One, cursive;Paprika, cursive;Redressed, cursive;Shadows Into Light, cursive;Josefin Slab, serif;Antic, sans-serif;Nothing You Could Do, cursive;Indie Flower, cursive;Delius, cursive;Amaranth, sans-serif;Over the Rainbow, cursive;Aubrey, cursive;Text Me One, sans-serif;Cinzel Decorative, cursive;Shadows Into Light Two, cursive;Comfortaa, cursive;Handlee, cursive;Oxygen, sans-serif;Basic, sans-serif;Ruluko, sans-serif;Chivo, sans-serif;Architects Daughter, cursive;Merienda, cursive;Diplomata SC, cursive;Cedarville Cursive, cursive;Numans, sans-serif;Happy Monkey, cursive;Sintony, sans-serif';
+     const Fonts_extended='Chancur;Miama;MeathFLF;Fely;GothicA1;Hind;Allura;Questrial;Nova Slim;Cabin;Julee;Macondo Swash Caps;Michroma;Give You Glory;Delius Swash Caps;Bad Script;Sofia;Eagle Lake;Kite One;Contrail One;Paprika;Redressed,cursive;Shadows Into Light;Josefin Slab;Antic;Nothing You Could Do;Indie Flower;Delius;Amaranth;Over the Rainbow;Aubrey;Text Me One;Cinzel Decorative;Shadows Into Light Two;Comfortaa;Handlee;Oxygen;Basic;Ruluko;Chivo;Architects Daughter;Merienda;Diplomata SC;Cedarville Cursive;Numans;Happy Monkey;Sintony';
      const Preg_color='/^([a-f]|[A-F]|[0-9]){3}(([a-f]|[A-F]|[0-9]){3})?$/';
      const Preg_email='/^[\w.-]+@[\w.-]+\.[A-Za-z]{2,6}$/';
      const Horiz_nav_class='horiz_nav';
      const Vert_nav_class='vert_nav';//for styling 
      const Style=true; 
      const Wordwrap=100; //set line length for emails
-	const Temp_ext='temp_passclass_ext';
-     //const Master_pass=''; 
+	const Temp_ext='temp_passclass_ext'; 
      #***************************
      #Colors  You can change the value of color on the editor value at top Page Configs
      #You can independently change colors and color order for light and dark themes in the editor
      const Pos_color='64C91D';// success color  and column level 1 color
      const RedAlert_color='c82c1d';//alert messages  often a problem
      const Info_color='e5d805'; //information hover and instructional message.. etc.
-     const Brown_color='816227';
-     const Maroon_color='800000';
-     const Yellow_color='FFFF00';
-     const Aqua_color='00ffff';
-     const Magenta_color='ff00ff';
-     const Brightgreen_color='00ff00';
-     const Orange_color='ff6600';
-     const Ek_blue_color='0075a0';
-     const Blue_color='1DBAC9';
-     const Navy_color='2B1DC9';
-     const White_color='ffffff';
-     const Black_color='000000';
-     const Green_color='266a2e';
-	const Purple_color='800080';
-	const Cherry_color='C91B45';
-	const darkgrey='a9a9a9';
-	const darkkhaki='bdb76b';
-	const darkmagenta='8b008b';
-	const darkolivegreen='556b2f';
-	const darkorange='ff8c00';
-	const darkorchid='9932cc';
-	const darkred='8b0000';
-	const darksalmon='e9967a';
-	const darkseagreen='8fbc8f';
-	const darkslateblue='483d8b';
-	const darkslategray='2f4f4f';
-	const darkturquoise='00ced1';
-	const darkviolet='9400d3';
-	const deeppink='ff1493';
-	const deepskyblue='00bfff';
-	const dimgray='696969';
-	const dimgrey='696969';
-	const dodgerblue='1e90ff';
-	const firebrick='b22222';
-	const floralwhite='fffaf0';
-	const forestgreen='228b22';
-	const fuchsia='ff00ff';
-	const gainsboro='dcdcdc';
-	const moccasin='ffe4b5';
-	const navajowhite='ffdead'; 
-	const oldlace='fdf5e6';
-	const olive='808000';
-	const olivedrab='6b8e23'; 
-	const orangered='ff4500';
-	const orchid='da70d6';
-	const palegoldenrod='eee8aa';
-	const palegreen='98fb98';
-	const paleturquoise='afeeee';
-	const palevioletred='d87093';
-	const papayawhip='ffefd5';
-	const peachpuff='ffdab9';
-	const peru='cd853f';
-	const plum='dda0dd';
-	const powderblue='b0e0e6'; 
-	const rosybrown='bc8f8f';
-	const royalblue='4169e1';
-	const saddlebrown='8b4513';
-	const salmon='fa8072';
-	const sandybrown='f4a460';
-	const seagreen='2e8b57'; 
-
- 
+	const Navy_color='2B1DC9';
 	#the order of these text editor colors and border colors corresponds to the column level.. top colors used much  more frequently
-	##  DO NOT CHANGE ORDER HERE OR VALUES WILL BE MIXED..  CHANGE ORDER IN EDITOR UNDER CONFIG THIS PAGE AT TOP
-	const Light_editor_color_order='pos,cherry,navy,brightgreen,maroon,aqua,magenta,orange,ekblue,brown,green,yellow,darkgrey,darkkhaki,darkmagenta,darkolivegreen,darkorange,darkorchid,darkred,darksalmon,darkseagreen,darkslateblue,darkslategray,darkturquoise,darkviolet,deeppink,deepskyblue,dimgray,dimgrey,dodgerblue,firebrick,floralwhite,forestgreen,fuchsia,gainsboro,moccasin,navajowhite,oldlace,olive,olivedrab,orangered,orchid,palegoldenrod,palegreen,paleturquoise,palevioletred,papayawhip,peachpuff,peru,plum,powderblue,rosybrown,royalblue,saddlebrown,salmon,sandybrown,seagreen,black,white,info,redAlert';
+	##  DO NOT CHANGE ORDER HERE OR VALUES WILL BE MIXED..  CHANGE ORDER IN EDITOR UNDER CONFIG THIS PAGE AT TOP.  ADD COLORS HERE ANYWHERE THEN RESET in Maintenance Mode.
+	#Color values (default) are now set in global_master class protected vals (top of page);
+	const Light_editor_color_order='pos,cherry,navy,brightgreen,maroon,aqua,magenta,orange,lightmaroon,ekblue,brown,green,yellow,darkgrey,lightermaroon,darkkhaki,darkmagenta,darkolivegreen,darkorange,darkorchid,darkred,darksalmon,darkseagreen,darkslateblue,darkslategray,darkturquoise,darkviolet,deeppink,deepskyblue,dimgray,dimgrey,dodgerblue,firebrick,floralwhite,forestgreen,fuchsia,gainsboro,moccasin,navajowhite,oldlace,olive,olivedrab,orangered,orchid,palegoldenrod,palegreen,paleturquoise,palevioletred,papayawhip,peachpuff,peru,plum,powderblue,rosybrown,royalblue,saddlebrown,salmon,sandybrown,seagreen,lightestmaroon,black,white,info,redAlert';
 	##   YOU CAN  CHANGE ORDER IN EDITOR UNDER CONFIG THIS PAGE AT TOP or change here as needed and be sure to query database to remove values: UPDATE `master_page` SET page_dark_editor_order='',page_light_editor_order='',page_dark_editor_value='',page_light_editor_value='' which will then auto-generate if you change order at least once. change order of both light and dark to save auto generate time everytime...
-	const Dark_editor_color_order='pos,aqua,brightgreen,yellow,paleturquoise,moccasin,palegreen,ekblue,orange,navy,magenta,maroon,brown,green,darkgrey,darkkhaki,darkmagenta,darkolivegreen,darkorange,darkorchid,darkred,darksalmon,darkseagreen,darkslateblue,darkslategray,darkturquoise,darkviolet,deeppink,deepskyblue,dimgray,dimgrey,dodgerblue,firebrick,floralwhite,forestgreen,fuchsia,gainsboro,navajowhite,oldlace,olive,olivedrab,orangered,orchid,palegoldenrod,palevioletred,papayawhip,peachpuff,peru,plum,powderblue,rosybrown,royalblue,saddlebrown,salmon,sandybrown,seagreen,cherry,black,white,info,redAlert';//these colors are arranged for lighter to go with darker background
+	const Dark_editor_color_order='pos,aqua,brightgreen,yellow,lightestmaroon,paleturquoise,moccasin,palegreen,ekblue,orange,navy,lightermaroon,magenta,maroon,brown,green,darkgrey,darkkhaki,darkmagenta,darkolivegreen,darkorange,darkorchid,darkred,darksalmon,darkseagreen,darkslateblue,darkslategray,darkturquoise,darkviolet,deeppink,deepskyblue,dimgray,dimgrey,dodgerblue,firebrick,floralwhite,forestgreen,fuchsia,gainsboro,navajowhite,oldlace,olive,olivedrab,orangered,lightmaroon,orchid,palegoldenrod,palevioletred,papayawhip,peachpuff,peru,plum,powderblue,rosybrown,royalblue,saddlebrown,salmon,sandybrown,seagreen,cherry,black,white,info,redAlert';//these colors are arranged for lighter to go with darker background
 	//note: color names much match respective global_master  class  names
 	//const Full_color_index='info,pos, redAlert ,cherry,aqua,brightgreen,yellow,ekblue,orange,navy,magenta,maroon,brown,green';
 	#************************ 
@@ -128,8 +84,7 @@ class Cfg_master {
      const Container_style='background_inner'; //field being used for container style
      const Body_style='background';  //Filed being use for body style
     #database  tables
-     const Dbn_nav='directory';
-     //const Directory_table='directory';
+     const Directory_dir='directory';
 	const Backups_table='backups_db';
      const Db_traffic_table='user_data';
      const Master_post_table='master_post';
@@ -147,31 +102,35 @@ class Cfg_master {
 	const Default_bounce_width=150;
 	const Default_width_mode='maxwidth';
 	const Db_tables='columns,comments,directory,master_col_css,master_gall,master_page,master_post,master_post_css,master_post_data';
-
      #Fields
-     const Col_fields='col_table_base,col_table,col_num,col_options,col_status,col_grid_clone,col_gridspace_right,col_gridspace_left,col_grid_width,col_tcol_num,col_primary,col_clone_target,col_clone_target_base,col_style,col_temp,col_grp_bor_style,col_comment_style,col_comment_date_style,col_comment_view_style,col_date_style,col_width,col_hr';
-     const Col_fields_all='col_table_base,col_table,col_num,col_options,col_status,col_grid_clone,col_gridspace_right,col_gridspace_left,col_grid_width,col_tcol_num,col_primary,col_clone_target,col_clone_target_base,col_style,col_temp,col_grp_bor_style,col_comment_style,col_date_style,col_comment_view_style,col_comment_date_style,col_width,col_hr,col_update,col_time,token';
-     const Col_css_fields='col_options,col_gridspace_right,col_gridspace_left,col_grid_width,col_grid_clone,col_style,col_grp_bor_style,col_comment_style,col_date_style,col_comment_date_style,col_comment_view_style,col_width';
+     const Col_fields='col_table_base,col_table,col_num,col_options,col_status,col_grid_clone,col_gridspace_right,col_gridspace_left,col_grid_width,col_tcol_num,col_primary,col_clone_target,col_clone_target_base,col_style,col_style2,col_temp,col_grp_bor_style,col_comment_style,col_comment_date_style,col_comment_view_style,col_date_style,col_width,col_hr,col_flex_box';
+     const Col_fields_all='col_table_base,col_table,col_num,col_options,col_status,col_grid_clone,col_gridspace_right,col_gridspace_left,col_grid_width,col_tcol_num,col_primary,col_clone_target,col_clone_target_base,col_style,col_style2,col_temp,col_grp_bor_style,col_comment_style,col_date_style,col_comment_view_style,col_comment_date_style,col_width,col_hr,col_update,col_time,token,col_flex_box';
+    const Col_flex_options='flex_display,col_max_flex,col_min_flex,flex_direction,flex_wrap,flex_justify_content,flex_align_items,flex_align_content,,,,';//leaving additional room for flex otpion on end as record will record 3 times for each of 3 separate potential media queries
+     const Blog_flex_options='blog_max_flex,blog_min_flex,flex_order,flex_grow,flex_shrink,flex_basis,flex_align_self,,,,';//leaving additional option room on end as record will record 3 times for each of 3 separate potential media queries
 	const Gallery_fields='master_gall_status,master_table_ref,master_gall_ref,gall_ref,gall_table,pic_order,picname,imagetitle,description,subtitle,width,height,galleryname,temp_pic_order,reset_id';
-     const Post_fields='blog_clone_table,blog_col,blog_order,blog_type,blog_table,blog_gridspace_right,blog_gridspace_left,blog_grid_width,blog_data1,blog_data2,blog_data3,blog_data4,blog_data5,blog_data6,blog_data7,blog_data8,blog_data9,blog_data10,blog_tiny_data1,blog_tiny_data2,blog_tiny_data3,blog_tiny_data4,blog_tiny_data5,blog_tiny_data6,blog_tiny_data7,blog_tiny_data8,blog_tiny_data9,blog_tiny_data10,blog_grid_clone,blog_style,blog_table_base,blog_text,blog_border_start,blog_border_stop,blog_global_style,blog_date,blog_width,blog_height,blog_alt_rwd,blog_status,blog_unstatus,blog_clone_target,blog_target_table_base,blog_float,blog_unclone,blog_pub,blog_tag,blog_temp,blog_options';
-     const Page_fields='page_custom_css,page_head,page_ref,page_title,page_filename,page_width,page_pic_quality,page_style,page_options,page_break_points,page_cache,page_light_editor_value,page_dark_editor_value,page_dark_editor_order,page_light_editor_order,page_comment_style,page_date_style,page_comment_view_style,page_comment_date_style,page_style_day,page_style_month,page_grp_bor_style,page_link,keywords,metadescription,page_data1,page_data2,page_data3,page_data4,use_tags,page_hr,page_h1,page_h2,page_h3,page_h4,page_h5,page_h6,page_myclass1,page_myclass2,page_myclass3,page_myclass4,page_myclass5,page_myclass6,page_myclass7,page_myclass8,page_myclass9,page_myclass10,page_myclass11,page_myclass12,page_clipboard';
-	const Page_fields_all='page_custom_css,page_head,page_ref,page_title,page_filename,page_width,page_pic_quality,page_style,page_options,page_break_points,page_cache,page_light_editor_value,page_dark_editor_value,page_dark_editor_order,page_light_editor_order,page_comment_style,page_date_style,page_comment_view_style,page_comment_date_style,page_style_day,page_style_month,page_grp_bor_style,page_link,keywords,metadescription,page_data1,page_data2,page_data3,page_data4,use_tags,page_hr,page_h1,page_h2,page_h3,page_h4,page_h5,page_h6,page_myclass1,page_myclass2,page_myclass3,page_myclass4,page_myclass5,page_myclass6,page_myclass7,page_myclass8,page_myclass9,page_myclass10,page_myclass11,page_myclass12,page_clipboard,page_update,page_time,token';
+     const Post_fields='blog_clone_table,blog_col,blog_order,blog_type,blog_table,blog_gridspace_right,blog_gridspace_left,blog_grid_width,blog_data1,blog_data2,blog_data3,blog_data4,blog_data5,blog_data6,blog_data7,blog_data8,blog_data9,blog_data10,blog_data11,blog_data12,blog_data13,blog_data14,blog_data15,blog_tiny_data1,blog_tiny_data2,blog_tiny_data3,blog_tiny_data4,blog_tiny_data5,blog_tiny_data6,blog_tiny_data7,blog_tiny_data8,blog_tiny_data9,blog_tiny_data10,blog_tiny_data11,blog_tiny_data12,blog_tiny_data13,blog_tiny_data14,blog_tiny_data15,blog_grid_clone,blog_style,blog_style2,blog_table_base,blog_text,blog_border_start,blog_border_stop,blog_global_style,blog_date,blog_width,blog_width_mode,blog_status,blog_unstatus,blog_clone_target,blog_target_table_base,blog_float,blog_unclone,blog_pub,blog_tag,blog_temp,blog_options,blog_flex_box';
+     const Page_fields='page_custom_css,page_head,page_ref,page_title,page_filename,page_width,page_pic_quality,page_style,page_options,page_break_points,page_cache,page_light_editor_value,page_dark_editor_value,page_dark_editor_order,page_light_editor_order,page_comment_style,page_date_style,page_comment_view_style,page_comment_date_style,page_style_day,page_style_month,page_grp_bor_style,page_link,page_link_hover,keywords,metadescription,page_data1,page_data2,page_data3,page_data4,page_data5,page_data6,page_data7,page_data8,page_data9,page_data10,use_tags,page_hr,page_h1,page_h2,page_h3,page_h4,page_h5,page_h6,page_myclass1,page_myclass2,page_myclass3,page_myclass4,page_myclass5,page_myclass6,page_myclass7,page_myclass8,page_myclass9,page_myclass10,page_myclass11,page_myclass12,page_tiny_data1,page_tiny_data2,page_tiny_data3,page_tiny_data4,page_tiny_data5,page_tiny_data6,page_tiny_data7,page_tiny_data8,page_tiny_data9,page_tiny_data10,page_clipboard'; 
+	const Page_fields_all='page_custom_css,page_head,page_ref,page_title,page_filename,page_width,page_pic_quality,page_style,page_options,page_break_points,page_cache,page_light_editor_value,page_dark_editor_value,page_dark_editor_order,page_light_editor_order,page_comment_style,page_date_style,page_comment_view_style,page_comment_date_style,page_style_day,page_style_month,page_grp_bor_style,page_link,page_link_hover,keywords,metadescription,page_data1,page_data2,page_data3,page_data4,page_data5,page_data6,page_data7,page_data8,page_data9,page_data10,use_tags,page_hr,page_h1,page_h2,page_h3,page_h4,page_h5,page_h6,page_myclass1,page_myclass2,page_myclass3,page_myclass4,page_myclass5,page_myclass6,page_myclass7,page_myclass8,page_myclass9,page_myclass10,page_myclass11,page_myclass12,page_tiny_data1,page_tiny_data2,page_tiny_data3,page_tiny_data4,page_tiny_data5,page_tiny_data6,page_tiny_data7,page_tiny_data8,page_tiny_data9,page_tiny_data10,page_clipboard,page_update,page_time,token';
 	const Dir_fields='dir_menu_id,dir_menu_style,dir_menu_order,dir_sub_menu_order,dir_filename,dir_title,dir_ref,dir_gall_table,dir_blog_table,dir_menu_type,dir_is_gall,dir_gall_type,dir_menu_opts,dir_hide_sub_menu,dir_external,dir_internal,dir_temp,dir_temp2';
-     const Css_fields='blog_pub,blog_order,blog_table,blog_style,blog_float,blog_width,blog_height,blog_alt_rwd,blog_data1,blog_data2,blog_data3,blog_data4,blog_data5,blog_data6,blog_data7,blog_tiny_data1,blog_tiny_data2';
 	const Comment_fields='com_blog_id,com_text,com_name,com_email,com_token,com_status';
     #indexes
-     const Background_styles='background_color,background_gradient_type,background_gradient_color1,background_gradient_color2,background_gradient_color3,background_gradient_color4,background_gradient_color5,background_gradient_color6,background_gradient_transparency1,background_gradient_transparency2,background_gradient_transparency3,background_gradient_transparency4,background_gradient_transparency5,background_gradient_transparency6,background_gradient_color_stop1,background_gradient_color_stop2,background_gradient_color_stop3,background_gradient_color_stop4,background_gradient_color_stop5,background_gradient_color_stop6,background_gradient_position_keyword,background_gradient_position1,background_gradient_position2,background_image,background_image_use,background_repeat,background_horiz,background_vert,background_opacity,background_size,background_pos_width,background_pos_height,background_image_opacity,background_fixed,background_image_none,background_image_noresize,background_video,background_video_ratio,background_video_display';
-     const Style_functions=',padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,font_family,font_size,font_weight,text_align,font_color,italics_font,small_caps,line_height,letter_spacing,text_underline,width_special,background,radius_corner,columns,text_shadow,box_shadow,transform,borders,height_style,custom_style,outlines,float,margin_left_percent,margin_right_percent,width_max_special,width_min_special,width_percent_special,padding_left_percent,padding_right_percent,left,right,top,bottom';
-     const Style_functions_order='background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,padding_left_percent,padding_right_percent,margin_left_percent,margin_right_percent,font_color,text_shadow,font_family,font_size,font_weight,text_align,line_height,letter_spacing,italics_font,small_caps,text_underline,radius_corner,borders,box_shadow,outlines,columns,transform';
-	const Page_options='page_editor_choice,page_darkeditor_background,page_darkeditor_color,page_lighteditor_background,page_lighteditor_color,page_date_format,page_max_expand_image,page_editor_fontfamily,page_editor_fontsize,page_slideshow,page_width_mode,page_min_width,page_bounce_width,page_image_quality,page_backup_copies,page_advanced';
-	const Image_options='width_limit,image_noexpand,image_max_expand,image_quality,image_noresize,image_min,height_set';//accessed global edit &  add_page_pic 
-     const Blog_options='blog_comment,blog_comment_display,blog_editor_use,blog_date_on,blog_date_format,blog_pad_unit,blog_mar_unit,blog_break_points,blog_vert_pos,blog_media_minmax,blog_display_on_off,blog_media_px';
-	const Column_options='column_tag_display,column_float_calc,column_use_grid,column_grid_units,column_break_points,column_vert_pos,column_media_minmax,column_display_on_off,column_media_px,column_pad_unit,column_mar_unit';//break points last as may contain commas
+     const Background_styles='background_color,background_gradient_type,background_gradient_color1,background_gradient_color2,background_gradient_color3,background_gradient_color4,background_gradient_color5,background_gradient_color6,background_gradient_transparency1,background_gradient_transparency2,background_gradient_transparency3,background_gradient_transparency4,background_gradient_transparency5,background_gradient_transparency6,background_gradient_color_stop1,background_gradient_color_stop2,background_gradient_color_stop3,background_gradient_color_stop4,background_gradient_color_stop5,background_gradient_color_stop6,background_gradient_position_keyword,background_gradient_position1,background_gradient_position2,background_image,background_image_use,background_repeat,background_horiz,background_vert,background_opacity,background_size,background_pos_width,background_pos_height,background_image_opacity,background_fixed,background_image_none,background_image_noresize,background_video,background_video_ratio,background_video_display,background_image_off,background_color_off';
+     const Style_functions=',padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,font_family,font_size,font_weight,text_align,font_color,italics_font,small_caps,line_height,letter_spacing,text_underline,width_special,background,radius_corner,columns,text_shadow,box_shadow,transform,borders,height_style,custom_style,outlines,float,media_max_width,media_min_width,width_max_special,width_min_special,,,,left,right,top,bottom';
+     const Style_functions_order='background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,font_color,text_shadow,font_family,font_size,font_weight,text_align,line_height,letter_spacing,italics_font,small_caps,text_underline,radius_corner,borders,box_shadow,outlines,columns,transform';
+	const Page_options='page_editor_choice,page_darkeditor_background,page_darkeditor_color,page_lighteditor_background,page_lighteditor_color,page_date_format,page_max_expand_image,page_editor_fontfamily,page_editor_fontsize,page_slideshow,page_width_mode,page_min_width,page_bounce_width,page_image_quality,page_backup_copies,page_advanced,page_editor_bordersize,page_alink_hover_color,page_width_scale_upper,page_width_scale_lower,page_mod_percent,page_rem_unit,page_grid_units';
+	const Image_options='image_width_limit,image_noexpand,image_max_expand,image_quality,image_noresize,image_min,image_height_set,imagecaption_height,image_caption_text,image_caption_hover,image_internal_link,image_external_link,imagecaption_bottom,image_internal_query,image_height_media,image_max_media1,image_min_media1,image_max_media2,image_min_media2,image_max_media3,image_min_media3,image_max_media4,image_min_media4,image_max_media5,image_min_media5,image_per1,image_per2,image_per3,image_per4,image_per5';//accessed global edit &  add_page_pic 
+     const Blog_options='blog_comment,blog_comment_display,blog_editor_use,blog_date_on,blog_date_format,blog_pad_unit,blog_mar_unit,blog_break_points,blog_vert_pos,blog_media_minmax,blog_display_max,blog_display_min,blog_animation,blog_opacity,blog_position,blog_width_opt,blog_min_width_opt,blog_max_width_opt,blog_height_media,blog_height_opt,blog_min_height_opt,blog_max_height_opt,blog_pos_vert_val,blog_pos_horiz_val,blog_overflowx,blog_overflowy,blog_custom_class';
+	const Position_options='position,position_max,position_min,position_horiz,position_horiz_val,position_vert,position_vert_val,position_zindex,position_pos_neg,position_opacity';
+	//const Blog_height_opts='blog_height,blog_image_height,blog_height_scroll,blog_min_height';//only blog_image_height used currently..
+	const Column_options='col_tag_display,col_float_calc,col_use_grid,col_grid_units,col_break_points,col_vert_pos,col_media_minmax,col_display_max,col_display_min,col_pad_unit,col_mar_unit,col_animation,col_opacity,col_position,col_enable_masonry,col_width2,col_width_opt,col_min_width_opt,col_max_width_opt,col_pos_vert_val,col_pos_horiz_val,col_height_opt,col_min_height_opt,col_max_height_opt,col_overflowx,col_overflowy,col_height_media';// 
 	const Box_shadow_options='shadowbox_horiz_offset,shadowbox_vert_offset,shadowbox_blur_radius,shadowbox_spread_radius,shadowbox_color,shadowbox_insideout';
-	const Alt_rwd_options='blog_width_mode,blog_min_width,blog_bounce_width';
-	const Backup_copies=200;//change  in page_default settings
+	const Animation_options='animate_type,animate_visibility,animate_repeats,animate_duration,animate_height,animate_width,animate_after_type,animate_after_delay,animate_after_repeats,animate_after_duration,animate_final_display,animate_alternate,animate_lock,animate_complete_id,animate_sibling,animate_prior_delay';
+	const Animation_types='none,skewSubtle,bounce,flash,pulse,rubberBand,shake,swing,tada,wobble,jello,bounceIn,bounceInDown,bounceInLeft,bounceInRight,bounceInUp,bounceOut,bounceOutDown,bounceOutLeft,bounceOutRight,bounceOutUp,fadeIn,fadeIn,fadeInDownSubtle,fadeInDown,fadeInDownBig,fadeInLeft,fadeInLeftBig,fadeInRight,fadeInRightBig,fadeInUpSubtle,fadeInUp,fadeInUpBig,fadeOut,fadeOutDownSubtle,fadeOutDown,fadeOutDownBig,fadeOutLeft,fadeOutLeftBig,fadeOutRight,fadeOutRightBig,fadeOutUpSubtle,fadeOutUp,fadeOutUpBig,flip,flipInX,flipInY,flipOutX,flipOutY,lightSpeedIn,lightSpeedOut,rotateIn,rotateInDownLeft,rotateInDownRight,rotateInUpLeft,rotateInUpRight,rotateOut,rotateOutDownLeft,rotateOutDownRight,rotateOutUpLeft,rotateOutUpRight,slideInUp,slideInDown,slideInLeft,slideInRight,slideOutUp,slideOutDown,slideOutLeft,slideOutRight,zoomIn,zoomInDown,zoomInLeft,zoomInRight,zoomInUp,zoomOut,zoomOutDown,zoomOutLeft,zoomOutRight,zoomOutUp,hinge,jackInTheBox,rollIn,rollOut';
+	const Main_width_options='blog_width_mode,blog_percent_init,blog_marginleft_init,blog_marginright_init,blog_media_1,blog_percent_1,blog_marginleft_1,blog_marginright_1,blog_media_2,blog_percent_2,blog_marginleft_2,blog_marginright_2,blog_media_3,blog_percent_3,blog_marginleft_3,blog_marginright_3,blog_media_4,blog_percent_4,blog_marginleft_4,blog_marginright_4,blog_media_5,blog_percent_5,blog_marginleft_5,blog_marginright_5,blog_media_6,blog_percent_6,blog_marginleft_6,blog_marginright_6,blog_media_7,blog_percent_7,blog_marginleft_7,blog_marginright_7,blog_media_8,blog_percent_8,blog_marginleft_8,blog_marginright_8';
+	const Advance_media_width='blog_adv_media_1,blog_adv_width_1,blog_adv_marginleft_1,blog_adv_marginright_1,blog_adv_paddingleft_1,blog_adv_paddingright_1,blog_adv_media_2,blog_adv_width_2,blog_adv_marginleft_2,blog_adv_marginright_2,blog_adv_paddingleft_2,blog_adv_paddingright_2,blog_adv_media_3,blog_adv_width_3,blog_adv_marginleft_3,blog_adv_marginright_3,blog_adv_paddingleft_3,blog_adv_paddingright_3,blog_adv_media_4,blog_adv_width_4,blog_adv_marginleft_4,blog_adv_marginright_4,blog_adv_paddingleft_4,blog_adv_paddingright_4,blog_adv_media_5,blog_adv_width_5,blog_adv_marginleft_5,blog_adv_marginright_5,blog_adv_paddingleft_5,blog_adv_paddingright_5,blog_adv_media_6,blog_adv_width_6,blog_adv_marginleft_6,blog_adv_marginright_6,blog_adv_paddingleft_6,blog_adv_paddingright_6,blog_adv_media_7,blog_adv_width_7,blog_adv_marginleft_7,blog_adv_marginright_7,blog_adv_paddingleft_7,blog_adv_paddingright_7,blog_adv_media_8,blog_adv_width_8,blog_adv_marginleft_8,blog_adv_marginright_8,blog_adv_paddingleft_8,blog_adv_paddingright_8';
+     const Backup_copies=200;//change  in page_default settings
 	const Column_grid_units=100;
-	const Column_break_points='1000,768,600';
+	const Column_break_points='1006,791,489,384';
 	const Development=false;//for javascript alert on ajax imagecall and build image and image resize messages on editpage..
      #prefixes  suffixes  extenisons
      const Edit_gall_ext='';
@@ -180,6 +139,7 @@ class Cfg_master {
      const Param_css_append='_col_css';
      const Post_css_append='_post_css';
      const Post_suffix='_post_id';
+     const Col_suffix='_col_id';
      const Post_prefix='post_';
      const Blog_prefix='blog_';//for fields
      const Col_prefix='col_';
@@ -191,7 +151,6 @@ class Cfg_master {
      const Db_ext='.sql';
      const Aux_scripts='add_page_pic,add_page_vid';//like to prevent return link when editing
      //const Table_suffix='data,highslide,expand,_thumbs';
-     const Request_pass='';
      const Exclude='jpgraph,tinymce-Orig,1downloaded internet files,fvd suite,zen cart,secure apache ssl,.,..,$recycle.bin,system volume information,temp,phplist,compress,zen,phpMyAdmin,phpsite,ellen,design,css,create,arthur,attachment,highslide,fonts,langs,plugins,themes,utils,graphics,tmp,cgi-bin,forum,zen,wordpress,tinymce,tiny-mce';#these files are excluded from search and other generation programs
      const Skip_it='data,expand,undo_temp,gallery_storage,gallery_temp_restore,setupmaster';#setupmaster used in gallery setup table creation
     const Test_site='false';
@@ -203,6 +162,7 @@ class Cfg_master {
       #directories-non Image or Vid
      const Menu_icon_dir='menu_icons/';
      const Data_dir='data/';
+     const Buffer_dir='buffer/';
      const Gall_info_dir='gall_info_dir/';
      const Image_info_dir='image_info_dir/';
 	const Page_info_dir='page_info_dir/';
@@ -224,10 +184,10 @@ class Cfg_master {
 	const Response_dir_prefix='imagedir';
      const Style_dir='styling/';
      const Tinymce_user_dir='styling/tiny_mce/'; 
-     const Local_dir='/media/VolH/htdocs/';
-     const Server_dir='/home/ekarasac/public_html/';
 	const Theme_dir='theme_hold/'; 
+	const Theme_match='theme'; 
       #**Image Directories ********
+     const Favicon='karma.ico';
      const Playbutton_dir='playbutton/';
      const Watermark_dir='watermarks/';
      const Background_image_dir='background_images/';
@@ -243,10 +203,13 @@ class Cfg_master {
      //Page_pic_plus and Page_pic_expand_plus if set will override Page_width and  Page_pic_expand 
      const Page_pic_width='400';// value is set for images for constant width regardless of height to better fit the page.  
      const Page_pic_plus=''; //for fitting into blogs it is best kept empty to default to page_pic_width  Setting a Page_pic_plus will set the total value of the height + width  and will override any Page_pic_width settting  
-     const Page_pic_expand_plus='800';//sets the combined width and height of Expanded Page Images when Page Images are clicked  
      const Page_pic_expand_width='';// normally for expanded view both height and width are considered.  If you prefer to set the width then be sure to set the  Pic_expand_plus value to empty (='';)
-     #image size configs may be changed when uploading a photo 
-     const Page_width=1280;//default  which is changed in page options  or col options 
+     #default image size configs may be changed in the editor
+     //default cache sizes for images in an effort to deliver quicker browser page load times and minimize bandwidth images at the px widths specified here are created to deliver the minimum size equal or larger to the request. These resized Images are created once and only if the particular size is requested. The master upload file is the source from which all resized images are created and should be large enough to accom0date sizes and expanded images.  For image intensive sites running low on server space, you can clear the resized image folders and only essential sized images will be auto regenerated from the original master upload image.
+	//Page_pic_plus and Page_pic_expand_plus if set will override Page_width and  Page_pic_expand 
+	 const Page_pic_expand_plus='700';//sets default maximum size for the the combined width and height of Expanded Page Images when Page Images are clicked.  Image size will be limited to uploaded size or this value which is smaller 
+	#expanded image size configs may be changed in page default settings under page optionsconst Page_width=1600;//default  which is changed in page options  or col options
+     const Page_width='1600';
      const Default_video_img='default_vid.jpg';
 	const Pass_image='default_pass.jpg';
 	const Default_image='default.jpg';
@@ -268,7 +231,7 @@ class Cfg_master {
      const Valid_pic_mime =   'image/pjpeg,image/jpeg,image/JPG,image/gif,image/GIF,image/X-PNG,image/PNG,image/png,image/x-png,image/svg+xml'; 
      const Valid_pic_ext='jpg,gif,png,jpeg,svg';
      const Valid_watermark_ext="gif,png";
-     const Pic_max=12000000;
+     const Valid_pdf_ext='pdf';
      const Pic_quality=95;
      const Expandgallery='';
      const Gallery_global=false;
@@ -284,14 +247,12 @@ class Cfg_master {
      #**Video+++++++++++
      const Vid_button='playvid.gif';  //watermark  play button automatically added to uploaded video still images
      const Vid_background_dir='video_background/'; 
-     const Vid_dir='video/'; 
+     const Vid_dir='video/';  
+     const Video_dir='video/'; 
      const Vid_image_dir='video_image/';                   
-     //const Valid_vid_mime =  'application/x-shockwave-flash,video/mp4,application/vnd.adobe.flash.movie,video/x-flv,video/quicktime,application/octet-stream,application/x-zip-compressed,application/zip,video/x-ms-wmv,video/webm,video/ogg,video/m4v';
-	const Valid_vid_mime =  'video/mp4,video/webm,video/ogg,video/m4v';
-     //const Valid_vid_ext='flv,mov,zip,mp4,mp4,ogg,m4v,webm';
+     const Valid_vid_mime =  'video/mp4,video/webm,video/ogg,video/m4v';
      const Valid_vid_ext='mp4,ogg,m4v,webm';
-      const Vid_max=15000000; 
-     const Vid_width_max=1000;
+    /*const Vid_width_max=1000;
      const Vid_height_max=1000;
      const Vid_min=50;
      const Vid_default_size=400;
@@ -303,7 +264,7 @@ class Cfg_master {
      const Aspect_ogg=1.333;
      const Aspect_m4v=1.333;
      const Aspect_webm=1.333;
-     const Aspect_swf=1.333;
+     const Aspect_swf=1.333;*/
      #**Contact++++++++++
      const Mail_from='ekarasa@ekarasa.com';
      const Contact_master_email_pic='sudarshanemail.gif';
@@ -313,7 +274,6 @@ class Cfg_master {
 	const Max_gz_backups=10;
 	const Max_gz_days=5;//for gzipped files
      #other files
-     
- 
+	 
 }
 ?>

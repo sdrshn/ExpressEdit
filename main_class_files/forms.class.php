@@ -1,4 +1,5 @@
 <?php
+#ExpressEdit 2.0
 class forms {
 
 static function form_process($array,$default_arr=''){ //default_arr tells which values to keep at default value. Currently works on text, textarea fields...
@@ -97,7 +98,6 @@ static function form_text($name,$value,$text1,$text2,$show_size='',$maxlength=''
 static function form_radio($name,$value,$text1,$text2,$show_size='',$maxlength=''){ 
 	$value2=($value==true)?false:true; 
 	$value3=($value==true)?false:true;
-
 	$value1=($value==true)?true:false; 
 	echo'  <fieldset ><legend>'.$text1.'</legend>
 	<p class="ramana"><input type="radio" name="'.$name.'" checked="checked" value="'.$value.'"><span style="color:#'.Cfg::RedAlert_color.';"> '.$text2.': '.$value1.' </span></p>
@@ -120,38 +120,33 @@ static function form_radio_array($names,$val,$text1,$text2,$ref,$selected='',$fi
 	$sess=session::instance(); 
 echo'<p><input type="hidden" name="sess_token" value="'. $sess->sess_token .'" ></p>';
 	echo'<p> <input type="hidden" name="'.$submitted.'" value="TRUE" ></p>
-  <p><input type="submit" name="submit" value="'.$submit.'" ><br><br><br></p>
+  <p><input style="font-size:8px;padding: 0 1px;" type="submit" name="submit" value="'.$submit.'" ></p>
 </form> ';
 }
 
 
 static function form_dropdown($names,$vals,$text1,$text2,$ref,$selected='none',$fieldset=true,$class='ramana',$adjust_factor=''){
-	 $vals=(is_array($vals)&&count($names)==count($vals))?$vals:$names;
-	 
-    #note that in
-    #id="'.$ref.'"    maybe not necessary and gives error as some id's have []...
-    if ($fieldset) echo '
+	$vals=(is_array($vals)&&count($names)==count($vals))?$vals:$names;
+	if ($fieldset) echo '
     <fieldset><legend class="editcolor editbackground">'.$text1.'</legend> <p class="'.$class.'">';
     else echo '<p class="editcolor editbackground">'.$text1;
-    $fontsize=(!empty($adjust_factor)&&($adjust_factor/strlen($selected))<16)?($adjust_factor/strlen($selected)):16;
-    echo'
-    <select class="editcolor editbackground" name="'.$ref.'"> ';       
-    echo '<option class="editcolor editbackground" style="font-size:'.$fontsize.'px;" value="'.$selected.'" selected="selected">'.$selected.'</option>';
-	 for ($i=0;$i<count($names);$i++){
-		  $fontsize=(!empty($adjust_factor)&&($adjust_factor/strlen($names[$i]))<16)?($adjust_factor/strlen($names[$i])):16;
-		  echo '<option class="editcolor editbackground" style="font-size:'.$fontsize.'px;" value="'.$names[$i].'">'.$vals[$i].'</option>';
-		  }
-    echo'	
+     $fontsize=(!empty($adjust_factor)&&($adjust_factor/strlen($selected))<16)?($adjust_factor/strlen($selected)):16;
+     echo'
+     <select class="editcolor editbackground" name="'.$ref.'"> ';       
+     echo '<option class="editcolor editbackground" style="font-size:'.$fontsize.'px;" value="'.$selected.'" selected="selected">'.$selected.'</option>';
+     for ($i=0;$i<count($names);$i++){
+          $fontsize=(!empty($adjust_factor)&&($adjust_factor/strlen($names[$i]))<16)?($adjust_factor/strlen($names[$i])):16;
+          echo '<option class="editcolor editbackground" style="font-size:'.$fontsize.'px;" value="'.$names[$i].'">'.$vals[$i].'</option>';
+          }
+     echo'	
     </select>'.$text2;
     
-      if ($fieldset) echo '</p></fieldset>';
-	 else echo '</p>';
-    }
- 
- 
+     if ($fieldset) echo '</p></fieldset>';
+	else echo '</p>';
+     }
  
 static function form_checkbox ($name,$val,$text1,$text2,$ref,$check){
-$java= <<<EOD
+     $java= <<<EOD
 	<script language="JavaScript" type="text/javascript">
 <!--
 var checkflag = "false";//  sets up intial variable...  as global
@@ -177,7 +172,7 @@ return "Check All";
 //-->
 </script>
 EOD;
-echo $java;
+     echo $java;
 	foreach ($name AS $field=>$value){  
 		if($value) $checked='checked="checked"';
 		else $checked='';
@@ -185,10 +180,8 @@ echo $java;
 		'<input name="'.$ref.'['.$field.']" type="checkbox" '.$checked.' value="'.$value.'" >'.$text2.'</p>';
 		echo'<p><input name="col['.$field.']" type="hidden" value="'.$value.'" ></p>';#do this for reference as unchecked will not get passed!!!
 		}
-		echo'<p><input type="button" value="Check All" onClick="this.value=check(this.form,\''.$ref.'\')"><br><br></p>';
-		
+	echo'<p><input type="button" value="Check All" onClick="this.value=check(this.form,\''.$ref.'\')"><br><br></p>';
 	}
-	
 static function form_textarea($name,$value,$text1,$text2,$rowlength,$columns){
 	if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
 	echo ' <p class="ramana">'.$text1.'<textarea name="'.$name.'" rows="'.$rowlength.'" cols="'.$columns.'"  

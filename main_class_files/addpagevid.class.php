@@ -1,4 +1,5 @@
 <?php
+#ExpressEdit 2.0
 /*
 ExpressEdit is an integrated Theme Creation CMS
 	Copyright (c) 2018  Brian Hayes expressedit.org  
@@ -15,11 +16,8 @@ ExpressEdit is an integrated Theme Creation CMS
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.*/
-class addpagevid extends Singleton {
-
+class addpagevid extends Singleton { 
 function submitted(){
-	if (Sys::Web)set_time_limit(200);
-	ini_set('memory_limit','300M');
 	$mysqlinst=mysql::instance();
 	$backupinst=backup::instance();
 	$mysqlinst->dbconnect();	
@@ -28,52 +26,45 @@ function submitted(){
 	$width=request::check_request_num('width'); 
 	$type=request::check_request_data('type');
 	$f=request::check_request_data('fff');
+	$masterpost=request::check_request_data('masterpost');
 	if (!empty($f)){   
 		$vidinfo=$f;
 		}
 	else {
-			 $msg='field info missing';
-			 mail::alert($msg);
-			 printer::alert_neg($msg);
-			 return;
-	   } 
+          $msg='field info missing';
+          mail::alert($msg);
+          printer::alert_neg($msg);
+          return;
+          } 
 	$t=$tablename=request::check_request_data('ttt');
-	if (empty($t)){   
-	
+	if (empty($t)){ 
 			 $msg='table info missing';
 			 mail::alert($msg);
 			 printer::alert_neg($msg);
-			 return;}
-	
+			 return;
+                }
 	$pt=request::check_request_data('pgtbn');
 	if (!empty($pt)){   
 			$pgtablename=$pt;  
 			}
-		 
 	else {
-			 $msg='pgtablename info missing';
-			 mail::alert($msg);
-			 printer::alert_neg($msg);
-			 return;
-		} 
-	 
+          $msg='pgtablename info missing';
+          mail::alert($msg);
+          printer::alert_neg($msg);
+          return;
+		}  
 	// Check if the form has been submitted: 
-
 	#if (!$sess->session_check){mail::error('session check problem');}
 		
-	   if  (Sys::Debug) Sys::debug(__LINE__,__METHOD__,__FILE__);
-		  //include ('includes/uploadthis.php');//this file does the upload work to upload directory returns validation
-		$max_upload = (int)(ini_get('upload_max_filesize'));
-		$max_post = (int)(ini_get('post_max_size'));
-		$memory_limit = (int)(ini_get('memory_limit'));
-		$config=Cfg::Pic_max/1000000;//see Cfg.class.php 
-		$upload_mb = min($max_upload, $max_post, $memory_limit,$config);
-		$instructions="Maximum filesize of $upload_mb Mb has been exceeded.";
-		 $instructions.= ' Only the filetypes '.Cfg::Valid_vid_ext.' will work';
-		 
-	list($uploadverification,$fiupl)=upload::upload_file(Cfg::Valid_vid_mime,Cfg::Valid_vid_ext,$instructions,Cfg_loc::Root_dir.Cfg::Upload_dir);
-		if ($uploadverification='true'){
-			
+	if  (Sys::Debug) Sys::debug(__LINE__,__METHOD__,__FILE__);
+		$max_upload = (ini_get('upload_max_filesize')<10000)?(int)(ini_get('upload_max_filesize')):(int)(ini_get('upload_max_filesize')/1000000);
+		$max_post = (ini_get('post_max_size')<10000)?(int)(ini_get('post_max_size')):(int)(ini_get('post_max_size')/1000000); 
+		$config=(int)Cfg::Vid_upload_max; 
+		$maxup=min($max_upload,$max_post,$config); 
+		$instructions="Maximum filesize of $maxup Mb has been exceeded.";
+          $instructions.= ' Only the filetypes '.Cfg::Valid_vid_ext.' will work';
+          list($uploadverification,$fiupl)=upload::upload_file(Cfg::Valid_vid_mime,Cfg::Valid_vid_ext,$instructions,Cfg_loc::Root_dir.Cfg::Upload_dir);
+		if ($uploadverification='true'){ 
 			if ($type==='background'){
 				$vidpath=Cfg_loc::Root_dir.Cfg::Vid_background_dir;
 				switch ($vidinfo){
@@ -86,7 +77,7 @@ function submitted(){
 						$prefix='col_';
 						break; 
 					default :
-						$master_table=Cfg::Master_post_table;
+						$master_table=$masterpost;
 						$prefix='blog_';
 						break;
 					}
@@ -102,13 +93,11 @@ function submitted(){
 				for ($i=0; $i<$count; $i++){
 					(!array_key_exists($i,$ele_arr))&&$ele_arr[$i]=0;
 					}
-				 
 				$background_array=explode('@@',$ele_arr[$background_index]); 
 				$backindexes=explode(',',Cfg::Background_styles);
 				foreach($backindexes as $key =>$index){
 					if (!empty($index)) ${$index.'_index'}=$key;
 					}
-				 
 				$count=count($backindexes);
 				for ($i=0; $i<$count; $i++){
 					(!array_key_exists($i,$background_array))&&$background_array[$i]=0;
@@ -118,27 +107,22 @@ function submitted(){
 				$background_implode=implode('@@',$background_array); 
 				$ele_arr[$background_index]=$background_implode;
 				$style_implode=implode(',',$ele_arr);
-				$q="UPDATE $master_table SET $vidinfo='$style_implode',{$prefix}time='".time()."',token='".mt_rand(1,mt_getrandmax())."',{$prefix}update='".date("dMY-H-i-s")."' where $id_ref='$id'";   
+				$q="UPDATE $master_table SET $vidinfo='$style_implode',{$prefix}time='".time()."',token='".mt_rand(1,mt_getrandmax())."',{$prefix}update='".date("dMY-H-i-s")."' where blog_table='$t' and blog_table_base='$pgtablename' and $id_ref='$id'";   
 				} 
-			else {
+			else { 
 				$vidpath=Cfg_loc::Root_dir.Cfg::Vid_dir;
-				list($width,$aspect)=process_data::process_vid_size($fiupl,$width);#this will check widths with type and use default if value not supplied
-				$ext=pathinfo($fiupl)['extension'];
-				$aspect=constant('Cfg::Aspect_'.$ext );  
-				$q="UPDATE master_post SET $vidinfo='$fiupl,$width,$aspect',blog_tiny_data1='',blog_data1='vid_upload',token='". mt_rand(1,mt_getrandmax())."',blog_time='".time()."' where  $id_ref=$id";
-			   //ba$mysqlinst->count_field($master_table, $id_ref ,$dbvar,false,$where);//get pic order placement
-				}
+				$q="UPDATE $masterpost SET $vidinfo='$fiupl',token='". mt_rand(1,mt_getrandmax())."',blog_time='".time()."' where blog_table='$t' and blog_table_base='$pgtablename' and $id_ref='$id'";  
+                    }
 			$mysqlinst->query($q,__LINE__,__FILE__,true);//  insert into database for each db
 			if($mysqlinst->affected_rows()){
 				if(!copy(Cfg_loc::Root_dir.Cfg::Upload_dir.$fiupl,$vidpath.$fiupl))mail::error('failure to copy background video in add page video core: '.$fiupl);#this places in folder video  no video resizing done straitforward deal 	  
 				if  (Sys::Debug) print_r($message);
 				#success has happened
-				#unset($_SESSION[Cfg::Owner.'redirect']); #this was created to prevent recurring redirect
 				$backupinst->render_backup($pgtablename);
 				$pageref=($pgtablename=='indexpage')?'Home Page':$pgtablename;
 				$msg = "The Video $fiupl has successfully been sent to $pageref Please double check";
 				mail::success($msg);
-				$_SESSION[Cfg::Owner.'update_msg'][]=$msg;
+				$_SESSION[Cfg::Owner.'update_msg'][]=printer::alert_pos($msg,.9,1);
 				}
 			else {
 				$msg="Error Updating with $q";
@@ -147,11 +131,12 @@ function submitted(){
 				}
 			}// end of upload verification
 		else {
-				$msg="Upload Verification Failed";
-				mail::error($msg);
-				printer::alert_neg($msg);
-				}
+               $msg="Upload Verification Failed";
+               mail::error($msg);
+               printer::alert_neg($msg);
+               }
     } // End of function submitted
+    
 }//end class addpagevid
 ?>
    

@@ -7,11 +7,9 @@
 // Class has a write() method for writing data.
 // Class has a close() method to close the pointer.
 class WriteToFile {
-
 	// Attributes:
 	private $fp = null;
 	private $message = '';
-	
 	// Constructor:
 	function __construct($file = null, $mode = 'w') {
 	
