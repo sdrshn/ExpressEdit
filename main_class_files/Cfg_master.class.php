@@ -19,41 +19,32 @@ ExpressEdit is an integrated Theme Creation CMS
 class Cfg_master { 
 	#the following php.ini directives pertain to image uploading and manipulation or video uploading and limits set in php.ini file in edit directory and in html files upload.  
      const Time_zone='';//optionally set local time zone overrides date_default_timezone_get(); ie 'America/New_York' or 'UTF' 
-     const Pic_upload_max='10M';//limit image max size in Mbs..
+     const Pic_upload_max='15M';//limit image max size in Mbs..
      const Vid_upload_max='100M';//limit Video max size in Mbs..
      const Pdf_upload_max='10M';//upload pdf max size
      // run phpinfo() to see other limiting currently loaded ini configuration files for filesize   ie.  post_max_size  or upload_max_filesize
-	const Memory_limit='300M';//set in Megabytes 
-	const Max_execution_time=60;//set in seconds
+	const Memory_limit='300M';// //affects editmode ini_set  
+	const Max_execution_time=5;//affects editmode ini_set in seconds
 	###################
-	const Override=true;//file generate over icons and other page files
-     const Override_page_class=true;//file generate over local class files for each page which may be customized..
+	const Override=false;//set to false to prevent overwriting of icons and other misc page files
+     const Override_page_class=false;//set to false to prevent overwriting of  local class files for each page which may be customized, page specific local classes and also site_master, galler_loc, expand_loc and navigate_loc  (class.php) files..
      const Conserve_image_cachespace=false;//limits cache where possible.
 	##The following three settings will determine whether the local server development system if used requires a password..
 	#use comma separated of more than one development system. to determine whether local development system or production environment.  May be changed in local Cfg files also
+	#to disable login set Force_local_login to falsee and specify Local_server filename....
 	const Local_site='htdocs,localhost';// url matches for local sites prints error messages to screen 
-	const Force_local_login=false;//if true lmust login for local developement system
+	const Force_local_login=false;//if true must login for local developement system
 	const Local_server='/media/VolH,xamp';//comma separated of local dev servers to allow login bypass unless Force_local_login is set to true... 
 	###################
-	#The following affects secure login from Local Server Development
-     const Local_dir='/media/VolH/htdocs/'; 
-	const Local_login=false;//localhost login not true for developement system
 	//name of database with identical fields to main db for use in viewing backups 
-	const View_db='vwpkbpmy_viewbackupdb';
-	const Spacings_off=true;
 	const Debug_backtrace=true;
 	const Error_exit=true;//false for production may be true for development exits on non fatal errors .       const Local_site='htdocs,localhost';//use comma separated of more than one development system. to determine whether local development system or production environment  may be changed in local Cfg files also
-	const Test_site_dir=null; //not used anymore..  
-	const Session_save_path='session_XaByzrt5';//customize a  session save path directory .. may be specified in local Cfg.class.php  use no special characters
 	const Mysqlserver='';//dir can be manually configured here if not auto detected which may affect backups..   ie  ='C:/xampp/mysql/bin  on xampp windows default settings where the entire path needs to be specified for mysqldump backups
-	const Prevent_default=0;//for debugging only
-     const Timecheck=2; //if more than 2 seconds to render a page then a alert email is sent. Usually happens with search engines over doing it
 	#******Database Info**************
      const Secure_session=false;
 	const Dbhost = 'localhost'; 
      const Hello = 'hello world';
-     const Request_pass='';//customized url requests
-     const Check_request='returnedit'; 
+     const Check_request='returnedit'; //used if cache html page version is reactivated
      const Fonts_browser='Arial, Helvetica, sans-serif; Arial Black, Gadget, sans-serif; Constantia, cambria, sans-serif; Comic Sans MS, Comic Sans MS5, cursive; Courier New, monospace; Georgia1, Georgia, serif; Helvetica, sans-serif; Impact, Impact5, Charcoal6, sans-serif; Lucida Console, Monaco5, monospace; Lucida Sans Unicode, Lucida Grande, sans-serif; Palatino Linotype, Book Antiqua3, Palatino, serif; Tahoma, Geneva, sans-serif; Times New Roman, Times New Roman, Times, serif; Trebuchet MS1, Trebuchet MS, sans-serif; Verdana, Verdana, Geneva, sans-serif';
      const Fonts_extended='Chancur;Miama;MeathFLF;Fely;GothicA1;Hind;Allura;Questrial;Nova Slim;Cabin;Julee;Macondo Swash Caps;Michroma;Give You Glory;Delius Swash Caps;Bad Script;Sofia;Eagle Lake;Kite One;Contrail One;Paprika;Redressed,cursive;Shadows Into Light;Josefin Slab;Antic;Nothing You Could Do;Indie Flower;Delius;Amaranth;Over the Rainbow;Aubrey;Text Me One;Cinzel Decorative;Shadows Into Light Two;Comfortaa;Handlee;Oxygen;Basic;Ruluko;Chivo;Architects Daughter;Merienda;Diplomata SC;Cedarville Cursive;Numans;Happy Monkey;Sintony';
      const Preg_color='/^([a-f]|[A-F]|[0-9]){3}(([a-f]|[A-F]|[0-9]){3})?$/';
@@ -79,11 +70,8 @@ class Cfg_master {
 	//note: color names much match respective global_master  class  names
 	//const Full_color_index='info,pos, redAlert ,cherry,aqua,brightgreen,yellow,ekblue,orange,navy,magenta,maroon,brown,green';
 	#************************ 
-     const Edit_font_size='1'; 
-	const Edit_font_family='Helvetica=> sans-serif';
-	const Secure_mode=false;
-     const Container_style='background_inner'; //field being used for container style
-     const Body_style='background';  //Filed being use for body style
+     const Edit_font_size='1'; //sets default font size   1 = 16px
+	const Edit_font_family='Helvetica=> sans-serif';//default edit font family  
     #database  tables
      const Directory_dir='directory';
 	const Backups_table='backups_db';
@@ -93,15 +81,11 @@ class Cfg_master {
      const Master_gall_table='master_gall';
      const Master_post_css_table='master_post_css';
      const Master_post_data_table='master_post_data';
-     const Master_col_css_table='master_col_css';
-     const Restore_table_backup='gallery_temp_restore';
-     const Setup_table='setupmaster';#used in addgallery pic to generate new tables
+     const Master_col_css_table='master_col_css'; 
      const Columns_table='columns';
-	const Comment_table='comments';
+	const Comment_table='comments';//not used currently
 	#rwd defaults
-	const Default_min_width=70;
-	const Default_bounce_width=150;
-	const Default_width_mode='maxwidth';
+	const Default_width_mode='maxwidth';//if not set
 	const Db_tables='columns,comments,directory,master_col_css,master_gall,master_page,master_post,master_post_css,master_post_data';
      #Fields
      const Col_fields='col_table_base,col_table,col_num,col_options,col_status,col_grid_clone,col_gridspace_right,col_gridspace_left,col_grid_width,col_tcol_num,col_primary,col_clone_target,col_clone_target_base,col_style,col_style2,col_temp,col_grp_bor_style,col_comment_style,col_comment_date_style,col_comment_view_style,col_date_style,col_width,col_hr,col_flex_box';
@@ -122,7 +106,6 @@ class Cfg_master {
 	const Image_options='image_width_limit,image_noexpand,image_max_expand,image_quality,image_noresize,image_min,image_height_set,imagecaption_height,image_caption_text,image_caption_hover,image_internal_link,image_external_link,imagecaption_bottom,image_internal_query,image_height_media,image_max_media1,image_min_media1,image_max_media2,image_min_media2,image_max_media3,image_min_media3,image_max_media4,image_min_media4,image_max_media5,image_min_media5,image_per1,image_per2,image_per3,image_per4,image_per5';//accessed global edit &  add_page_pic 
      const Blog_options='blog_comment,blog_comment_display,blog_editor_use,blog_date_on,blog_date_format,blog_pad_unit,blog_mar_unit,blog_break_points,blog_vert_pos,blog_media_minmax,blog_display_max,blog_display_min,blog_animation,blog_opacity,blog_position,blog_width_opt,blog_min_width_opt,blog_max_width_opt,blog_height_media,blog_height_opt,blog_min_height_opt,blog_max_height_opt,blog_pos_vert_val,blog_pos_horiz_val,blog_overflowx,blog_overflowy,blog_custom_class';
 	const Position_options='position,position_max,position_min,position_horiz,position_horiz_val,position_vert,position_vert_val,position_zindex,position_pos_neg,position_opacity';
-	//const Blog_height_opts='blog_height,blog_image_height,blog_height_scroll,blog_min_height';//only blog_image_height used currently..
 	const Column_options='col_tag_display,col_float_calc,col_use_grid,col_grid_units,col_break_points,col_vert_pos,col_media_minmax,col_display_max,col_display_min,col_pad_unit,col_mar_unit,col_animation,col_opacity,col_position,col_enable_masonry,col_width2,col_width_opt,col_min_width_opt,col_max_width_opt,col_pos_vert_val,col_pos_horiz_val,col_height_opt,col_min_height_opt,col_max_height_opt,col_overflowx,col_overflowy,col_height_media';// 
 	const Box_shadow_options='shadowbox_horiz_offset,shadowbox_vert_offset,shadowbox_blur_radius,shadowbox_spread_radius,shadowbox_color,shadowbox_insideout';
 	const Animation_options='animate_type,animate_visibility,animate_repeats,animate_duration,animate_height,animate_width,animate_after_type,animate_after_delay,animate_after_repeats,animate_after_duration,animate_final_display,animate_alternate,animate_lock,animate_complete_id,animate_sibling,animate_prior_delay';
@@ -130,15 +113,12 @@ class Cfg_master {
 	const Main_width_options='blog_width_mode,blog_percent_init,blog_marginleft_init,blog_marginright_init,blog_media_1,blog_percent_1,blog_marginleft_1,blog_marginright_1,blog_media_2,blog_percent_2,blog_marginleft_2,blog_marginright_2,blog_media_3,blog_percent_3,blog_marginleft_3,blog_marginright_3,blog_media_4,blog_percent_4,blog_marginleft_4,blog_marginright_4,blog_media_5,blog_percent_5,blog_marginleft_5,blog_marginright_5,blog_media_6,blog_percent_6,blog_marginleft_6,blog_marginright_6,blog_media_7,blog_percent_7,blog_marginleft_7,blog_marginright_7,blog_media_8,blog_percent_8,blog_marginleft_8,blog_marginright_8';
 	const Advance_media_width='blog_adv_media_1,blog_adv_width_1,blog_adv_marginleft_1,blog_adv_marginright_1,blog_adv_paddingleft_1,blog_adv_paddingright_1,blog_adv_media_2,blog_adv_width_2,blog_adv_marginleft_2,blog_adv_marginright_2,blog_adv_paddingleft_2,blog_adv_paddingright_2,blog_adv_media_3,blog_adv_width_3,blog_adv_marginleft_3,blog_adv_marginright_3,blog_adv_paddingleft_3,blog_adv_paddingright_3,blog_adv_media_4,blog_adv_width_4,blog_adv_marginleft_4,blog_adv_marginright_4,blog_adv_paddingleft_4,blog_adv_paddingright_4,blog_adv_media_5,blog_adv_width_5,blog_adv_marginleft_5,blog_adv_marginright_5,blog_adv_paddingleft_5,blog_adv_paddingright_5,blog_adv_media_6,blog_adv_width_6,blog_adv_marginleft_6,blog_adv_marginright_6,blog_adv_paddingleft_6,blog_adv_paddingright_6,blog_adv_media_7,blog_adv_width_7,blog_adv_marginleft_7,blog_adv_marginright_7,blog_adv_paddingleft_7,blog_adv_paddingright_7,blog_adv_media_8,blog_adv_width_8,blog_adv_marginleft_8,blog_adv_marginright_8,blog_adv_paddingleft_8,blog_adv_paddingright_8';
      const Backup_copies=200;//change  in page_default settings
-	const Column_grid_units=100;
-	const Column_break_points='1006,791,489,384';
+	const Column_grid_units=100;//default setting change in page configs
+	const Column_break_points='1006,791,489,384';//default setting change in page configs
 	const Development=false;//for javascript alert on ajax imagecall and build image and image resize messages on editpage..
      #prefixes  suffixes  extenisons
-     const Edit_gall_ext='';
      const Exts='htm,html,asp';
      const Backup_ext_folder='backupversions/';
-     const Param_css_append='_col_css';
-     const Post_css_append='_post_css';
      const Post_suffix='_post_id';
      const Col_suffix='_col_id';
      const Post_prefix='post_';
@@ -153,9 +133,7 @@ class Cfg_master {
      const Aux_scripts='add_page_pic,add_page_vid';//like to prevent return link when editing
      //const Table_suffix='data,highslide,expand,_thumbs';
      const Exclude='jpgraph,tinymce-Orig,1downloaded internet files,fvd suite,zen cart,secure apache ssl,.,..,$recycle.bin,system volume information,temp,phplist,compress,zen,phpMyAdmin,phpsite,ellen,design,css,create,arthur,attachment,highslide,fonts,langs,plugins,themes,utils,graphics,tmp,cgi-bin,forum,zen,wordpress,tinymce,tiny-mce';#these files are excluded from search and other generation programs
-     const Skip_it='data,expand,undo_temp,gallery_storage,gallery_temp_restore,setupmaster';#setupmaster used in gallery setup table creation
-    const Test_site='false';
-     #pdf
+    #pdf
      const Valid_pdf_mime='application/pdf,application/acrobat,application/x-pdf,applications/vnd.pdf,text/pdf,text/x-pdf';
      const Pdf_max=15000000;
 	const Pass_class_page='passclass.php';
@@ -199,48 +177,29 @@ class Cfg_master {
      const Page_images_expand_dir='page_images_expanded/';
      #***Image Info*****************************
      #Image_response values must asccend
-      const Image_response='100,200,300,400,500,700,900,1100,1300,1700,2100';
-     //const Image_response='2100,1300,1100,900,700,500,400,300,200,100';//in an effort to deliver quicker browser page load times and minimize bandwidth images at the px widths specified here are created to deliver the minimum size equal or larger to the request. These resized Images are created once and only if the particular size is requested. The master upload file is the source from which all resized images are created and should be large enough to accom0date sizes and expanded images.  For image intensive sites running low on server space, you can clear the resized image folders and only essential sized images will be auto regenerated from the original master upload image.
-     //Page_pic_plus and Page_pic_expand_plus if set will override Page_width and  Page_pic_expand 
-     const Page_pic_width='400';// value is set for images for constant width regardless of height to better fit the page.  
-     const Page_pic_plus=''; //for fitting into blogs it is best kept empty to default to page_pic_width  Setting a Page_pic_plus will set the total value of the height + width  and will override any Page_pic_width settting  
-     const Page_pic_expand_width='';// normally for expanded view both height and width are considered.  If you prefer to set the width then be sure to set the  Pic_expand_plus value to empty (='';)
-     #default image size configs may be changed in the editor
-     //default cache sizes for images in an effort to deliver quicker browser page load times and minimize bandwidth images at the px widths specified here are created to deliver the minimum size equal or larger to the request. These resized Images are created once and only if the particular size is requested. The master upload file is the source from which all resized images are created and should be large enough to accom0date sizes and expanded images.  For image intensive sites running low on server space, you can clear the resized image folders and only essential sized images will be auto regenerated from the original master upload image.
-	//Page_pic_plus and Page_pic_expand_plus if set will override Page_width and  Page_pic_expand 
-	 const Page_pic_expand_plus='700';//sets default maximum size for the the combined width and height of Expanded Page Images when Page Images are clicked.  Image size will be limited to uploaded size or this value which is smaller 
-	#expanded image size configs may be changed in page default settings under page optionsconst Page_width=1600;//default  which is changed in page options  or col options
-     const Page_width='1600';
+     const Page_width='1600';//sets default page width if no column widths set..
+     const Image_response='100,200,300,400,500,700,900,1100,1300,1700,2100';//default  px sises for image cache directories
      const Default_video_img='default_vid.jpg';
 	const Pass_image='default_pass.jpg';
 	const Default_image='default.jpg';
-     const Max_pic_width=1800;//max pic width for body background images
-     const Text_images=false;
-     const Check_gallery='reorder,expand,gallery';
-     const Default_watermark=false;
-     const Title= '';
-     const Subtitle= '';
-     const Contact_title_pic='contactsudarshan.gif';
-     const Gall_topbot_pad=70;
-     const Gall_container_width='720';
-     const Gallery_row_width='560';
-     const Small_gall_pic_plus='180';
+     ####
+      // these image size settings are defaults or maxwidths .. Pic image sizes generally occupy full space of post available up to any max values set..
+     const Max_pic_width=3000;//max pic width for body background images
+     const Default_watermark=false;//watermark may be added through uploads interface
+     const Small_gall_pic_plus='180';//defaults
 	const Master_gall_pic_plus='200';//master gall setting  stipulates width_height
      const Large_gall_pic_plus='700';
-     const Small_gall_pic_width='';
-     const Large_gall_pic_width=''; 
+     const Page_pic_expand_plus='3000'; //default value set in page options..
+     ####
      const Valid_pic_mime =   'image/pjpeg,image/jpeg,image/JPG,image/gif,image/GIF,image/X-PNG,image/PNG,image/png,image/x-png,image/svg+xml'; 
      const Valid_pic_ext='jpg,gif,png,jpeg,svg';
      const Valid_watermark_ext="gif,png";
      const Valid_pdf_ext='pdf';
      const Pic_quality=95;
-     const Expandgallery='';
-     const Gallery_global=false;
 	const Col_maxwidth=4000;
-     const Master_gall_pic_width=300;//this is the large thumbnails to go to expanded gallery that doesn't seem set with value anywhere
-     const Default_background_image_width=1600;
+     const Master_gall_pic_width=300;//this is the large thumbnails to go to expanded gallery t 
+     const Default_background_image_width=500;//sets default width
      #*********Gallery Management*********
-     const Master_galls='';#replaces Gallery content tables
      const Gallery_content='';//blank default   gallery for master gallery
      
      #*************
@@ -253,25 +212,9 @@ class Cfg_master {
      const Vid_image_dir='video_image/';                   
      const Valid_vid_mime =  'video/mp4,video/webm,video/ogg,video/m4v';
      const Valid_vid_ext='mp4,ogg,m4v,webm';
-    /*const Vid_width_max=1000;
-     const Vid_height_max=1000;
-     const Vid_min=50;
-     const Vid_default_size=400;
-     const Aspect_flv=1.333;
-     const Aspect_mov_ratio=1.28;
-     const Aspect_wmv=1.1818; 
-     const Aspect_mp4=1.333;
-     const Aspect_mov=1.333;
-     const Aspect_ogg=1.333;
-     const Aspect_m4v=1.333;
-     const Aspect_webm=1.333;
-     const Aspect_swf=1.333;*/
      #**Contact++++++++++
-     #backup configuration for cleaning sql and gzipped backups   settings may be tweaked based on your available server disk space
-     const Max_sql_backups=10;//keeps these many backups..
-	const Max_gz_backups=10;
-	const Max_gz_days=5;//for gzipped files
-     #other files
+     #backup configuration for cleaning sql and gzipped backups   settings may be tweaked based on your available server disk space	const Max_gz_backups=10;
+	#other files
 	 
 }
 ?>

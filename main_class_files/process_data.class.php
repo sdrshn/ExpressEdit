@@ -368,15 +368,6 @@ static function new_file($new_file,$ext='.php',$dir=Cfg_loc::Root_dir,$length=60
 	return $new_file.$i;
 	} 
  
-static function check_gallery(){
-	$check=explode(',',Cfg::Check_gallery);#currently expand reorder and gallery
-	foreach ($check as $ext){//checking for gallery reorder  status
-		if (strpos(Sys::Self,$ext)){
-			return true;
-			}
-		}
-	return false;
-	}
 	
 static function html2rgb($color)//stack overflow
 {

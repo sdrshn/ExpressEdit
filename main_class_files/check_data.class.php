@@ -146,13 +146,7 @@ static function color_validate($color){
 	if ( preg_match('|^([A-Fa-f0-9]{3}){1,2}$|', $color ) ) return true;
 	return false;
 	}
-	
-static function return_gall_list($method,$line,$file,$mastertablename){  
-	$storeinst=store::instance();
-	$tables=self::return_refs($method,$line,$file,Cfg::Master_gall_table,'gall_ref'," where master_gall_ref='$mastertablename' AND pic_order=1");
-	return $tables;
-	}
-	
+	 
 static function  return_galleries($method,$line,$file,$where='where pic_order=1',$remove_data='',$print=false,$db=Sys::Dbname){
 	$tables=self::return_refs($method,$line,$file,Cfg::Master_gall_table,"gall_ref",$where,$remove_data,$print,$db);
 	return $tables;
@@ -180,33 +174,6 @@ static function is_mobile() {
      return strpos($userAgent, 'mobile');
      }
     
-static function xreturn_galleries($field='bigname',$skip=true,$print=false,$db=Sys::Dbname){
-     $mysqlinst = mysql::instance();
-     $mysqlinst->dbconnect($db);
-     $return_array=array();
-     $tables=self::get_tables($db);
-     $skip_it=explode(',',Cfg::Skip_it);
-     foreach ($tables as $tablename){  
-          if (strpos($tablename,'expand')|| strpos($tablename,'data')|| strpos($tablename,'highslide')) continue; 
-          if (in_array($tablename,$skip_it)&& $skip===true)   continue;
-          $q="select bigname from $tablename";
-          $q1="insert $tablename set bigname='test', pic_order=1000";
-          $q2="DELETE FROM $tablename WHERE pic_order = 1000";
-          $mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
-          if ($mysqlinst->affected_rows()) {
-               $return_array[]=$tablename;
-               }
-          else{
-               $mysqlinst->query($q1,__METHOD__,__LINE__,__FILE__,false);
-               if ($mysqlinst->affected_rows()) {
-                    $return_array[]=$tablename;
-                    $mysqlinst->query($q2,__METHOD__,__LINE__,__FILE__,false);
-                    }
-                }
-          }//end foreach
-     ($print)&& printer::vert_print($return_array); 
-     return($return_array);
-     }
 	 
 static function return_posts($where='where blog_order=10',$remove_data='',$print=false,$db=Sys::Dbname){
 	$tables=self::return_refs($method,$line,$file,Cfg::Master_post_table,"blog_table",$where,$remove_data,$print,$db);

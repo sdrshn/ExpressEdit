@@ -1,5 +1,4 @@
 <?php
-#ExpressEdit 2.0
 class file_generate {
 /*
 ExpressEdit is an integrated Theme Creation CMS
@@ -56,7 +55,7 @@ Cfg::Background_image_dir.Cfg::Pass_image.','.Cfg::Small_thumb_dir.Cfg::Pass_ima
 		self::full_copy(Sys::Common_dir.Cfg::Watermark_dir,Sys::Home_pub.Cfg::Watermark_dir);
 		self::full_copy(Sys::Common_dir.Cfg::Playbutton_dir,Sys::Home_pub.Cfg::Playbutton_dir);
 		self::full_copy(Sys::Common_dir.Cfg::Vid_dir,Sys::Home_pub.Cfg::Vid_dir); #copy video contents to each website root dir
-		self::full_copy(Sys::Common_dir.Cfg::Include_dir,Sys::Home_pub.Cfg::Include_dir); #copy video contents to each website root dir
+		self::full_copy(Sys::Common_dir.Cfg::Include_dir,Sys::Home_pub.Cfg::Include_dir); #local class.php will not be overwritten depending on Cfg::Override_page_class setting
 		self::full_copy(Sys::Common_dir.Cfg::Vid_dir,Sys::Home_pub.Cfg::Theme_dir.Cfg::Vid_dir); #copy video contents to each website root dir   
 		}
      #Here we are copying a list of files from the Common_dir to Current Directory root
@@ -183,8 +182,9 @@ static function full_copy( $source, $target ) {echo NL. "entered full copy  $sou
 				}
 			 echo  NL . "$c source is $source$entry and target is $target$entry";
 			$c++;
+               if (Cfg::Override_page_class&&str_pos($target.$entry,'class.php')!==false)continue;//do not override local custom classes..
 			if (Cfg::Override||strpos($target.$entry,'.php')!==false||!is_file($target.$entry)){
-				if (!copy( $Entry, $target.$entry)){
+                    if (!copy( $Entry, $target.$entry)){
 					printer::alert_neg("Error in copy  $Entry to $target/$entry" );
 					}
 				}
@@ -380,11 +380,11 @@ eol;
      }//end function config
     
 static function class_local_gen(){
-	$class_list=array('navigation_loc','site_master','expandgallery_loc');
+	$class_list=array('navigation_loc','site_master','expandgallery_loc','gallery_loc');
 	foreach ($class_list as $class){
 		$file=$class.'.class.php';
 		$file_inc=Cfg_loc::Root_dir.Cfg::Include_dir.$file;
-		if (!is_file($file_inc)){
+		if (Cfg::Override_page_class||!is_file(Cfg_loc::Root_dir.Cfg::Include_dir.$class.'.class.php')){
 			copy(Sys::Common_dir.$file,$file_inc);
 			}
 		}

@@ -83,7 +83,6 @@ function automate_menu($dir_menu_id,$nav_class='',$nav_return=true){
 	}
 	
 function auto_nav_data($dir_menu_id,$nav_class){
-	$reorder=($this->edit)?Cfg::Edit_gall_ext:''; //add to gallery edit menu's
 	$fields=Cfg::Dir_fields;
 	$field_arr=explode(',',$fields); 
 	$q="select dir_id,$fields from ".Cfg::Directory_dir ." where dir_menu_id='$dir_menu_id'  order by dir_menu_order asc, dir_sub_menu_order asc";

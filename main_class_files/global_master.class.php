@@ -5242,7 +5242,6 @@ function edit_metadata(){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD
      $this->show_more('Configure Outer Tab Title, keywords and Meta data','noback','','',500);
      $this->print_redwrap('outer tab');
      printer::alert('Optionally configure keywords and meta data which has limited effect on search engines');
-     if (process_data::check_gallery())  printer::alert('Galleries get appended pagenames to keywords and metadescription to increase variety');
     echo '<fieldset ><legend>Edit/Translate metadescription </legend> 
     <textarea class="utility" name="metadescription" cols="50" rows="3" id="metadescription">' . $this->metadescription.'</textarea>
     </fieldset><!--end Meta data-->';
