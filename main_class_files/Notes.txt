@@ -1,0 +1,82 @@
+ if (Sys::Pass_class)return;
+ 
+SET GLOBAL general_log = 'OFF';
+SET GLOBAL slow_query_log = 'OFF';
+http://htdocs/karma/theme_hold/passclass.php?editgen&tkn=84125d89faa5610ff9a9f64734f751b5&tbn=about&returnpass=/karma/editpagesvalarupy/about.php
+
+images   37  and 25  percent
+fonsize  .9   padding top 10px
+
+pics..  
+
+text
+image left  270  37%
+
+text image right   165   20%
+
+text
+
+image 270   10px top spacing...
+
+about acupuncture
+
+270  37%
+WHAT IS ACUPUNCTURE?Acupuncture is an ancient healing system. The earliest books were written 4,500 years ago and today, millions of practitioners can befound throughout the world. Acupuncture originated with the discovery that specific areas of the skin were directly correlated to the organs of the body. In time, the connection between the skin and the organs became further understood and more exact ways of stimulation were devised. Many people have heard of acupuncture’s strength in dealing with such problems as weight-loss and smoking addictions. The fact of the matter is, acupuncture can be very helpful not only in these but a wide variety of other conditions due to its power to stimulate our own healing responses. This overall therapeutic effect is one of its great strengths.
+Pic acu_300x200
+
+Diagnosis.
+Acupuncture begins with diagnosing an individual’s energy balance. The energy of the body, mind and spirit is distributed through 12 main energy pathways, called meridians. Each pathway is correlated with an organ of the body. The over or under-activity of any of these pathways will cause the organ to work less effectively and disease will result. Whether or not an energy pathway is malfunctioning is revealed in many ways, for example by facial color, odor, sound in the voice, emotional state, taste preferences, the nature of the symptom and the distribution of heat and cold in the body. In addition, each organ also has a pulse located on the radial artery at the wrist which informs the practitioner about the energy of that particular organ. The signs, together with several others, form the basis of diagnosis. The purpose of the diagnosis is to establish which pathways require adjustment for a specific condition to improve and which require adjustment for your overall energy to improve.
+Treatment
+Treatment is the process of adjusting and re-establishing the energy balance within the pathways. Two methods are utilized during treatment. One method is the insertion of fine, stainless steel needles into acupuncture points, either stimulating or sedating the energy of a specific pathway. The second method is the application of warmth to the acupuncture point. These techniques are often used in combination. As the energy improves, health improves.
+<h4>What can Acupuncture Help?</h4>
+Many people come to acupuncture for help with a specific symptom or condition. The effectiveness of acupuncture rests upon treating the underlying root of the problem, and not just its manifestations (symptoms). Acupuncture directed at restoring the overall energy balance will deal with the condition and also help the patient feel better in a general way. Many patients also come for preventive treatment.  An acupuncturist can often detect and treat an energy imbalance before the patient is aware of any symptoms. The aim is to maintain health rather then overcoming a specific condition. The sooner the imbalance is detected, the less detrimental symptoms a person will experience. 
+<h4>What Can I Expect On My First Visit?</h4>
+For your initial visit, the practitioner allows enough time to gather information on: 1) your symptom(s), the history and treatments to date; 2) your medical and family history; 3) behavior of your various systems (ie., sleep, digestion); and 4) your physical condition (ie., distribution of body heat or condition of your skin).
+Generally you will come weekly to begin with and then, as you improve, less frequently. The speed of your improvement varies more according to the person rather than the label of the complaint. Some people are much more improved after the first visit; others require more extensive treatment.
+<h4>Does It Hurt?</h4>
+Some people would like to try acupuncture, but may not because they are sure it will be painful. The needles that we use are solid and much finer than those used for injections or withdrawing blood. In most cases only a slight prick is felt upon insertion. When the needle reaches the acupuncture point, one might feel a slight soreness. The sensation felt usually lasts only 1-2 seconds.
+
+165 px  20% or so
+What About Needle Sterilization?Only the finest quality stainless steel, pre-sterilized, individually packaged, disposable needles are used.
+
+
+What about my doctor?Acupuncture may be used in cooperation with other care you are receiving. Continue any prescription medication exactly as prescribed by your physician. If and when it is appropriate, you may make arrangements with your doctor to reduce or stop your medication. If you have a medical emergency, please contact your personal physician or an emergency service facility. And, of course, we wish to be informed of such an occurrence.
+
+
+
+final Image..    271px   Pic acu_300x200
+
+
+
+ if(typeof(Storage) !== "undefined") {
+        if (sessionStorage.clickcount) {
+            sessionStorage.clickcount = Number(sessionStorage.clickcount)+1;
+        } else {
+            sessionStorage.clickcount = 1;
+        }
+
+
+
+
+You'll notice this is simple site where the   fluid design features built into content suffice without any special attention to higher  organization but  for more complicated layout there are two RWD layout systems i'd like to demostrate,  in addition a  responsive tweaking method that i used on this page to tweak these little blue lines...  and lots more to show if you stick around...'
+
+
+
+patent scraps
+Lastly, current CMSs do not allow for the rapid creation and sharing of editor created templates.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

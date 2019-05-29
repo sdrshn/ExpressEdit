@@ -3633,7 +3633,7 @@ function video_post($data){
      if (strpos($this->blog_data4,'<iframe')!==false||strpos($this->blog_data4,'<object')!==false){
           $embed=$blog_data4;
           $this->videotype='iframe';
-          if (!$this->edit||!$this->clone_local_data)
+          if (!$this->edit)
                echo '<div class="videoWrapper">'.$embed.'</div>'; 
           }
      elseif(is_file(Cfg_loc::Root_dir.Cfg::Vid_dir.$blog_data4)){
@@ -3948,7 +3948,7 @@ function nav_menu($data,$dir_menu_id,$text){//blog_data6 available
 eol;
           }
 	elseif(empty($count)&&$this->edit){
-		printer::printx('<p class="fsminfo editbackground  editfont '.$this->column_lev_color.' floatleft left">Add Your First Already Created Page To This Menu Under the Add Remove &amp; Edit Links Option Below</p>');
+		printer::printx('<p class="fsminfo editbackground  editfont '.$this->column_lev_color.' floatleft left">Add Your First Already Created Page To This Menu Under the Add,Edit &amp; Remove Links Option Below</p>');
 		}
 	if(!$this->edit)return;
 	printer::pclear();

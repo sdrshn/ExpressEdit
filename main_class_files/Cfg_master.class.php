@@ -15,6 +15,7 @@ ExpressEdit is an integrated Theme Creation CMS
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.*/
+#Settings here can be overwritten in local Cfg.class.php file to prevent updating..
 class Cfg_master { 
 	#the following php.ini directives pertain to image uploading and manipulation or video uploading and limits set in php.ini file in edit directory and in html files upload.  
      const Time_zone='';//optionally set local time zone overrides date_default_timezone_get(); ie 'America/New_York' or 'UTF' 
@@ -266,9 +267,6 @@ class Cfg_master {
      const Aspect_webm=1.333;
      const Aspect_swf=1.333;*/
      #**Contact++++++++++
-     const Mail_from='ekarasa@ekarasa.com';
-     const Contact_master_email_pic='sudarshanemail.gif';
-     const Contact_master_pic='sudarshan_design.jpg'; 
      #backup configuration for cleaning sql and gzipped backups   settings may be tweaked based on your available server disk space
      const Max_sql_backups=10;//keeps these many backups..
 	const Max_gz_backups=10;
