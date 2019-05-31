@@ -186,9 +186,11 @@ class Cfg_master {
       // these image size settings are defaults or maxwidths .. Pic image sizes generally occupy full space of post available up to any max values set..
      const Max_pic_width=3000;//max pic width for body background images
      const Default_watermark=false;//watermark may be added through uploads interface
-     const Small_gall_pic_plus='180';//defaults
-	const Master_gall_pic_plus='200';//master gall setting  stipulates width_height
-     const Large_gall_pic_plus='700';
+     const Small_gall_pic_plus='180';//default backup   config in your gall post settings
+     const Small_gall_pic_width='180';//default backup  config in your gall post settings
+	const Master_gall_pic_plus='200';//master gall setting  config in your gall post settings
+     const Large_gall_pic_plus='700';//default backup  config in your gall post settings
+     const Large_gall_pic_width='700';//default backup  config in your gall post settings
      const Page_pic_expand_plus='3000'; //default value set in page options..
      ####
      const Valid_pic_mime =   'image/pjpeg,image/jpeg,image/JPG,image/gif,image/GIF,image/X-PNG,image/PNG,image/png,image/x-png,image/svg+xml'; 
