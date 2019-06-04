@@ -4751,14 +4751,14 @@ function rwd_build($type,$data){
                $new_col_width= floor($wid_grid_unit[$bp_arr[0]]/$gu*10000)/100;  
                if ($this->track_col_width!=$new_col_width){ 
                     $q="update $this->master_col_table set col_width='$new_col_width', col_update='".date("dMY-H-i-s")."',col_time='".time()."',token='".mt_rand(1,mt_getrandmax()). "' where col_id=$this->col_id";
-                   // $this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);
+                   $this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);
                     }
                }
           else{
                $new_blog_width=floor($wid_grid_unit[$bp_arr[0]]/$gu*10000)/100;
                if($this->blog_width!=$new_blog_width){
                     $q="update $this->master_post_table set blog_width='$new_blog_width', token='".mt_rand(1,mt_getrandmax()). "',blog_update='".date("dMY-H-i-s")."',blog_time='".time()."' where blog_id=$this->blog_id";//this is how we   keep current_net_width and current_net_width_percent current... with use of rwd...
-                   // $this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);
+                    $this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);
                     }
                }
           } 

@@ -2,7 +2,7 @@
 #ExpressEdit 2.0
 #see top of global edit master class for system overview comment dir..
 /*
-ExpressEdit is an integrated Theme Creation CMS
+ *ExpressEdit is an integrated Theme Creation CMS
 	Copyright (c) 2018  Brian Hayes expressedit.org  
 
     This program is free software: you can redistribute it and/or modify
@@ -2731,7 +2731,7 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
                if($show_more_on){
                     echo '<div id="'.$idl.'" style="'.$floatstyle.' width:'.$setwid.'px" >';//create anchor before show_more statement
                     $this->show_more('Edit '.str_replace('_',' ',strtoupper($this->blog_type)). ' Post Id'.$this->blog_id,'','small info fsmorange posbackground white  click','',500,'',$floatstyle,'','');echo '<!--open show more on-->';
-                    printer::print_wrap('Expand current width '.$this->blog_type);
+                    //printer::print_wrap('Expand current width '.$this->blog_type);
                     } 
                $this->id_array[]=array($this->blog_type,$idl,$this->column_level,$this->blog_type.' id: p'.$this->blog_id,$this->is_clone);// id_array for quick navigation to posts in editmode
                }
@@ -3138,7 +3138,7 @@ eol;
 			print '</div><!-- id#'.$this->blog_id.' '.$this->blog_type.'-->';
                if ($this->edit&&$show_more_on){
                     $show_more_on=false;
-                     printer::close_print_wrap('Expand current width '.$this->blog_type);
+                     //printer::close_print_wrap('Expand current width '.$this->blog_type);
                    $this->show_close('show more on');echo '<!--close show more on '.$this->blog_type.'-->';
                     echo '</div><!--wrap show id-->';
                    

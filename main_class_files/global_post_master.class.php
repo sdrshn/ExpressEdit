@@ -3975,7 +3975,7 @@ eol;
      //$nav_icon_open_bottom=(is_numeric($nav_params[$nav_icon_open_bottom_index])&&$nav_params[$nav_icon_open_bottom_index]>0&&$nav_params[$nav_icon_open_bottom_index]<201)?$nav_params[$nav_icon_open_bottom_index]:'';
      //$final_icon_open_position_vert=(!empty($nav_icon_open_top))?'top:'.$nav_icon_open_right.'px;':((!empty($nav_icon_open_left))?'left:'.$nav_icon_open_feft.'px;':''); 
 	 $this->show_text_style=true; //temp turn on text-align display
-	$this->edit_styles_close($data,'blog_style','.'.$this->dataCss,'background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,text_align,borders,box_shadow,outlines,radius_corner,transform',"Edit Overall Post Styling @ non menu icon widths",'','Edit Overall Post Styling @ non menu icon widths  Use Detailed Link Styling for Link Text Styling',true,true );  
+	$this->edit_styles_close($data,'blog_style','.'.$this->dataCss.':NOT(.iconOpen)','background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,text_align,borders,box_shadow,outlines,radius_corner,transform',"Edit Overall Post Styling @ non menu icon widths",'','Edit Overall Post Styling @ non menu icon widths.  Use Detailed Link Styling for Link Text Styling',true,true );  
 	$this->show_text_style=false; //turn off text-align display
 	 $this->{$nav_name_ref.'_arrayed'}=$this->{$data.'_'.$nav_name_ref.'_arrayed'} =$nav_params;
 	$this->background_img_px=(is_numeric($nav_params[$nav_link_width_index])&&$nav_params[$nav_link_width_index]>30)?$nav_params[$nav_link_width_index]:200; 
@@ -4140,7 +4140,8 @@ eol;
           $this->edit_styles_close($data,'blog_tiny_data9','.'.$this->dataCss.' .nav_gen .ulTop.menuRespond2 li:hover','background,font_family,font_weight,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform','Style LI: Hover Link','','When You Hover Over a Link with the cursor it wil change according to Any Styles set Here' );
           printer::close_print_wrap('Style Hover Links');
           $this->show_close('Style Hover Links for @ Menu icon width');
-          printer::close_print_wrap('responsivmenustyle');  
+          printer::close_print_wrap('responsivmenustyle');
+          printer::print_wrap('menu icon pos tweaks');
           $this->show_more('Tweak left/right Positioning of full menu when icon opened'); 
           printer::print_wrap('horiz verts'); 
           printer::alert('Optionally tweak right or left position value of opened and absolute positioned navigation menus (if optionaly configured under post setings) at widths the icon both appears and is clicked open.  Right value will override left value if both chosen');
@@ -4213,7 +4214,7 @@ eol;
           printer::close_print_wrap('horiz verts');
           $this->show_close('Tweak Opened Nav Icon &amp; Links');
           ################### open icon itself
-          $this->show_more('Independantly Tweak Positioning of Opened nav icon only'); 
+          $this->show_more('Independently Tweak Positioning of Opened nav icon only'); 
           printer::print_wrap('Tweak Opened Nav Icon Only'); 
           printer::alert('Optionally tweak right or left   position value of the open icon independent of the open menu links or closed icon. Right value will override left value if both chosen');
           printer::print_wrap1('horiz adjust');
@@ -4283,9 +4284,25 @@ eol;
           elseif(!empty($final_icon_only_open_position_bottom)) 
                $final_icon_only_open_position_vert="#$this->dataCss.iconOpen{bottom: $final_icon_only_open_position_bottom;}";*/
           else $final_icon_only_open_position_vert=''; 
-          printer::close_print_wrap('Independantly Tweak Positioning of Opened nav icon only');
+          printer::close_print_wrap('Independently Tweak Positioning of Opened nav icon only');
           $this->show_close('Tweak Opened Nav Icon Only');
           printer::pclear(5);
+          $final_nav_icon_horiz_pos=($nav_icon_horiz_pos!=='none')?'#'.$this->dataCss.':not(.iconOpen) .show_icon{'.$nav_icon_horiz_pos.':0;}':'';
+          $this->show_more('Independently Tweak the Position of Closed &amp Visible Menu icon left or right @menu icon widths'); 
+          printer::print_wrap('menuicon pos');
+          $msg='Optionally tweak the Position of Closed Menu icon left or right @menu icon widths within the bounds of the overall menu position.  Note: affects position of closed  <b>X</b> within the current positioning and width of the navigation post itself';
+          printer::print_tip($msg);
+          $msg='Absolute Positioning of Menu itself containing the visible Icon is done through Post settings for this post @ Position settings. Set Absolute position values to the body or Relative values to the parent column: (top bottom) (left right ) values  <b>and co-ordinate @media max-width settings for menu icon width</b>';
+          printer::print_notice($msg);
+          echo'<p> <select class="editcolor editbackground editfont"  name="'.$data.'_'.$nav_name_ref.'['.$nav_icon_horiz_pos_index.']">';       
+          echo '<option  value="'.$this->page_editborder.'" selected="selected">'.$nav_icon_horiz_pos.'</option> 
+		 	<option  value="none">None </option>
+		 	<option  value="left">left position </option>
+		 	<option  value="right">right positon </option>
+	    </select></p>';
+          printer::close_print_wrap('menuicon pos');
+          $this->show_close('Independently Tweak the Position of Closed Menu icon left or right @ menu icon widths');
+          printer::close_print_wrap('menu icon pos tweaks');
           ############# close open icon itself
           (!empty($final_icon_open_position_vert))&&$this->navcss.=$final_icon_open_position_vert;
           (!empty($final_icon_open_position_horiz))&&$this->navcss.=$final_icon_open_position_horiz;
@@ -4303,20 +4320,6 @@ eol;
           $nav_icon_total_menu_width=$this->spacing($data.'_'.$nav_name_ref,$nav_icon_total_menu_width_index,'return width','Optionally specify opened menu width @ icon widths','','','','','');
           $tval=intval($nav_icon_total_menu_width);
           $final_nav_icon_total_menu_width=(!empty($tval)&&is_numeric($tval))?'#'.$this->dataCss.'{width:'.$nav_icon_total_menu_width.';margin:0;padding:0;}':'';
-          
-          $final_nav_icon_horiz_pos=($nav_icon_horiz_pos!=='none')?'#'.$this->dataCss.' .show_icon{'.$nav_icon_horiz_pos.':0;}':'';
-          printer::print_wrap('menuicon pos');
-          $msg='Optionally Position Menu icon left or right.  Note: affects position of close and  opened <b>X</b> within the current positioning and width of the navigation post itself';
-          printer::print_tip($msg);
-          $msg='Absolute Positioning of Menu Icon is done through  Post settings for this post @ Position settings and set absolute (top bottom) (left right ) values  and co-ordinate @media max-width settings for menu icon width';
-          printer::print_notice($msg);
-          echo'<p> <select class="editcolor editbackground editfont"  name="'.$data.'_'.$nav_name_ref.'['.$nav_icon_horiz_pos_index.']">';       
-          echo '<option  value="'.$this->page_editborder.'" selected="selected">'.$nav_icon_horiz_pos.'</option> 
-		 	<option  value="none">None </option>
-		 	<option  value="left">left position </option>
-		 	<option  value="right">right positon </option>
-	    </select></p>';
-          printer::close_print_wrap('menuicon pos');
           echo '</div><!--Menu Icon RWD Width-->';
           printer::pclear(); 
           echo '<div class="fsminfo editbackground  editfont  '.$this->column_lev_color.' floatleft"><!--Icon Width-->'; 
@@ -4545,7 +4548,7 @@ function text_render($data,$pagename='',$style_list='',$columns=20,$style_open=t
      min100 cursor" >'.process_data::clean_break($this->blog_text).'</div>';// show initial non text area non editor text !
 		$blog_text=($this->blog_options[$this->blog_editor_use_index]==='use_editor')?process_data::textarea_validate($this->blog_text):process_data::textarea_validate(process_data::remove_html_break($this->blog_text));
 		echo '  
-		 <textarea style="background:inherit; display: none; width:100%"  id="'.$data.'_blog_text_textarea"   class="scrollit '.$this->dataCss.'" name="'.$data.'_blog_text" rows="'.$rowlength.'" cols="'.$cols.'" onkeyup="gen_Proc.autoGrowFieldScroll(this);">' .$blog_text.'</textarea>';
+		 <textarea style="background:inherit;text-shadow:inherit; display: none; width:100%"  id="'.$data.'_blog_text_textarea"   class="scrollit '.$this->dataCss.'" name="'.$data.'_blog_text" rows="'.$rowlength.'" cols="'.$cols.'" onkeyup="gen_Proc.autoGrowFieldScroll(this);">' .$blog_text.'</textarea>';
 		}//if edit
 		#ok here if marked as global the results of these styles choices will directly style this blog type but also the parent column.text..  as shown...
 	$type=$this->blog_type;

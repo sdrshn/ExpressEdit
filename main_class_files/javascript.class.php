@@ -1,6 +1,6 @@
-<?php 
+<?php
 class javascript {
-protected $javascript='';
+     protected $javascript='';
 
 function __construct($array_function, $pagename, $file_extension='',$append_script=''){ 
 	$array_function=(!is_array($array_function))?explode(',',$array_function):$array_function;    
@@ -610,7 +610,7 @@ var gen_Proc = {
 		var JQ=\$(window).width();  
 		p2.innerHTML=p.innerHTML = 'Wid: <span class="red whitebackground">'+JQ +'</span>';
 		 },
-     show	:  function  (id,show,msgVar,width,mainconfig){  
+     show	:  function  (id,show,msgVar,width,mainconfig){//show  
 		if(document.getElementById(id+ "t").style.display=="block"){
                if (msgVar === 'noclose')return;
 			gen_Proc.fullWidthOff(id,msgVar,mainconfig);
