@@ -482,10 +482,24 @@ static function close_single_wrap($msg){
 	if(Sys::Printoff||Sys::Quietmode)return;
      printer::print_spacer();
 	$msg= '</div><!--close_single_wrap -->';
+     self::pclear();
 	echo $msg; 
-	self::pclear();
+	}
+static function close_single_style_wrap($msg){
+	if(Sys::Printoff||Sys::Quietmode)return;
+     printer::print_spacer();
+	$msg= '</div><!--close_single_wrap -->'; 
+	echo $msg; 
 	}
      
+static function single_style_wrap($msg,$style){
+	if(Sys::Printoff||Sys::Quietmode)return;
+	echo "\n";  
+	$msg= '<div class="floatleft clear" style="'.$style.'"><!--single custom wrap -->';
+     echo $msg;  
+	}
+      
+
 static function print_spacer(){
      if (!Sys::Edit)return;
      echo '<p style="height:0px;overflow-y:hidden;visibility:hidden;">';
@@ -502,7 +516,19 @@ static function print_wrap($msg,$color='info',$main=false,$class='editbackground
 	<div class="'.$class2.'"><!--print_wrap second print div wrap-->';
 	echo $msg; 
 	}
-
+static function print_back1($msg,$color='info',$main=false,$class='editbackground editcolor editfont'){
+	if(Sys::Printoff||Sys::Quietmode)return;
+	$msg= '<div style="background:inherit;color:inherit;"><!--print_wrap-->';
+	echo $msg; 
+	}
+ 
+static function close_print_back1($msg=''){
+	if(Sys::Printoff||Sys::Quietmode)return;
+     printer::print_spacer();
+	$msg= '</div><!--close_print_back1-->';
+	echo $msg; 
+	printer::pclear();
+	}
 static function print_redwrap($msg,$color=''){
 	if(Sys::Printoff||Sys::Quietmode)return;
 	echo "\n"; 
@@ -516,7 +542,7 @@ static function print_wrap1($msg,$color='info'){
 	if(Sys::Printoff||Sys::Quietmode)return;
 	echo "\n";  
 	$class='fsm1'.$color.' floatleft clear editbackground editcolor editfont';
-	$msg= '<div class="'.$class.'"><!-print_wrap1-->';
+	$msg= '<div class="'.$class.'"><!--print_wrap1-->';
 	echo $msg; 
 	}
  

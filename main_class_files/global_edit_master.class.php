@@ -339,6 +339,7 @@ eol;
 	$this->generate_cache();
 	$this->add_new_page();
 	$this->configure();
+     $this->body_defaults();//determine initial colors, fonts
      $this->page_import_export_options(); 
 	$this->display_nav(); 
 	$this->view_page();
@@ -364,6 +365,17 @@ eol;
 	$this->render_body_main();
 	printer::pclear();
 	}//note gallery master has its own edit_body
+
+function body_defaults(){
+     $styles=explode(',',$this->page_style);
+     for ($i=0; $i<count(explode(',',Cfg::Style_functions));$i++){
+          (!array_key_exists($i,$styles))&&$styles[$i]='';
+          }
+     $background=$styles[$this->background_index];
+     $colors=$styles[$this->font_color_index];
+     $this->current_background_color=(preg_match(Cfg::Preg_color,explode('@@',$background)[0]))?explode('@@',$background)[0]:'fffff';
+	$this->current_color=(preg_match(Cfg::Preg_color,$colors))?$colors:'000000'; 
+     }
      
 function advanced_button(){
      ##################### advance off button
@@ -381,16 +393,16 @@ function debug_activate(){
 	$this->show_more('Debug Tools','',$this->column_lev_color.' smallest editbackground editfont button'.$this->column_lev_color,'','','','','asis');
 	printer::print_wrap('configure wrap',true); 
      printer::alert('<a class="info" title="Turn off all active debug queries" href="'.Sys::Self.'?alloff">All Debug Queries off</a>');
-     printer::alert('<a class="info" title="Submitted Page refreshes to update css. Will prevent this to show submitted $_POST array and mysql queries and any error msg" href="'.Sys::Self.'?norefresh">Prevent Submitted Page Refresh</a><a href="'.Sys::Self.'?norefreshoff">&nbsp;&nbsp;<span class="underline cursor">Off<span></a>');
-     printer::alert('<a class="info" title="Show Request" href="'.Sys::Self.'?request&amp;#requested">Show Requests </a><a href="'.Sys::Self.'?requestoff">&nbsp;&nbsp;<span class="underline cursor">Off<span></a>');
-     printer::alert('<a class="info" title="Show called methods" href="'.Sys::Self.'?methods&amp;#bottom">Show Methods Called </a><a href="'.Sys::Self.'?methodsoff">&nbsp;&nbsp;<span class="underline cursor">Off<span></a>');
-     printer::alert('<a class="info" title="Show mysqli calls" href="'.Sys::Self.'?mysql">Show Mysql Calls </a><a href="'.Sys::Self.'?mysqlsoff">&nbsp;&nbsp;<span class="underline cursor">Off<span></a>');
-     printer::alert('<a class="info" title="Show constants" href="'.Sys::Self.'?constants&amp;#bottom">Show constants</a><a href="'.Sys::Self.'?contantsoff">&nbsp;&nbsp;<span class="underline cursor">Off<span></a>');
-     printer::alert('<a class="info" title="Show Session" href="'.Sys::Self.'?session&amp;#bottom">Show session info </a><a href="'.Sys::Self.'?sessionoff">&nbsp;&nbsp;<span class="underline cursor">Off<span></a>');
-     printer::alert('<a class="info" title="Show included files" href="'.Sys::Self.'?includes&amp;#bottom">Show included files </a><a href="'.Sys::Self.'?includesoff">&nbsp;&nbsp;<span class="underline cursor">Off<span></a>');
-     printer::alert('<a class="info" title="Show delta time take for methods to run" href="'.Sys::Self.'?deltatime&amp;#bottom">Clock Method Rendering on Server </a><a href="'.Sys::Self.'?deltatimeoff">&nbsp;&nbsp;<span class="underline cursor">Off<span></a>'); 
+     printer::alert('<a class="info" title="Submitted Page refreshes to update css. Will prevent this to show submitted $_POST array and mysql queries and any error msg" href="'.Sys::Self.'?norefresh">Prevent Submitted Page Refresh</a><a href="'.Sys::Self.'?norefreshoff">&nbsp;&nbsp;<span class="underline cursor">Off</span></a>');
+     printer::alert('<a class="info" title="Show Request" href="'.Sys::Self.'?request&amp;#requested">Show Requests </a><a href="'.Sys::Self.'?requestoff">&nbsp;&nbsp;<span class="underline cursor">Off</span></a>');
+     printer::alert('<a class="info" title="Show called methods" href="'.Sys::Self.'?methods&amp;#bottom">Show Methods Called </a><a href="'.Sys::Self.'?methodsoff">&nbsp;&nbsp;<span class="underline cursor">Off</span></a>');
+     printer::alert('<a class="info" title="Show mysqli calls" href="'.Sys::Self.'?mysql">Show Mysql Calls </a><a href="'.Sys::Self.'?mysqlsoff">&nbsp;&nbsp;<span class="underline cursor">Off</span></a>');
+     printer::alert('<a class="info" title="Show constants" href="'.Sys::Self.'?constants&amp;#bottom">Show constants</a><a href="'.Sys::Self.'?contantsoff">&nbsp;&nbsp;<span class="underline cursor">Off</span></a>');
+     printer::alert('<a class="info" title="Show Session" href="'.Sys::Self.'?session&amp;#bottom">Show session info </a><a href="'.Sys::Self.'?sessionoff">&nbsp;&nbsp;<span class="underline cursor">Off</span></a>');
+     printer::alert('<a class="info" title="Show included files" href="'.Sys::Self.'?includes&amp;#bottom">Show included files </a><a href="'.Sys::Self.'?includesoff">&nbsp;&nbsp;<span class="underline cursor">Off</span></a>');
+     printer::alert('<a class="info" title="Show delta time take for methods to run" href="'.Sys::Self.'?deltatime&amp;#bottom">Clock Method Rendering on Server </a><a href="'.Sys::Self.'?deltatimeoff">&nbsp;&nbsp;<span class="underline cursor">Off</span></a>'); 
      printer::alert('<a class="info" title="display server variables" href="'.Sys::Self.'?server&amp;#bottom">Display Server Vals </a>
-                    <a href="'.Sys::Self.'?serveroff">&nbsp;&nbsp;<span class="underline cursor">Off<span></a>'); 
+                    <a href="'.Sys::Self.'?serveroff">&nbsp;&nbsp;<span class="underline cursor">Off</span></a>'); 
 	printer::close_print_wrap('configure wrap',true);
      $this->show_close('Configure this Page');
 	echo '</div><!-- float buttons-->';

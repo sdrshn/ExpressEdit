@@ -905,9 +905,9 @@ function col_data($prime=false){
      for ($i=0; $i<count(explode(',',Cfg::Style_functions));$i++){
           (!array_key_exists($i,$styles))&&$styles[$i]='';
           }
-	$this->current_background_color=$this->column_background_color_arr[$this->column_level]=(preg_match(Cfg::Preg_color,explode('@@',$styles[$this->background_index])[0]))?explode('@@',$styles[$this->background_index])[0]:((array_key_exists($this->column_level-1,$this->column_background_color_arr))?$this->column_background_color_arr[$this->column_level-1]:'ffffff');
-	$this->current_color=$this->column_color_arr[$this->column_level]=(preg_match(Cfg::Preg_color,$styles[$this->font_color_index]))?$styles[$this->font_color_index]:((array_key_exists($this->column_level-1,$this->column_color_arr))?$this->column_color_arr[$this->column_level-1]:'000000'); 
-	$this->current_font_px=$this->column_font_px_arr[$this->column_level]=(!empty($styles[$this->font_size_index])&&$styles[$this->font_size_index]>=.3&&$styles[$this->font_size_index]<=4.5)?$styles[$this->font_size_index]*16:((array_key_exists($this->column_level-1,$this->column_font_px_arr))?$this->column_font_px_arr[$this->column_level-1]:16);
+	$this->current_background_color=$this->column_background_color_arr[$this->column_level]=(preg_match(Cfg::Preg_color,explode('@@',$styles[$this->background_index])[0]))?explode('@@',$styles[$this->background_index])[0]:$this->current_background_color;//begins with page body setting if any 
+	$this->current_color=$this->column_color_arr[$this->column_level]=(preg_match(Cfg::Preg_color,$styles[$this->font_color_index]))?$styles[$this->font_color_index]:$this->current_color; //begins with page body setting if any
+	$this->current_font_px=$this->column_font_px_arr[$this->column_level]=(!empty($styles[$this->font_size_index])&&$styles[$this->font_size_index]>=.3&&$styles[$this->font_size_index]<=4.5)?$styles[$this->font_size_index]*16:((array_key_exists($this->column_level-1,$this->column_font_px_arr))?$this->column_font_px_arr[$this->column_level-1]:16);//font px may need updating..
 	$this->column_total_width_percent[$this->column_level]=($this->column_level>0)?($this->column_total_width_percent[$this->column_level-1]*$this->col_width/100):100; 
 	$this->column_total_width[$this->column_level]=$this->current_total_width;//set in total_float  max float only
 	$this->column_net_width[$this->column_level]=$this->current_net_width;
@@ -1153,8 +1153,10 @@ function column_options(){
      $this->print_redwrap('wrap width float rwd');
      $this->submit_button();
      printer::print_wrap1('width status',$this->column_lev_color);   
-     if ($this->rwd_post) 
+     if ($this->rwd_post){
+          printer::print_caution('RWD GRID System is On. Turn Off in parent Column to enable other width choices');
           printer::print_info('RWD Grid <b>is enabled</b> in the parent Column and overrides all other width modes ie main width, alt width units, flex-box used to position this column within the parent column');
+          }
      else  printer::print_info('RWD Grid <b>Not enabled</b> in the parent Column');
      if (!$this->rwd_post){
           if ($this->flex_box_item)
@@ -1447,8 +1449,10 @@ function blog_options($data,$tablename){if(Sys::Custom)return;
      $this->submit_button();
      printer::pclear(5);
      printer::print_wrap1('width status',$this->column_lev_color);   
-     if ($this->rwd_post) 
+     if ($this->rwd_post){
+          printer::print_caution('RWD GRID System is On. Turn Off in parent Column to enable other width choices');
           printer::print_info('RWD Grid <b>is enabled</b> in the parent Column. Overrides other width modes');
+          }
      else  printer::print_info('RWD Grid <b>Not enabled</b> in the parent Column');
      if (!$this->rwd_post){ 
           if ($this->flex_box_item)
@@ -2336,8 +2340,8 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 			for ($i=0; $i<count(explode(',',Cfg::Style_functions));$i++){
 				(!array_key_exists($i,$styles))&&$styles[$i]='';
 				}
-			$this->current_background_color= (preg_match(Cfg::Preg_color,explode('@@',$styles[$this->background_index])[0]))?explode('@@',$styles[$this->background_index])[0]:((array_key_exists($this->column_level,$this->column_background_color_arr))?$this->column_background_color_arr[$this->column_level]:'ffffff');
-			$this->current_color= (preg_match(Cfg::Preg_color,$styles[$this->font_color_index]))?$styles[$this->font_color_index]:((array_key_exists($this->column_level,$this->column_color_arr))?$this->column_color_arr[$this->column_level]:'000000');
+			$this->current_background_color= (preg_match(Cfg::Preg_color,explode('@@',$styles[$this->background_index])[0]))?explode('@@',$styles[$this->background_index])[0]:$this->current_background_color;
+			$this->current_color= (preg_match(Cfg::Preg_color,$styles[$this->font_color_index]))?$styles[$this->font_color_index]:$this->current_color;
 			$this->current_font_px=(!empty($styles[$this->font_size_index])&&$styles[$this->font_size_index]>=.5&&$styles[$this->font_size_index]<=4.5)?$styles[$this->font_size_index]*16:((array_key_exists($this->column_level,$this->column_font_px_arr))?$this->column_font_px_arr[$this->column_level]:16);
 		#subbed row id
 		     #clone cols posts will not make new subbed row data
@@ -2610,6 +2614,7 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 			#mainfloat
 		if (!$this->flex_box_item){
                if (empty($this->blog_float)||$this->blog_float==$this->position_arr[0])://center row 
+                    printer::pclear();
                     $floatstyle='margin-left:auto;margin-right:auto;';//default..
                      $floating=false;
                     $this->display_edit_data='block';
@@ -2650,6 +2655,7 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
                          $floating=true;//clear float checks same parameters so will use value for floating
                         }
                     else {
+                         printer::pclear();
                          $this->display_edit_data='block';
                          $floatstyle='margin-left:auto;margin-right:auto;';
                          $floating=false;
@@ -2730,8 +2736,8 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
                $idl="p{$this->orig_val['blog_id']}";
                if($show_more_on){
                     echo '<div id="'.$idl.'" style="'.$floatstyle.' width:'.$setwid.'px" >';//create anchor before show_more statement
-                    $this->show_more('Edit '.str_replace('_',' ',strtoupper($this->blog_type)). ' Post Id'.$this->blog_id,'','small info fsmorange posbackground white  click','',500,'',$floatstyle,'','');echo '<!--open show more on-->';
-                    //printer::print_wrap('Expand current width '.$this->blog_type);
+                    $this->show_more('Edit '.str_replace('_',' ',strtoupper($this->blog_type)). ' Post Id'.$this->blog_id,'','small info fsm2orange posbackground white  click','',500,'',$floatstyle,'','');echo '<!--open show more on-->';
+                    printer::single_style_wrap('Expand current width '.$this->blog_type,'border: solid 3px orange;color:#'.$this->current_color.';background-color:#'.$this->current_background_color.';');
                     } 
                $this->id_array[]=array($this->blog_type,$idl,$this->column_level,$this->blog_type.' id: p'.$this->blog_id,$this->is_clone);// id_array for quick navigation to posts in editmode
                }
@@ -3121,7 +3127,7 @@ eol;
 			print '</div><!--End Nested Column id:'. $this->column_id_array[$this->column_level+1].' -->';
 			 if ($this->edit&&$show_more_on){
                     $show_more_on=false; 
-                    printer::close_print_wrap('Expand current width');
+                    //printer::close_single_style_wrap('Expand current width');
                     $this->show_close('show more on');echo '<!--close show more column on-->';
                     echo '</div><!--wrap show id-->';
                    }
@@ -3138,7 +3144,7 @@ eol;
 			print '</div><!-- id#'.$this->blog_id.' '.$this->blog_type.'-->';
                if ($this->edit&&$show_more_on){
                     $show_more_on=false;
-                     //printer::close_print_wrap('Expand current width '.$this->blog_type);
+                    printer::close_single_style_wrap('Expand current width '.$this->blog_type);
                    $this->show_close('show more on');echo '<!--close show more on '.$this->blog_type.'-->';
                     echo '</div><!--wrap show id-->';
                    
@@ -5568,6 +5574,7 @@ foreach ($carr as $color){
 	}
 	
    $this->editgencss.='
+     h7 {color:#'.$this->info.';} 
 	.static{ position:static !important;}
 	.staticdim{ opacity:.98;}
 	.fullopacity{opacity:1.0}

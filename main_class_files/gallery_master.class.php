@@ -32,7 +32,7 @@ class gallery_master  {
 	protected $highslide_show_control='true';
 	public $instruct=array();
 	public $preload='';
-	
+	static $show_inc=0;
 	
 function textarea($dataname,$name,$width,$fontsize){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
      $cols=process_data::width_to_col($width,$fontsize);
@@ -48,17 +48,18 @@ function submit_button($value=''){ if(Sys::Custom)return;if  (Sys::Pass_class||S
 	  
 function show_more($msg_open,$msg_close='close',$class='',$title='',$width='',$showwidth='',$styledirect='float:left;',$mainconfig){ if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
 	$noback=($msg_close==='noback')?'noback':''; //noback not used currently?
-	static  $show_more=0; $show_more++; 
-	printer::printx('<input type="text" style="height:2px;   color:rgba(255,255,255,0); background:rgba(255,255,255,0);border: 1px solid rgba(255,255,255,0); width:2px;" size="1" value="" id="showGall'.$show_more.'f">'); 
+	static  $show_more=0; $show_more++;  
+     self::$show_inc++;
+	printer::printx('<input type="text" style="height:2px;   color:rgba(255,255,255,0); background:rgba(255,255,255,0);border: 1px solid rgba(255,255,255,0); width:2px;" size="1" value="" id="showGall'.self::$show_inc.'f">'); 
 	(empty($class))&&$class=$this->column_lev_color.' floatleft editbackground editfont button'.$this->column_lev_color;
 	$this->show_msg=$msg_open;
 	$msg_open_mod=str_replace(array('<','>'),'',$msg_open);
 	$msg_close_mod=str_replace(array('<','>'),'',$msg_close);
 	$lesswidth=($this->current_net_width<80)?5:20; 
 	$stylewidth=(!empty($showwidth))?'style="max-width:'.$showwidth.$styledirect.'"':((isset($this->current_net_width)&&!empty($this->current_net_width))?'style="max-width:'.($this->current_net_width-$lesswidth).'px;'.$styledirect.'"':(!empty($styledirect)?'style="'.$styledirect.';"':''));
-	echo '<p class="underline normal shadowoff cursor '.$class.' " title="'.$title.'" '.$stylewidth.'  onclick="gen_Proc.show(\'showGall'.$show_more.'\',\''.$msg_open_mod.'\',\''.$msg_close_mod.'\');" id="showGall'.$show_more.'">'.$msg_open.'</p>';
+	echo '<p class="underline normal shadowoff cursor '.$class.' " title="'.$title.'" '.$stylewidth.'  onclick="gen_Proc.show(\'showGall'.self::$show_inc.'\',\''.$msg_open_mod.'\',\''.$msg_close_mod.'\');" id="showGall'.self::$show_inc.'">'.$msg_open.'</p>';
      printer::pclear();
-     echo '<div class="inline"   id="showGall'.$show_more.'t" style="display: none; '.$styledirect.'"><!--'.$msg_open.' Gallery Master-->';
+     echo '<div class="inline"   id="showGall'.self::$show_inc.'t" style="display: none; '.$styledirect.'"><!--'.$msg_open.' Gallery Master-->';
      }	
 	
 function pre_render_data(){ if (Sys::Debug) Sys::Debug(__LINE__,__FILE__,__METHOD__);   if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
@@ -496,9 +497,9 @@ function gallery_display(){
 	($this->edit)&&printer::print_wrap('edit view preview','whitebackground Os3salmon fsminfo'); 
 	$returnto=(isset($_GET['gallreturnurl'])&&($this->gall_display==='no_display'||$this->show_under_preview))?str_replace('@@@','#',$_GET['gallreturnurl']):(($this->new_page_effect&&($this->gall_display==='no_display'||$this->show_under_preview))?'index.php':Sys::Self);
 	if (!$this->master_gallery&&($this->gall_display==='no_display'||$this->gall_display==='slippry')){  
-     if (is_file(Cfg_loc::Root_dir.Cfg::Include_dir.'expandgallery_loc.class.php'))
-          $expand=expandgallery_loc::instance(); 
-     else $expand=expandgallery::instance(); 
+          if (is_file(Cfg_loc::Root_dir.Cfg::Include_dir.'expandgallery_loc.class.php'))
+               $expand=expandgallery_loc::instance(); 
+          else $expand=expandgallery::instance(); 
 		$expand->maxexpand=$this->maxexpand; 
 		$expand->fixheight=$this->fixheight; 
 		$expand->maxwidth_adjust_expanded=$this->maxwidth_adjust_expanded;
@@ -605,7 +606,7 @@ function gallery_display(){
 			elseif ($this->gall_display=='rows_caption'):
 				 $this->rows_caption(); 
 			elseif ($this->gall_display=='expandgallery'):   
-				 $this->expandgallery();
+				 $this->expandgallery();echo 'whoa baby';
 			elseif ($this->gall_display=='gallerycontent'):
 				 $this->gallerycontent();
 			elseif ($this->gall_display=='display_single_row'): 
