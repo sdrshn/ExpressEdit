@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0
+#ExpressEdit 2.0.1
  class upload{
      
 static function upload_file($val_type,$val_ext,$instructions,$upload_dir='../uploads'){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);

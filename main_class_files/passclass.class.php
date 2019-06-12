@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0
+#ExpressEdit 2.0.1
 class passclass extends global_master { 
 
 function  __construct($pagename,$edit){

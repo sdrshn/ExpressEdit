@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0
+#ExpressEdit 2.0.1
 #see top of global edit master class for system overview comment dir..
 /*
  *ExpressEdit is an integrated Theme Creation CMS

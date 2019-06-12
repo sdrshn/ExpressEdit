@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0
+#ExpressEdit 2.0.1
 #see top of global edit master class for system overview comment dir..
 /*
 ExpressEdit is an integrated Theme Creation CMS
@@ -4062,7 +4062,7 @@ eol;
      printer::pclear(5);
      $this->edit_styles_close($data,'blog_tiny_data5','.'.$this->dataCss.' .nav_gen li.active a','background,font_family,font_size,font_weight,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform','Style the Active Link','','An Active Link is the Particluar Link to the Current Page and its optionaly styled here');   
      printer::pclear(5);
-     $this->edit_styles_close($data,'blog_data7','.'.$this->dataCss.' .nav_gen ul:hover ul,.'.$this->dataCss.' .nav_gen ul ul','background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,borders,box_shadow,outlines,radius_corner,transform','Style the Sub Menu Hover Panel','','If you have optionally made sub menus that can be styled the dropdown Panel which contains the dropdown menu links');   
+     $this->edit_styles_close($data,'blog_data7','.'.$this->dataCss.':NOT(.iconOpen) .nav_gen ul:hover ul,.'.$this->dataCss.':NOT(.iconOpen) .nav_gen ul ul','background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,borders,box_shadow,outlines,radius_corner,transform','Style the Sub Menu Hover Panel @ <h7> non menu icon</h7> widths','','If you have optionally made sub menus that can be styled the dropdown Panel which contains the dropdown menu links');   
      printer::pclear(10);
      
 		}//clone local style
@@ -4132,7 +4132,7 @@ eol;
           $this->show_close('Style individual Sub Links @ icon width');
           $this->edit_styles_close($data,'blog_data8','.'.$this->dataCss.' .ulTop.menuRespond2','background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,text_align,borders,box_shadow,outlines,radius_corner,transform',"Style opened Nav Link Background Area including Borders/etc. when Responsive Menu Icon is clicked",'','',true,true );
           $style_list='background,font_family,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform';
-          $this->show_more('Style Hover Links for @ Menu icon width');
+          $this->show_more('Style Hover Links for @ <h7>Menu icon</h7> width');
           printer::print_wrap('Style  Hover Links');
           printer::print_tip('Here you can style both the LI A and the parent LI element which affects individual links.');
           printer::print_info('Recomended to use LI A then for special needs use LI');
@@ -4140,6 +4140,7 @@ eol;
           $this->edit_styles_close($data,'blog_tiny_data9','.'.$this->dataCss.' .nav_gen .ulTop.menuRespond2 li:hover','background,font_family,font_weight,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform','Style LI: Hover Link','','When You Hover Over a Link with the cursor it wil change according to Any Styles set Here' );
           printer::close_print_wrap('Style Hover Links');
           $this->show_close('Style Hover Links for @ Menu icon width');
+     $this->edit_styles_close($data,'blog_data12','.'.$this->dataCss.' .nav_gen .ulTop.menuRespond2:hover ul,.'.$this->dataCss.' .nav_gen .ulTop.menuRespond2 ul','background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,borders,box_shadow,outlines,radius_corner,transform','Style the Sub Menu Hover Panel @ <h7>menu icon</h7> widths','','If you have optionally made sub menus that can be styled the dropdown Panel which contains the dropdown menu links'); 
           printer::close_print_wrap('responsivmenustyle');
           printer::print_wrap('menu icon pos tweaks');
           $this->show_more('Tweak left/right Positioning of full menu when icon opened'); 
@@ -4184,7 +4185,7 @@ eol;
           
           printer::print_wrap1('vert adjust');
           $final_icon_open_position_top=$this->spacing($data.'_'.$nav_name_ref,$nav_icon_open_top_index,'return','Choose top positioning value','Use top Vert Position of absolute positioned opened sub menu','','','','','','','Check none or top:0 or enter top value as needed',array('zero'=>'top:0;','none'=>'none'));
-          $crp=(!empty($final_icon_open_position_top))?final_icon_open_position_top:'none';
+          $crp=(!empty($final_icon_open_position_top))?$final_icon_open_position_top:'none';
           printer::alert('Current position top: '.$crp);     
           //$final_icon_open_position_bottom=$this->spacing($data.'_'.$nav_name_ref,$nav_icon_open_bottom_index,'return','Choose bottom positioning value','Use bottom Vert Position of absolute positioned opened sub menu','','','','');   
           //printer::alert('<input type="checkbox" name="'.$data.'_'.$nav_name_ref.'['.$nav_icon_open_bottom_index.']" value="'.$value2.'" >'.$msg2);

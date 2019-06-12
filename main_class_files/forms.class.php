@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0
+#ExpressEdit 2.0.1
 class forms {
 
 static function form_process($array,$default_arr=''){ //default_arr tells which values to keep at default value. Currently works on text, textarea fields...

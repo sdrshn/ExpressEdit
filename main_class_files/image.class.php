@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0
+#ExpressEdit 2.0.1
 class image {
     private $pagetest=false;
 ##Please send adittiional  info  on origins of this script if known
