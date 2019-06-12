@@ -7,7 +7,7 @@
      See installation.txt  for the installation proceedure 
      See expressedit.org for video overviews of the system..
      
-After a year of developing further without updates ExpressEdit 2.0 is now up with full interface animation options, flexbox, an new Alternative Grid System, new website and videos and much more.  
+ExpressEdit 2.0.1 has full video instructions for developers, educators, students, and users. ExpressEdit excentuaties a basic understanding of html and css so is ideal for education purposes. 
 
 System Theme Creation/CMS features full cloning capability for post & nested columns of posts
 Full Advanced & Custom Styling features import/export options for all styling and config settings between posts/columns/pages
