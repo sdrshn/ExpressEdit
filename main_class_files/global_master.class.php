@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.1
+#ExpressEdit 2.0.2
 #see top of global edit master class for system overview comment dir..
 /*
  *ExpressEdit is an integrated Theme Creation CMS
@@ -18,6 +18,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.*/
 class global_master extends global_edit_master{
+     protected $pelement='';//sets a default used to carry current css selector 
      protected $flexfail=true;// if true and edimode init flex is off  see #flexfail affects editmode flex on or off
      protected $express=array();//update messages express after body call.
 	protected static $colinc=0;
@@ -2453,7 +2454,6 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
                if (!Sys::Pass_class&&is_file(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'post_subbed_row_data_'.$subbed_row_id)){ 
 				$collect_arr=file_get_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'post_subbed_row_data_'.$subbed_row_id);//from appended data
 				$collect=unserialize($collect_arr);
-                    
 				$post_fields=Cfg::Post_fields;
 				$post_field_arr=explode(',',$post_fields);
 				$value=''; 
@@ -2941,7 +2941,6 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 		$alerted=($this->is_clone)?'this is clone': ' this is not clone';
 		// if ($this->blog_type!=='nested_column')echo printer::alert_neg($alerted);
 		#functs
-		
           $this->blog_typed=str_replace('_',' ',$this->blog_type);
 		 if($this->blog_options[$this->blog_date_on_index]==='date_on'){
 			list($date,$v,$n)=$this->format_date($this->blog_date);

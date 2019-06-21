@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.1
+#ExpressEdit 2.0.2
 //source  unknown
 
 class encrypt { 

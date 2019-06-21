@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.1
+#ExpressEdit 2.0.2
 #see top of global edit master class for system overview comment dir..
 /*
 ExpressEdit is an integrated Theme Creation CMS
@@ -3910,7 +3910,7 @@ function nav_menu($data,$dir_menu_id,$text){//blog_data6 available
 	#navopts #menuopts #menuparamas
      $nav_name_ref='blog_data5';  
 	$nav_params=explode(',',$this->$nav_name_ref);
-	$nav_opts='nav_drop_shift,nav_link_width,nav_sub_link_width,nav_link_height,nav_icon_media_width,nav_icon_color,nav_icon_width,nav_icon_position,,nav_icon_vertical_response,nav_link_width_management,nav_repeat_submenu,nav_force_caps,nav_animate,nav_icon_open_left,nav_icon_open_right,nav_icon_open_top,nav_icon_open_bottom,nav_icon_horiz_pos,nav_icon_total_menu_width,nav_icon_only_open_right,nav_icon_only_open_left,nav_icon_only_open_top';
+	$nav_opts='nav_drop_shift,nav_link_width,nav_sub_link_width,nav_link_height,nav_icon_media_width,nav_icon_color,nav_icon_width,nav_icon_position,,nav_icon_vertical_response,nav_link_width_management,nav_repeat_submenu,nav_force_caps,nav_animate,nav_open_icon_left,nav_open_icon_right,nav_open_icon_top,nav_open_icon_bottom,nav_icon_horiz_pos,nav_open_icon_total_menu_width,nav_open_icon_only_right,nav_open_icon_only_left,nav_open_icon_only_top,nav_icon_total_menu_width';
 	$nav_opts=explode(',',$nav_opts);
 		
 	for ($x=0;$x<=count($nav_opts);$x++){ 
@@ -3968,14 +3968,9 @@ eol;
           }
      $icon_vertical_choice=($nav_params[$nav_icon_vertical_response_index]==='as_is')?'as_is':'vertical';
 	$icon_position_choice=(empty($nav_params[$nav_icon_position_index])||!is_numeric($nav_params[$nav_icon_position_index])||$nav_params[$nav_icon_position_index]>100)?0:$nav_params[$nav_icon_position_index];
-     $nav_icon_open_left=(is_numeric($nav_params[$nav_icon_open_left_index])&&$nav_params[$nav_icon_open_left_index]>0&&$nav_params[$nav_icon_open_left_index]<201)?$nav_params[$nav_icon_open_left_index]:'';
-     $nav_icon_open_right=(is_numeric($nav_params[$nav_icon_open_right_index])&&$nav_params[$nav_icon_open_right_index]>0&&$nav_params[$nav_icon_open_right_index]<201)?$nav_params[$nav_icon_open_right_index]:'';
-     $final_icon_open_position_horiz=(!empty($nav_icon_open_right))?'right:'.$nav_icon_open_right.'px;':((!empty($nav_icon_open_left))?'left:'.$nav_icon_open_left.'px;':''); 
-	//$nav_icon_open_top=(is_numeric($nav_params[$nav_icon_open_top_index])&&$nav_params[$nav_icon_open_top_index]>0&&$nav_params[$nav_icon_open_top_index]<201)?$nav_params[$nav_icon_open_top_index]:'';
-     //$nav_icon_open_bottom=(is_numeric($nav_params[$nav_icon_open_bottom_index])&&$nav_params[$nav_icon_open_bottom_index]>0&&$nav_params[$nav_icon_open_bottom_index]<201)?$nav_params[$nav_icon_open_bottom_index]:'';
-     //$final_icon_open_position_vert=(!empty($nav_icon_open_top))?'top:'.$nav_icon_open_right.'px;':((!empty($nav_icon_open_left))?'left:'.$nav_icon_open_feft.'px;':''); 
+     
 	 $this->show_text_style=true; //temp turn on text-align display
-	$this->edit_styles_close($data,'blog_style','.'.$this->dataCss.':NOT(.iconOpen)','background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,text_align,borders,box_shadow,outlines,radius_corner,transform','Edit Overall Post Styling @ <h7>non menu icon</h7> widths','','Edit Overall Post Styling @ <h7>non menu icon</h7> widths.  Use Detailed Link Styling for Link Text Styling',true,true );  
+	$this->edit_styles_close($data,'blog_style','.'.$this->dataCss,'background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,text_align,borders,box_shadow,outlines,radius_corner,transform','Edit Overall Post Styling','','Edit Overall Post Styling generally for @ <h7>non menu icon</h7> widths.  Use Detailed Link Styling for Link Text Styling',true,true );  
 	$this->show_text_style=false; //turn off text-align display
 	 $this->{$nav_name_ref.'_arrayed'}=$this->{$data.'_'.$nav_name_ref.'_arrayed'} =$nav_params;
 	$this->background_img_px=(is_numeric($nav_params[$nav_link_width_index])&&$nav_params[$nav_link_width_index]>30)?$nav_params[$nav_link_width_index]:200; 
@@ -4111,8 +4106,122 @@ eol;
           //echo '<div class="fs1info editbackground  editfont"><!--RWD Menu-->';
           printer::print_wrap('rwd menu icon');
           printer::print_wrap('responsivmenustyle');
-          printer::print_tip('Edit Overall Menu Styling for when responsive menu icons are clicked<br><span class="smaller">Suggestions: Use overall post options for position above to space the menu icon absolute to left or right choosing a max-width for position at which you wish menu icon to appear. Synchronize by choosing the same max-width value for the appearance of the menu icon under these option. <br>--When the menu-icon is opened use margin-top or padding-top to place above the menu area or within the menu area respectively.</span>');
-          printer::print_tip('Check out options to Reposition the entire open menu down below');
+          $this->show_more('Absolute or Relative Positioning of menu icon');
+          printer::print_wrap('Rel and Abs Pos');
+          printer::print_tip('Follow Absolute Positioning of Menu icon Procedure to Place the closed Menu icon @menu icon widths wherever you want vertically or horizontally on the page. To keep the closed Menu icon @menu icon widths in its Relative place vertically use Relative Positioning procedure.');
+          //Use post option for positioning above to space the menu icon absolute to left or right choosing a max-width for position at which you wish menu icon to appear. Synchronize by choosing the same max-width value for the appearance of the menu icon under these option. <br>--When the menu-icon is opened use margin-top or padding-top to place above the menu area or within the menu area respectively.</span>');
+          printer::print_notice('These Options below enable the ability to position the icon menu anywhere, absolute or relatively, and tweak the relative positions of the closed menu icon, open menu icon, and open menu links');
+          
+          printer::print_wrap('menuicon pos');
+          $msg='1. For Abs. or Rel. Set the Position of Closed Menu icon left or right @menu icon widths within the bounds of the overall menu position';
+          printer::print_tip($msg);
+          echo'<p> <select class="editcolor editbackground editfont"  name="'.$data.'_'.$nav_name_ref.'['.$nav_icon_horiz_pos_index.']">';       
+          echo '<option  value="'.$this->page_editborder.'" selected="selected">'.$nav_icon_horiz_pos.'</option> 
+		 	<option  value="none">None </option>
+		 	<option  value="left">left position </option>
+		 	<option  value="right">right positon </option>
+	    </select></p>';
+          printer::close_print_wrap('menuicon pos width');
+          printer::print_wrap('menuicon pos width2');
+          $msg='2. For Relative Positioning the horizontal positioning is limited by the post width ie. whether the post extended far enough left or right. Check here to set the overall post to 100% width @menu icon width when the menu icon is visible and closed'; 
+          printer::print_tip($msg);
+          $checked1=($nav_params[$nav_icon_total_menu_width_index]==='relative100')?'checked="checked"':'';
+          $checked2=($nav_params[$nav_icon_total_menu_width_index]!=='relative100')?'checked="checked"':'';
+          printer::alert('<input type="radio" value="relative100" name="'.$data.'_'.$nav_name_ref.'_arrayed['.$nav_icon_total_menu_width_index.']" '.$checked1.'>Set Menu (main div) to 100%  of available width to enable full left or right positioning when the menu icon is visible');
+          printer::alert('<input type="radio" value="remove" name="'.$data.'_'.$nav_name_ref.'_arrayed['.$nav_icon_total_menu_width_index.']" '.$checked2.'>Do Not set 100% width');
+          printer::close_print_wrap('menuicon pos width2');
+          $final_nav_icon_total_menu_width=(!empty($checked))?'#'.$this->dataCss.'{width:100%;margin:0;padding:0;}':'.'.$this->dataCss.'{margin:0;padding:0px;}';
+          
+          printer::print_wrap('menuicon pos width3');
+          $msg='3. Relative or Absolute Positioning of the menu icon is now done in the Navigation Main Post settings available for each post type under the positioning option. Set to Absolute or Relative. Then choose left or right/top or bottom and value. Negative values are also available. To enable positioning icon choice Choose @media screen max-width px in the positioning option <br><br>Note: when Absolute is used Positive values for top which space the icon lower (and menu iteself when open) will be relative from the top of the body if a parent column relative is prveiously not set'; 
+          printer::print_tip($msg);
+          $msg='4. Select Responsive View Port Width Minimum for Menu Icon Respresentation in the options further down below. Should match the Positioning option @media screen max-width choesen in step 3.'; 
+          printer::print_tip($msg);
+          printer::close_print_wrap('menuicon pos width3');
+          printer::print_wrap('menu icon pos tweaks');
+          $msg='You can also Completely Tweak the positioning of the opened navigation menu when the menu icon is clicked and then independently tweak the position of opened icon iteself without affecting its closed positioning'; 
+          printer::print_tip($msg);
+          $this->show_more('Tweak left/right/top Positioning of full menu when icon opened'); 
+          printer::print_wrap('horiz verts'); 
+          printer::alert('Optionally tweak right or left position value of opened and absolute positioned navigation menus at widths the icon both appears and is clicked open.  <h7>Left value will override right value if both chosen</h7>');
+          printer::print_notice('Choosing a right value here wil not override a left value chosen in the main settings position options');
+          printer::print_wrap1('horiz adjust');
+           $final_open_icon_position_left=$this->spacing($data.'_'.$nav_name_ref,$nav_open_icon_left_index,'return','Choose left positioning value','Use Left Horiz Position of absolute positioned opened sub menu','','','','','','','Check none or left:0 or enter left value as needed',array('zero'=>'left:0;','none'=>'none'));
+          $clp=(!empty($final_open_icon_position_left))?$final_open_icon_position_left:'none';
+          printer::alert('Current position left: '.$clp); 
+          
+          $final_open_icon_position_right=$this->spacing($data.'_'.$nav_name_ref,$nav_open_icon_right_index,'return','Choose right positioning value','Use Right Horiz Position of absolute positioned opened sub menu','','','','','','','Check none or right:0 or enter right value as needed',array('zero'=>'right:0;','none'=>'none'));
+          $crp=(!empty($final_open_icon_position_right))?$final_open_icon_position_right:'none';
+          printer::alert('Current position right: '.$crp);
+          if ($nav_params[$nav_open_icon_left_index]==='zero')
+               $final_open_icon_position_horiz="#$this->dataCss.iconOpen{left:0;}";
+          elseif (!empty($final_open_icon_position_left)&&$final_open_icon_position_left!=='none')
+               $final_open_icon_position_horiz="#$this->dataCss.iconOpen{left:$final_open_icon_position_left;}";
+          elseif ($nav_params[$nav_open_icon_right_index]==='zero')
+               $final_open_icon_position_horiz="#$this->dataCss.iconOpen{right:0;left:auto !important;}";
+          elseif(!empty($final_open_icon_position_right)&&$final_open_icon_position_right!=='none') 
+               $final_open_icon_position_horiz="#$this->dataCss.iconOpen{right: $final_open_icon_position_right; left:auto !important;}";
+          else $final_open_icon_position_horiz='';  
+          printer::close_print_wrap1('horiz adjust');
+          printer::alert('Optionally tweak top position value of opened and absolute positioned navigation menus (if optionaly configured under post setings) at widths the icon both appears and is clicked open.');
+          printer::print_wrap1('vert adjust');
+          $final_open_icon_position_top=$this->spacing($data.'_'.$nav_name_ref,$nav_open_icon_top_index,'return','Choose top positioning value','Use top Vert Position of absolute positioned opened sub menu','','','','','','','Check none or top:0 or enter top value as needed',array('zero'=>'top:0;','none'=>'none'));
+          $crp=(!empty($final_open_icon_position_top))?$final_open_icon_position_top:'none';
+          printer::alert('Current position top: '.$crp); 
+          printer::close_print_wrap1('vert adjust');
+          if ($nav_params[$nav_open_icon_top_index]==='zero')
+               $final_open_icon_position_vert="#$this->dataCss.iconOpen{top:0;}";
+          elseif (!empty($final_open_icon_position_top)&&$final_open_icon_position_top!=='none')
+               $final_open_icon_position_vert="#$this->dataCss.iconOpen{top: $final_open_icon_position_top;}";
+          
+          else $final_open_icon_position_vert=''; 
+          printer::close_print_wrap('horiz verts');
+          $this->show_close('Tweak Opened Nav Icon &amp; Links');
+          ################### open icon itself
+          $this->show_more('Independently Tweak Positioning of Opened nav icon only'); 
+          printer::print_wrap('Tweak Opened Nav Icon Only'); 
+          printer::alert('Optionally tweak right or left   position value of the open icon independent of the open menu links or closed icon. Left value will override right value if both chosen');
+          printer::print_wrap1('horiz adjust');
+           $final_open_icon_only_position_left=$this->spacing($data.'_'.$nav_name_ref,$nav_open_icon_only_left_index,'return','Choose left positioning value','Use Left Horiz Position of open icon','','','','','','','Check none or left:0 or enter left value as needed',array('zero'=>'left:0;','none'=>'none'));
+          $clp=(!empty($final_open_icon_only_position_left))?$final_open_icon_only_position_left:'none';
+          printer::alert('Current position left: '.$clp);
+          $final_open_icon_only_position_right=$this->spacing($data.'_'.$nav_name_ref,$nav_open_icon_only_right_index,'return','Choose right positioning value','Use Right Horiz Position for open icon','','','','','','','Check none or right:0 or enter right value as needed',array('zero'=>'right:0;','none'=>'none'));
+          $clp=(!empty($final_open_icon_only_position_right))?$final_open_icon_only_position_right:'none';
+          printer::alert('Current position right: '.$clp); 
+          if ($nav_params[$nav_open_icon_only_left_index]==='zero')
+               $final_open_icon_only_position_horiz="#$this->dataCss.iconOpen ul.menuRespond li.show_icon{left:0;}";
+          elseif (!empty($final_open_icon_only_position_left)&&$final_open_icon_only_position_left!=='none')
+               $final_open_icon_only_position_horiz="#$this->dataCss.iconOpen ul.menuRespond li.show_icon{left:$final_open_icon_only_position_left;}";
+          elseif ($nav_params[$nav_open_icon_only_right_index]==='zero')
+               $final_open_icon_only_position_horiz="#$this->dataCss.iconOpen ul.menuRespond li.show_icon,.$this->dataCss.iconOpen ul.menuRespond li.show_icon{right:0;left:auto !important;}";
+          elseif(!empty($final_open_icon_only_position_right)&&$final_open_icon_only_position_right !=='none') 
+               $final_open_icon_only_position_horiz="#$this->dataCss.iconOpen ul.menuRespond li.show_icon,.$this->dataCss.iconOpen ul.menuRespond li.show_icon{right:  $final_open_icon_only_position_right;left:auto !important;}";
+          else $final_open_icon_only_position_horiz='';
+          printer::close_print_wrap1('horiz adjust');
+          printer::alert('Optionally tweak top position value of the icon independent of the open menu links or closed icon position');
+          printer::print_wrap1('vert adjust');
+          $final_open_icon_only_position_top=$this->spacing($data.'_'.$nav_name_ref,$nav_open_icon_only_top_index,'return','Choose top positioning value','Use top Vert Position of absolute positioned opened sub menu','','','','','','','Check none or top:0 or enter top value as needed',array('zero'=>'top:0;','none'=>'none'));
+          $clp=(!empty($final_open_icon_only_position_top))?$final_open_icon_only_position_top:'none';
+          printer::alert('Current position top: '.$clp);
+          printer::close_print_wrap1('vert adjust');
+          if ($nav_params[$nav_open_icon_only_top_index]==='zero')
+               $final_open_icon_only_position_vert="#$this->dataCss.iconOpen ul.menuRespond li.show_icon{top:0;}";
+          elseif (!empty($final_open_icon_only_position_top)&&$final_open_icon_only_position_top!=='none')
+               $final_open_icon_only_position_vert="#$this->dataCss.iconOpen ul.menuRespond li.show_icon{top: $final_open_icon_only_position_top;}";
+          /*elseif ($nav_params[$nav_open_icon_only_bottom_index]==='zero')
+               $final_open_icon_only_position_vert="#$this->dataCss.iconOpen{bottom:0;}";
+          elseif(!empty($final_open_icon_only_position_bottom)) 
+               $final_open_icon_only_position_vert="#$this->dataCss.iconOpen{bottom: $final_open_icon_only_position_bottom;}";*/
+          else $final_open_icon_only_position_vert=''; 
+          printer::close_print_wrap('Independently Tweak Positioning of Opened nav icon only');
+          $this->show_close('Tweak Opened Nav Icon Only');
+          printer::pclear(5);
+          $final_nav_icon_horiz_pos=($nav_icon_horiz_pos!=='none')?'#'.$this->dataCss.':not(.iconOpen) .show_icon{'.$nav_icon_horiz_pos.':0;}':'';
+           printer::close_print_wrap('menu icon pos tweaks');
+          ############# close open icon itself
+          printer::close_print_wrap('Rel and Abs Pos');
+          $this->show_close('Absolute or Relative Positioning of menu icon');
+          printer::print_tip('Check out options to Tweak the position the entire open menu and/or opened icon down below');
           $style_list='background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,font_family,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform';
           $this->show_more('Style individual Links @ icon width');
           printer::print_wrap('Style individual Links');
@@ -4142,164 +4251,28 @@ eol;
           $this->show_close('Style Hover Links for @ Menu icon width');
      $this->edit_styles_close($data,'blog_data12','.'.$this->dataCss.' .nav_gen .ulTop.menuRespond2:hover ul,.'.$this->dataCss.' .nav_gen .ulTop.menuRespond2 ul','background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,borders,box_shadow,outlines,radius_corner,transform','Style the Sub Menu Hover Panel @ <h7>menu icon</h7> widths','','If you have optionally made sub menus that can be styled the dropdown Panel which contains the dropdown menu links'); 
           printer::close_print_wrap('responsivmenustyle');
-          printer::print_wrap('menu icon pos tweaks');
-          $this->show_more('Tweak left/right Positioning of full menu when icon opened'); 
-          printer::print_wrap('horiz verts'); 
-          printer::alert('Optionally tweak right or left position value of opened and absolute positioned navigation menus (if optionaly configured under post setings) at widths the icon both appears and is clicked open.  Right value will override left value if both chosen');
-          printer::print_wrap1('horiz adjust');
-           $final_icon_open_position_left=$this->spacing($data.'_'.$nav_name_ref,$nav_icon_open_left_index,'return','Choose left positioning value','Use Left Horiz Position of absolute positioned opened sub menu','','','','','','','Check none or left:0 or enter left value as needed',array('zero'=>'left:0;','none'=>'none'));
-          $clp=(!empty($final_icon_open_position_left))?$final_icon_open_position_left:'none';
-          printer::alert('Current position left: '.$clp); 
-          
-          $final_icon_open_position_right=$this->spacing($data.'_'.$nav_name_ref,$nav_icon_open_right_index,'return','Choose right positioning value','Use Right Horiz Position of absolute positioned opened sub menu','','','','','','','Check none or right:0 or enter right value as needed',array('zero'=>'right:0;','none'=>'none'));
-          $crp=(!empty($final_icon_open_position_right))?$final_icon_open_position_right:'none';
-          printer::alert('Current position right: '.$crp);
-          if ($nav_params[$nav_icon_open_right_index]==='zero')
-               $final_icon_open_position_horiz="#$this->dataCss.iconOpen{right:0;}";
-          elseif(!empty($final_icon_open_position_right)) 
-               $final_icon_open_position_horiz="#$this->dataCss.iconOpen{right:  $final_icon_open_position_right;}";
-          elseif ($nav_params[$nav_icon_open_left_index]==='zero')
-               $final_icon_open_position_horiz="#$this->dataCss.iconOpen{left:0;}";
-          elseif (!empty($final_icon_open_position_left))
-               $final_icon_open_position_horiz="#$this->dataCss.iconOpen{left:$final_icon_open_position_left;}";
-          else $final_icon_open_position_horiz='';  
-          printer::close_print_wrap1('horiz adjust');
-          printer::alert('Optionally tweak top position value of opened and absolute positioned navigation menus (if optionaly configured under post setings) at widths the icon both appears and is clicked open.');
-           /*if($nav_params[$nav_icon_open_top_index]==='zero'){
-               $value=0;
-               $msg1='<span class="orange">Remove</span> Express Top:0';
-               }
-          else {
-               $value='zero';
-               $msg1='Express Top:0';
-               }
-           nav_icon_open_bottom anomolous behavior
-          if($nav_params[$nav_icon_open_bottom_index]==='zero'){
-               $value2=0;
-               $msg2='Remove Express Bottom:0';
-               }
-          else {
-               $value2='zero';
-               $msg2='Express bottom:0';
-               }*/
-          
-          printer::print_wrap1('vert adjust');
-          $final_icon_open_position_top=$this->spacing($data.'_'.$nav_name_ref,$nav_icon_open_top_index,'return','Choose top positioning value','Use top Vert Position of absolute positioned opened sub menu','','','','','','','Check none or top:0 or enter top value as needed',array('zero'=>'top:0;','none'=>'none'));
-          $crp=(!empty($final_icon_open_position_top))?$final_icon_open_position_top:'none';
-          printer::alert('Current position top: '.$crp);     
-          //$final_icon_open_position_bottom=$this->spacing($data.'_'.$nav_name_ref,$nav_icon_open_bottom_index,'return','Choose bottom positioning value','Use bottom Vert Position of absolute positioned opened sub menu','','','','');   
-          //printer::alert('<input type="checkbox" name="'.$data.'_'.$nav_name_ref.'['.$nav_icon_open_bottom_index.']" value="'.$value2.'" >'.$msg2);
-          printer::close_print_wrap1('vert adjust');
-          if ($nav_params[$nav_icon_open_top_index]==='zero')
-               $final_icon_open_position_vert="#$this->dataCss.iconOpen{top:0;}";
-          elseif (!empty($final_icon_open_position_top))
-               $final_icon_open_position_vert="#$this->dataCss.iconOpen{top: $final_icon_open_position_top;}";
-          /*elseif ($nav_params[$nav_icon_open_bottom_index]==='zero')
-               $final_icon_open_position_vert="#$this->dataCss.iconOpen{bottom:0;}";
-          elseif(!empty($final_icon_open_position_bottom)) 
-               $final_icon_open_position_vert="#$this->dataCss.iconOpen{bottom: $final_icon_open_position_bottom;}";*/
-          else $final_icon_open_position_vert=''; 
-          printer::close_print_wrap('horiz verts');
-          $this->show_close('Tweak Opened Nav Icon &amp; Links');
-          ################### open icon itself
-          $this->show_more('Independently Tweak Positioning of Opened nav icon only'); 
-          printer::print_wrap('Tweak Opened Nav Icon Only'); 
-          printer::alert('Optionally tweak right or left   position value of the open icon independent of the open menu links or closed icon. Right value will override left value if both chosen');
-          printer::print_wrap1('horiz adjust');
-           $final_icon_only_open_position_left=$this->spacing($data.'_'.$nav_name_ref,$nav_icon_only_open_left_index,'return','Choose left positioning value','Use Left Horiz Position of open icon','','','','','','','Check none or left:0 or enter left value as needed',array('zero'=>'left:0;','none'=>'none'));
-          $clp=(!empty($final_icon_only_open_position_left))?$final_icon_only_open_position_left:'none';
-          printer::alert('Current position left: '.$clp); 
-          
-          $final_icon_only_open_position_right=$this->spacing($data.'_'.$nav_name_ref,$nav_icon_only_open_right_index,'return','Choose right positioning value','Use Right Horiz Position for open icon','','','','','','','Check none or right:0 or enter right value as needed',array('zero'=>'right:0;','none'=>'none'));
-          $clp=(!empty($final_icon_only_open_position_right))?$final_icon_only_open_position_right:'none';
-          printer::alert('Current position right: '.$clp); 
-          if ($nav_params[$nav_icon_only_open_right_index]==='zero')
-               $final_icon_only_open_position_horiz="#$this->dataCss.iconOpen ul.menuRespond li.show_icon{right:0;}";
-          elseif(!empty($final_icon_only_open_position_right)) 
-               $final_icon_only_open_position_horiz="#$this->dataCss.iconOpen ul.menuRespond li.show_icon{right:  $final_icon_only_open_position_right;}";
-          elseif ($nav_params[$nav_icon_only_open_left_index]==='zero')
-               $final_icon_only_open_position_horiz="#$this->dataCss.iconOpen ul.menuRespond li.show_icon{left:0;}";
-          elseif (!empty($final_icon_only_open_position_left))
-               $final_icon_only_open_position_horiz="#$this->dataCss.iconOpen ul.menuRespond li.show_icon{left:$final_icon_only_open_position_left;}";
-          else $final_icon_only_open_position_horiz='';
-          (!empty($final_icon_only_open_position_horiz))&&$this->navcss.=$final_icon_only_open_position_horiz;
-          printer::close_print_wrap1('horiz adjust');
-          printer::alert('Optionally tweak top position value of the icon independent of the open menu links or closed icon position');
-           /*if($nav_params[$nav_icon_only_open_top_index]==='zero'){
-               $value=0;
-               $msg1='<span class="orange">Remove</span> Express Top:0';
-               }
-          else {
-               $value='zero';
-               $msg1='Express Top:0';
-               }
-           nav_icon_only_open_bottom anomolous behavior
-           if($nav_params[$nav_icon_only_open_bottom_index]==='zero'){
-               $value2=0;
-               $msg2='Remove Express Bottom:0';
-               }
-          else {
-               $value2='zero';
-               $msg2='Express bottom:0';
-               }*/
-          
-          printer::print_wrap1('vert adjust');
-          $final_icon_only_open_position_top=$this->spacing($data.'_'.$nav_name_ref,$nav_icon_only_open_top_index,'return','Choose top positioning value','Use top Vert Position of absolute positioned opened sub menu','','','','','','','Check none or top:0 or enter top value as needed',array('zero'=>'top:0;','none'=>'none'));
-          $clp=(!empty($final_icon_only_open_position_top))?$final_icon_only_open_position_top:'none';
-          printer::alert('Current position top: '.$clp); 
-          
-          //$final_icon_only_open_position_bottom=$this->spacing($data.'_'.$nav_name_ref,$nav_icon_only_open_bottom_index,'return','Choose bottom positioning value','Use bottom Vert Position of absolute positioned opened sub menu','','','','');   
-          //printer::alert('<input type="checkbox" name="'.$data.'_'.$nav_name_ref.'['.$nav_icon_only_open_bottom_index.']" value="'.$value2.'" >'.$msg2);
-          printer::close_print_wrap1('vert adjust');
-          if ($nav_params[$nav_icon_only_open_top_index]==='zero')
-               $final_icon_only_open_position_vert="#$this->dataCss.iconOpen ul.menuRespond li.show_icon{top:0;}";
-          elseif (!empty($final_icon_only_open_position_top))
-               $final_icon_only_open_position_vert="#$this->dataCss.iconOpen ul.menuRespond li.show_icon{top: $final_icon_only_open_position_top;}";
-          /*elseif ($nav_params[$nav_icon_only_open_bottom_index]==='zero')
-               $final_icon_only_open_position_vert="#$this->dataCss.iconOpen{bottom:0;}";
-          elseif(!empty($final_icon_only_open_position_bottom)) 
-               $final_icon_only_open_position_vert="#$this->dataCss.iconOpen{bottom: $final_icon_only_open_position_bottom;}";*/
-          else $final_icon_only_open_position_vert=''; 
-          printer::close_print_wrap('Independently Tweak Positioning of Opened nav icon only');
-          $this->show_close('Tweak Opened Nav Icon Only');
-          printer::pclear(5);
-          $final_nav_icon_horiz_pos=($nav_icon_horiz_pos!=='none')?'#'.$this->dataCss.':not(.iconOpen) .show_icon{'.$nav_icon_horiz_pos.':0;}':'';
-          $this->show_more('Independently Tweak the Position of Closed &amp; Visible Menu icon left or right @menu icon widths'); 
-          printer::print_wrap('menuicon pos');
-          $msg='Optionally tweak the Position of Closed Menu icon left or right @menu icon widths within the bounds of the overall menu position.  Note: affects position of closed  <b>X</b> within the current positioning and width of the navigation post itself';
-          printer::print_tip($msg);
-          $msg='Absolute Positioning of Menu itself containing the visible Icon is done through Post settings for this post @ Position settings. Set Absolute position values to the body or Relative values to the parent column: (top bottom) (left right ) values  <b>and co-ordinate @media max-width settings for menu icon width</b>';
-          printer::print_notice($msg);
-          echo'<p> <select class="editcolor editbackground editfont"  name="'.$data.'_'.$nav_name_ref.'['.$nav_icon_horiz_pos_index.']">';       
-          echo '<option  value="'.$this->page_editborder.'" selected="selected">'.$nav_icon_horiz_pos.'</option> 
-		 	<option  value="none">None </option>
-		 	<option  value="left">left position </option>
-		 	<option  value="right">right positon </option>
-	    </select></p>';
-          printer::close_print_wrap('menuicon pos');
-          $this->show_close('Independently Tweak the Position of Closed Menu icon left or right @ menu icon widths');
-          printer::close_print_wrap('menu icon pos tweaks');
-          ############# close open icon itself
-          (!empty($final_icon_open_position_vert))&&$this->navcss.=$final_icon_open_position_vert;
-          (!empty($final_icon_open_position_horiz))&&$this->navcss.=$final_icon_open_position_horiz;
-          (!empty($final_icon_only_open_position_vert))&&$this->navcss.=$final_icon_only_open_position_vert;
-          (!empty($final_icon_only_open_position_horiz))&&$this->navcss.=$final_icon_only_open_position_horiz;
           printer::pclear(5);
           echo '<div class="fsminfo editbackground  editfont  '.$this->column_lev_color.' floatleft"><!--Menu Icon RWD Width-->';
           printer::alertx('<p class="highlight left" title="Select a Responsive view device width size under which the menu will be represent by a menu icon. Full Menu will appear when icon is clicked">Select Responsive View Port Width Minimum for Menu Icon Respresentation.<br></p>');
           printer::alertx('<p  class="tip">By default Menu Icon appears with widths smaller than 769. Hover drop down menus on smaller devices and sub menus are shown by default when the icon is clicked. Use none to prevent menu icon appearing at any width!</p>');
           $this->mod_spacing($data.'_'.$nav_name_ref.'_arrayed['.$nav_icon_media_width_index.']',$respond_menu_dimension,$min_viewport,$max_viewport,1,'px','none');
-          $checked=($respond_menu_dimension==='icon full on')?'checked="checked"':'';
-          printer::printx('<p class="info" title="checking here will enables menu icon to be displayed at all widths. Menu will appear only when menu icon is clicked"><input type="checkbox" value="icon full on" name="'.$data.'_'.$nav_name_ref.'_arrayed['.$nav_icon_media_width_index.']" '.$checked.'>Make Menu Icon Permanant</p>');
-          $msg='Optionally adjust the overall navigation width at which the menu icon appears @ the viewport width chosen above. Affects the width of the opened icon menu links area';
-          printer::print_tip($msg);
-          $nav_icon_total_menu_width=$this->spacing($data.'_'.$nav_name_ref,$nav_icon_total_menu_width_index,'return width','Optionally specify opened menu width @ icon widths','','','','','');
-          $tval=intval($nav_icon_total_menu_width);
-          $final_nav_icon_total_menu_width=(!empty($tval)&&is_numeric($tval))?'#'.$this->dataCss.'{width:'.$nav_icon_total_menu_width.';margin:0;padding:0;}':'';
+          $checked1=($respond_menu_dimension==='icon full on')?'checked="checked"':'';
+          $checked2=($respond_menu_dimension==='icon full on')?'':'checked="checked"';
+          printer::printx('<p class="info" title="checking here will enables menu icon to be displayed at all widths."><input type="radio" value="icon full on" name="'.$data.'_'.$nav_name_ref.'_arrayed['.$nav_icon_media_width_index.']" '.$checked1.'>Make Menu Icon Permanant</p>');
+          printer::printx('<p class="info" title="checking here will removes menu icon to be displayed at all widths."><input type="radio" value="No full on" name="'.$data.'_'.$nav_name_ref.'_arrayed['.$nav_icon_media_width_index.']" '.$checked2.'>Do Not Make Menu Icon Permanant</p>');
+          
           echo '</div><!--Menu Icon RWD Width-->';
-          printer::pclear(); 
+          printer::pclear();
+          $msg='Optionally set a specific navigation Link Width @ menu icon Widths. Affects the overall width of the opened icon menu links area';
+          printer::print_wrap('menu link width');
+          printer::print_tip($msg);
+          $nav_open_icon_total_menu_width=$this->spacing($data.'_'.$nav_name_ref,$nav_open_icon_total_menu_width_index,'return width','Optionally specify opened menu width @ icon widths','','','','','');
+          $tval=intval($nav_open_icon_total_menu_width);
+          $final_nav_open_icon_total_menu_width=(!empty($tval)&&is_numeric($tval))?'#'.$this->dataCss.'.iconOpen{width:'.$nav_open_icon_total_menu_width.';}':'';
+          
+          printer::close_print_wrap('menu link width');
           echo '<div class="fsminfo editbackground  editfont  '.$this->column_lev_color.' floatleft"><!--Icon Width-->'; 
-          echo '<p class="highlight left" title="Select a icon width for the Responsize menu icon">Change Default Icon Width (1unit=16px)</p>';
+          echo '<p class="highlight left" title="Select a icon width for the Responsize menu icon">Change Default Width of the Icon (1unit=16px)</p>';
          $this->mod_spacing($data.'_'.$nav_name_ref.'_arrayed['.$nav_icon_width_index.']',$icon_width,.3,10,.1,'unit');
           printer::print_tip('Nav Icon bar Width and Height will scale proportionately to width and activated scaling (responsive to viewport width) if enabled here.');
           $this->rwd_scale($nav_params[$nav_icon_width_index],$data.'_'.$nav_name_ref.'['.$nav_icon_width_index.']',"#$this->dataCss .show_icon",'font-size','Navigation Menu Icon Size','px',0,1,false,16,20); 
@@ -4426,9 +4399,8 @@ eol;
      }
      ';
           }
-      
+     
      $this->navcss.= '
-     '.$final_icon_open_position_horiz. $final_icon_open_position_vert.'
 .bar1, .bar2, .bar3 {
     width: 1em;
     height: .1em;
@@ -4439,6 +4411,9 @@ eol;
      }
 .'.$this->dataCss.' .show_icon{
      font-size: '.($icon_width*16).'px;
+     }
+.'.$this->dataCss.' .ulTop.menuRespond2 li.show_icon{
+     border:none; padding:0; margin:0; box-shadow:none;background:none;
      }
 .'.$this->dataCss.' .bar1,.'.$this->dataCss.' .bar2,.'.$this->dataCss.' .bar3{ 
     background-color: #'.$nav_icon_color.';
@@ -4467,7 +4442,7 @@ eol;
 .'.$this->dataCss.'.hover  .nav_gen UL LI {display: block; vertical-align: top; position:static; VISIBILITY: visible } 
 .'.$this->dataCss.'.hover  .nav_gen UL UL {display: block; vertical-align: top; position:static; VISIBILITY: visible }  
 .'.$this->dataCss.'.hover   .nav_gen  ul.sub-level,.display .nav_gen  UL UL LI  {margin-right:auto; margin-left:auto; display:block;}
-'.$final_nav_icon_total_menu_width.$final_nav_icon_horiz_pos.'
+'.$final_nav_open_icon_total_menu_width.$final_nav_icon_horiz_pos.$final_nav_icon_total_menu_width.'
      }
 @media screen and (max-width:'.$respond_menu_dimension.'px) {
   .'.$this->dataCss.' .nav_gen{display:block;}
@@ -4479,7 +4454,8 @@ overflow:hidden;
 -moz-transition: max-height 1s ease-in;
   -o-transition: max-height 1s ease-in;
   transition: max-height 1s ease-in;
-	} 
+	}
+     
  .'.$this->dataCss.'.horiz .nav_gen ul.top-level.transitionEase li,.vert .nav_gen ul.top-level li,.nav_gen ul.top-level.transitionEase li {display: block;}
 .nav_gen ul.top-level.transitionEase {
  max-height:0;
@@ -4491,7 +4467,8 @@ overflow:hidden;
 		}	
   .'.$this->dataCss.'.horiz .nav_gen ul.top-level.menuRespond li,.vert .nav_gen ul.top-level.menuRespond li,.nav_gen ul.top-level.menuRespond li{
     display: block;'.$icon_vertical_choice.'
-  } 
+  }
+ '.$final_open_icon_position_vert.$final_open_icon_position_horiz.$final_open_icon_only_position_vert.$final_open_icon_only_position_horiz.'
 } 
 ';    
 	(Sys::Deltatime)&&$this->deltatime->delta_log('End of '.__LINE__.' @ '.__method__.'  ');

@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.1
+#ExpressEdit 2.0.2
 /*
 ExpressEdit is an integrated Theme Creation CMS
 	Copyright (c) 2018  Brian Hayes expressedit.org  

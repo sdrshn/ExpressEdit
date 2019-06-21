@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.1
+#ExpressEdit 2.0.2
 #see top of global edit master class for system overview comment dir..
 /*
 ExpressEdit is an integrated Theme Creation CMS
@@ -2301,12 +2301,11 @@ function create_blog($tablename,$switch,$blog_order,$insert_amt,$blog_unclone=''
 
 "A slow sort of country!" said the Queen. "Now, here, you see, it takes all the running you can do, to keep in the same place. If you want to get somewhere else, you must run at least twice as fast as that!"--everything seemed to have changed since her swim in the pool, and the great hall, with the glass table and the little door, had vanished completely. '; 
 	$default_video='';
-	$blog_data1='';
-	$blog_data2='';
-	$blog_data3=''; 
-	$blog_data4='';
-	$blog_tiny_data1='';
-	$blog_tiny_data2='';
+          for ($x=1;$x<16;$x++){
+               ${'blog_data'.$x}='';
+               ${'blog_tiny_data'.$x}='';
+               }
+     $blog_options='';
 	$blog_style='';
 	$blog_text='';
 	$blog_clone_table='';
@@ -2411,7 +2410,7 @@ function create_blog($tablename,$switch,$blog_order,$insert_amt,$blog_unclone=''
                $blog_type='auto_slide';
                $blog_style='0,0,0'; 
                break;
-          case $this->blog_drop_array[9]:#ga 
+          case $this->blog_drop_array[9]:#gall 
                $blog_text='gallery'; 
                $blog_type='gallery';
                $blog_style='0,0,0';
@@ -2425,6 +2424,17 @@ function create_blog($tablename,$switch,$blog_order,$insert_amt,$blog_unclone=''
                $blog_text='new_nav';
                $blog_type='navigation_menu'; 
                $blog_style='';//'0,20,20';
+               $blog_options=',,,,,,,,,,,,,,absolute@@768@@@@right@@40.0@@top@@15.0@@30,,,,,,,0,20,0@@@@1.5';
+               $blog_data2 =',0,0,20,0,0,0,0,0,0,0,0,left,0,0,0,0,0,0,0,0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@no-repeat';
+$blog_data3 ='';
+$blog_data4 =',10,10,10,10,0,0,0,0,0,18,500,left,0,0,0,0,0,0,0,@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@no-repeat,0,0,0,0,0,0@@555@@0@@No Border,,a:0:{},,,,,,,,,,,,,';
+$blog_data5 =',0,0,0,768,0,2.30,0,0,0,0,0,0,0,zero,10,0,zero,right,220@@@@none@@none,0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@no-repeat,none';
+$blog_data6 =',0,0,0,0,0,0,0,0,0,0,0,0,604679,0,0,0,0,0,0,FAFCFF@@vertical@@F4F6F9@@ffffff@@ffffff@@ffffff@@ffffff@@fafcff@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@no-repeat,,,,@@@@0@@6@@0@@inset';
+$blog_data7 =',0,0,0,0,30,0,20,0,0,0,0,0,0,0,0,0,0,0,0,ffffff@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@no-repeat,,,,,,0@@0@@@@No Border,,a:0:{},,,,,,,,,,40,,20';
+$blog_data8 =',0,,,,36,,,,,,,,,,,,,,,FFFfff@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@no-repeat,,,,,,3@@D6DBDD@@@@top bottom left right,,a:1:{i:0;a:1:{i:1;s:11:"right:10px;";}}';
+$blog_data12 =',,,,,,,,,,,,,,,,,,,,0@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@no-repeat';
+$blog_tiny_data1 ='0,0,0,0,950,white,4.00,100,Over,0,nomanage,1,,fadeInRight,,5';
+$blog_tiny_data11 =',,,,,,,,,,,,,632E0E,,,,,,,FFF7F7@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@no-repeat';
                break;
                default:
                printer::alert_neg('you must choose a value from dropdown menu',1.5);
@@ -2436,22 +2446,46 @@ function create_blog($tablename,$switch,$blog_order,$insert_amt,$blog_unclone=''
 	$value='';
 	foreach ($post_field_arr as $field){  
 		if($field==='blog_clone_table')$value.="'$blog_clone_table',";
-		elseif($field==='blog_data6')$value.="'$blog_data6',";
+		elseif($field==='blog_data1')$value.="'$blog_data1',";
+		elseif($field==='blog_data2')$value.="'$blog_data2',";
 		elseif($field==='blog_data3')$value.="'$blog_data3',";
 		elseif($field==='blog_data4')$value.="'$blog_data4',";
-		elseif($field==='blog_date')$value.="'$blog_date',";
-		elseif($field==='blog_text')$value.="'$blog_text',";
-		elseif($field==='blog_data1')$value.="'$blog_data1',";
+		elseif($field==='blog_data5')$value.="'$blog_data5',";
+		elseif($field==='blog_data6')$value.="'$blog_data6',";
+		elseif($field==='blog_data7')$value.="'$blog_data7',";
+		elseif($field==='blog_data8')$value.="'$blog_data8',";
+		elseif($field==='blog_data9')$value.="'$blog_data9',";
+		elseif($field==='blog_data10')$value.="'$blog_data10',";
+		elseif($field==='blog_data11')$value.="'$blog_data11',";
+		elseif($field==='blog_data12')$value.="'$blog_data12',";
+		elseif($field==='blog_data13')$value.="'$blog_data13',";
+		elseif($field==='blog_data14')$value.="'$blog_data14',";
+		elseif($field==='blog_data15')$value.="'$blog_data15',";
 		elseif($field==='blog_tiny_data1')$value.="'$blog_tiny_data1',";
 		elseif($field==='blog_tiny_data2')$value.="'$blog_tiny_data2',";
+		elseif($field==='blog_tiny_data3')$value.="'$blog_tiny_data3',";
+		elseif($field==='blog_tiny_data4')$value.="'$blog_tiny_data4',";
+		elseif($field==='blog_tiny_data5')$value.="'$blog_tiny_data5',";
+		elseif($field==='blog_tiny_data6')$value.="'$blog_tiny_data6',";
+		elseif($field==='blog_tiny_data7')$value.="'$blog_tiny_data7',";
+		elseif($field==='blog_tiny_data8')$value.="'$blog_tiny_data8',";
+		elseif($field==='blog_tiny_data9')$value.="'$blog_tiny_data9',";
+		elseif($field==='blog_tiny_data10')$value.="'$blog_tiny_data10',";
+		elseif($field==='blog_tiny_data11')$value.="'$blog_tiny_data11',";
+		elseif($field==='blog_tiny_data12')$value.="'$blog_tiny_data12',";
+		elseif($field==='blog_tiny_data13')$value.="'$blog_tiny_data13',";
+		elseif($field==='blog_tiny_data14')$value.="'$blog_tiny_data14',";
+		elseif($field==='blog_tiny_data15')$value.="'$blog_tiny_data15',";
 		elseif($field==='blog_style')$value.="'$blog_style',";
+		elseif($field==='blog_date')$value.="'$blog_date',";
+		elseif($field==='blog_text')$value.="'$blog_text',";
 		elseif($field==='blog_type')$value.="'$blog_type',";
 		elseif($field==='blog_table')$value.="'$tablename',";
 		elseif($field==='blog_table_base')$value.="'$this->pagename',";
 		elseif($field==='blog_col')$value.="'$col_id',";
 		elseif($field==='blog_float')$value.="'$blog_float',";
 		elseif($field==='blog_order')$value.="'$blog_order',"; 
-		elseif($field==='blog_data2')$value.="'$blog_data2',";
+		elseif($field==='blog_options')$value.="'$blog_options',"; 
 		elseif($field==='blog_unclone')$value.="'$blog_unclone',";
 		elseif($field==='blog_unstatus')$value.="'$blog_unstatus',";
 		elseif($field==='blog_width')$value.="'$blog_width',";
@@ -4156,7 +4190,7 @@ function gen_display_styles($data){//ajax style parser for quick reference
      for ($i=0; $i < count($indexes); $i++){
 		if (array_key_exists($i,$style_array)&&strpos($indexes[$i],'width')!==false&&strpos($indexes[$i],'media')===false){
                $this->my_temp_array=$style_array;
-               $returnval=$this->spacing('my_temp_array',$i,'display_style','','');
+               $returnval=$this->spacing('my_temp_array',$i,'display_style','','','','',false,'',false,0,'',array('none'=>'use no value','auto'=>'set auto','zero'=>'set explicit 0'));
                $return.=printer::alertx( NL."{$indexes[$i]} value: $returnval",1);
                }
           elseif (!empty($indexes[$i])&&strpos($indexes[$i],'width')!==false&&strpos($indexes[$i],'media')===false) $return.=printer::alertx( NL."{$indexes[$i]} value: 0 ",1);     
@@ -4167,7 +4201,7 @@ function gen_display_styles($data){//ajax style parser for quick reference
 		if (strpos($indexes[$i],'width')!==false&&strpos($indexes[$i],'media')===false)continue;
           if (array_key_exists($i,$style_array)&&(strpos($indexes[$i],'padding')!==false||strpos($indexes[$i],'margin')!==false)){
                $this->my_temp_array=$style_array;
-               $returnval=$this->spacing('my_temp_array',$i,'display_style','','');
+               $returnval=$this->spacing('my_temp_array',$i,'display_style','','','','',false,'',false,0,'',array('none'=>'use no value','auto'=>'set auto','zero'=>'set explicit 0'));
                $return.=printer::alertx( NL."{$indexes[$i]} value: $returnval",1);
                }
           elseif(array_key_exists($i,$style_array)&&$indexes[$i]==='font_size'){

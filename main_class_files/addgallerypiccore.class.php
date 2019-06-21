@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.1
+#ExpressEdit 2.0.2
 class addgallerypiccore {
 function __construct(){ 
      $table_list=check_data::return_all(__METHOD__,__LINE__,__FILE__) ;  

@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.1
+#ExpressEdit 2.0.2
 	#class time modified from orginal by Arthur Coucouvitis
 	class time {
 	const Digits = 7;     

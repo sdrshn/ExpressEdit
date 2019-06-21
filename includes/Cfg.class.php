@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.1
+#ExpressEdit 2.0.2
 class Cfg extends Cfg_master{
      const Favicon='karma.ico';//tab image
 	const Local_site='localhost,htdocs';//list to strpos local development systems if used   local sites do not require logon..

@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.1
+#ExpressEdit 2.0.2
 #testchange 336333
 class mail {
 	private static $instance=false; //store instance 

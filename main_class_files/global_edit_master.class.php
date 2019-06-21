@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.1
+#ExpressEdit 2.0.2
 /*
 ExpressEdit is an integrated Theme Creation CMS
 	Copyright (c) 2018  Brian Hayes expressedit.org  
@@ -1565,7 +1565,8 @@ function spacing($style,$val,$css_style,$msg,$title,$hide='',$ifempty='',$showpe
 		if (!array_key_exists($i,$spacing_arr)||$spacing_arr[$i]==='00'||$spacing_arr[$i]==='0.0'||$spacing_arr[$i]==='0.00'){
 			$spacing_arr[$i]=0;
 			}
-		} 
+		}
+         
 	$maxspace=($this->is_page&&$showpercent)?$this->page_width:(($showpercent)?$this->column_total_width[$this->column_level]:4000);//limit width
      $maxspace=min($maxspace,$pxmaxwidth);
 	$current_px=$spacing_arr[$start];//index key  of first value
@@ -1584,36 +1585,43 @@ function spacing($style,$val,$css_style,$msg,$title,$hide='',$ifempty='',$showpe
 		#percent will be calculated for overall post size using post width...
 	$scaleunit=(!empty($spacing_arr[1])&&$spacing_arr[1]!=='%'&&$spacing_arr[1]!=='em'&&$spacing_arr[1]!=='rem'&&$spacing_arr[1]!=='vw'&&$spacing_arr[1]!=='vh')?'none':$spacing_arr[1];
 	$pos_neg=($spacing_arr[$start+1]==='-')?'-':''; 
-     
      //used for locally comparing this value to another then expressing the css ie not here.
-          $returnval='';
-          foreach (array('rem','em','percent','px') as $ext){ 
-               if (!empty(${'current_'.$ext})){
-                    $empty=false;
-                    
-                    if ($ext==='rem'){
-                          $returnval=$pos_neg.${'current_'.$ext}.'rem';
-                          }
-                    elseif ($ext==='em'){
-                         $returnval=$pos_neg.${'current_'.$ext}.'em';
-                         }
-                    elseif ($ext==='percent'){
-                         $returnval=$pos_neg.${'current_'.$ext}.'%';
-                         }
-                    elseif ($ext==='px'){
-                         $returnval=$pos_neg.${'current_'.$ext}.'px';
-                         $msgscale=$this->rwd_scale($this->{$style}[$val],'return_val',"",'font-size','font size px','px',0,7,true,1);
-                         if (!empty($msgscale)){
-                              $returnval.=$msgscale;
-                              }
-                         }
-                    break;
+     $returnval='';
+  foreach (array('rem','em','percent','px') as $ext){ 
+          if (!empty(${'current_'.$ext})){
+               $empty=false;
+               
+               if ($ext==='rem'){
+                     $returnval=$pos_neg.${'current_'.$ext}.'rem';
+                     }
+               elseif ($ext==='em'){
+                    $returnval=$pos_neg.${'current_'.$ext}.'em';
                     }
+               elseif ($ext==='percent'){
+                    $returnval=$pos_neg.${'current_'.$ext}.'%';
+                    }
+               elseif ($ext==='px'){
+                    $returnval=$pos_neg.${'current_'.$ext}.'px';
+                    $msgscale=$this->rwd_scale($this->{$style}[$val],'return_val',"",'font-size','font size px','px',0,7,true,1);
+                    if (!empty($msgscale)){
+                         $returnval.=$msgscale;
+                         }
+                    }
+               break;
                }
-               if ($css_style==='display_style')return $returnval;
-          
-     
-     
+          }
+     if ($css_style==='display_style'){//used for parsing style values for displaying values...
+          if (is_array($radio)){ 
+               $overridevalue='';
+               foreach ($radio as $value=>$rvar){ 
+                    if($spacing_arr[$start]===$value){
+                         $overridevalue=$rvar;
+                         }
+                    }
+               if (!empty($overridevalue))return 'Override: '.$overridevalue;
+               }
+          return $returnval;
+          }
 	($this->is_page)&&$showpercent=false;	 
 	$sizepx=$current_px.'px'; 
 	$percent=($showpercent&&is_numeric($this->{$style}[$val]))?(ceil($this->{$style}[$val]*100/$this->column_total_width[$this->column_level]*10)/10):''; 
@@ -1626,7 +1634,7 @@ function spacing($style,$val,$css_style,$msg,$title,$hide='',$ifempty='',$showpe
 	(!empty($msg2))&& printer::print_info($msg2);	 
 	echo '<div class="floatleft editbackground editfont editcolor editfont fs1color '.$class.' left"><!--funct spacing choose other units-->';
      printer::alertx('<p class="tip center">Choose units/value for '.$msg.'.<br><b>Last chosen will override other units.</b></p>');
-	printer::print_tip($title);
+	(!empty($title))&&printer::print_tip($title);
 	if (strpos($css_style,'width')===false&&strpos($css_style,'height')===false){
           $this->show_more('Negative Value Option','','highlight click editbackground editfont smaller');
 		$checked1=($pos_neg!=='-')?'checked="checked"':'';
@@ -1745,7 +1753,7 @@ function spacing($style,$val,$css_style,$msg,$title,$hide='',$ifempty='',$showpe
                if($spacing_arr[$start]===$value){ 
                     $checked='checked="checked"';
                     $overridecss=true; 
-                    $overridevalue=$rvar;
+                    $returnval=$overridevalue=$rvar;
                     }
                else $checked='';
                printer::alert('<input name="'.$style.'['.$val.']['.($start).']" type="radio" value="'.$value.'" '.$checked.'">Use '.$rvar);
@@ -1833,25 +1841,25 @@ html '.$this->pelement.'{'.$css_style.':'.$pos_neg.${'current_'.$ext}.$scaleunit
    
  
 function padding_bottom($style, $val, $field){ if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-	$this->spacing($style,$val,'padding-bottom','Padding Bottom Spacing','Adding bottom padding-spacing creates space below this post, column, etc. Augments the background color and spacing within borders if either used!','hidepad','','','','','','Default Value 0');
+	$this->spacing($style,$val,'padding-bottom','Padding Bottom Spacing','Adding bottom padding-spacing creates space below this post, column, etc. Augments the background color and spacing within borders if either used!','hidepad','','','','','','Default Value 0 Check padding-bottom:0 to insure',array('zero'=>'padding-bottom:0;'));
 	}
 
 function padding_right($style, $val, $field){ if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-	$this->spacing($style,$val,'padding-right','Padding Right Spacing','Adding right padding-spacing creates space on the right of this post, column, etc. Augments the background color and spacing within borders if either used!','hidepad','',true, '','','','Default Value 0 Check padding-left:0 to insure',array('zero'=>'padding-right:0;'));
+	$this->spacing($style,$val,'padding-right','Padding Right Spacing','Adding right padding-spacing creates space on the right of this post, column, etc. Augments the background color and spacing within borders if either used!','hidepad','',true, '','','','Default Value 0 Check padding-right:0 to insure',array('zero'=>'padding-right:0;'));
 	}
 
 
 function padding_left($style, $val, $field){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
      $this->spacing($style,$val,'padding-left','Padding Left Spacing','Creates space on the left of this post, column, etc. Augments the background color and spacing within borders if either used!','hidepad','',true, $field,'','','Default Value 0. Check padding-left:0 to insure',array('zero'=>'padding-left:0;'));
 	}
-
+     
 function padding_top($style, $val, $field){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
 	if ($this->is_page|| ($this->is_blog&&!$this->is_clone)||($this->is_column&&!$this->is_clone||$this->clone_local_style)){  
 		static $topinc=0; $topinc++; 
           echo '<p class="highlight click  left floatleft" id="padding'.$topinc.'" title="Padding Spacing choices add spacing to your post, column, etc. If borders are used the space will be within the border. If backgrounds are used it will extend the background space."  onclick="edit_Proc.getTags(\'hidepad\',\'showhide\',id);return false;">Spacing by Padding</p>';
 		printer::pclear();
 		}
-    $this->spacing($style,$val,'padding-top','Padding Top Spacing' ,'Creates space on the top of this post, column, etc. Augments the background color and spacing within borders if either used.','hidepad',false,'','','','','Default Value 0');
+    $this->spacing($style,$val,'padding-top','Padding Top Spacing' ,'Creates space on the top of this post, column, etc. Augments the background color and spacing within borders if either used.','hidepad',false,'','','','','Default Value typically 0 check padding:0 to insure',array('zero'=>'padding-top:0;'));
 	}
 
 function margin_top($style, $val, $field){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
@@ -1860,10 +1868,10 @@ function margin_top($style, $val, $field){if (Sys::Methods) Sys::Debug(__LINE__,
 		echo '<p class="highlight click left floatleft" id="margin'.$marginc.'" title=" Margin Spacing also adds spacing to your post, column, etc. However, if borders are used the space will be outside of it and if a  background color is used  the spacing will be outside the background color!"  onclick="edit_Proc.getTags(\'hidemar\',\'showhide\',id);return false;">Spacing by Margin</p>';
 		printer::pclear();
 		}
-	$this->spacing($style,$val,'margin-top','Margin top Spacing','Creates space on the top of this post, column, etc. The Space will be outside of borders or Background Colors if either is used!!','hidemar','','','','','','Default Value 0',array('auto'=>'margin-top:auto;'));  
+	$this->spacing($style,$val,'margin-top','Margin top Spacing','Creates space on the top of this post, column, etc. The Space will be outside of borders or Background Colors if either is used!!','hidemar','','','','','','Default Value typically 0',array('auto'=>'margin-top:auto;','zero'=>'margin-top:0;'));  
 	}  
 function margin_bottom($style, $val, $field){ if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-     $this->spacing($style,$val,'margin-bottom','Margin Bottom Spacing','Creates space on the bottom of this post, column, etc. The Space will be outside of borders or Background Colors if either is used!!','hidemar','','','','','','Default Value: 0',array('auto'=>'margin-bottom:auto;')); 
+     $this->spacing($style,$val,'margin-bottom','Margin Bottom Spacing','Creates space on the bottom of this post, column, etc. The Space will be outside of borders or Background Colors if either is used!!','hidemar','','','','','','Default Value typically 0',array('auto'=>'margin-bottom:auto;','zero'=>'margin-bottom:0;')); 
      }
 
 function margin_right($style, $val, $field){ if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
@@ -5224,7 +5232,7 @@ function copy_to_clipboard(){
 					$q="update $table2 as c, $table as p set c.page_clipboard=p.$f where p.$field='$prefix$id' and c.page_ref='$this->pagename'";  
 					$this->mysqlinst->query($q);  
 					if ($this->mysqlinst->affected_rows()){
-						$this->success[]="Field: $field from $id copyied to clipboard";
+						$this->success[]="Field: $field from $id copied to clipboard";
 						}
 					else $this->message[]="Field: $field from $id did not change";
 					}

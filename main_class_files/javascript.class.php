@@ -781,7 +781,7 @@ var gen_Proc = {
 				\$(ele).removeClass(classN2)
 				},timeout);
 			}
-		else { 
+		else {
 			\$(ele).addClass(classN).addClass(classN2); 
 			}
 		},

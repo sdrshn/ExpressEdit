@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.1
+#ExpressEdit 2.0.2
 /*
 ExpressEdit is an integrated Theme Creation CMS
 	Copyright (c) 2018  Brian Hayes expressedit.org  
@@ -130,7 +130,7 @@ function auto_nav_data($dir_menu_id,$nav_class){
      if (!$this->no_icon&&!Sys::Edit){ 
           echo <<<eol
      <li class="show_icon">
-          <div class="aShow cursor" title="show menu" onclick="gen_Proc.toggleClass('#$this->nav_post_class .ulTop','menuRespond','menuRespond2','transitionEase',1000);gen_Proc.toggleHasClass('#$this->nav_post_class .ulTop','#$this->nav_post_class','menuRespond','iconOpen');return false;">
+          <div class="aShow cursor" title="show menu" onclick="gen_Proc.toggleClass('#$this->nav_post_class .ulTop','menuRespond','menuRespond2','transitionEase',50);gen_Proc.toggleHasClass('#$this->nav_post_class .ulTop','#$this->nav_post_class','menuRespond','iconOpen');return false;">
       <p class="bar1"></p>
   <p class="bar2"></p>
   <p class="bar3"></p>
