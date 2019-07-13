@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.2
+#ExpressEdit 2.0.3
 class fullloader{ 
 function fullpath($file) {
 	if (is_file(Cfg_loc::Root_dir.'includes/'.$file)) 

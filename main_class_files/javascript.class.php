@@ -148,7 +148,8 @@ function onload(){
                clearTimeout(resizeTimer);
                resizeTimer = setTimeout(function(){ //this limits no of resize events responding
                     var nw=\$(window).width();
-                    if ( winMaxWidth >150 && winMaxWidth < nw){ gen_Proc.classPass('backauto',gen_Proc.imageResponseBack);//background slideshow
+                    if ( winMaxWidth >150 && winMaxWidth < nw){
+     gen_Proc.classPass('backauto',gen_Proc.imageResponseBack);//background slideshow
                          gen_Proc.classPass('respondPS',gen_Proc.psImageResponse); 
                          gen_Proc.classPass('imagerespond',gen_Proc.imageResponse);
                          gen_Proc.classPass('sliderespond',gen_Proc.slideResponse);  
@@ -439,7 +440,7 @@ var gen_Proc = {
 			var newSrc = oldSrc.replace(pattern,gen_Proc.image_response_dir_prefix+newWidth+'/');
 			gen_Proc.picSrc=newSrc;  
 			gen_Proc.imgSize=newWidth
-			gen_Proc.imageExists(newSrc,function(exists){
+			gen_Proc.imageExists2(newSrc,function(exists){
 				if (exists) {
 					img.src=newSrc;
 					img.w=newWidth*1.25;
@@ -460,7 +461,7 @@ var gen_Proc = {
 		var pwidth=Math.max(f.offsetWidth,f.clientWidth);
 		var myimg = f.getElementsByTagName('img')[0]; 
 		var oldWidth=f.getAttribute('data-wid');  // will get direct
-		if (pwidth > oldWidth){  
+          if (pwidth > oldWidth){ 
                var newWidth=gen_Proc.keyUp(pwidth,gen_Proc.image_response,gen_Proc.maxPicLimit); 
                var i=false;
                var pattern=new RegExp(gen_Proc.image_response_dir_prefix+"[0-9]+\/");
@@ -468,7 +469,7 @@ var gen_Proc = {
                     if (newWidth >= oldWidth){  
                          oldSrc=myimg.src;  
                          var newSrc = oldSrc.replace(pattern,gen_Proc.image_response_dir_prefix+newWidth+'/'); 
-                         var exists=gen_Proc.imageExists(newSrc);
+                         var exists=gen_Proc.imageExists2(newSrc);
                          if (exists) {  
                               myimg.src=newSrc;  
                               i=true;
@@ -510,7 +511,7 @@ var gen_Proc = {
                          if (newWidth >= oldWidth){
                               oldSrc=myimg.src;  
                               var newSrc = oldSrc.replace(pattern,gen_Proc.image_response_dir_prefix+newWidth+'/'); 
-                              var exists=gen_Proc.imageExists(newSrc);
+                              var exists=gen_Proc.imageExists2(newSrc);
                               if (exists) {  
                                    myimg.src=newSrc;
                                    i=true;
@@ -1182,7 +1183,7 @@ var gen_Proc = {
 				console.log(this.ajax.responseText)
 				var jsonitems = JSON.parse(this.ajax.responseText); 
 				//console.log( jsonitems[0]);
-				//console.log( jsonitems[1]);
+				 //console.log( jsonitems[1]);
 				var key,size = 0;
 				for (key in jsonitems){
 					if (jsonitems.hasOwnProperty(key)) size++;
@@ -1240,9 +1241,9 @@ var gen_Proc = {
 					console.log( 'reBuffed');
 					}
 				else if (this.ajax.responseText.length>0){
-					console.log( this.ajax.responseText);
+					console.log( this.ajax.responseText+' sent under 20');
 					}
-				else console.log( 'JasonMistake in handle replace');
+				else console.log( 'JasonReturn or mistake in handle replace');
 				}
 			 
 			}//ready state
@@ -1251,7 +1252,7 @@ var gen_Proc = {
 		if ( (this.ajax.readyState == 4) && (this.ajax.status == 200) ) {
 			if (this.ajax.responseText.length > 10) {
 				console.log(this.ajax.responseText);  
-				jsonitems = JSON.parse(this.ajax.responseText); 
+ 				var jsonitems = JSON.parse(this.ajax.responseText); 
 				var ext=jsonitems[0];
 				var tr=jsonitems[1];  
 				if (jsonitems[2]=='body'){   
@@ -2062,7 +2063,7 @@ nextPhoto : function() {
 	slideAuto.calcDir=calcDir; 
 	slideAuto.dir=this.dir + gen_Proc.image_response_dir_prefix+calcDir+'/'
 	slideAuto.picname=this.bigname_array[this.currentPicLink];
-	gen_Proc.imageExists(a.src,function(exists){
+	gen_Proc.imageExists2(a.src,function(exists){
 		if (!exists){
 			var url = window.location.href.split('?')[0];
 			gen_Proc.use_ajax(url+'?create_image='+ slideAuto.picname+'@@'+slideAuto.calcDir+'@@'+slideAuto.dir+'&sess_token='+gen_Proc.token,'handle_replace','get'); 

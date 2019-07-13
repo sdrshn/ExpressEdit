@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.2
+#ExpressEdit 2.0.3
 #see top of global edit master class for system overview comment dir..
 /*
  *ExpressEdit is an integrated Theme Creation CMS
@@ -174,7 +174,6 @@ class global_master extends global_edit_master{
 	protected $prevnext_top=190;# probably set in local height of div wrapping for cursor 
 	protected $previous_image='photonav_prev2.gif';
 	private static $instance=false; //store instance
-	protected $main_menu_check=array();
 	protected $rem='rem';//css style unit
 	protected $blog_id='null';//set default
 	protected $post_target_clone_column_id='000';
@@ -463,18 +462,20 @@ function flex_items($type){// handles col and blog flex-items
           printer::alert('Add a flex-item @media min-width');
           $this->mod_spacing($this->data.'_blog_flex_box['.($this->blog_min_flex_index+$k).']',$min_flex,100,3000,1,'px','none');
           printer::close_print_wrap1('min flex');
+          $msg='Css applied to main '.$type.' div';
+          $css='';
           if ($max_flex==='none'&&$min_flex==='none'){
                if ($i>0)echo 'Choose @media max or min width to initiate viewport responsive flex settings';
                 
                else
-                    $this->css.='
+                    $this->css.=$css='
 .'.$css_id.'{flex:'.$grow.' '.$shrink.' '.$basis_css.';
 order:'.$order.';
 '.$align_self_css.$floatstyle.'}
 ';
 			} 
 		elseif ($max_flex!=='none'&&$min_flex!=='none') {
-			 $this->mediacss.='
+			 $this->mediacss.=$css='
 @media screen and (max-width:'.$max_flex.'px) and (min-width:'.$min_flex.'px){  	
 '.$css_id.'{flex:'.$grow.' '.$shrink.' '.$basis_css.';
 order:'.$order.';
@@ -482,7 +483,7 @@ order:'.$order.';
      }';
 			}
 		elseif ($max_flex!=='none'){
-			 $this->mediacss.='
+			 $this->mediacss.=$css='
 @media screen and (max-width: '.$max_flex.'px){  	
 .'.$css_id.'{flex:'.$grow.' '.$shrink.' '.$basis_css.';
 order:'.$order.';
@@ -490,7 +491,7 @@ order:'.$order.';
      }';
 			}
 		else {
-			 $this->mediacss.='
+			 $this->mediacss.=$css='
 @media screen and (min-width: '.$min_flex.'px){  	
 .'.$css_id.'{flex:'.$grow.' '.$shrink.' '.$basis_css.';
 order:'.$order.';
@@ -502,15 +503,27 @@ order:'.$order.';
                $this->submit_button( );
                printer::close_print_wrap('additional media wrap #'.$i);
                $this->show_close('Add any additional @media query controlled option tweak(s) for flex-items'); 
-               } 
-          }//end for 
+               }
+     $this->show_more('Style info #'.$i,'','info italic smaller');
+     printer::print_wrap1('techinfo');
+     printer::print_info('Current setting Css: '.$css);
+     $msg='Flex item css is applied directly to the '.$type .' main div element: .'.$css_id.' classname';
+     printer::print_info($msg);
+     printer::close_print_wrap1('techinfo');
+     $this->show_close('Tech info');     
+          }//end for
+     
      $this->submit_button();
      printer::close_print_wrap('flex items');
      $this->show_close('Choose flex-item options'); 
      }
      
-function flex_container(){ 
-     if ($this->is_clone&&!$this->clone_local_style)return;
+function flex_container(){
+     if ($this->column_use_grid_array[$this->column_level]==='use_grid'){
+          printer::print_warn('RWD Choice for child posts already enabled. Remove RWD to enable flex-box options for posts directly within this column');
+          return;
+          }
+     if ($this->is_clone&&!$this->clone_local_style)return; 
      $display1_arr=array('fle','inf','off'); 
      $display1_assoc=array('fle'=>'flex','inf'=>'inline-flex','off'=>'off');
      $display2_arr=array('inb','blo','off'); 
@@ -527,10 +540,7 @@ function flex_container(){
      $align_items_assoc=array('sta'=>'flex-start','end'=>'flex-end','cen'=>'center','bas'=>'baseline','str'=>'stretch');
       ################################
       printer::pclear(5);
-     if($this->column_level>0&&$this->column_use_grid_array[$this->column_level-1]==='use_grid'){
-          printer::print_tip('Note: RWD Grid Positioning is enabled in parent column and overrides Flex Box Mode'); 
-          return;
-          }
+     
      $flexcontainer=explode(',',$this->col_flex_box);
      $count=count(explode(',',Cfg::Col_flex_options));
      $mcount=4*$count;
@@ -570,30 +580,30 @@ function flex_container(){
           $mediacss='';
           if ($i<1)
                printer::print_info('Optionally Control The flex-container settings with max-width and/or min-width @media query. Choose additional flex-container settings/tweaks @media queries below.'); 
-          
+          $css='';
           if ($display==='off'&&$i<1)
                printer::print_info('Turn main flex display option to flex or flex-inline to turn flex mode on for position child posts within this column.');
 		else if ($max_flex==='none'&&$min_flex==='none'){
                if ($i>0)printer::alert('Choose @media max or min width to initiate additional viewport responsive flex settings'); 
                else
-                    $this->css.='
+                    $this->css.=$css='
 .'.$css_id.'{'.$display_css.$direction_css.$wrap_css.$justify_content_css.$align_items_css.$align_content_css.'}
 ';
 			} 
 		elseif ($max_flex!=='none'&&$min_flex!=='none') {
-			 $this->mediacss.='
+			 $this->mediacss.=$css='
 @media screen and (max-width:'.$max_flex.'px) and (min-width:'.$min_flex.'px){  	
      .'.$css_id.'{'.$display_css.$direction_css.$wrap_css.$justify_content_css.$align_items_css.$align_content_css.'}
 }';
 			}
 		elseif ($max_flex!=='none'){
-			 $this->mediacss.='
+			 $this->mediacss.=$css='
 @media screen and (max-width: '.$max_flex.'px){  
      .'.$css_id.'{'.$display_css.$direction_css.$wrap_css.$justify_content_css.$align_items_css.$align_content_css.'}
 }';
                }
 		else {
-			 $this->mediacss.='
+			 $this->mediacss.=$css='
 @media screen and (min-width: '.$min_flex.'px){
 .'.$css_id.'{'.$display_css.$direction_css.$wrap_css.$justify_content_css.$align_items_css.$align_content_css.'}
 }';
@@ -680,6 +690,13 @@ function flex_container(){
                printer::close_print_wrap('additional media wrap #'.$i);
                $this->show_close('Add any additional @media query controlled option tweak(s) for flex-container');
                }
+     $this->show_more('Style info #'.$i,'','info italic smaller');
+     printer::print_wrap1('techinfo');
+     printer::print_info('Current setting Css: '.$css);
+     $msg='Flex container css is applied directly to the parent column main div element: .'.$css_id.' classname';
+     printer::print_info($msg);
+     printer::close_print_wrap1('techinfo');
+     $this->show_close('Tech info');  
           }//end for
      $this->submit_button();
      printer::close_print_wrap('flex container');
@@ -1060,7 +1077,13 @@ function column_main_width(){
                //means the last primary column width gets passed on to new page start width
           $msg='Choose a Max-Width For this Top Level Column. This value will override any alterative max-width settings ie. px em % and rem. This perfoms the simple task of setting an upper limit on the overall size of Images and other Content Displays on Larger Size Screens. Default Value is '.Cfg::Page_width.' which can be changed here and by default in Page Setttings';
           $cw=(is_numeric($this->column_total_width[$this->column_level])&&$this->column_total_width[$this->column_level]>1)?$this->column_total_width[$this->column_level]:$this->page_width;
-          printer::print_tip('The Primary column is sized using a max width setting whereas nested columns and other post types which may share row space with all post types and use one of several RWD responsize width options. However, alternative width units choices are also available without subsequent width tracking info.');
+          $this->show_more('Style info','','info italic smaller');
+     printer::print_wrap1('techinfo');
+      $msg='Info: Main width mode for the Primary Column uses max-width setting applied directly the primary main div tag. used the selected width property is applied as css style sheet styling to the main div element of this column ie class: .'.$this->col_dataCss.'.primary.column';
+     printer::print_info($msg);
+     printer::close_print_wrap1('techinfo');
+     $this->show_close('Style info');
+          printer::print_tip('The Primary column is sized using a max-width setting whereas nested columns and other post types which may share row space with all post types and use one of several RWD responsize width options. However, alternative width units choices are also available without subsequent width tracking info.');
           printer::print_tip($msg);
           if (empty($this->col_width))printer::print_warn('<b>Primary Column width setting empty. Current Page width is referred to as default</b>');
           printer::alert('Current max-width Setting:'.$cw.'px');
@@ -1089,7 +1112,14 @@ function column_main_width(){
      $factor=($this->flex_enabled_twice)?1:$maxwid/100;
      $unit2=($this->flex_enabled_twice)?'':'px';
      $msgjava='Choose Width:';
-     printer::print_info('Choosing a main width value overrides any choice made  from option under em, rem, %, px & px scale opt for min-width, max-width, & width choices');
+     printer::print_info('Choosing a main-width value overrides any choice made  from option under em, rem, %, px & px scale opt for min-width, max-width, & width choices');
+     $this->show_more('Style info','','info italic smaller');
+     printer::print_wrap1('techinfo');
+     printer::print_info('Current setting Css for alternative widths is applied to main div for col class: .'.$this->col_dataCss);
+     $msg='Info: Sets the float of the li element to display:block or display:inline or float:left @ NON menu icon widths.'; 
+     printer::print_info($msg);
+     printer::close_print_wrap1('techinfo');
+     $this->show_close('Style info');
      if (!$prime)
           $this->mod_spacing($this->col_name.'_col_width',$currwidth,0,100,.05,'%','',$msgjava,$factor,$unit2);
       else
@@ -1155,7 +1185,7 @@ function column_options(){
      $this->submit_button();
      printer::print_wrap1('width status',$this->column_lev_color);   
      if ($this->rwd_post){
-          printer::print_caution('RWD GRID System is On. Turn Off in parent Column to enable other width choices');
+          printer::print_caution('RWD GRID System is On to position this entire column with all posts. Turn Off in parent Column to enable other width choices');
           printer::print_info('RWD Grid <b>is enabled</b> in the parent Column and overrides all other width modes ie main width, alt width units, flex-box used to position this column within the parent column');
           }
      else  printer::print_info('RWD Grid <b>Not enabled</b> in the parent Column');
@@ -1193,7 +1223,7 @@ function column_options(){
           printer::print_info('<b>An Acive flex Box Container &amp; Active Flex Box Items Ignore these float settings</b>');
            $this->show_more('More Info..','noback','highlight editbackground editfont floatleft','Click Here For info on Post Horizontal Post Sharing (Floating)  Choices',400);
           printer::print_wrap('more info');
-          printer::alertx('<p class="$this->column_lev_color fsminfo maxwidth500 floatleft editbackground editfont">By default in RWD grid mode columns will float left to share grid space allowed and non-Grid columns will occupy entire row. Change this default behavior to Manually choose whether this nest-column floats next to another nested column or posted content! <br>Note:
+          printer::alertx('<p class="$this->column_lev_color fsminfo maxwidth500 floatleft editbackground editfont">Settings made here effect main div class style for: .'.$this->col_dataCss.' <br><br>By default in RWD grid mode columns will float left to share grid space allowed and non-Grid columns will occupy entire row. Change this default behavior to Manually choose whether this nest-column floats next to another nested column or posted content! <br>Note:
                          <br><b>Center Row:</b> This single column will occupy full row and be centered.<br><b>Center Float:</b> Centers Column and shares the row space with other Floated posts. Utilizes inline-block css styling.<br><b>Left float:</b> uses float:left. Moves to left allows sharing of next post to its right.<br><b>Right float</b> uses float:right css. post justifies right allows sharing of next post to its left. <br>  <b>Float right or float left no next </b>means an element with  clear:both css follows to prevent sharing the next post on the same row.</p>');
           $this->close_print_wrap('more info');
           $this->show_close('Float type Info..');
@@ -1213,6 +1243,7 @@ function column_options(){
      if ($this->column_level>0&&!$this->rwd_post){
           $this->flex_items('col');
           }
+          
           #############        Finish   RWD QUERY   ##################
      ################  Begin   Manual width/float  response for this Column  &&&&&&&&&&&&& 
      #colwidth
@@ -1227,7 +1258,7 @@ function column_options(){
 	*/ 
 	$this->column_bp_width_track();
      if($this->column_use_grid_array[$this->column_level]!=='use_grid'){
-          $msg= ' RWD Grid Sizing for posts (incuding this nested column) within the parent Column is not set. Manually narrow the maximum width of this Column Here. If instead you want to use RWD Grid to size and position this entire column then enable it in its <b>Parent Column</b>';  
+          $msg= ' RWD Grid Sizing for posts within this Column is not set. You can enable here.</b>';  
           printer::print_wrap1('rwd mode',$this->column_lev_color);
           (!$prime)&&printer::alertx('<p class="tip" >'.$msg.'</p>');
           $gridstyle='style="display:none;"';
@@ -1242,14 +1273,14 @@ function column_options(){
           printer::pclear();
           } 
      printer::pclear();
-     if ($this->column_level==0||($this->column_level>0&&$this->column_use_grid_array[$this->column_level-1]!=='use_grid')){
+     $this->flex_container(); 
+     if ($this->column_level==0||($this->column_level>0&&$this->column_use_grid_array[$this->column_level-1]!=='use_grid')){  
 		$msg=($this->column_level==0)?'Choose Maximum Display Width For this Top Level Column. Used for limiting Image Size and Content Displays on Larger Size Screens. Default is specified by the current page_width setting.' : ' RWD Grid Sizing for posts (incuding this nested column) is not enabled within the <b>Parent Column</b>. Manually narrow the maximum width of this Column Here'; 
 		$this->column_main_width();
           printer::pclear(2);  
 		##############################################
 		$this->width_options('col',$this->col_name);
 		 ############   End manual width/float  Control for this column  &&&&&&&&&&& 
-          $this->flex_container();
           printer::pclear(2); 
 		}//non rwd parent column or primary column
 	if (!$prime){
@@ -1260,6 +1291,12 @@ function column_options(){
 	if ($this->column_use_flex_array[$this->column_level])printer::print_warn('Note: Flex Box Container enabled and masonry assist currently overrides various Flex Box features.  ie. the two are not fully compatible.');
 		$msg='Optionally enable Masonry to Assist in grid layout of Posts (including a nested column) directly within this column. Masonry will work in conjunction with your post width settings and alternative width settings. Post Float settings should be set to float left or float right. Float center may also be used but appropriate margin percents will need to be included as masonry otherwise overlooks the centering. Masonry will override Flex Box functionality';
 		printer::print_tip($msg);
+          $this->show_more('Style info','','info italic smaller');
+     printer::print_wrap1('techinfo');
+     $msg='Info: Masonry is a javascript open source Git Hub project by Desandro. When activated, the parent column recieves the class name of grid and the posts directly within this parent column receive the classname of grid-item. Both inline javascript and external file javascript then control the grid-like behavior of the child posts within the parent column. Masonry works in conjunction with width settings as outlined previously.'; 
+     printer::print_info($msg);
+     printer::close_print_wrap1('techinfo');
+     $this->show_close('Style info');
 		printer::print_tip('Masonry if enabled may change the order of your posts to get the best fit');
           printer::print_tip('The width of the first post in a masonry column will set the grid width for all other posts. Best results often using widest post in first position');
 		printer::printx('<p><input type="radio" '.$checked1.' value="nomasonry" name="'.$this->col_name.'_col_options['.$this->col_enable_masonry_index.']">No Masonry</p>');
@@ -1341,7 +1378,15 @@ function column_options(){
 	printer::alert('Column Vertical Positioning Choice','','left editcolor editbackground editfont');
 	$current_vert_val=($this->col_options[$this->col_vert_pos_index]!=='middle'&&$this->col_options[$this->col_vert_pos_index]!=='bottom')?'top':$this->col_options[$this->col_vert_pos_index];
 	forms::form_dropdown(array('top','middle','bottom'),'','','',$this->col_name.'_col_options['.$this->col_vert_pos_index.']',$current_vert_val,false,'editcolor editbackground editfont left');
-	$this->css.="\n.". $this->col_dataCss.'{vertical-align:'.$current_vert_val.'}';
+	$this->css.=$css="\n.". $this->col_dataCss.'{vertical-align:'.$current_vert_val.'}';
+     
+     $this->show_more('Style info','','info italic smaller');
+     printer::print_wrap1('techinfo');
+     printer::print_info('Current setting Css: '.$css);
+     $msg='Vertical Positioning applied to col main div.';
+     printer::print_info($msg);
+     printer::close_print_wrap1('techinfo');
+     $this->show_close('Tech info');
 	printer::close_print_wrap('Adjust default Vertical'); 
 	$this->show_close('Adjust default Vertical Positioning');	
 		#colopt  #colconf 
@@ -1487,7 +1532,7 @@ function blog_options($data,$tablename){if(Sys::Custom)return;
      printer::pclear();
      $this->show_more('Float Info..','noback','highlight editbackground editfont floatleft','Click Here For More info on Post Horizontal Share (Floating)  Choices',400);
      printer::print_wrap('more info');
-     printer::alertx('<p class="floatleft editbackground editfont editcolor">By default in RWD grid mode Posts will float left to share grid space allowed and non-RWD-Grid posts will occupy an entire row. Change this default behavior to Manually choose whether this posts floats next to another or occupies a full row. <br>
+     printer::alertx('<p class="floatleft editbackground editfont editcolor">Settings made here effect main div class style for: .'.$this->dataCss.' <br><br>By default in RWD grid mode Posts will float left to share grid space allowed and non-RWD-Grid posts will occupy an entire row. Change this default behavior to Manually choose whether this posts floats next to another or occupies a full row. <br>
      Enable manually floating a post next to another by limiting the respective widths to a total cumulative percentage less than 100% and then choosing a float option. By default, the center row option causes the post to occupy the whole role, whereas the other choices allow space sharing.<b><br><b>Center Row:</b> This single post will occupy full row and be centered.<br><b>Center Float:</b> Centers post and shares the row space with other Floated posts. Utilizes inline-block css styling.<br><b>Left float:</b> uses float:left. Moves to left allows sharing of next post to its right.<br><b>Right float</b> uses float:right css. post justifies right allows sharing of next post to its left. <br>  <b>Float right or float left no next </b>means an element with  clear:both css follows to prevent sharing the next post on the same row.</p>','',"");
      printer::close_print_wrap('more info');
      
@@ -1509,6 +1554,12 @@ function blog_options($data,$tablename){if(Sys::Custom)return;
           if ($this->flex_box_item){
                 printer::alert('Flex-box mode is enabled in the parent column. Use flex box or disable it');
                }
+     $this->show_more('Style info','','info italic smaller');
+     printer::print_wrap1('techinfo');
+      $msg='Info: Whichever main width mode is used the selected width property is applied as css style sheet styling to the main div element of this post ie class: .'.$this->dataCss.'.post.'.$this->blog_type;
+     printer::print_info($msg);
+     printer::close_print_wrap1('techinfo');
+     $this->show_close('Style info');
           printer::print_tip('The main width Mode keeps track of width sizes through nested column levels ( tracker is also compatible mixing with RWD Grid Width use). This  Width mode is expresed as either max-width, percent, or dynamic percent together with min-width explained below.  Below these are further width with em, rem, &amp; vw unit options. To width size this post/column using Flex Box or RWD Grid instead, enable them in the parent column.');
           echo '<div class="fsminfo editbackground editfont "><!--width options-->';
           $this->blog_width=(is_numeric($this->blog_width))?$this->blog_width:0;
@@ -1551,9 +1602,17 @@ function blog_options($data,$tablename){if(Sys::Custom)return;
      printer::alert('Post Vertical Positioning Choice','','left editcolor editbackground editfont');
      $current_vert_val=($this->blog_options[$this->blog_vert_pos_index]!=='middle'&&$this->blog_options[$this->blog_vert_pos_index]!=='bottom')?'top':$this->blog_options[$this->blog_vert_pos_index];
      forms::form_dropdown(array('top','middle','bottom'),'','','',$data.'_blog_options['.$this->blog_vert_pos_index.']',$current_vert_val,false,'editcolor editbackground editfont left');
-     $this->css.="\n.".$this->dataCss.'{vertical-align:'.$current_vert_val.'}';
+     $css='';
+     $this->css.=$css.="\n.".$this->dataCss.'{vertical-align:'.$current_vert_val.'}';
      printer::alertx('</div>');
      printer::pclear();
+     $this->show_more('Style info','','info italic smaller');
+     printer::print_wrap1('techinfo');
+     printer::print_info('Current setting Css: '.$css);
+     $msg='Changes default vertical align css';
+     printer::print_info($msg);
+     printer::close_print_wrap1('techinfo');
+     $this->show_close('Tech info');
      printer::close_print_wrap('vertical align');
      $this->show_close('Vertical Align Posts');
      $this->overflow('blog',$this->data);
@@ -2819,11 +2878,7 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 			if (!empty($bw)) 
 				$bs=$this->calc_border_shadow($this->col_style); 
 			$class=($this->rwd_post)?$this->dataCss.' post '.str_replace(',',' ',$this->blog_grid_width).' '.str_replace(',',' ',$this->blog_gridspace_right).' '.str_replace(',',' ',$this->blog_gridspace_left).' '.$blog_custom_class:$this->dataCss.' post '.$blog_custom_class;
-			$nav_class='';
-			if ($this->blog_type==='navigation_menu'){
-				$nav_class=($this->blog_tiny_data2==='force_vert')?' vert':' horiz';
-				$nav_class.=($this->blog_tiny_data3==='nav_display')?' display':' hover';
-				}
+			
 		//call in animation info for webpage mode this will retrieve minimal javascript if animation enabled as well as main division class and data attributes..
 		#maindiv blog    #mainwidth 
 			$float_image=($this->blog_type==='float_image_left'||$this->blog_type==='float_image_right')?' float_image':'';//this is used for globalizing styles within a column with float image right and left we dont want to copy the image styles because of necessary padding between right and left but we do want to copy the text styles..  whereas image styles can also be globalized if type matches. to accomadate this in render textarea we use the css extenstion : float images and in images we use the the full blog type css extension.  Here we include both to cover all situations
@@ -2833,14 +2888,14 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 			$dataHeight='';//($this->blog_height_arr[$this->blog_image_height_index]==='adjust')?' data-rwd="'.$this->rwd_post.'" data-type="'.$this->blog_type.'" data-height="init" data-hwid="init" ':'';
 			
 		 	if (!$this->edit)
-				print '<div id="'.$this->dataCss.'" '.$style.' class="'.$class.$nav_class.$anim_class.$classHeight.$masonclass.' '.$this->blog_type.$float_image.' webmode"'.$dataHeight.$dataMinheight.$dataAnimHeight.$dataAnimLock.' >';
+				print '<div id="'.$this->dataCss.'" '.$style.' class="'.$class.$anim_class.$classHeight.$masonclass.' '.$this->blog_type.$float_image.' webmode"'.$dataHeight.$dataMinheight.$dataAnimHeight.$dataAnimLock.' >';
 			else {
 				$addclass=(empty($bw))?' bs'.$this->page_editborder.$this->column_lev_color.' ':((empty($bs))?' bshad'.$this->page_editborder.$this->column_lev_color.' ':'');
 		#fieldset  switched to class  //removed style="max-width:'.$this->current_total_width.'px;"
           
                     $stylemore=($show_more_on)?'style="max-width:500px !important;width:500px;"':'';
                     $pid=(!$show_more_on)?' id="p'.$this->orig_val['blog_id'].'"':'';
-				 print '<div id="'.$this->dataCss.'" '.$stylemore.' class="'.$class.$nav_class.$addclass.' '.$this->blog_type.$float_image.' edit post"><!--Editpage fieldset post border--><p '.$pid.' class="lineh90  editcolor shadowoff editbackground editfont ">Post</p>'; 
+				 print '<div id="'.$this->dataCss.'" '.$stylemore.' class="'.$class.$addclass.' '.$this->blog_type.$float_image.' edit post"><!--Editpage fieldset post border--><p '.$pid.' class="lineh90  editcolor shadowoff editbackground editfont ">Post</p>'; 
 				printer::pclear();echo '<!--clear edit main blog div begin-->';
                     } 
 			$this->background_video('blog_style');
@@ -4755,7 +4810,7 @@ function css_initiate(){
 		}*/
      $this->initcss.='
 	.editfontfamily {font-family:'.$this->edit_font_family.';} 
-	.editfont {font-family:'.$this->edit_font_family.';text-shadow:none; text-align:left;font-size:'.($this->edit_font_size*16).'px;letter-spacing:0;}  
+	.editfont {font-family:'.$this->edit_font_family.';text-shadow:none; text-align:left;font-size:'.($this->edit_font_size*16).'px;letter-spacing:0;font-weight:400;}  
 	#displayCurrentSize{padding:2px;z-index:10000000;} 
      @media screen and (max-width:1000px) and (min-width:600px){ 
           html .editfont #displayCurrentSize{font-size:12px;padding:0px;}
@@ -5214,17 +5269,8 @@ function css_nav(){
 .nav_gen{margin-left: auto;	margin-right: auto; display:table;}
 .nav_gen A {cursor: pointer;display:block; }
 .nav_gen UL UL LI A:LINK,.nav_gen LI A:LINK {color:inherit;}
-.nav_gen UL UL  {  text-align: center; vertical-align: top;}
-.horiz .nav_gen UL LI {display:inline-block;  vertical-align: top;}
-.horiz .nav_gen UL UL LI {display:block;}
-.vert  .nav_gen UL LI {display: block; vertical-align: top; }
-.hover .nav_gen UL  LI  {position:relative;}
-.hover .nav_gen  UL UL {Z-INDEX: 100; LEFT:0; TOP:0; VISIBILITY: hidden;  overflow:hidden;   POSITION: absolute;  }
-  .hover .nav_gen  UL :hover UL :hover UL  { VISIBILITY: visible;} 
-.hover .nav_gen  UL LI:hover UL  { VISIBILITY: visible } 
-.hover .nav_gen ul.sub-level,.hover .nav_gen  ul ul  {  Z-INDEX: 100; }
-.hover .nav_gen  UL UL LI  {margin-right:auto; margin-left:auto;} 
-.display .nav_gen  ul.sub-level,.display .nav_gen  UL UL LI  {margin-right:auto; margin-left:auto; display:block;}    
+.nav_gen UL UL  {vertical-align: top;}
+.nav_gen UL LI {display:inline-block;  vertical-align: top;}   
 .nav_gen ul li.show_icon   {display:none;}
  .nav_gen ul li:hover ul li.show_icon a:after,
 .nav_gen ul li:hover li.show_icon a:hover:after,
@@ -5460,7 +5506,7 @@ box-shadow:  4px 4px 7px -6px #800000;}
      .utility_horiz UL UL  { VISIBILITY: hidden }
      ';	
 $this->pageeditcss.='
-	 .editfontcol {font-size:'.($this->edit_font_size*16).'px;font-family:'.$this->edit_font_family.'text-shadow:none; text-align:center;}
+	 .editfontcol {font-size:'.($this->edit_font_size*16).'px;font-family:'.$this->edit_font_family.'text-shadow:none; text-align:center;font-weight:400;}
 	.editdefaultcol { text-shadow:none; text-align:center;}
 	editcolor{color:#'.$this->editor_color.';}
 	.ramanablock {max-width:700px; text-align:left;background:#'.$this->editor_background.';color:#'.$this->editor_color.';}
@@ -5476,7 +5522,7 @@ $this->pageeditcss.='
 	.editbackground{ background:#'.$this->editor_background.';} 
 	.fs1color{border:1px solid  #'.$this->editor_color.';}
 	.fs1npblack {border: 1px  solid #'.$this->editor_color.';}
-	.editfontcenter {font-size:'.($this->edit_font_size*16).'px;font-family:'.$this->edit_font_family.';text-align:center;}
+	.editfontcenter {font-size:'.($this->edit_font_size*16).'px;font-family:'.$this->edit_font_family.';text-align:center;font-weight:400;}
 	';
 	$this->editgencss.='
      .buttoneditcolor{ text-align:left;  color:#'.$this->editor_color.'; 
@@ -5597,10 +5643,10 @@ foreach ($carr as $color){
       textarea.textarea,textarea {padding:0 !important; margin:0 !important}
 	.margincenter {margin: 0 auto;}
 	
-	.editfontsmall {font-size:14px;text-align:left;}
-	.editfontsmaller {font-size:12.5px;text-align:left;}
-	.editfontsmallest {font-size:11px;text-align:left;}
-	.editfontsupersmall{font-size:9.5px;text-align:left;}
+	.editfontsmall {font-size:14px;text-align:left;font-weight:400;}
+	.editfontsmaller {font-size:12.5px;text-align:left;font-weight:400;}
+	.editfontsmallest {font-size:11px;text-align:left;font-weight:400;}
+	.editfontsupersmall{font-size:9.5px;text-align:left;font-weight:400;}
 	
 	.shadow {text-shadow: #f2f0e4 -1.4px -1.4px  0.8px }
 	.textshadow {font-family: Tahoma, Geneva, sans-serif; text-shadow: -1.4px -1.4px  0.8px #1E47FF;}

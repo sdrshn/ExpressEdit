@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.2
+#ExpressEdit 2.0.3
 /* geoipcity.inc
  *
  * Copyright (C) 2004 Maxmind LLC

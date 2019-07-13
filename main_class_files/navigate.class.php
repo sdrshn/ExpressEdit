@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.2
+#ExpressEdit 2.0.3
 /*
 ExpressEdit is an integrated Theme Creation CMS
 	Copyright (c) 2018  Brian Hayes expressedit.org  
@@ -56,7 +56,7 @@ class navigate {
     
 function render_menu($dir_menu_id,$style='',$nav_return=true){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
 	self::$app_inc++;
-	$this->automate_menu($dir_menu_id,$style,$nav_return);
+	$this->automate_menu($dir_menu_id,$nav_return);
 	}
  
 function utility_menu($style=''){ //addpics, vids utility  etc.
@@ -67,22 +67,21 @@ function utility_menu($style=''){ //addpics, vids utility  etc.
 	$q="select  dir_menu_id from directory where dir_filename='index' limit 1";
 	$r=$mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);
 	list($dir_menu_id)=$mysqlinst->fetch_row($r,__LINE__); 
-	$nav_class=$this->automate_menu($dir_menu_id,$style,false);
+	$this->automate_menu($dir_menu_id);
 	$this->util_menu_id=$dir_menu_id;//used in navigation_edit 
 	}
 
-function automate_menu($dir_menu_id,$nav_class='',$nav_return=true){
+function automate_menu($dir_menu_id,$nav_return=true){
 	if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
 	$mysqlinst=mysql::instance();
 	$mysqlinst->dbconnect();   
 	($this->edit&&$nav_return)&&$this->return_url($this->pagename); 
 	echo'<div class="nav_gen"><!--nav_gen_'.$dir_menu_id.'-->';
-	$this->auto_nav_data($dir_menu_id,$nav_class); 
+	$this->auto_nav_data($dir_menu_id); 
 	echo'</div><!--nav_gen_'.$dir_menu_id.'-->';
-	return $nav_class;
 	}
 	
-function auto_nav_data($dir_menu_id,$nav_class){
+function auto_nav_data($dir_menu_id){
 	$fields=Cfg::Dir_fields;
 	$field_arr=explode(',',$fields); 
 	$q="select dir_id,$fields from ".Cfg::Directory_dir ." where dir_menu_id='$dir_menu_id'  order by dir_menu_order asc, dir_sub_menu_order asc";
@@ -123,7 +122,7 @@ function auto_nav_data($dir_menu_id,$nav_class){
 				}//end else
 			}//end foreach menu order
 		if($close)print '</ul><!--sub_level--> 
-			</li><!--'.$nav_class.'-->';//close sub_level
+			</li><!--sub_level-->';//close sub_level
 		}  //end  foreach keys
 		# toggleClass javascript will also remove hover class..
 	$style='';

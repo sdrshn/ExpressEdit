@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.2
+#ExpressEdit 2.0.3
 class add_page_vid_core {
 function __construct(){
 	$id_ref=request::check_request_data('id_ref');

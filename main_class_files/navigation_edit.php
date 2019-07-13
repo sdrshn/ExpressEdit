@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.2
+#ExpressEdit 2.0.3
 /*
 ExpressEdit is an integrated Theme Creation CMS
 	Copyright (c) 2018  Brian Hayes expressedit.org  
@@ -209,6 +209,7 @@ if (isset($_POST['nav_send'])){
 	if (empty($nav_order))mail::alert('Empty Nav Order Received');
 	else  nav_order($nav_order);
 	}
+$sess=new session();
 $dir_fields=Cfg::Dir_fields;
 $dir_fields_arr=explode(',',$dir_fields);
 $directory_table=Cfg::Directory_dir;
@@ -226,17 +227,22 @@ $postreturn=request::check_request_data('postreturn');
 $style=request::check_request_data('style');
 $ttt=request::check_request_data('ttt');
 $order=request::check_request_data('order');
+$css=request::check_request_data('css');// css provides current styling for the add_page_pic_core.php page
+$css=(!empty($css))?$css:Cfg_loc::Root_dir.'addeditmaster'; 
+$dir_menu_id=request::check_request_data('menuid'); 
+$data=request::check_request_data('data');
+$navstyle=request::check_request_data('style');
 if (empty($postreturn)){
-	mail::alert('empty postreturn');
+     if (Sys::Loc){
+          print_r(get_defined_vars());
+          mail::alert('empty postreturn');
+          exit;
+          }
+     
+     mail::alert('empty postreturn');
 	$refer=new redirect;
 	$refer->page_referrer_redirect("!MISSING POST INFORMATION: TRY AGAIN!", '', $sess->page_referrer_2,'true'); 
 	}
-$css=request::check_request_data('css');// css provides current styling for the add_page_pic_core.php page
-$css=(!empty($css))?$css:Cfg_loc::Root_dir.'addeditmaster'; 
-$www=request::check_request_data('www');// 
-$dir_menu_id=request::check_request_data('menuid'); 
-$data=request::check_request_data('data');
-$navstyle=request::check_request_data('style'); 
 if (empty($dir_menu_id)){
 	$refer=new redirect;
 	$refer->page_referrer_redirect("MISSING NAV INFORMATION: TRY AGAIN!!!!" , '', $sess->page_referrer_2,'true');
@@ -404,8 +410,8 @@ $count=$mysqlinst->count_field($directory_table,'dir_menu_id','',false,"where di
 if ($count>0){ 
 	printer::alertx('<p class="fsminfo inline center editcolor editbackground">Your Menu for Editing is below</p>'); 
 	printer::pclear(7);
-	$passnavclass=(isset($_GET['passnavclass']))?$_GET['passnavclass']:'';
-	echo '<div class="'.$data.' '.$passnavclass.'">';
+	//$passnavclass=(isset($_GET['passnavclass']))?$_GET['passnavclass']:'';
+	echo '<div class="'.$data.'">';
 	$navobj->no_icon=true;
      $navobj->render_menu($dir_menu_id,$navstyle);
 	echo '</div>';

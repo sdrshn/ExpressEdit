@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.2
+#ExpressEdit 2.0.3
 #testchange 336333
 class mail {
 	private static $instance=false; //store instance 
@@ -310,8 +310,8 @@ static function alert($msg,$subject='mail::alert'){
 	process_data::write_to_file('error_last_log',$subject.NL.$msg.NL);
 	if (Sys::Loc){
 		printer::alert($subject.NL.$msg.NL);
-		# print_r(debug_backtrace());
-		//debug_print_backtrace();
+		print_r(debug_backtrace());
+		#debug_print_backtrace();
 		}
 	else {
 		 $msg.=print_r(debug_backtrace(),true);

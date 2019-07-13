@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.2
+#ExpressEdit 2.0.3
 # Copyright 2010 Maxmind LLC All Rights Reserved
 $GEOIP_REGION_NAME = array(
 "AD" => array(

@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.2
+#ExpressEdit 2.0.3
     if(!defined('xinstall')&&!is_file('./includes/Cfg.class.php')) {
           die('Direct access not permitted from this location. Move to and Run from Your Domain/SubDirectory Root'); 
      //taken from php.net  pages zelnaga at gmail dot com ¶

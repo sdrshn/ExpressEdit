@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.2
+#ExpressEdit 2.0.3
 /*
 ExpressEdit is an integrated Theme Creation CMS
 	Copyright (c) 2018  Brian Hayes expressedit.org  
@@ -435,8 +435,11 @@ use ?debug and/or ?methods
 function magnify_margins(){
      ##################### advance off button
 	echo '<div class="inline floatleft"><!-- float buttons-->';
-	$msg='Click Button to enlarge borders and add margin and padding spacing in order to better see column arrangement. In certain circumstance can cause a floated post to break to new line'; 
-	printer::printx('<p class="info click buttoninfo highlight tiny" title="'.$msg.'"> <a style="color:inherit;"  href="'.Sys::Self.'?magnify_margins">Enable Margin Magnify</a></p>'); 
+	$msg='Click Button to enlarge borders and add margin and padding spacing in order to better see column arrangement. In certain circumstance can cause a floated post to break to new line';
+     if (!isset($_GET['magnify_margins']))
+          printer::printx('<p class="info click buttoninfo highlight tiny" title="'.$msg.'"> <a style="color:inherit;"  href="'.Sys::Self.'?magnify_margins">Enable Margin Magnify</a></p>');
+     else 
+          printer::printx('<p class="info click buttoninfo highlight tiny" title="'.$msg.'"> <a style="color:inherit;"  href="'.Sys::Self.'">Disable Margin Magnify</a></p>'); 
 	echo '</div><!-- float buttons-->';
      }
     
@@ -1436,33 +1439,33 @@ function font_size($style,$val,$field,$directcss=false){if (Sys::Methods) Sys::D
 	
 function width_special($style,$val,$field,$directcss=false,$norendercss=false){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
      $width= ($norendercss)?'none':'width';//if true no css 
-	$this->spacing($style,$val,$width,'Width','Straight forward Width option will not override a max-width or min-width property','','',false, $field,$directcss);
+	$this->spacing($style,$val,$width,'Width','Straight forward Width option will not override a max-width or min-width property','','',false, $field,$directcss,0,'',array('auto'=>'width:auto;'));
      }
   
 function width_max_special($style,$val,$field,$directcss=false,$norendercss=false){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
      $width= ($norendercss)?'none':'max-width';//if true no css 
-	$this->spacing($style,$val,$width,'Max Width','Max-Width sets a maximum width and overrides width property','','',false, $field,$directcss);
+	$this->spacing($style,$val,$width,'Max Width','Max-Width sets a maximum width and overrides width property','','',false, $field,$directcss,0,'',array('none'=>'max-width:none;'));
      }
  
 function width_min_special($style,$val,$field,$directcss=false,$norendercss=false){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
      $width= ($norendercss)?'none':'min-width';//if true no css 
-     $this->spacing($style,$val,$width,'Min-Width','Note: Media Query removing Minimum Width is automatically generated at viewports at or below the min-width value set! Minimum Width sets a minimum width and overrides width property','','',false, $field,$directcss);
+     $this->spacing($style,$val,$width,'Min-Width','Note: Media Query removing Minimum Width is automatically generated at viewports at or below the min-width value set! Minimum Width sets a minimum width and overrides width property','','',false, $field,$directcss,0,'',array('none'=>'min-width:none;'));
      }
 
 function height_special($style,$val,$field,$directcss=false,$start=0){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-	$return=$this->spacing($style,$val,$field,'Height','Straight forward Height option will not override  a max-height or min-height property','','',false, $field,$directcss,$start);
+	$return=$this->spacing($style,$val,$field,'Height','Straight forward Height option will not override  a max-height or min-height property','','',false, $field,$directcss,$start,'',array('auto'=>'height:auto;'));
      return $return;
      }
 
   
 function height_max_special($style,$val,$field,$directcss=false,$start=0){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-	$return=$this->spacing($style,$val,$field,'Max Height','Max-Height sets a maximum height and overrides height property','','',false, $field,$directcss,$start);
+	$return=$this->spacing($style,$val,$field,'Max Height','Max-Height sets a maximum height and overrides height property','','',false, $field,$directcss,$start,'',array('none'=>'max-height:none;'));
      return $return;
      }
 
  
 function height_min_special($style,$val,$field,$directcss=false,$start=0){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-     $return=$this->spacing($style,$val,$field,'Min-Height','Minimum Height sets a minimum height and overrides height property','','',false, '',$directcss,$start);
+     $return=$this->spacing($style,$val,$field,'Min-Height','Minimum Height sets a minimum height and overrides height property','','',false, '',$directcss,$start,'',array('none'=>'min-height:none;'));
      return $return;
      }
 
@@ -1771,7 +1774,8 @@ function spacing($style,$val,$css_style,$msg,$title,$hide='',$ifempty='',$showpe
           return $returnval;
           } 
 	printer::pclear(); 
-     $empty=true; 
+     $empty=true;
+     $directReturn='';
 	if ($css_style!=='none'){//
           $csstype=($this->is_page)?'pagecss':'css';
            if ($directcss!==false&&!empty($directcss)){//direct css is css expressed directly with this->css.=   instead of collected and aggregrated with other css that is expressed under same classname through the main style editor
@@ -1789,7 +1793,7 @@ function spacing($style,$val,$css_style,$msg,$title,$hide='',$ifempty='',$showpe
                                    }
                               else $pxequiv='';
                               $scaleunit=($ext==='percent')?'%':$ext;
-                              $this->$csstype.="
+                              $this->$csstype.=$directReturn="
           $directcss".'{'.$css_style.':'.$pos_neg.${'current_'.$ext}.$scaleunit.';}';
                               printer::print_notice('Active '.$msg.': '.$pos_neg.${'current_'.$ext}.$scaleunit.$pxequiv);
                               break;
@@ -1797,12 +1801,12 @@ function spacing($style,$val,$css_style,$msg,$title,$hide='',$ifempty='',$showpe
                          printer::pclear();
                          }//end foreach
                     if(!empty($ifempty)&&$empty) { //is empty 
-                         $this->$csstype.=$directcss.'{'.$ifempty.'}';  
+                         $this->$csstype.=$directReturn=$directcss.'{'.$ifempty.'}';  
                          } 
                     }//if directcss not false or !empty
                else {//use cssoverride value
-                    $this->$csstype.=$directcss.'{'.$overridevalue.'}';
-                    }      
+                    $this->$csstype.=$directReturn=$directcss.'{'.$overridevalue.'}';
+                    } 
                } 
           else  {// direct css is false
                $fstyle='final_'.$style;
@@ -1836,6 +1840,7 @@ html '.$this->pelement.'{'.$css_style.':'.$pos_neg.${'current_'.$ext}.$scaleunit
                     }
                }//directcss is false 
            }//if css_style !none
+     if(!empty($directReturn))return $directReturn;
      return (!empty($returnval))?true:false;
 	} #end spacing  //end
    
@@ -2692,13 +2697,22 @@ function overflow($type,$data){
 	printer::alert('<input type="radio"  name="'.$data.'_'.$type.'_options['.$this->{$type.'_overflowy_index'}.']" value="auto" '.$check4.'>auto');
      $css_id=($type==='blog')?$this->dataCss:$this->col_dataCss;
      printer::close_print_wrap1('overflowy');  
-     printer::close_print_wrap('overflow');
-     $this->show_close('Set Post Overflow Property');
+     $css='';
      if(!empty($overflowx)||!empty($overflowy)){
           $overflowx=(!empty($overflowx))?'overflow-x:'.$overflowx.';':'';
           $overflowy=(!empty($overflowy))?'overflow-y:'.$overflowy.';':'';
-		$this->css.= '.'.$css_id.'{'.$overflowx.$overflowy.'}';
+		$this->css.=$css.= '.'.$css_id.'{'.$overflowx.$overflowy.'}';
 		}
+     $this->show_more('Style info','','info italic smaller');
+     printer::print_wrap1('techinfo');
+     printer::print_info('Current setting Css: '.$css);
+     $msg='Changes default css overflow x direction and y direction properties.';
+     printer::print_info($msg);
+     printer::close_print_wrap1('techinfo');
+     $this->show_close('Tech info');
+     
+     printer::close_print_wrap('overflow');
+     $this->show_close('Set Post Overflow Property');
      }
      
 function custom_style($style, $val,$field=''){
@@ -3951,7 +3965,12 @@ function width_options($type,$data){
 		printer::print_tip('As rem em and px choices made here may be tied directly to viewport rwd scaling, the width tracking information for rwd grid and the main max-width choices will not be available for subsequent posts within this column. RWD grid w/o width calc however will still be usuable if needed.',.7);
      printer::print_tip('Alt scaling width units  ie. em, rem,  %, px may be used instead of the main width mode without width tracking and is compatible with active flex-items initial sizing');
      if ($this->{'use_'.$type.'_main_width'})printer::print_info('Main width choice is activated and will override these options.');
-	$css_id=($this->is_column)?$this->col_dataCss:$this->dataCss; 
+	$css_id=($this->is_column)?$this->col_dataCss:$this->dataCss;
+     $this->show_more('Style info','','info italic smaller');
+     printer::print_wrap1('techinfo');
+     printer::print_info('Width choices made here are directly applied to '.$type.' main div class: .'.$css_id .' (unless overriden as outlined above)');
+     printer::close_print_wrap1('techinfo');
+     $this->show_close('Tech info');
 	$this->width_max_special($data.'_'.$type.'_options',$this->{$type.'_max_width_opt_index'},'','.'.$css_id,$this->{'use_'.$type.'_main_width'});
 	$this->width_special($data.'_'.$type.'_options',$this->{$type.'_width_opt_index'},'','.'.$css_id,$this->{'use_'.$type.'_main_width'});
 	$this->width_min_special($data.'_'.$type.'_options',$this->{$type.'_min_width_opt_index'},'','.'.$css_id,$this->{'use_'.$type.'_main_width'});
@@ -4066,6 +4085,13 @@ function position(){
 		.'.$css_id.'{'.$opacity.'}';
 		}
 	$this->css.=$mediacss;
+     $this->show_more('Style info','','info italic smaller');
+     printer::print_wrap1('techinfo');
+     printer::print_info('Current setting Css: '.$mediacss);
+     $msg='The following position/opacity css is applied to the main div class '.$css_id.' of this '.$prefix;
+     printer::print_info($msg);
+     printer::close_print_wrap1('techinfo');
+     $this->show_close('Tech info');
 	$this->editoverridecss.='#'.$css_id.',.'.$css_id.'{opacity:1;position:static !important; transform: none;-ms-transform: none;-webkit-transform: none;z-index:0 !important;}';
 	//$this->editoverridecss.='.'.$css_id.'{opacity:1; }';  
 	$this->submit_button();
@@ -4212,7 +4238,7 @@ function height_options($type,$data){
 	$h=$this->height_special($data.'_'.$type.'_options',$this->{$type.'_height_opt_index'},$field,'.'.$css_id,$k);
 	$this->{$data.'_'.$type.'_options'}[$this->{$type.'_min_height_opt_index'}]=$this->{$type.'_options'}[$this->{$type.'_min_height_opt_index'}];  
 	$hmin=$this->height_min_special($data.'_'.$type.'_options',$this->{$type.'_min_height_opt_index'},$fieldmin,'.'.$css_id,$k);
-     $mediacss='';
+     $mediacss=$css='';
       $appendcss=($type==='blog'&&($this->blog_type==='image'||$this->blog_type==='auto_slide'))?' width:auto;max-width:none;':''; 
      if ((!empty($mediamin)||!empty($mediamax))&&(!empty($hmax)||!empty($hmin)||!empty($h))){ 
           $hmax=(!empty($hmax))?' max-height:'.$hmax.';':'';
@@ -4243,11 +4269,23 @@ function height_options($type,$data){
           $this->mediacss.=$mediacss;
           }
      else if (!empty($hmax)||!empty($hmin)||!empty($h)){ //css expressed already expressed in ion style but lets append
-         $this->css.='
+         $this->css.=$mediacss='
      html .'.$css_id.'{'.$appendcss.'}
           ';
+          $mediacss='
+     html .'.$css_id.'{'.$hmax.$hmin.$h.$appendcss.'}
+          ';
           }
-	printer::close_print_wrap('more height');	
+	printer::close_print_wrap('more height');
+     
+     $this->show_more('Style info','','info italic smaller');
+     printer::print_wrap1('techinfo');
+     printer::print_info('Current setting Css: '.$mediacss);
+     $msg='Direct height, max-height, or min-height applied to main div of '.$type.' with optional media queries';
+     printer::print_info($msg);
+     printer::close_print_wrap1('techinfo');
+     $this->show_close('Tech info');
+     
 	 printer::print_info('Optionally choose a @media screen size min-width or max-width or both at which this '.$type.' will specify custom Height setting.');  
      echo '<div class="fsminfo"><!--wrap max width-->';
      printer::printx('<p class="smaller '.$this->column_lev_color.'">(0 = none) Chosen Height max-width: <span class="navybackground white">'.$mediamax.'</span><br></p>');   
@@ -4568,26 +4606,7 @@ function rwd_build($type,$data){
                    }
               }
          }
-     
-     /*
-      *Better to not adjust as page configurations are different also..
-      *elseif($this->edit&&$this->is_clone&&$this->clone_local_style){
-         if ($type==='col'){
-              $new_colgc="{$this->current_grid_units}@@$this->page_br_points";
-              if ($new_colgc !== $this->col_grid_clone){
-                   $q="update $this->master_col_css_table set col_grid_clone='$new_colgc' where col_id='c$this->col_id'";
-                   $this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
-                   }
-              }
-         else {
-              $new_bloggc="{$this->current_grid_units}@@$this->page_br_points";
-              if ($new_bloggc !== $this->blog_grid_clone){
-                   $q="update $this->master_post_css_table set blog_grid_clone='$new_bloggc' where blog_id='p$this->blog_id'";
-         
-                   $this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
-                   }
-              }
-         }*/
+   
     if($this->is_clone&&!$this->clone_local_style){ //col_grid_clone used as reference for use of configured page  grid units and bps and serve as a reference for cloned posts that if not matching throws error
          $msg=''; 
          if (!empty($this->{$type.'_grid_clone'})){
@@ -4785,8 +4804,17 @@ function rwd_build($type,$data){
      if($this->is_clone&&!$this->clone_local_style){
          return;
          }
-    printer::printx('<p class="floatleft editbackground editfont left '.$this->column_lev_color.'">RwD Grid Set the Width && Placement of this '.$colpost.' Display For Device Width Conditions (break points)</p>');
+    printer::printx('<p class="floatleft editbackground editfont left '.$this->column_lev_color.'">RWD Grid Set the % Width  of this '.$colpost.' Display For Device Width Conditions (break points)</p>');
     printer::pclear();
+    $this->show_more('Style info','','info italic smaller');
+     printer::print_wrap1('techinfo');
+     printer::print_info('Current Grid Classes Applied to main div: '.$this->dataCss.':<br><br> Grid Width: '.$this->{$type.'_grid_width'}.'<br>
+     Grid  margin left Spacing: '.$this->{$type.'_gridspace_left'}.'<br>Grid  margin right Spacing: '.$this->{$type.'_gridspace_right'});
+      $msg='Class names are generated from  chosen grid percentage values and applied as supplemental class names to main div post type or  column. Corresponding css is generated only for each class name that is generated';
+     printer::print_info($msg);
+     printer::close_print_wrap1('techinfo');
+     $this->show_close('Style info');
+     printer::pclear();
     for ($i=0; $i<count($bp_arr); $i++){
           $bp=$bp_arr[$i];
           $curwid= ($width_enabled)?floor($this->grid_width_chosen_arr[$bp]):'';  
@@ -4921,7 +4949,7 @@ function edit_styles_close($element,$style_field,$css_classname,$show_list='',$m
           $class=($this->pelement==='body')?'body':$this->pelement;
 		$type_ref=($this->is_page)?'Page Ref: "'.$this->pagename.'"':(($this->is_column)?'Col Id: "C'.$this->col_id.'"':'Post Id: "P'.$this->blog_id.'"');
 		printer::printx('<p class="fsminfo smaller editbackground editfont editcolor">Class Name: <span class="'.$this->column_lev_color.'">'.$class.'</span><br>'.$type_ref.' Style Field: <span class="'.$this->column_lev_color.'"> '.$style_field.'</span></p>');
-		(!empty($msg))&&printer::printx('<div class="fsminfo editbackground editfont editcolor floatleft">'.$msg.'</div>');
+		(!empty($msg))&&printer::print_tip($msg,.7);
           printer::pclear(10);
           printer::alert('<input type="checkbox" name="'.$ndata.'" value="0" onchange="edit_Proc.oncheck(\''.$ndata.'\',\'Delete all styles within this style grouping for '.$type.' when YOU HIT CHANGE, UNCHECK TO CANCEL\')">Delete all styles for this Style grouping');
           printer::pclear(10);
@@ -5723,26 +5751,34 @@ function display_state(){
 	printer::print_tip('Optionally set a maximum and/or minimum with at which will initate a display:none for this post in webpage mode only. <br> Note: Display Property for RWD grid mode may be responsively Turned off using 0 grid units (ie %) for particular break pts.');
 	$displayoff_maxpx=($val_max>199&&$val_max<2001)?$val_max:'none';
 	$displayoff_minpx=($val_min>199&&$val_min<3001)?$val_min:'none';
-	$mediacss='';
+	$mediacss=$css='';
 	if ($displayoff_minpx!=='none'&&$displayoff_maxpx!=='none') {
-          $mediacss.='
+          $mediacss.=$css.='
           @media screen and (max-width:'.$displayoff_maxpx.'px) and (min-width:'.$displayoff_minpx.'px){
           #'.$css_id.'{display:none;}
                }
                ';
           }
      elseif ($displayoff_maxpx!=='none'){
-          $mediacss.='
+          $mediacss.=$css.='
           @media screen and (max-width: '.$displayoff_maxpx.'px){
           #'.$css_id.'{display:none;}
           }';
           }
      elseif ($displayoff_minpx!=='none') {
-          $mediacss.='
+          $mediacss.=$css.='
           @media screen and (min-width: '.$displayoff_minpx.'px){
           #'.$css_id.'{display:none;}
           }';
           }
+     
+     $this->show_more('Style info','','info italic smaller');
+     printer::print_wrap1('techinfo');
+     printer::print_info('Current setting Css: '.$css);
+     $msg='Uses @media control of display:none; css property';
+     printer::print_info($msg);
+     printer::close_print_wrap1('techinfo');
+     $this->show_close('Tech info');
      $btype=($this->is_blog)?$this->blog_type:'nested';
      $this->css.=$mediacss;
      (!empty($this->display_edit_data))&&$this->editoverridecss.=" 
@@ -5956,14 +5992,15 @@ function animation(){
  	$inittotaldelay=(($animate_repeats*$animate_duration)+$animate_after_delay+$animate_prior_delay)*1000;
      $followupdelay=1000*$animate_after_duration*$animate_after_repeats;
 	$fulltotaldelay=$followupdelay+$inittotaldelay;
+     $css='';
      if ($animate_type!=='none'){
 		if (!empty($animate_width)&&is_numeric($animate_width)) {#all goes within min-width specification
-			$this->css.='
+			$this->css.=$css.='
 			@media screen and (min-width:'.$animate_width.'px){   
-				';
+				'; $css.='<br>';
 			}
 		if ($animate_visibility ==='hidden'){
-			$this->css.='
+			$this->css.=$css.='
 			.'.$id_ref.'{visibility:hidden;}
 			.'.$id_ref.'.active-anim.in-view{visibility:visible;}
 			'; 
@@ -5973,17 +6010,17 @@ function animation(){
 			';
 			} 
 		if ($animate_visibility ==='nodisplay'){
-			$this->css.='
+			$this->css.=$css.='
 			.'.$id_ref.'{display:none;}
 			.'.$id_ref.'.active-anim.in-view{display:'.$this->display_edit_data.';}
-			'; 
+			';
 			} 
 			 
 		$alternate_css=($animate_alternate)?
 		'-webkit-animation-direction: alternate;
 			animation-direction: alternate;':'';
 		$animate_repeats=($animate_alternate)?$animate_repeats*2:$animate_repeats;	
-		$this->css.='
+		$this->css.=$css.='
 		#'.$id_ref.'.'.$animate_type.'.in-view.active-anim{
 		 -webkit-animation-name: '.$animate_type.';
 		animation-name: '.$animate_type.'; 
@@ -6001,7 +6038,7 @@ function animation(){
 		';
          
 		if ($animate_after_type!=='none'){
-               $this->css.='
+               $this->css.=$css.='
 		#'.$id_ref.'.'.$animate_after_type.'.in-view.active-anim {
 		 -webkit-animation-name: '.$animate_after_type.';
 		animation-name: '.$animate_after_type.';
@@ -6016,7 +6053,7 @@ function animation(){
 		';
 			}//endif animate_after_type
 		if ($animate_final_display==='visibleoff'){
-               $this->css.='
+               $this->css.=$css.='
 		#'.$id_ref.'.fadeOut.in-view.active-anim {
 	-webkit-animation-name: fadeOut;
 	animation-name: fadeOut;
@@ -6027,10 +6064,17 @@ function animation(){
 	';
                }//endif animate_after_type
 		if (!empty($animate_width)&&is_numeric($animate_width)) {
-			$this->css.='
+			$this->css.=$css.='
 			}';//close bracket for @media css
 			}
 		}//if animate_type !==none
+      $this->show_more('Style info','','info italic smaller');
+     printer::print_wrap1('techinfo');
+     printer::print_info('Current setting Css: '.$css);
+     $msg='Curent Css shown here is specific for main div id '.$id_ref.'. The general animation css in the animate.css file is modified from the daneden git hub open source project. Aditionally javascript is used to help program timings of animations and is pieced together from various discussions found on stackoverflow.com, etc.';
+     printer::print_info($msg);
+     printer::close_print_wrap1('techinfo');
+     $this->show_close('Style info');
 	$this->show_more('Control Initial visibility');	
 	$this->print_redwrap('anim visibility'); 
 	$checked1=($animate_visibility==='hidden')? 'checked="checked"':'';
@@ -6763,7 +6807,7 @@ function blog_import_export_options(){
 	$this->show_more('Import/Export Styles &amp; Configurations Option');
 	$this->print_redwrap('import/export',true);
      $this->submit_button();
-	echo '<div class="'.$this->column_lev_color.' fsminfo  editbackground editfont left "><!--import-->Import to this post only all styles and certain configuration from another '.$this->blog_type.' post from any page. <b>Will Not change configurations for width, Rwd Grid settings, height, and alternative RWD settings,check the additional box directly to import these also,  or these can be changed separately below. Will not change basic data such as Image Names and caption data, feedback, text, etc.</b> Post types must match.';
+	echo '<div class="'.$this->column_lev_color.' fsminfo  editbackground editfont left "><!--import-->Import to this post only all styles and certain configuration from another '.$this->blog_type.' post from any page. <b>Will Not change configurations for main width, Rwd Grid settings, height, and alternative RWD settings, unless you check the additional box below  to import these also,  or these can be changed separately below. Will not change basic data such as Image Names and caption data, feedback, text, etc.</b> Post types must match.';
 	printer::printx( '<p class="editcolor editbackground editfont" title="Be Sure to Use the Post Id Which Begins with a P ie P42.  Do Not Use the  Post# which simply refer to the Post Display Order Within the Column. Post Ids and #s are displayed at the top of each post"><input class="editcolor editbackground editfont" name="post_configcopy['.$this->blog_id.']" size="8" maxlength="8" type="text">Enter the  <span class="info">Post Id</span> <span class="red">(Not Post#) </span>that you wish to Copy Configurations and Styles to this post</p>');
 	printer::printx( '<p class="editcolor editbackground editfont"><input class="editcolor editbackground editfont" name="post_allconfigcopy['.$this->blog_id.']"   type="checkbox" value="'.$this->blog_id.'">Copy Include <b> All Width and RWD Configs</b> to this post also.</p>');
 	echo '</div>'; 
@@ -6823,7 +6867,7 @@ function blog_import_export_options(){
 	$dir= (is_dir(Sys::Common_dir))?Sys::Common_dir:Sys::Home_pub;
 	$dir=rtrim($dir,'/').'/';
 	$this->print_redwrap('interdatabase');
-	printer::print_tip('If you are runnig multiple datbases you can export/import all configs/Styles of this post to/from another database.  First Choose export dump data from donor post. Data will dump from database to file. Navigate to new webpage and post you wish to import data, and it will automatically import the file and update that database. File will dump to the common_dir if it exists otherwise the home directory.  Currently to import the file or export data the system will use/look-for the file: <span class="red">'.$dir.'lastpostdump.dat</span>'); 
+	printer::print_tip('If you are running multiple datbases you can export/import all configs/Styles of this post to/from another database.  First Choose export dump data from donor post. Data will dump from database to file. Navigate to new webpage and post you wish to import data, and it will automatically import the file and update that database. File will dump to the common_dir if it exists otherwise the home directory.  Currently to import the file or export data the system will use/look-for the file: <span class="red">'.$dir.'lastpostdump.dat</span>'); 
 				    
 	printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="post_configexportdump['.$this->blog_id.']"   type="checkbox" value="'.$this->blog_id.'">Export Dump these Styles and Config Settings to file.</p>');
 	printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="post_configimportdump['.$this->blog_id.']"   type="checkbox" value="'.$this->blog_id.'">Import Grab Style and Cofigure Settings from file '.$dir.'lastpostdump.dat</p>');
