@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.3
+#ExpressEdit 2.0.4
 #see top of global edit master class for system overview comment dir..
 /*
 ExpressEdit is an integrated Theme Creation CMS
@@ -1170,7 +1170,7 @@ function gallery($data,$gall_ref=''){
 			printer::close_print_wrap('slide_show'); 
 			printer::close_print_wrap('preview under or none sub choices');
 			printer::pclear(10); 
-			echo '<div class="fsmlightred marginauto center inline-table" style="width:70%; background: rgba(255,255,255,.5);" ><!--Choose Transtion Type--><p class="center small bold">Choose Slippry Gallery Transition:<span class="smallest"> <br>(for all the above choices)</span></p>';
+			echo '<div class="fsmlightred marginauto center inline-table" style="width:70%; background: rgba(255,255,255,.5);" ><!--Choose Transition Type--><p class="center small bold">Choose Slippry Gallery Transition:<span class="smallest"> <br>(for all the above choices)</span></p>';
 			$trans_arr=array('fade','kenburns','vertical','horizontal');
 			for ($i=0; $i<4; $i++){
 				$msg=($trans_arr[$i]==='kenburns')?'kenburns (Magnifies and moves image)':$trans_arr[$i];
@@ -1188,7 +1188,7 @@ function gallery($data,$gall_ref=''){
 			$this->mod_spacing($data.'_blog_data2['.$pause_index.']',$pause,3,30,.5,'secs');
                printer::pclear(5);
 			echo '</div><!--wrap transtime-->';
-			echo '</div><!--Choose Transtion Type-->';
+			echo '</div><!--Choose Transition Type-->';
         printer::pclear(4);
         printer::pclear(15);
 			if ($limitmax < 100&&$gall_display==='slippry')printer::print_warn('Note: Slippry Option for Limit Max width of large expanded image set to '.$limitmax.'%',.7);
@@ -2937,7 +2937,7 @@ function auto_slide($data,$type){
         }//end for
      $ease_in_out=2.75 /$total_duration*100;//2.75 refers to secs of transiton
      $beg_ease_out=$time /$total_duration *100 ;//basically the setting of time intervals - one ease_in_out because the easing in and easing out overlap
-     $full_again=$beg_ease_out+$ease_in_out;//basically addding in time of another ease in out transtion
+     $full_again=$beg_ease_out+$ease_in_out;//basically addding in time of another ease in out transition
      
      /* Animation for the slideshow images */
      $this->css.= '
@@ -3804,7 +3804,7 @@ function nav_menu($data,$dir_menu_id,$text) {//blog_data6 available
 				$opts[]=array('Your Menu Needs'=>'<span class="pos">Moving a menu Here</span>',
 					'Best Approach'=>'<span class="orange">Move the Menu Post</span>',
 					'How To proceed'=>'<span class="info">Delete this Post. Choose the Copy/Move/Clone Post From the Create Post/Column dropdown Option. Choose move and enter the Post Id of the the parent Menu.</span>');
-				$opts[]=array('Your Menu Needs'=>'<span class="pos">Sharing a Common Menu &amp; Menu Link Updates But With Independent Positoning &amp; Styling </span>',
+				$opts[]=array('Your Menu Needs'=>'<span class="pos">Sharing a Common Menu &amp; Menu Link Updates But With Independent Positioning &amp; Styling </span>',
 					'Best Approach'=>'<span class="orange">Got to the &#34;Choose a the Menu Already Created&#34; Option Below</span>',
 					'How To proceed'=>'<span class="info">Proceed to the Choose a Menu Already Created Option Below. Choose Your Menu. Style as needed. Changes to menu links from here or on any other column using the menu id will appear in all of them but styling changes are independent unless mirror options are chosen!</span>');
 				$opts[]=array('Your Menu Needs'=>'<span class="pos">Starting a Brand New Menu</span>',
@@ -3926,6 +3926,18 @@ function nav_menu($data,$dir_menu_id,$text) {//blog_data6 available
 	if ($count>0){
 		($this->edit)&&printer::printx('<p class="editbackground editfont fsminfo editbackground editfont floatleft left '.$this->column_lev_color.'">Menu Id: '.$dir_menu_id.'</p>');
 		printer::pclear();
+          echo <<<eol
+	
+   <script>
+   \$( function(){
+     \$( '.$this->dataCss .nav_gen li:has(ul)' ).doubleTapToGo();//selects li elements with submenus
+    
+      \$('.$this->dataCss .nav_gen li.show_icon .aShow').click(function(){
+          gen_Proc.toggleClass('#$this->dataCss .ulTop','menuRespond','menuRespond2','transitionEase',500);gen_Proc.toggleHasClass('#$this->dataCss .ulTop','#$this->dataCss','menuRespond','iconOpen');
+          });
+      });
+   </script>
+eol;
 		#navobj choices
 		$this->navobj->nav_animate=$nav_animate;
 		$this->navobj->respond_menu_dimension=$respond_menu_dimension;
@@ -3933,14 +3945,7 @@ function nav_menu($data,$dir_menu_id,$text) {//blog_data6 available
 		$this->navobj->nav_post_class=$this->dataCss; 
 		$this->navobj->nav_repeat_submenu=($nav_params[$nav_repeat_submenu_index]!=='repeat')?false:true;
 		$this->navobj->render_menu($dir_menu_id,'ID-'.$dir_menu_id.'-'.$datainc);
-      echo <<<eol
-	
-   <script>
-   \$( function(){
-     \$( '.$this->dataCss .nav_gen li:has(ul)' ).doubleTapToGo();//selects li elements with submenus
-     });
-   </script>
-eol;
+      
      }
 	elseif(empty($count)&&$this->edit){
 		printer::printx('<p class="fsminfo editbackground editfont '.$this->column_lev_color.' floatleft left">Add Your First Already Created Page To This Menu Under the Add,Edit &amp; Remove Links Option Below</p>');
@@ -3958,7 +3963,6 @@ eol;
      $icon_width=2;
      $icon_width_arr[0]=2;
      $nav_params[$nav_icon_width_index]=implode('@@',$icon_width_arr);
-     printer::printx('<input type="hidden" value="1" name="'.$data.'_'.$nav_name_ref.'_arrayed['.$nav_icon_width_index.']">');
      }
      $icon_vertical_choice=$nav_params[$nav_icon_vertical_response_index];
 	$icon_position_choice=(empty($nav_params[$nav_icon_position_index])||!is_numeric($nav_params[$nav_icon_position_index])||$nav_params[$nav_icon_position_index]>100)?0:$nav_params[$nav_icon_position_index];
@@ -4008,8 +4012,10 @@ eol;
    printer::print_info('Recomended to use LI A then for special needs use LI');
    $this->edit_styles_close($data,'blog_tiny_data11','.'.$this->dataCss.' .nav_gen ul li a:hover',$style_list,'Style LI A: Hover Link','','When You Hover Over a Link with the cursor it will change according to Any Styles set Here' );
    $this->edit_styles_close($data,'blog_tiny_data4','.'.$this->dataCss.' .nav_gen ul li:hover', $style_list,'Style LI: Hover Link','','When You Hover Over a Link with the cursor it will change according to Any Styles set Here' );
-     printer::print_tip('Style Hover Links on Sub Menu Panel');
-   $this->edit_styles_close($data,'blog_tiny_data10','.'.$this->dataCss.' .nav_gen ul ul li a:hover',$style_list,'Style SUB PANEL LI: Hover Link','','When You Hover Over a Link with the cursor it wil change according to Any Styles set Here' ); 
+     printer::print_wrap1('hover sub panel links');
+     printer::print_tip('Style Hover Links on Sub Menu Panel (also affects @icon menu widths)');
+   $this->edit_styles_close($data,'blog_tiny_data10','.'.$this->dataCss.' .nav_gen ul ul li a:hover',$style_list,'Style SUB PANEL LI: Hover Link','','When You Hover Over a Link with the cursor it will change according to Any Styles set Here' );
+    printer::close_print_wrap1('hover sub panel links');
    printer::close_print_wrap('Style Hover Links');
    $this->show_close('Style Hover Links'); 
    printer::pclear(5);
@@ -4191,7 +4197,7 @@ eol;
      echo '<option value="'.$this->page_editborder.'" selected="selected">'.$nav_icon_horiz_pos.'</option> 
 		 	<option value="none">None </option>
 		 	<option value="left">left position </option>
-		 	<option value="right">right positon </option>
+		 	<option value="right">right position </option>
 	  </select></p>';
      $this->show_more('Style info','','info italic smaller');
      printer::print_wrap1('techinfo');
@@ -4347,7 +4353,7 @@ eol;
      printer::print_wrap('Style Hover Links');
      printer::print_tip('Here you can style both the Hover effect for LI A and the parent LI element which affects individual links @media menu-icon widths.');
      printer::print_info('Recomended to use LI A then for special needs use LI');
-     $this->edit_styles_close($data,'blog_tiny_data8','.'.$this->dataCss.' .nav_gen .ulTop.menuRespond2 li:NOT(.show_icon) a:hover','background,font_family,font_weight,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform','Style LI A: Hover Link For Both Main &amp; Sub Menu Link if different than the main hover settings ','','When You Hover Over a Link with the cursor it wil change according to Any Styles set Here' );
+     $this->edit_styles_close($data,'blog_tiny_data8','.'.$this->dataCss.' .nav_gen .ulTop.menuRespond2   a:hover','background,font_family,font_weight,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform','Style LI A: Hover Link For Both Main &amp; Sub Menu Link if different than the main hover settings ','','When You Hover Over a Link with the cursor it wil change according to Any Styles set Here' );
      $this->edit_styles_close($data,'blog_tiny_data9','.'.$this->dataCss.' .nav_gen .ulTop.menuRespond2 li:NOT(.show_icon):hover','background,font_family,font_weight,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform','Style LI: Hover Link','','When You Hover Over a Link with the cursor it wil change according to Any Styles set Here' );
      printer::close_print_wrap('Style Hover Links');
      $this->show_close('Style Hover Links for @ Menu icon width');
@@ -4421,7 +4427,7 @@ eol;
      printer::close_print_wrap('menu link width');
      echo '<div class="fsminfo editbackground editfont '.$this->column_lev_color.' floatleft"><!--Icon Width-->'; 
      echo '<p class="highlight left" title="Select a icon width for the Responsize menu icon">Change Default Width of the Icon (1unit=16px)</p>';
-     $this->mod_spacing($data.'_'.$nav_name_ref.'_arrayed['.$nav_icon_width_index.']',$icon_width,.3,10,.1,'unit');
+     $this->mod_spacing($data.'_'.$nav_name_ref.'_arrayed['.$nav_icon_width_index.'][0]',$icon_width,.3,10,.1,'unit');
      printer::print_tip('Nav Icon bar Width and Height will scale proportionately to width. Width may be activated with scaling (responsive to viewport width) if enabled here.');
      $this->rwd_scale($nav_params[$nav_icon_width_index],$data.'_'.$nav_name_ref.'['.$nav_icon_width_index.']',"#$this->dataCss .show_icon",'font-size','Navigation Menu Icon Size','px',0,1,false,16,20); 
      $this->show_more('Style info','','info italic smaller');
@@ -4448,7 +4454,7 @@ eol;
      echo '</div><!--link color-->';
      printer::pclear(5);
      echo '<div class="fsminfo editbackground editfont '.$this->column_lev_color.' floatleft"><!--Icon Float-->';
-     printer::print_tip('<span style="font-weight:700; color:orange;">Custom Positioning of Menu Icon Position Info </span><br> On viewer screen widths less than that set above for the -Responsive View Port Width Minimum for Menu Icon Respresentation- it will appear in its static positon by default. However, by using the post options above for positioning you can position it using absolute relative or fixed positioning instead and set a left or right and top or bottom px or % placement for the menu icon wherever you want. <em> The RWD max-width value for positioning and for menu-icon appearance should be synced</em>');
+     printer::print_tip('<span style="font-weight:700; color:orange;">Custom Positioning of Menu Icon Position Info </span><br> On viewer screen widths less than that set above for the -Responsive View Port Width Minimum for Menu Icon Respresentation- it will appear in its static position by default. However, by using the post options above for positioning you can position it using absolute relative or fixed positioning instead and set a left or right and top or bottom px or % placement for the menu icon wherever you want. <em> The RWD max-width value for positioning and for menu-icon appearance should be synced</em>');
      echo '</div><!-- Icon Float-->';
      printer::pclear(5);
      ###############
@@ -4457,9 +4463,10 @@ eol;
      $checked1=($nav_animate==='fadeInRight')?'checked="checked"':'';
      $checked2=($nav_animate==='fadeInLeft')?'checked="checked"':'';
      $checked3=($nav_animate!=='fadeInRight'&&$nav_animate!=='fadeInLeft')?'checked="checked"':'';
-     echo '<p><input type="radio" value="fadeInRight" name="'.$data.'_'.$nav_name_ref.'['.$nav_animate_index.']." '.$checked1.'>Animate Right Slide-In Open</p>';
-     echo '<p><input type="radio" value="fadeInLeft" name="'.$data.'_'.$nav_name_ref.'['.$nav_animate_index.']." '.$checked2.'>Animate Left Slide-In Open</p>';
-     echo '<p><input type="radio" value="noanimate" name="'.$data.'_'.$nav_name_ref.'['.$nav_animate_index.']." '.$checked3.'>Animate Height Open Only</p>';
+     
+     echo '<p><input type="radio" value="noanimate" name="'.$data.'_'.$nav_name_ref.'['.$nav_animate_index.']." '.$checked3.'>Animate Height Open Only (keeps icon stationary)</p>'; 
+     echo '<p><input type="radio" value="fadeInRight" name="'.$data.'_'.$nav_name_ref.'['.$nav_animate_index.']." '.$checked1.'>Animate Right Slide-In Open (open icon position may shift)</p>';
+     echo '<p><input type="radio" value="fadeInLeft" name="'.$data.'_'.$nav_name_ref.'['.$nav_animate_index.']." '.$checked2.'>Animate Left Slide-In Open (open icon position may shift)</p>';
      $this->show_more('Style info','','info italic smaller');
      printer::print_wrap1('techinfo');
      $msg= 'Css for all nav animation: <br>
@@ -4515,7 +4522,7 @@ eol;
      echo '<p><input type="radio" value="vertical only" name="'.$data.'_'.$nav_name_ref.'['.$nav_icon_vertical_response_index.']." '.$checked3.'>Vertical Only (Default Value @menu-icon widths) uses display block;</p>';
      echo '<p><input type="radio" value="Center Float" name="'.$data.'_'.$nav_name_ref.'['.$nav_icon_vertical_response_index.']." '.$checked1.'>Center Float (Uses display:inline-block;)</p>';
      echo '<p><input type="radio" value="Float Left" name="'.$data.'_'.$nav_name_ref.'['.$nav_icon_vertical_response_index.']." '.$checked2.'>Float Left (Uses float:left;)</p>';
-     $icon_vertical_choice=($icon_vertical_choice==='Center Float')?'display:inline-block;':(($icon_vertical_choice==='Float Left')?'display:block;float:left;':'display:block;');
+     $icon_vertical_choice=($icon_vertical_choice==='Center Float')?'display:inline-block;':(($icon_vertical_choice==='Float Left')?'display:block;float:left;':'display:block!important;float:none;');
      $this->show_more('Style info','','info italic smaller');
      printer::print_wrap1('techinfo');
      printer::print_info('Current setting Css: .'.$this->dataCss.' .nav_gen ul.top-level.menuRespond li{
@@ -4605,7 +4612,7 @@ eol;
    } 
 
 .'.$this->dataCss.' .nav_gen UL UL A { '.$nav_sub_link_width.'height:auto; }
-.'.$this->dataCss.' .nav_gen ul.top-level:NOT(.menuRespond) li:NOT(.show_icon){
+.'.$this->dataCss.' .nav_gen ul.top-level:NOT(.menuRespond):NOT(.transitionEase) li:NOT(.show_icon){
   '.$nav_link_vertical_choice.'
      }
  @media screen and (max-width:'.$respond_menu_dimension.'px) {
@@ -4634,14 +4641,21 @@ overflow:hidden;
  transition: max-height 1s ease-in;
 	}
    
- .'.$this->dataCss.' .nav_gen ul.top-level.transitionEase li{display: block;}
+ 
+.nav_gen ul.top-level.transitionEase li:NOT("show_icon"){
+     opacity:0;'.$icon_vertical_choice.'
+}
 .nav_gen ul.top-level.transitionEase {
  max-height:0;
  overflow:hidden;
--webkit-transition: max-height 1s ease;
--moz-transition: max-height 1s ease;
- -o-transition: max-height 1s ease;
- transition: max-height 1s ease; 
+ -webkit-transition: opacity .1s ease;
+-moz-transition: opacity .1s ease;
+ -o-transition: opacity .1s ease;
+ transition: opacity .1s ease; 
+-webkit-transition: max-height .5s ease;
+-moz-transition: max-height .5s ease;
+ -o-transition: max-height .5s ease;
+ transition: max-height .5s ease; 
 		}	
  .'.$this->dataCss.' .nav_gen ul.top-level.menuRespond li{
   '.$icon_vertical_choice.'

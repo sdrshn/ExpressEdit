@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.3
+#ExpressEdit 2.0.4
 /*
 ExpressEdit is an integrated Theme Creation CMS
 	Copyright (c) 2018  Brian Hayes expressedit.org  
@@ -6343,7 +6343,7 @@ function animation(){
 	$this->print_redwrap('animate_after_delay','editbackground editfont Os3salmon fsmaqua'); 
 	printer::print_tip('Choose a delay after the initial animation if you wish to disappear it or followup with another animation on this same '.$type.'. This means after the initial animination finishes animating, the number of seconds till the followup animation or disappear starts<br>');
 	printer::alert('Change animation delay after the initial animation completes:');
-	$this->mod_spacing($anim_name.'['.$this->animate_after_delay_index.']',$animate_after_delay,0,$max_delay,.2,'sec');
+	$this->mod_spacing($anim_name.'['.$this->animate_after_delay_index.']',$animate_after_delay,0,$max_delay,.1,'sec');
 	printer::close_print_wrap('anim duration'); 
 	$this->show_close('Pause Delay to Follup Animation');	
 	printer::pclear(5);

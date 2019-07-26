@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.3
+#ExpressEdit 2.0.4
 #based on Larry Ullman php5 & 6 writings
     
 class secure_login {

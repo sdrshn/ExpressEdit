@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.3
+#ExpressEdit 2.0.4
 class store extends Singleton{
 	private static $backup_clone_refresh_cancel;
 	public $tablename;

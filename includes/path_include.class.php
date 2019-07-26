@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.3
+#ExpressEdit 2.0.4
 if(ob_get_level())ob_end_clean();//used in editmode
 if ( ! defined( "PATH_SEPARATOR" ) ) {
           if ( strpos( $_ENV[ "OS" ], "Win" ) !== false )

@@ -775,15 +775,15 @@ var gen_Proc = {
 		}, 
 	toggleClass   : function (ele, classN, classN2, replace, timeout) { 
 		if (\$(ele+'.'+classN).length){ 
-			\$(ele).css({'display':'block'});
 			\$(ele).addClass(replace).removeClass(classN);
 			setTimeout(function(){
-				\$(ele).removeClass(replace)
+				//\$(ele).removeClass(replace)
 				\$(ele).removeClass(classN2)
 				},timeout);
 			}
 		else {
-			\$(ele).addClass(classN).addClass(classN2); 
+               \$(ele).removeClass(replace)
+			\$(ele).addClass(classN).addClass(classN2);
 			}
 		},
 	toggleHasClass   : function (ele, ele2, classN, classN2) { 

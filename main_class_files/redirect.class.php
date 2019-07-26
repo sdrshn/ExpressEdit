@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.3
+#ExpressEdit 2.0.4
 class redirect {
 function page_referrer_redirect($msg,$succ='', $redirect='', $display=false,$refresh=false){ if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
      $message=array($msg);    

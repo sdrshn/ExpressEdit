@@ -82,19 +82,19 @@ Disallow: /';
 
      $hello_world='
 <?php
-#ExpressEdit 2.0.3
+#ExpressEdit 2.0.4
 echo "hello world";
 ?>';
 
      $sys_hello='<?php
-#ExpressEdit 2.0.3
+#ExpressEdit 2.0.4
 include \'./includes/Cfg_loc.class.php\';
 include'. Cfg_loc::Root_dir.'\'includes/path_include.class.php\';
 echo Sys::Hello;
 echo Cfg::Hello;
 ';
      $include_hello='<?php
-#ExpressEdit 2.0.3
+#ExpressEdit 2.0.4
 include ("hello.php");
 ';
      $access_deny='deny from all'; 
@@ -221,7 +221,7 @@ static function expand_file($gall_ref,$gall_table){
 	$new_file=Cfg_loc::Root_dir.$file; 
      $ex_file=<<<eol
 <?php
-#ExpressEdit 2.0.3
+#ExpressEdit 2.0.4
 include './includes/Cfg_loc.class.php';
 include Cfg_loc::Root_dir.'includes/path_include.class.php'; 
 \$expand=expandgallery_loc::instance();
@@ -282,7 +282,7 @@ static function create_new_page_class($newpage_ref){
      if (Cfg::Override_page_class||!is_file(Cfg_loc::Root_dir.Cfg::Include_dir.$newpage_ref.'.class.php')){
           $newpage=<<<EOL
 <?php
-#ExpressEdit 2.0.3
+#ExpressEdit 2.0.4
 class $newpage_ref extends site_master {
      protected \$pagename='$newpage_ref'; 
       // It is recommended to  add   customized page specific functions here which will override the same function name in the main engine:  global_master.class.php   or global_edit_master.class.php
@@ -324,7 +324,7 @@ static function pageEdit_generate($pagename){#generates page edit for page table
 	$filename=check_data::dir_to_file(__METHOD__,__LINE__,__FILE__,$pagename);
 $pageedit=<<<eol
 <?php
-#ExpressEdit 2.0.3
+#ExpressEdit 2.0.4
 include '../includes/path_include.class.php';
 new Sys();
 if (!is_file('../includes/$pagename.class.php'))file_generate::create_new_page_class('$pagename');
@@ -340,7 +340,7 @@ static function page_generate($pagename,$path='../'){if (Sys::Methods) Sys::Debu
      $filename=check_data::dir_to_file(__METHOD__,__LINE__,__FILE__,$pagename);
      $page=<<<eol
 <?php
-#ExpressEdit 2.0.3
+#ExpressEdit 2.0.4
 include './includes/path_include.class.php';
 new Sys();
 \$render= new render_html('$pagename');
@@ -356,7 +356,7 @@ eol;
 static function config_gen_init(){
 	$config=<<<eol
 <?php
-#ExpressEdit 2.0.3
+#ExpressEdit 2.0.4
 class Cfg_loc  {
 	const Root_dir='';
 	}
@@ -368,7 +368,7 @@ eol;
 static function config_gen_edit(){ 
      $configedit=<<<eol
 <?php
-#ExpressEdit 2.0.3
+#ExpressEdit 2.0.4
 class Cfg_loc {
 	const Root_dir='../';
     }
@@ -395,7 +395,7 @@ static function editMaster_generate(){#generate editpage URL response files ie a
      if (Sys::Debug)echo NL. "Generating ".__METHOD__." for Current Database";
      $addgalleryedit=<<<eol
 <?php
-#ExpressEdit 2.0.3
+#ExpressEdit 2.0.4
 include '../includes/path_include.class.php'; 
 new Sys();
 new addgallerypiccore();
@@ -403,7 +403,7 @@ new addgallerypiccore();
 eol;
 $navigation_edit=<<<eol
 <?php
-#ExpressEdit 2.0.3
+#ExpressEdit 2.0.4
 include '../includes/path_include.class.php';
 new Sys();
 \$load=new fullloader();
@@ -412,7 +412,7 @@ new Sys();
 eol;
     $add_page_vid=<<<eol
 <?php
-#ExpressEdit 2.0.3
+#ExpressEdit 2.0.4
 include '../includes/path_include.class.php'; 
 new Sys();
 new add_page_vid_core(); 
@@ -421,7 +421,7 @@ eol;
       
      $add_page_pic=<<<eol
 <?php
-#ExpressEdit 2.0.3
+#ExpressEdit 2.0.4
 include '../includes/path_include.class.php'; 
 new Sys();
 new add_page_pic_core(); 

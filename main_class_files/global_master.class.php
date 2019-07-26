@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.3
+#ExpressEdit 2.0.4
 #see top of global edit master class for system overview comment dir..
 /*
  *ExpressEdit is an integrated Theme Creation CMS
@@ -3904,11 +3904,11 @@ function render_header_open(){ if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__
 	($this->edit)&&$this->initnoUiSlider(); //javascript slider
 	if (!empty($this->header_script_function)){#note that the standard pagename script will be dumped here...!!
 	    $this->header_script=(!is_array($this->header_script))?explode(',',$this->header_script):$this->header_script;    
-	    $this->header_script[]='gen_Procscripts.js?'.rand(0,32323); //     
+	    $this->header_script[]='gen_Procscripts.js'; //     
 	    }
     
 	if (!empty($this->header_script)){  
-		$this->header_script=(!is_array($this->header_script))?explode(',',$this->header_script):$this->header_script;    
+		$this->header_script=(!is_array($this->header_script))?explode(',',$this->header_script):$this->header_script;
 		 foreach ($this->header_script as $var){
 	   	if (!empty($var)){
 			    echo ' 
@@ -3917,8 +3917,8 @@ function render_header_open(){ if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__
 			}
 		 }
 	if (!$this->edit&&!empty($this->header_script_webmode)){ 
-		$this->header_script=(!is_array($this->header_script))?explode(',',$this->header_script):$this->header_script;    
-		 foreach ($this->header_script as $var){
+		$this->header_script_webmode=(!is_array($this->header_script_webmode))?explode(',',$this->header_script_webmode):$this->header_script_webmode;    
+		 foreach ($this->header_script_webmode as $var){
 	   	if (!empty($var)){
 			    echo ' 
 			    <script  src="'.$this->roots.Cfg::Script_dir.$var.'?'.rand(0,32323).'"></script> ';
@@ -5270,7 +5270,7 @@ function css_nav(){
 .nav_gen A {cursor: pointer;display:block; }
 .nav_gen UL UL LI A:LINK,.nav_gen LI A:LINK {color:inherit;}
 .nav_gen UL UL  {vertical-align: top;}
-.nav_gen UL LI {display:inline-block;  vertical-align: top;}   
+.nav_gen UL LI {  vertical-align: top;}   
 .nav_gen ul li.show_icon   {display:none;}
  .nav_gen ul li:hover ul li.show_icon a:after,
 .nav_gen ul li:hover li.show_icon a:hover:after,

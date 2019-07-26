@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.3
+#ExpressEdit 2.0.4
 echo <<<eol
 <!DOCTYPE html>
 <html lang="en"> 
