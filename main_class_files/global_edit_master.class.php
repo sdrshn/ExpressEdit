@@ -4008,158 +4008,157 @@ function position(){
 	$msg='Responsive positioning option for this '.$type;
 	$this->show_more('Position & Opacity Option','','',$msg,'800');
 	$this->print_redwrap('wrap advanced position',true);
+     printer::print_info('Choosing relative or absolute elements activates left right positioning choices and z-index stacking order. Choosing an opacity also changes z-index value of element.');
      $css_id=($this->is_column)?$this->col_dataCss:$this->dataCss;
      for ($i=0; $i<3; $i++){
           $k=$i*$count;//
           if ($i>0){
                $this->show_more('Add additional @media query controlled option tweak for position options');
                $this->print_redwrap('additional media wrap #'.$i);
+               printer::print_tip('Relative or Aboslute value again required for activation of top or left values');
                }
-     $name=($this->is_column)?$this->col_name.'_col_options['.$this->col_position_index.']':$this->data.'_blog_options['.$this->blog_position_index.']';
-     $pos_horiz_val_name=($this->is_column)?$this->col_name.'_col_options':$this->data.'_blog_options';
-     $pos_vert_val_name=($this->is_column)?$this->col_name.'_col_options':$this->data.'_blog_options'; 
-	$max_name=$name.'['.($this->position_max_index+$k).']';
-	$min_name=$name.'['.($this->position_min_index+$k).']';
-	$pos_name=$name.'['.($this->position_index+$k).']';
-	$pos_vert_name=$name.'['.($this->position_vert_index+$k).']';
-	$pos_horiz_name=$name.'['.($this->position_horiz_index+$k).']';
-	$pos_zindex_name=$name.'['.($this->position_zindex_index+$k).']';
-     $opacity_name=$name.'['.($this->position_opacity_index+$k).']';
-	$opacity_val=(is_numeric($options[$this->position_opacity_index+$k])&&$options[$this->position_opacity_index+$k]>=6&&$options[$this->position_opacity_index+$k]<=100)?$options[$this->position_opacity_index+$k]:'none';
-     $pos_horiz_val=$options[$this->position_horiz_val_index+$k];
-	$pos_vert_val=$options[$this->position_vert_val_index+$k];
-	$pos_horiz=(!empty($options[$this->position_horiz_index+$k])&&in_array($options[$this->position_horiz_index+$k],$pos_horiz_vals_arr))?$options[$this->position_horiz_index+$k]:'none'; 
-	$pos_vert=(!empty($options[$this->position_vert_index+$k])&&in_array($options[$this->position_vert_index+$k],$pos_vert_vals_arr))?$options[$this->position_vert_index+$k]:'none';
-     $pos_type=(!is_numeric($options[$this->position_index+$k])&&in_array($options[$this->position_index+$k],$pos_arr))?$options[$this->position_index+$k]:'none';  
-	$ifemptyvert=($pos_type!='static'&&$pos_type!='none'&&$pos_vert==='top'||$pos_vert==='bottom')?$pos_vert.':0;':'';
-     $ifemptyhoriz=($pos_type!='static'&&$pos_type!='none'&&$pos_horiz==='right'||$pos_horiz==='left')?$pos_horiz.':0;':'';
-	$pos_zindex=($pos_type!='static'&&$pos_type!='none'&&is_numeric($options[$this->position_zindex_index+$k]))?$options[$this->position_zindex_index+$k]:'none';
-	$val_max=$options[$this->position_max_index+$k];
-	$val_min=$options[$this->position_min_index+$k];
-	$pos_maxpx=($val_max>=200&&$val_max<=3000)?$val_max:'none';
-	$pos_minpx=($val_min>=200&&$val_min<=3000)?$val_min:'none';
-	$mediacss='';
-	$pos_zindex_style=(is_numeric($pos_zindex))?'z-index:'.(int)$pos_zindex.';':'';
-	if ($pos_type!='static'&&$pos_type!='none'&&$pos_horiz==='center horizontally')
-		$pos_horiz_style='left: 0;  right: 0;  margin-left: auto; margin-right: auto;'; 
-	else $pos_horiz_style='';
-	if ($pos_type!='static'&&$pos_type!='none'&&$pos_vert==='center vertically') 
-		$pos_vert_style='top: 50%;transform: translateY(-50%); -ms-transform: translateY(-50%);-webkit-transform: translateY(-50%);';
-	else $pos_vert_style='';
-	$opacity= ($opacity_val!=='none')?'opacity:'.($opacity_val/100).';':'';
-	$pos_css='position:'.$pos_type.';';
-     if ((($pos_type!='static'&&$pos_type!='none')||!empty($opacity))&&$pos_minpx!=='none'&&$pos_maxpx!=='none') {
-		$mediacss.='
-		@media screen and (max-width:'.$pos_maxpx.'px) and (min-width:'.$pos_minpx.'px){
-		.'.$css_id.'{'.$pos_css.'
-		'.$pos_zindex_style.$pos_vert_style.$pos_horiz_style.$opacity.'}
-			}
-			';
-		}
-	elseif ((($pos_type!='static'&&$pos_type!='none')||!empty($opacity))&&$pos_maxpx!=='none'){
-		$mediacss.='
-		@media screen and (max-width: '.$pos_maxpx.'px){
-		.'.$css_id.'{'.$pos_css.';
-		'.$pos_zindex_style.$pos_vert_style.$pos_horiz_style.$opacity.'}
-		}';
-		}
-	elseif ((($pos_type!='static'&&$pos_type!='none')||!empty($opacity))&&$pos_minpx!=='none') {
-		$mediacss.='
-		@media screen and (min-width: '.$pos_minpx.'px){
-		.'.$css_id.'{'.$pos_cs.';
-		'.$pos_zindex_style.$pos_vert_style.$pos_horiz_style.$opacity.'}
-		}';
-		}
-	elseif ((($pos_type!='static'&&$pos_type!='none')||!empty($opacity))) {
-		$mediacss.=' 
-		.'.$css_id.'{'.$pos_css.';
-		'.$pos_zindex_style.$pos_vert_style.$pos_horiz_style.$opacity.'}';
-		}
-	
-     elseif ($pos_type!='none') {
-		$mediacss.=' 
-		.'.$css_id.'{position:static;'.$opacity.'}';
-		}
-     elseif (!empty($opacity)) {
-		$mediacss.=' 
-		.'.$css_id.'{'.$opacity.'}';
-		}
-	$this->css.=$mediacss;
-     $this->show_more('Style info','','info italic smaller');
-     printer::print_wrap1('techinfo');
-     printer::print_info('Current setting Css: '.$mediacss);
-     $msg='The following position/opacity css is applied to the main div class '.$css_id.' of this '.$prefix;
-     printer::print_info($msg);
-     printer::close_print_wrap1('techinfo');
-     $this->show_close('Tech info');
-	$this->editoverridecss.='#'.$css_id.',.'.$css_id.'{opacity:1;position:static !important; transform: none;-ms-transform: none;-webkit-transform: none;z-index:0 !important;}';
-	//$this->editoverridecss.='.'.$css_id.'{opacity:1; }';  
-	$this->submit_button();
-     printer::print_tip('Set Advanced  Options for Position and Opacity Here with optional max-width and min-width for responsive design. Changes to position and opacity will NOT EFFECT EDIT MODE display. View changes in webpage mode!');
-	printer::print_wrap1('opacity value');  
-     printer::print_tip('Change Opacity will affect entire '.$type.'. To affect the opacity of background color, gradients or images use the opacity options for those under the background styling options. Note: Opacity changes here may also Modify the Stacking Order of positioned posts <b>otherwise the opacity option functions independently of the postion options</b>');
-     printer::alert('Choose opacity Value.');
-     $this->mod_spacing($opacity_name,$opacity_val,6,100,1,'%','none');
-     printer::close_print_wrap1('opacity value'); 	
-     printer::pclear(5);
-	printer::alertx('<div class="'.$this->column_lev_color.' fsminfo  floatleft editbackground editfont">Choose Advanced Position Option');
-	printer::print_tip('Normal layout displays use static. Choose it to turn off advanced position option. Fixed position will lock the post or column from scrolling down the page and useful for anchor menus. Relative and Absolute may be use to overlap posts and or columns relative to a parent column "set to relative" or absolute to the body. Position Top Bottom Left and Right, or center only work with Fixed, Relative, or Absolute Positioning enabled.');
-	forms::form_dropdown($pos_arr,'','','',$pos_name,$pos_type,false,'editcolor editbackground editfont left');
-	printer::alertx('</div>');
-     printer::print_wrap1('horiz value');  
-     printer::print_tip('If Position is Set to Relative or Absolute Choose to Modify the left right alignment of this '.$type.' by selecting the option type and value<br>');
-     printer::pclear();
-     printer::alertx('<div class="'.$this->column_lev_color.' fsminfo maxwidth500 floatleft editbackground editfont">Choose Right or Left, None (As is), or use Center Horizonally.'); 
-     forms::form_dropdown($pos_horiz_vals_arr,'','','',$pos_horiz_name,$pos_horiz,false,'editcolor editbackground editfont left');
-     printer::alertx('</div>');
-     printer::pclear();
-     printer::print_wrap('Choose pos units');
-     printer::print_tip('Choose px, em, rem, units. Otherwise a default value of 0 will be used');
-     printer::pclear(); 
-     $horizpass=($pos_horiz==='left'||$pos_horiz==='right')?$pos_horiz:'none';
-      $this->spacing($pos_horiz_val_name,$this->{$prefix.'_pos_horiz_val_index'},$horizpass,'Choose left or right positioning value','Adjust Horiz Position of absolute or relative positioned element/post/column','',$ifemptyhoriz,'','','.'.$css_id);  
-     printer::close_print_wrap('Choose pos units');
-     printer::close_print_wrap1('horiz value');
-     printer::pclear(5);
-     printer::print_wrap1('vert value');  
-     printer::print_tip('If Position is Set to Relative or Absolute Choose to Modify the Top Bottom alignment of this '.$type.' by selecting the option type and value<br>');
-     printer::alertx('<div class="'.$this->column_lev_color.' fsminfo maxwidth500 floatleft editbackground editfont">Choose to position using Top or Bottom, None (As is), or use Center Vertically. <b>Note using both Center Vertically and an animation on this same post can change the animation path ie. on sliding animations</b>'); 
-     forms::form_dropdown($pos_vert_vals_arr,'','','',$pos_vert_name,$pos_vert,false,'editcolor editbackground editfont left'); 
-     printer::alertx('</div>');
-     printer::pclear(); 
-     printer::alertx('<div class="fs1black editcolor editbackground editfont">If Position is Set to Relative or Absolute and you also Choose a position Top or Bottom  choose a numeric value here in percent, px, em, rem, vw, or vh units. Otherwise a default value of 0 will be used');
-     printer::pclear();
-     $vertpass=($pos_vert==='top'||$pos_vert==='bottom')?$pos_vert:'none';
-     $this->spacing($pos_vert_val_name,$this->{$prefix.'_pos_vert_val_index'},$vertpass,'top or bottom positioning value','Adjust Vert Position of absolute or relative positioned element/post/column','',$ifemptyvert,'','','.'.$css_id); 
-     printer::alertx('</div>');
-     printer::close_print_wrap1('vert value'); 	
-     printer::pclear(5);  
-     printer::print_wrap1('zindex value');  
-     printer::print_tip('Change Zindex to Modify the Stacking Order of this '.$type.'. Higher numbers overlap lower numbers');
-     printer::alert('Choose z-index Value.');
-     $this->mod_spacing($pos_zindex_name,$pos_zindex,-100,1000,.5,'','none');
-     printer::close_print_wrap1('zindex value'); 	
-     printer::pclear(5); 
-     printer::print_info('Optionally choose a @media screen size min-width or max-width or both at which this '.$type.' will Position to custom setting.');  
-     echo '<div class="fsminfo"><!--wrap max width-->';
-     printer::printx('<p class="smaller '.$this->column_lev_color.'">(0 = none)Current Max-width: <span class="navybackground white">'.$pos_maxpx.'</span><br></p>');   
-     printer::alert('Choose @media screen max-width px');
-     $this->mod_spacing($max_name,$pos_maxpx,200,3000,1,'px','none');  
-     printer::printx('<p ><input type="checkbox" name="'.$max_name.'" value="0">Remove max-width</p>');
-     echo '</div><!--wrap max width-->';
-     echo '<div class="fsminfo"><!--wrap min width-->';
-     printer::printx('<p class="smaller '.$this->column_lev_color.'">(0 = none) Chosen Min-width: <span class="navybackground white">'.$pos_minpx.'</span></p>');
-      printer::alert('Choose @media screen min-width px'); 
-     $this->mod_spacing($min_name,$pos_minpx,200,3000,1,'px','none');
-     printer::printx('<p ><input type="checkbox" name="'.$min_name.'" value="0">Remove min-width</p>');
-     echo '</div><!--wrap min width-->';	 
-     $this->submit_button();
-     if ($i>0){
-               
+          $name=($this->is_column)?$this->col_name.'_col_options['.$this->col_position_index.']':$this->data.'_blog_options['.$this->blog_position_index.']';
+          $pos_horiz_val_name=($this->is_column)?$this->col_name.'_col_options':$this->data.'_blog_options';
+          $pos_vert_val_name=($this->is_column)?$this->col_name.'_col_options':$this->data.'_blog_options'; 
+          $max_name=$name.'['.($this->position_max_index+$k).']';
+          $min_name=$name.'['.($this->position_min_index+$k).']';
+          $pos_name=$name.'['.($this->position_index+$k).']';
+          $pos_vert_name=$name.'['.($this->position_vert_index+$k).']';
+          $pos_horiz_name=$name.'['.($this->position_horiz_index+$k).']';
+          $pos_zindex_name=$name.'['.($this->position_zindex_index+$k).']';
+          $opacity_name=$name.'['.($this->position_opacity_index+$k).']';
+          $opacity_val=(is_numeric($options[$this->position_opacity_index+$k])&&$options[$this->position_opacity_index+$k]>=6&&$options[$this->position_opacity_index+$k]<=100)?$options[$this->position_opacity_index+$k]:'none';
+          $pos_horiz_val=$options[$this->position_horiz_val_index+$k];
+          $pos_vert_val=$options[$this->position_vert_val_index+$k];
+          $pos_horiz=(!empty($options[$this->position_horiz_index+$k])&&in_array($options[$this->position_horiz_index+$k],$pos_horiz_vals_arr))?$options[$this->position_horiz_index+$k]:'none'; 
+          $pos_vert=(!empty($options[$this->position_vert_index+$k])&&in_array($options[$this->position_vert_index+$k],$pos_vert_vals_arr))?$options[$this->position_vert_index+$k]:'none';
+          $pos_type=(!is_numeric($options[$this->position_index+$k])&&in_array($options[$this->position_index+$k],$pos_arr))?$options[$this->position_index+$k]:'none';  
+          $ifemptyvert=($pos_type!='static'&&$pos_type!='none'&&$pos_vert==='top'||$pos_vert==='bottom')?$pos_vert.':0;':'';
+          $ifemptyhoriz=($pos_type!='static'&&$pos_type!='none'&&$pos_horiz==='right'||$pos_horiz==='left')?$pos_horiz.':0;':'';
+          $pos_zindex=($pos_type!='static'&&$pos_type!='none'&&is_numeric($options[$this->position_zindex_index+$k]))?$options[$this->position_zindex_index+$k]:'none';
+          $val_max=$options[$this->position_max_index+$k];
+          $val_min=$options[$this->position_min_index+$k];
+          $pos_maxpx=($val_max>=200&&$val_max<=3000)?$val_max:'none'; 
+          $pos_minpx=($val_min>=200&&$val_min<=3000)?$val_min:'none';
+          $mediacss='';
+          $pos_zindex_style=(is_numeric($pos_zindex))?'z-index:'.(int)$pos_zindex.';':'';
+          if ($pos_type!='static'&&$pos_type!='none'&&$pos_horiz==='center horizontally')
+               $pos_horiz_style='left: 0;  right: 0;  margin-left: auto; margin-right: auto;'; 
+          else $pos_horiz_style='';
+          if ($pos_type!='static'&&$pos_type!='none'&&$pos_vert==='center vertically') 
+               $pos_vert_style='top: 50%;transform: translateY(-50%); -ms-transform: translateY(-50%);-webkit-transform: translateY(-50%);';
+          else $pos_vert_style='';
+          $opacity= ($opacity_val!=='none')?'opacity:'.($opacity_val/100).';':'';
+          $pos_css='position:'.$pos_type.';';
+          $this->show_more('Style info','','info italic smaller');
+          printer::print_wrap1('techinfo');
+          printer::print_info('Current setting Css: '.$mediacss);
+          $msg='The following position/opacity css is applied to the main div class '.$css_id.' of this '.$prefix;
+          printer::print_info($msg);
+          printer::close_print_wrap1('techinfo');
+          $this->show_close('Tech info');
+          $this->editoverridecss.='#'.$css_id.',.'.$css_id.'{opacity:1;position:static !important; transform: none;-ms-transform: none;-webkit-transform: none;z-index:0 !important;}';
+          //$this->editoverridecss.='.'.$css_id.'{opacity:1; }';  
+          $this->submit_button();
+          printer::print_tip('Set Advanced  Options for Position and Opacity Here with optional max-width and min-width for responsive design. Changes to position and opacity will NOT EFFECT EDIT MODE display. View changes in webpage mode!');
+          printer::print_wrap1('opacity value');  
+          printer::print_tip('Change Opacity will affect entire '.$type.'. To affect the opacity of background color, gradients or images use the opacity options for those under the background styling options. Note: Opacity changes here may also Modify the Stacking Order of positioned posts <b>otherwise the opacity option functions independently of the postion options</b>');
+          printer::alert('Choose opacity Value.');
+          $this->mod_spacing($opacity_name,$opacity_val,6,100,1,'%','none');
+          printer::close_print_wrap1('opacity value'); 	
+          printer::pclear(5);
+          printer::alertx('<div class="'.$this->column_lev_color.' fsminfo  floatleft editbackground editfont">Choose Advanced Position Option');
+          printer::print_tip('Normal layout displays use static. Choose it to turn off advanced position option. Fixed position will lock the post or column from scrolling down the page and useful for anchor menus. Relative and Absolute may be use to overlap posts and or columns relative to a parent column "set to relative" or absolute to the body. Position Top Bottom Left and Right, or center only work with Fixed, Relative, or Absolute Positioning enabled.');
+          forms::form_dropdown($pos_arr,'','','',$pos_name,$pos_type,false,'editcolor editbackground editfont left');
+          printer::alertx('</div>');
+          printer::print_wrap1('horiz value');  
+          printer::print_tip('If Position is Set to Relative or Absolute Choose to Modify the left right alignment of this '.$type.' by selecting the option type and value<br>');
+          printer::pclear();
+          printer::alertx('<div class="'.$this->column_lev_color.' fsminfo maxwidth500 floatleft editbackground editfont">Choose Right or Left, None (As is), or use Center Horizonally.'); 
+          forms::form_dropdown($pos_horiz_vals_arr,'','','',$pos_horiz_name,$pos_horiz,false,'editcolor editbackground editfont left');
+          printer::alertx('</div>');
+          printer::pclear();
+          printer::print_wrap('Choose pos units');
+          printer::print_tip('Choose px, em, rem, units. Otherwise a default value of 0 will be used');
+          printer::pclear(); 
+          $horizpass=($pos_horiz==='left'||$pos_horiz==='right')?$pos_horiz:'none';
+          $horiz_val=$this->spacing($pos_horiz_val_name,$this->{$prefix.'_pos_horiz_val'.$i.'_index'},'return','Choose left or right positioning value','Adjust Horiz Position of absolute or relative positioned element/post/column','',$ifemptyhoriz,'','');
+          
+          $final_horiz_val=($horizpass!=='none')?$horizpass.':'.$horiz_val.';':'';
+          printer::close_print_wrap('Choose pos units');
+          printer::close_print_wrap1('horiz value');
+          printer::pclear(5);
+          printer::print_wrap1('vert value');  
+          printer::print_tip('If Position is Set to Relative or Absolute Choose to Modify the Top Bottom alignment of this '.$type.' by selecting the option type and value<br>');
+          printer::alertx('<div class="'.$this->column_lev_color.' fsminfo maxwidth500 floatleft editbackground editfont">Choose to position using Top or Bottom, None (As is), or use Center Vertically. <b>Note using both Center Vertically and an animation on this same post can change the animation path ie. on sliding animations</b>'); 
+          forms::form_dropdown($pos_vert_vals_arr,'','','',$pos_vert_name,$pos_vert,false,'editcolor editbackground editfont left'); 
+          printer::alertx('</div>');
+          printer::pclear(); 
+          printer::alertx('<div class="fs1black editcolor editbackground editfont">If Position is Set to Relative or Absolute and you also Choose a position Top or Bottom  choose a numeric value here in percent, px, em, rem, vw, or vh units. Otherwise a default value of 0 will be used');
+          printer::pclear();
+          $vertpass=($pos_vert==='top'||$pos_vert==='bottom')?$pos_vert:'none';
+          $vert_val=$this->spacing($pos_vert_val_name,$this->{$prefix.'_pos_vert_val'.$i.'_index'},'return','top or bottom positioning value','Adjust Vert Position of absolute or relative positioned element/post/column','',$ifemptyvert,'','');
+          $final_vert_val=($vertpass!=='none')?$vertpass.':'.$vert_val.';':'';
+          printer::alertx('</div>');
+          printer::close_print_wrap1('vert value'); 	
+          printer::pclear(5);  
+          printer::print_wrap1('zindex value');  
+          printer::print_tip('Change Zindex to Modify the Stacking Order of this '.$type.'. Higher numbers overlap lower numbers');
+          printer::alert('Choose z-index Value.');
+          $this->mod_spacing($pos_zindex_name,$pos_zindex,-100,1000,.5,'','none');
+          printer::close_print_wrap1('zindex value'); 	
+          printer::pclear(5); 
+          printer::print_info('Optionally choose a @media screen size min-width or max-width or both at which this '.$type.' will Position to custom setting.');  
+          echo '<div class="fsminfo"><!--wrap max width-->';
+          printer::printx('<p class="smaller '.$this->column_lev_color.'">(0 = none)Current Max-width: <span class="navybackground white">'.$pos_maxpx.'</span><br></p>');   
+          printer::alert('Choose @media screen max-width px');
+          $this->mod_spacing($max_name,$pos_maxpx,200,3000,1,'px','none');  
+          printer::printx('<p ><input type="checkbox" name="'.$max_name.'" value="0">Remove max-width</p>');
+          echo '</div><!--wrap max width-->';
+          echo '<div class="fsminfo"><!--wrap min width-->';
+          printer::printx('<p class="smaller '.$this->column_lev_color.'">(0 = none) Chosen Min-width: <span class="navybackground white">'.$pos_minpx.'</span></p>');
+          printer::alert('Choose @media screen min-width px'); 
+          $this->mod_spacing($min_name,$pos_minpx,200,3000,1,'px','none');
+          printer::printx('<p ><input type="checkbox" name="'.$min_name.'" value="0">Remove min-width</p>');
+          echo '</div><!--wrap min width-->';	 
+          $this->submit_button();
+          if ($i>0){
                $this->submit_button( );
                printer::close_print_wrap('additional positon media wrap #'.$i);
-               $this->show_close('Add additional @media query controlled option tweak for position options'); 
+               $this->show_close('Add additional @media query controlled option tweak for position/option options'); 
                } 
+          if ($pos_minpx!=='none'&&$pos_maxpx!=='none') {
+          $mediacss='
+          @media screen and (max-width:'.$pos_maxpx.'px) and (min-width:'.$pos_minpx.'px){
+          .'.$css_id.'{'
+          .$pos_css.$pos_zindex_style.$pos_vert_style.$pos_horiz_style.$final_horiz_val.$final_vert_val.$opacity.'}
+               }
+               ';
+               }
+          elseif ($pos_maxpx!=='none'){
+               $mediacss='
+               @media screen and (max-width: '.$pos_maxpx.'px){
+               .'.$css_id.'{'.$pos_css.'
+               '.$pos_zindex_style.$pos_vert_style.$pos_horiz_style.$final_horiz_val.$final_vert_val.$opacity.'}
+               }';
+               }
+          elseif ($pos_minpx!=='none') {
+               $mediacss='
+               @media screen and (min-width: '.$pos_minpx.'px){
+               .'.$css_id.'{'.$pos_css.'
+               '.$pos_zindex_style.$pos_vert_style.$pos_horiz_style.$final_horiz_val.$final_vert_val.$opacity.'}
+               }';
+               }
+          elseif ($pos_type==='static') {
+               $mediacss=' 
+               .'.$css_id.'{position:static;'.$opacity.'}';
+               }
+          elseif ((($pos_type!='static'&&$pos_type!='none')||!empty($opacity))) {
+               $mediacss=' 
+               .'.$css_id.'{'.$pos_css.'
+               '.$pos_zindex_style.$pos_vert_style.$pos_horiz_style.$final_horiz_val.$final_vert_val.$opacity.'}';
+               }
+          $this->css.=$mediacss;
           }//end for 
      printer::pclear();  
      printer::close_print_wrap('wrap advanced position');
@@ -6281,13 +6280,11 @@ function animation(){
      printer::pclear(5);	
 	####################################-
 	$this->print_wrap('anim height','editbackground editfont Os3salmon fsmaqua'); 
-	printer::print_tip('Scrolling to the animation will trigger the start of the animation. Use none to turn off this feature.  However you can exactly set how far into the animation space the trigger will kick off (if a sibling,parent,or id triger is also chosen both triggers must be true).. Setting a value of 1% will enable the hight trigger just as the top of the animation element is scrolled to. Setting a value of none will set the height trigger immediately. Choosing a value of 100% for example sets the height trigger only when the scroll reaches the bottom of the element. The value is currently set to '.$animate_height.'%.'); 
+	printer::print_tip('Scrolling to the animation will trigger the start of the animation. Use none to turn off this feature.  However you can exactly set how far into the animation space the trigger will kick off (if a sibling,parent,or id triger is also chosen both triggers must be true).. Setting a value of 1% will enable the height trigger just as the top of the animation element is scrolled to. Setting a value of none will set the height trigger immediately. Choosing a value of 100% for example sets the height trigger only when the scroll reaches the bottom of the element. The value is currently set to '.$animate_height.'%.'); 
 	printer::alert('Change In-View Requirement element px depth for animation trigger:');
-     
-	$this->mod_spacing($anim_name.'['.$this->animate_height_index.']',$animate_height,1,$max_height,1,'%','none');
+     $this->mod_spacing($anim_name.'['.$this->animate_height_index.']',$animate_height,1,$max_height,1,'%','none');
 	printer::close_print_wrap('anim height'); 
      printer::pclear(5);
-	
      ####################################-animate_complete_id
 	$this->print_wrap('anim repeats','editbackground editfont Os3salmon fsmaqua'); 
 	printer::print_tip('By default animations repeat once. You can change the default behavior here from 1 to 10 or infinite repeat! <br>');
@@ -6311,14 +6308,11 @@ function animation(){
 	printer::pclear(5); 
 	##################################
 	$this->print_wrap('anim duration','editbackground editfont Os3salmon fsmaqua'); 
-	
 	printer::print_tip('By default animation duration is 1 second. <br>');
 	printer::alert('Change initial animation speed:');
 	$this->mod_spacing($anim_name.'['.$this->animate_duration_index.']',$animate_duration,.05,$max_duration,.05,'sec');
 	printer::close_print_wrap('anim duration'); 	
 	printer::pclear(5);
-		
-	printer::pclear(5); 
 	##################################
 	$this->print_wrap('anim width','editbackground editfont Os3salmon fsmaqua'); 
 	printer::print_tip('You can set a minimum width for animating this '.$type.'. Smaller widths will display it non-animated and larger widths will animate normally.  To disappear the animation at smaller/larger widths choose the RWD display Off option in the configs and choose the width there.');
@@ -6480,15 +6474,11 @@ function animation(){
           <option value="zoomOutRight">zoomOutRight</option>
           <option value="zoomOutUp">zoomOutUp</option>
         </optgroup>
-
       </select>';
 	 printer::close_print_wrap('animate after_type');
-		
 	printer::pclear(5);
 	############## 
-	
 	$this->print_wrap('anim after_repeats','editbackground editfont Os3salmon fsmaqua'); 
-	
 	printer::print_tip('By default animations repeat once. You can change the default behavior of the followup animation effect here from 1 to 10 or infinite repeat! <br>');
 	printer::alert('Select animation repeats here:');
 	echo '
@@ -6509,7 +6499,6 @@ function animation(){
 	$this->mod_spacing($anim_name.'['.$this->animate_after_duration_index.']',$animate_after_duration,.1,$max_duration,.1,'sec');
 	printer::close_print_wrap('anim after_duration'); 	
 	printer::pclear(5);
-	
 	$this->submit_button();	
 	printer::pclear(5);
 	printer::close_print_wrap('anim after');	
