@@ -3839,17 +3839,7 @@ function total_float($prime_col=false,$return=false){
           if ($blog_width*$widmax/100-$this->current_padded_width_px<10) 
                printer::alert_neg("Incorrect padding margins or width left due to :<br>padding total: $padding_total + margin total: $margin_total <br> or width left in parent column  ie. overall Column width  includes margins and padding");
 		$this->current_net_width=$blog_width*$widmax/100-$this->current_padded_width_px; 
-		/* if ($this->blog_type==='image'){
-			list($bw,$bh)=$this->border_calc($this->blog_data4,false);
-			$hwidth=$this->calc_image_height($bh); 
-			if ($hwidth > 9&&$hwidth<$widmax){ //we dont want to overexpand image..
-				//percentage expressed in compress_to_percentage...  choice
-				$this->current_net_width_percent=$blog_width-($bw*$this->column_total_width[$this->column_level]/100+$this->current_padded_width_percent);
-				$this->current_total_width_percent=$hwidth/$this->current_total_width*$this->blog_width;
-				$this->current_net_width=$hwidth-($bw+$this->current_padded_width_px);//current padded calculate for border sides presuming same for height
-				$this->current_total_width=$hwidth; 
-				}
-			}*/
+		
 		} 
 	$this->background_img_px=$this->current_net_width; 
 	}	 
@@ -3880,9 +3870,7 @@ function check_clone($col_id){
                else $this->clone_delete_list[]=$blog_id.'@@'.$blog_type.'@@'.'none';
                }
           }//affected 2 
-     }
-     
-				
+     }		
 		
 function blog_new($data,$tablename,$blog_order, $msg='', $msg_open_prefix='Insert New After Post #', $msg_close_prefix='Insert <span class="purple">New</span> After Post #'){
 	if ($blog_order==='Om')exit('om');
@@ -4049,7 +4037,7 @@ function position(){
                $pos_vert_style='top: 50%;transform: translateY(-50%); -ms-transform: translateY(-50%);-webkit-transform: translateY(-50%);';
           else $pos_vert_style='';
           $opacity= ($opacity_val!=='none')?'opacity:'.($opacity_val/100).';':'';
-          $pos_css='position:'.$pos_type.';';
+          $pos_css=($pos_type!=='none')?'position:'.$pos_type.';':'';
           $this->show_more('Style info','','info italic smaller');
           printer::print_wrap1('techinfo');
           printer::print_info('Current setting Css: '.$mediacss);
@@ -4153,7 +4141,7 @@ function position(){
                $mediacss=' 
                .'.$css_id.'{position:static;'.$opacity.'}';
                }
-          elseif ((($pos_type!='static'&&$pos_type!='none')||!empty($opacity))) {
+          elseif (!empty($pos_zindex_style.$pos_vert_style.$pos_horiz_style.$final_horiz_val.$final_vert_val.$opacity)) {
                $mediacss=' 
                .'.$css_id.'{'.$pos_css.'
                '.$pos_zindex_style.$pos_vert_style.$pos_horiz_style.$final_horiz_val.$final_vert_val.$opacity.'}';
