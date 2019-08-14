@@ -3270,10 +3270,10 @@ function page_initiate(){ if (Sys::Debug) Sys::Debug(__LINE__,__FILE__,__METHOD_
 function page_script(){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
 	$fields='page_id,'.Cfg::Page_fields;  
 	$this->accessvar_obj($this->master_page_table,$fields,'page_ref',$this->pagename);
-	if($this->page_ref==='indexpage'&&!is_dir(Cfg::PrimeEditDir)){//check for completely new database manual clone
+	/*if($this->page_ref==='indexpage'&&!is_dir(Cfg::PrimeEditDir)){//check for completely new database manual clone
 		//new secure_login('ownerAdmin',false);
-		}
-	$this->page_populate_options();
+		}*/
+     $this->page_populate_options();
 	$this->generate_cache(); 
 	$this->generate_bps();
 	$this->deltatime->delta_log('accessvar.obj');
@@ -3305,7 +3305,7 @@ function accessvar_obj($master_table,$field_data,$ref1,$refval1,$ref2='',$refval
 	catch(mail_exception $me){
 		$url = Sys::Home_site;
 		mail::alert('Page not found and page file needs to be deleted using database:'.Sys::Dbname.' and query: '.$q);
-		header("Location: $url");
+		//header("Location: $url");
 		}
 	//$this->mailinst->mailwebmaster($this->success, $this->message, $vars);		
 	$flag=true;
@@ -4825,9 +4825,10 @@ function css_initiate(){
 	#clientw,#clientw2{padding:0 5px;text-align:center;margin:0 auto;}
      *{-webkit-box-sizing: border-box;
       -moz-box-sizing: border-box;
-      box-sizing: border-box; }}
-         ul {list-style-type:none;}
-         html, body, div, span, applet, object, iframe,
+      box-sizing: border-box; }
+     ul {list-style:none}
+     ul {list-style-type:none;}
+     html, body, div, span, applet, object, iframe,
     h1, h2, h3, h4, h5, h6, p, blockquote, pre,
     a, abbr, acronym, address, big, cite, code,
     del, dfn, em, font, img, ins, kbd, q, s, samp,
@@ -4842,20 +4843,18 @@ function css_initiate(){
          padding: 0;
          outline: 0;   
          vertical-align: baseline;
-    }
+          }
     body h1,body h2, body h3,body h4,body h5,body h6{ 
          padding: 0;
          outline: 0;
          padding-bottom:0; 
-         vertical-align: baseline;
-    }
+         vertical-align: baseline;}
     body{font-size:16px;height:100%;margin-right:0px;margin-left:0px;}
     .show_arrow{opacity:.7; font-size:.6em;}
     .fixed{position:fixed;top:0;}
     textarea {color:inherit;font-family:inherit; font-size:inherit;font-weight:inherit;background:inherit;} 
     .nav ul,.nav li{
-         list-style: none;list-style-type:none;
-    }
+         list-style: none;list-style-type:none; }
     /* tables still need  cellspacing="0"  in the markup */
     table {
          border-collapse: separate;
@@ -4867,11 +4866,9 @@ function css_initiate(){
     }
     blockquote:before, blockquote:after,
     q:before, q:after {
-         content: "";
-    }
+         content: "";}
     blockquote, q {
-         quotes: "" "";
-    }
+         quotes: "" "";}
     /*from stackoverflow video iframe 100%*/
     .videoWrapper {
     position: relative;

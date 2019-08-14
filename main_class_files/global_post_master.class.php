@@ -652,7 +652,6 @@ function blog_text_float_box($data){
    <textarea style="background:inherit; display: none; width:100%" id="'.$data.'_blog_text_textarea"  class="scrollit '.$data.'" name="'.$data.'_blog_text" rows="'.$rowlength.'" cols="'.$cols.'" onkeyup="gen_Proc.autoGrowFieldScroll(this);">' .$blog_text.'</textarea>';
 }
 	#end function
-	
 
 function create_master_gallery(){ 
     if (!$this->edit&&!isset($_POST['create_master_gallery']))return;
@@ -3689,7 +3688,7 @@ function edit_vid($data){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD
      $blog_show_change=(!empty($this->blog_data5))?"false":"true";
      $blog_show_info=(!empty($this->blog_data5))?"true":"false";
      printer::print_wrap('autoplay');
-     printer::alert('Setting Autoplay to True will Cause the Video to Automaticaly Play Immediately!');
+     printer::alert('Set Uploaded Videos to Autoplay');
      printer::pclear(2);
      printer::printx('<p class="editfont '.$this->column_lev_color.'">Autoplay Curently: '.$blog_show_info.'</p>');
      printer::pclear(2);

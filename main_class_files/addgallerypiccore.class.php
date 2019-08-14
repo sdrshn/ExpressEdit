@@ -90,12 +90,9 @@ function __construct(){
      </head>
      <body class="editbackground editcolor"> 
      <div class="container">';
-     #if either has value of 1 then one is adding a table.. after submitting it merely would hold value of dropdown menu
-     $msg=($addtbn==1||$addgall==1)?'Create New Gallery':'You Are Adding A New Image to the Gallery: '.$tablename;
-     printer::alert($msg,1.2); 
-     $vars=(mail::Defined_vars)?get_defined_vars():'defined vars set off';
      echo '<div class="addgallbackto"><a class="info" href="'.$postreturn.'?#return_'.$gall_ref.'">Back to Gallery</a></div>';
      printer::pclear(80);
+      $vars=(mail::Defined_vars)?get_defined_vars():'defined vars set off';
      $max_upload = (ini_get('upload_max_filesize')<10000)?(int)(ini_get('upload_max_filesize')):(int)(ini_get('upload_max_filesize')/1000000);
      $max_post = (ini_get('post_max_size')<10000)?(int)(ini_get('post_max_size')):(int)(ini_get('post_max_size')/1000000); 
      $config=(int)Cfg::Pic_upload_max; 
@@ -106,6 +103,41 @@ function __construct(){
      $instructions=NL."The maximimum image file size is limited to $maxup Mb.".$instructions;
      echo' 
      <form  enctype="multipart/form-data" action="'. $postreturn.'" method="post" onsubmit="return edit_Proc.checkPicFiles(this,'.$maxbytes.',\'fileinput\');">';
+     if ($addimage==='3'){
+          $mysqlinst = mysql::instance();
+          echo '<!--wrap master gall image upload-->';
+		echo '<div class="fsminfo floatleft editbackground editfont maxwidth700"><!--wrap master gall image upload-->';
+		 
+          printer::alertx('<p class="floatleft editcolor editbackground editfont"><b>Select gallery</b> to replace the uploaded image in the  Master Gallery Collection Here:<br>
+		 <select class="smaller editcolor editbackground editfont"   name="new_master_gallery_image['.$gall_ref.']">');// prev create_master_gallery
+         
+		 printer::printx('<option selected="selected" value="none">Add None</option>');
+		$q="select imagetitle,master_table_ref,master_gall_ref from master_gall where master_gall_status='master_gall' and gall_ref='$gall_ref' order by master_table_ref";
+		$r=$mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
+		$g_arr=array();
+		if ($mysqlinst->affected_rows()){ 
+			While ($gRows=$mysqlinst->fetch_assoc($r)){
+				$g_arr[]=$gRows;
+				}
+			} 
+		foreach($g_arr as $arr){  
+			$choosegall_title=$arr['imagetitle'];
+			$choosegall_ref=$arr['master_gall_ref'];
+			$choosegall_table=$arr['master_table_ref'];
+			$menu_title=(!empty($choosegall_title))?'Gall Title: '.substr($choosegall_title,0,15):'';
+			printer::printx('<option  value="'.$choosegall_ref.'">'."GallRef: $choosegall_table   $menu_title".'</option>');
+			}
+		printer::printx('</select></p>');
+          printer::pclear(25);
+          printer::print_tip('Then choose the image you wish to replace the current image width below');
+		printer::pclear(10); 
+		echo '</div><!--wrap master gall image upload-->';
+          }
+          
+     #if either has value of 1 then one is adding a table.. after submitting it merely would hold value of dropdown menu
+     $msg=($addtbn==1||$addgall==1)?'Create New Gallery':'You Are Adding A New Image to the Gallery: '.$tablename;
+     printer::alert($msg,1.2); 
+    
      if ($addgall)  {
           $msg='Give a new title to this new gallery slide show:<br>';
           $msg2='After naming the gallery/nav link, now also select your first slide show image:';

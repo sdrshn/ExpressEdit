@@ -200,7 +200,7 @@ function calc_width(){
 	$maxed_width=($this->transition==='kenburns')?$maxed_width*1.4:$maxed_width;
 	$this->image_width=$image_width=check_data::key_up($this->page_cache_arr,$maxed_width,'val',$this->page_width); 
 	$this->image_dir=($this->picname===Cfg::Pass_image)?'':Cfg::Response_dir_prefix.$image_width.'/';
-	if (!is_file(Cfg_loc::Root_dir.Cfg::Large_image_dir.$this->image_dir.$this->picname)){          echo Cfg_loc::Root_dir.Cfg::Large_image_dir.$this->image_dir.$this->picname;
+	if (!is_file(Cfg_loc::Root_dir.Cfg::Large_image_dir.$this->image_dir.$this->picname)){          
 		image::resize_check($this->picname,0,0,$image_width,Cfg_loc::Root_dir.Cfg::Upload_dir,Cfg_loc::Root_dir.Cfg::Large_image_dir.$this->image_dir,$this->blog_id);
 		}	   
 	} 

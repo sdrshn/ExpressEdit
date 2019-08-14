@@ -53,6 +53,7 @@ function submitted(){
      $gcp=request::check_request_num('gallery_content_plus');
      $gallerycontentplus=(!empty($sp)&&check_data::check_num(5,Cfg::Max_pic_width,$gcp,'Gallery content plus WIDTH')===true)?round($gcp):Cfg::Master_gall_pic_plus;     
      $t=request::check_request_data('tbn');
+     if ($t==='mastergall')$tablename=$t;//for 'mastergall' change pic
      $addtbn=request::check_request_data('addtbn'); //for gallery_content master page
      if (!$addtbn){
           if (!empty($t)){  
@@ -106,8 +107,32 @@ function submitted(){
 			$watermark=($_POST['watermarkinfo'][0]==='none')?NULL:$_POST['watermarkinfo'][0];
 			$watermarkposition=$_POST['watermarkinfo'][1];
 			(!in_array($watermarkposition,array('center','bottom','top') ))&&mail::alert('Problem with watermark');
-			}	 			
-		if ($addimage){
+			}
+          
+		printer::print_request();
+		if ($addimage&&$tablename==='mastergall'){
+               if (isset($_POST['new_master_gallery_image'])){
+                    $master_gall_ref=key($_POST['new_master_gallery_image']);
+                    $gall_ref=$_POST['new_master_gallery_image'][$master_gall_ref];
+                    $q="update master_gall set picname='$fiupl' where master_gall_status='master_gall' and master_gall_ref='$gall_ref' and gall_ref='$master_gall_ref'";
+                   $r=$mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);
+                   if ($mysqlinst->affected_rows()){
+                         $msg='<img class="floatleft" src="'.Cfg_loc::Root_dir.Cfg::Upload_dir.$fiupl.'" alt="msg upload" height="50"><p class="editbackground pos small floatleft width500max">Master Gallery Image '.$fiupl.' has been successfully uploaded <BR> Please double check</p>';
+                         mail::success($msg);
+                         printer::alertx($msg,1.3);
+                         printer::pclear();
+                         $_SESSION[Cfg::Owner.'update_msg'][]=$msg;
+                         }
+                    else {
+                         $msg='<p class="editbackground neg small floatleft width500max">Master Gallery Image '.$fiupl.' unsuccessfully uploaded </p>';
+                         printer::alertx($msg,1.3);
+                         printer::pclear();
+                         $_SESSION[Cfg::Owner.'update_msg'][]=$msg;
+                         }
+                    ##############
+                    }
+               }
+          else {
 			list($width,$height,$file)=image::image_resize($fiupl,Cfg::Small_gall_pic_width, '0', $smallpicplus,Cfg_loc::Root_dir.Cfg::Upload_dir, Sys::Gall_pic_path, 'file', NULL, $thumb_quality);
 			image::image_resize($fiupl,Cfg::Large_gall_pic_width, '0',$largepicplus,Cfg_loc::Root_dir.Cfg::Upload_dir, Sys::Gall_pic_path2, 'file',$watermark,$large_quality,$watermarkposition);
 			$mysqlinst->count_field(Cfg::Master_gall_table,'pic_order','',false," Where gall_ref='$gall_ref'");//get pic order placement 
@@ -135,16 +160,21 @@ function submitted(){
 			
 			$q='insert into '.Cfg::Master_gall_table."  (pic_id,$gall_fields,gall_update,gall_time,token) values ($inc_id,$value '".date("dMY-H-i-s")."','".time()."','".mt_rand(1,mt_getrandmax())."')";  
 			$mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);
-			$msg='<img class="floatleft" src="'.Sys::Gall_pic_path.$fiupl.'" alt="msg upload" height="50"><p class="editbackground pos small floatleft width500max">Gallery Image '.$fiupl.' has been successfully uploaded <BR> Please double check</p>';
-			mail::success($msg);
-			printer::alertx($msg,1.3);
-			printer::pclear();
-			$_SESSION[Cfg::Owner.'update_msg'][]=$msg;
-			
-			##############
-			
-			}
-			
+			if ($mysqlinst->affected_rows()){
+                    $msg='<img class="floatleft" src="'.Sys::Gall_pic_path.$fiupl.'" alt="msg upload" height="50"><p class="editbackground pos small floatleft width500max">Gallery Image '.$fiupl.' has been successfully uploaded <BR> Please double check</p>';
+                    mail::success($msg);
+                    printer::alertx($msg,1.3);
+                    printer::pclear();
+                    $_SESSION[Cfg::Owner.'update_msg'][]=$msg;
+                    }
+			 else {
+                    $msg='<p class="editbackground neg small floatleft width500max">Master Gallery Image '.$fiupl.' unsuccessfully uploaded </p>';
+                    printer::alertx($msg,1.3);
+                    printer::pclear();
+                    $_SESSION[Cfg::Owner.'update_msg'][]=$msg;
+                    }
+                    ##############
+               }
 		}// end of upload verification
      }  // End of the submitted conditional.
  

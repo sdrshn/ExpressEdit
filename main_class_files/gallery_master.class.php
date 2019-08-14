@@ -74,10 +74,10 @@ function pre_render_data(){ if (Sys::Debug) Sys::Debug(__LINE__,__FILE__,__METHO
 	$this->addgallery->gall_table=$this->gall_table;
 	$this->sess=session::instance(); 
 	if ($this->edit){ 
-		$dir=Cfg_loc::Root_dir.Cfg::Large_image_dir;
+		 $dir=Cfg_loc::Root_dir.Cfg::Large_image_dir.Cfg::Response_dir_prefix;
 		(!is_dir($dir))&&mkdir($dir,0755,1); 
 		foreach($this->page_cache_arr as $ext){  
-			(!is_dir($dir.Cfg::Response_dir_prefix.$ext))&&mkdir($dir.Cfg::Response_dir_prefix.$ext,0755,1); 
+			(!is_dir($dir.$ext))&&mkdir($dir.$ext,0755,1); 
 			}
 		 }
 	if ($this->edit&&!$this->master_gallery){
@@ -214,7 +214,6 @@ function pre_render_data(){ if (Sys::Debug) Sys::Debug(__LINE__,__FILE__,__METHO
                               }
                          else {
                               $bypass=false;
-                              $dir=Cfg_loc::Root_dir.Cfg::Large_image_dir.Cfg::Response_dir_prefix;
                               }
                          }
                     else $bypass=false;
@@ -364,6 +363,7 @@ function gallery_display(){
 			}//!master gall
 		else {//   is master gallery
 			$q = "SELECT  master_gall_ref,master_table_ref, pic_order,  height, width, picname, pic_id, imagetitle, subtitle, description FROM $this->master_gall_table WHERE master_gall_status='master_gall' and gall_ref='$this->gall_ref'  ORDER BY pic_order ASC";   //for master gallery
+              
 			}   
 		$r=$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false); 
 		if (!($this->mysqlinst->affected_rows())) {
@@ -844,8 +844,9 @@ function edit_display($title=false,$subtitle=false,$description=false){  if (Sys
 		foreach ($this->img_arr as $key => $ia){
 			$image= $ia['picname'];
 			$pic_id=$ia['pic_id'];
-			printer::printx('<li class="floatleft pb2 m1all fs2npinfo editbackground editfont"  id="sortGall!@!'.$pic_id.'!@!'.$key.'"> <img class="pb5" src="'. Cfg_loc::Root_dir.$dir. $image
-			. '" height="90" alt="'. $this->alt.
+               $alt=substr($ia['imagetitle'],0,25);
+			printer::printx('<li class="floatleft pb2 m1all fs2npinfo editbackground editfont"  id="sortGall!@!'.$pic_id.'!@!'.$key.'"> <img class="pb5" src="'.Cfg_loc::Root_dir.Cfg::Master_thumb_dir. $image
+			. '" height="90" alt="'. $alt.
 			'"> ');
 			echo ' <span class="inlinehighlight small center pt2 pb2">#' .$key   .'<br></span></li>'; 
 			}//end foreach
@@ -857,17 +858,18 @@ function edit_display($title=false,$subtitle=false,$description=false){  if (Sys
 		$this->show_more('Edit Image Captions or Delete a Gallery Entry Here','','','',700,'','float:left;',true);
 		echo '<div class="editbackground editfont editcolors fsminfo"><!--edit image captions wrap outer master-->';
 		$msg="Edit Captions";
-		printer::printx('<p class="'.$this->column_lev_color.' large fsminfo floatleft left editbackground editfont">'.$msg.'<br> <span class="neg whitebackground"> Checking the checkbox next to an image will DELETE the Gallery Image Link for the Master Gallery (Not the actual Gallery)</span><br>You Can Also Delete a Gallery IMAGE Here and re-add-it to change the Chosen Gallery Image as Needed</p>');
+		printer::printx('<p class="'.$this->column_lev_color.' large fsminfo floatleft left editbackground editfont">'.$msg.'<br> <span class="neg whitebackground"> Checking the checkbox next to an image will DELETE the Gallery Image Link for the Master Gallery (Not the actual Gallery)</span></p>');
 		printer::pclear(5);
 		echo '<ul class="nolist" >'; 
 		foreach ($this->img_arr as $key => $ia){
 			$image= $ia['picname'];
 			$pic_id=$ia['pic_id'];
+               $alt=substr($ia['imagetitle'],0,25);
 			$this->imagetitle=$ia['imagetitle'];
 			$this->subtitle=$ia['subtitle'];
 			$this->description=$ia['description'];
-			echo '<li class="floatleft pb2 m1all fs2npinfo editbackground editfont"><input type="checkbox" name="delete_gall['.$pic_id.']" onchange="edit_Proc.oncheck(\'delete_gall['.$pic_id.']\',\'THIS MASTER GALLERY IMAGE LINK WILL BE DELETED WHEN YOU HIT CHANGE, UNCHECK TO CANCEL\');" value="delete"><img class="pb5" src="'. Cfg_loc::Root_dir.$dir. $image
-			. '" height="90" alt="'. $this->alt.
+			echo '<li class="floatleft pb2 m1all fs2npinfo editbackground editfont"><input type="checkbox" name="delete_gall['.$pic_id.']" onchange="edit_Proc.oncheck(\'delete_gall['.$pic_id.']\',\'THIS MASTER GALLERY IMAGE LINK WILL BE DELETED WHEN YOU HIT CHANGE, UNCHECK TO CANCEL\');" value="delete"><img class="pb5" src="'. Cfg_loc::Root_dir.Cfg::Master_thumb_dir. $image
+			. '" height="90" alt="'. $alt.
 			'Artwork by '.Cfg::Owner. '"> ';
 			printer::pclear(1);
 			$this->show_more('Edit Captions','','','',600,'','float:left;',true);
@@ -898,15 +900,16 @@ function edit_display($title=false,$subtitle=false,$description=false){  if (Sys
 		printer::pclear(5);
           self::submit_button('Submit Changes'); 
 		echo '</div><!--edit image captions wrap outer-->'; 
-		$this->show_close('Edit Image Captions or Delete a Gallery Entry Here'); 
+		$this->show_close('Edit Image Captions or Delete a Gallery Entry Here');
+          printer::printx('<p class="button'.$this->column_lev_color.' editbackground editfont floatleft  '.$this->column_lev_color.'"><a class="underline" href="addgallerypic.php?gall_ref='.$this->gall_ref.'&amp;postreturn='.Sys::Self.'&amp;addimage=3&amp;tbn=mastergall&amp;sess_override&amp;addtbn=none&amp;sess_token='.$this->sess->sess_token.'">Change Image in Previously Selected Gallery in Master Gallery</a><br/></p>');
+          printer::pclear();
 		$this->show_more('Add a New Gallery Collection in Master Gallery','noback','button'.$this->column_lev_color.' rad3 small editbackground editfont '.$this->column_lev_color,'','full','','float:left;',true);
 		echo '<div class="fsminfo floatleft editbackground editfont maxwidth700"><!--wrap master gall href-->';
 		 if ($this->clone_local_data) 
                printer::alert('<input type="hidden" name="clone_local_data_gall" value="'.$this->gall_ref.'">');
           printer::alertx('<p class="floatleft editcolor editbackground editfont">Choose a previously Created Gallery to Add to This Master Gallery Collection Here:
 		 <select class="smaller editcolor editbackground editfont" onchange="edit_Proc.imageSelectMaster(this,\'gallref2_image_choice_'.$inc.'\',\'gallref2_title_'.$inc.'\',\''.$this->gall_ref.'\');"  name="create_master_gallery['.$this->gall_ref.']">');
-         
-		 printer::printx('<option selected="selected" value="none">Add None</option>');
+          printer::printx('<option selected="selected" value="none">Add None</option>');
 		$q="select distinct gall_ref,gall_table from $this->master_gall_table where master_gall_status!='master_gall' order by gall_table"; 
 		$r=$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
 		$g_arr=array();
