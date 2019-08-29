@@ -3977,20 +3977,20 @@ eol;
    $nav_sub_link_width=(is_numeric($nav_params[$nav_sub_link_width_index])&&$nav_params[$nav_sub_link_width_index]>44&&$nav_params[$nav_sub_link_width_index]<321)?'width:'.$nav_params[$nav_sub_link_width_index].'px;':'';
    if (Sys::Quietmode||(!$this->clone_local_style&&$this->is_clone))return;//#  PROCEEd FOr NORMAL  PROCEEd FOr NORMAL
 		 ############### End Nav Options ###############
-		$this->show_more('Detailed Link Styling &amp; Custom Menu Opts', '','','',500,'','float:left',true);
+		$this->show_more('Style/Customize <b>@ Non Menu-Icon Width</b>', '','','',500,'','float:left',true);
 		$this->print_wrap('detail link');	
 		printer::pspace(10);
-     printer::print_tip('Style Menu Links, sub links, Sub Menu Hover Panel etc.');
+     printer::print_tip('Style Menu Links, sub links, Sub Menu Hover Panel etc. <b>@ non menui-icon widths</b>');
    printer::pclear(); 
    $this->show_more('Style individual Links');
    printer::print_wrap('Style individual Links');
    printer::print_tip('Here you can style both the LI A and the parent LI element which affects individual links.');
    printer::print_info('Recomended to use LI A then for special needs use LI');
    $style_list='width_special,width_max_special,width_min_special,background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,font_family,font_size,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform';
-   $this->edit_styles_close($data,'blog_data4','.'.$this->dataCss.' .nav_gen ul li a',$style_list,'Style General Menu Link LI A','','Styles You Make Here will affect All Links. Default widths set to auto. This is best on horizontal menus to conserve space using minimuim widths. However for uniform button effect widths can be used. Use Nav General Post styling to set the collective nav link alignment center or left. For additional Hover and Active Link effects Style Options Below these<br>To Enlarge Background Area for Images and Background Color Use Padding Spacing<br>To Enlarge Spacing between Background styled links use margin spacing');
+   $this->edit_styles_close($data,'blog_data4','.'.$this->dataCss.' .nav_gen ul.top-level:NOT(.menuRespond2) li a',$style_list,'Style General Menu Link LI A','','Styles You Make Here will affect All Links. Default widths set to auto. This is best on horizontal menus to conserve space using minimuim widths. However for uniform button effect widths can be used. Use Nav General Post styling to set the collective nav link alignment center or left. For additional Hover and Active Link effects Style Options Below these<br>To Enlarge Background Area for Images and Background Color Use Padding Spacing<br>To Enlarge Spacing between Background styled links use margin spacing');
    $style_list='width_special,width_max_special,width_min_special,background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,borders,box_shadow,outlines,radius_corner,transform';
    printer::pclear(5);
-   $this->edit_styles_close($data,'blog_data3','.'.$this->dataCss.' .nav_gen ul li',$style_list,'Additionally Tweak the General Menu Link LI Element','','');
+   $this->edit_styles_close($data,'blog_data3','.'.$this->dataCss.' .nav_gen ul.top-level:NOT(.menuRespond2) li',$style_list,'Additionally Tweak the General Menu Link LI Element','','');
    printer::close_print_wrap('Style individual Links');
    $this->show_close('Style individual Links');
    printer::pclear(5);
@@ -3999,9 +3999,9 @@ eol;
    printer::print_tip('Here you can style both the Sub-Link LI A and the parent LI element which affects individual links.');
    printer::print_info('Recomended to use LI A then for special needs use LI');
    $style_list='width_special,width_max_special,width_min_special,background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,font_family,font_size,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform';
-   $this->edit_styles_close($data,'blog_data2','.'.$this->dataCss.' .nav_gen ul ul li a',$style_list,'Style General Menu Link LI A','','');
+   $this->edit_styles_close($data,'blog_data2','.'.$this->dataCss.' .nav_gen ul.top-level:NOT(.menuRespond2) ul li a',$style_list,'Style Sub Menu Link LI A','','');
    printer::pclear(5);
-   $this->edit_styles_close($data,'blog_tiny_data6','.'.$this->dataCss.' .nav_gen ul ul li',$style_list,'Additionally Tweak the Sub Menu Link LI Element','','');
+   $this->edit_styles_close($data,'blog_tiny_data6','.'.$this->dataCss.' .nav_gen ul.top-level:NOT(.menuRespond2) ul li',$style_list,'Additionally Tweak the Sub Menu Link LI Element','','');
    printer::close_print_wrap('Style individual Sub Links');
    $this->show_close('Style individual Sub Links');
    $style_list='background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,font_family,font_size,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform';
@@ -4009,42 +4009,18 @@ eol;
    printer::print_wrap('Style Hover Links');
    printer::print_tip('Here you can style both the LI A and the parent LI element which affects individual links.');
    printer::print_info('Recomended to use LI A then for special needs use LI');
-   $this->edit_styles_close($data,'blog_tiny_data11','.'.$this->dataCss.' .nav_gen ul li a:hover',$style_list,'Style LI A: Hover Link','','When You Hover Over a Link with the cursor it will change according to Any Styles set Here' );
-   $this->edit_styles_close($data,'blog_tiny_data4','.'.$this->dataCss.' .nav_gen ul li:hover', $style_list,'Style LI: Hover Link','','When You Hover Over a Link with the cursor it will change according to Any Styles set Here' );
+   $this->edit_styles_close($data,'blog_tiny_data11','.'.$this->dataCss.' .nav_gen ul.top-level:NOT(.menuRespond2) li a:hover',$style_list,'Style LI A: Hover Link','','When You Hover Over a Link with the cursor it will change according to Any Styles set Here' );
+   $this->edit_styles_close($data,'blog_tiny_data4','.'.$this->dataCss.' .nav_gen ul.top-level:NOT(.menuRespond2) li:hover', $style_list,'Style LI: Hover Link','','When You Hover Over a Link with the cursor it will change according to Any Styles set Here' );
      printer::print_wrap1('hover sub panel links');
      printer::print_tip('Style Hover Links on Sub Menu Panel (also affects @icon menu widths)');
-   $this->edit_styles_close($data,'blog_tiny_data10','.'.$this->dataCss.' .nav_gen ul ul li a:hover',$style_list,'Style SUB PANEL LI: Hover Link','','When You Hover Over a Link with the cursor it will change according to Any Styles set Here' );
+   $this->edit_styles_close($data,'blog_tiny_data10','.'.$this->dataCss.' .nav_gen ul ul.top-level:NOT(.menuRespond2) li a:hover',$style_list,'Style SUB PANEL LI: Hover Link','','When You Hover Over a Link with the cursor it will change according to Any Styles set Here' );
     printer::close_print_wrap1('hover sub panel links');
    printer::close_print_wrap('Style Hover Links');
    $this->show_close('Style Hover Links'); 
    printer::pclear(5);
-   $this->edit_styles_close($data,'blog_tiny_data5','.'.$this->dataCss.' .nav_gen li.active a','background,font_family,font_size,font_weight,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform','Style the Active Link','','An Active Link is the Particluar Link to the Current Page and its optionaly styled here');  
+   $this->edit_styles_close($data,'blog_tiny_data5','.'.$this->dataCss.' .nav_gen ul.top-level:NOT(.menuRespond2) li.active a','background,font_family,font_size,font_weight,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform','Style the Active Link','','An Active Link is the Particluar Link to the Current Page and its optionaly styled here');  
    printer::pclear(5);
-     $this->edit_styles_close($data,'blog_data7','.'.$this->dataCss.':NOT(.iconOpen) .nav_gen ul:hover ul,.'.$this->dataCss.':NOT(.iconOpen) .nav_gen ul ul','width_special,width_max_special,width_min_special,background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,borders,box_shadow,outlines,radius_corner,transform','Style background for the Sub Menu Hover Panel @ <h7> non menu icon</h7> widths','','If you have optionally made sub menus that can be styled the dropdown Panel which contains the dropdown menu links');  
-          printer::print_wrap('str to upper');
-		if($nav_params[$nav_force_caps_index]!=='force'){
-			printer::alertx('<p class=" highlight floatleft" title="Captialize All Main Menu and Sub Menu Link Titles/Names"><input type="radio" value="force"  name="'.$data.'_'.$nav_name_ref.'_arrayed['.$nav_force_caps_index.']">Use Uppercase Text Only</p>');
-			}
-		else {
-			printer::alertx('<p class=" highlight floatleft" title="Captialize All Main Menu and Sub Menu Link Titles/Names"><input type="radio" value="0"  name="'.$data.'_'.$nav_name_ref.'_arrayed['.$nav_force_caps_index.']">Disable Use Of Uppercase Text Only</p>');
-			}
-          $this->show_more('Style info','','info italic smaller');
-          printer::print_wrap1('techinfo');
-          $msg='Info: Uses Server Side php strtoupper()'; 
-          printer::print_info($msg);
-          printer::close_print_wrap1('techinfo');
-          $this->show_close('Style info');
-          printer::close_print_wrap('str to upper');
-		printer::pclear(5); 
-		$checked1=($nav_params[$nav_repeat_submenu_index]!=='repeat')?'checked="checked"':''; 
-     $checked2=($nav_params[$nav_repeat_submenu_index]==='repeat')?'checked="checked"':'';#full 
-     echo '<div class="fsminfo"><!--repeat menu wrap-->';
-     printer::print_tip('A main link with a submenu can be repeated in the submenu by adding it manually by choosing the add/edit links menu or by choosing the Repeat Main Menu Links here');
-     printer::alertx('<p class="information" title="When Submenu links are Being Used Do Not Repeat the main menu link at the top of list of submenu links "><input type="radio" value="1" '.$checked1.' name="'.$data.'_'.$nav_name_ref.'_arrayed['.$nav_repeat_submenu_index.']">Do Not Repeat Main Link to Submenu</p>');
-		printer::pclear();
-     printer::alertx('<p class="information" title="When Submenu links are Being Used Repeat the main menu link at the top of list of submenu links"><input type="radio" value="repeat" '.$checked2.' name="'.$data.'_'.$nav_name_ref.'_arrayed['.$nav_repeat_submenu_index.']">Repeat Main Menu Link in sub menu list if used </p>');
-     printer::pspace(10); 
-	echo '</div><!--repeat menu wrap-->';
+     $this->edit_styles_close($data,'blog_data7','.'.$this->dataCss.':NOT(.iconOpen) .nav_gen ul:hover ul,.'.$this->dataCss.':NOT(.iconOpen) .nav_gen ul ul','width_special,width_max_special,width_min_special,background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,borders,box_shadow,outlines,radius_corner,transform','Style background for the Sub Menu Hover Panel @ <h7> non menu icon</h7> widths','','If you have optionally made sub menus that can be styled the dropdown Panel which contains the dropdown menu links'); 
 		##############  horiz or vert
 	echo '<div class="fsminfo editbackground editfont '.$this->column_lev_color.' floatleft"><!--Respond Vertical-->';
      echo '<p class="highlight left">Choose whether Horizontal Menus Will Appear without row sharing ie. Vertically <b>@ NON Menu Icon widths</b> or share Row Space as Space Permits centered or floated left</p>';
@@ -4085,7 +4061,6 @@ eol;
   .'.$this->dataCss.' .nav_gen  UL :hover UL :hover UL  { VISIBILITY: visible;} 
 .'.$this->dataCss.' .nav_gen  UL LI:hover UL  { VISIBILITY: visible } 
 .'.$this->dataCss.' .nav_gen ul.sub-level,.hover .nav_gen  ul ul  {  Z-INDEX: 100; }
-.'.$this->dataCss.' .nav_gen  UL UL LI  {margin-right:auto; margin-left:auto;} 
 ';
           }
      else {
@@ -4095,93 +4070,75 @@ eol;
      $this->show_more('Style info','','info italic smaller');
      printer::print_wrap1('techinfo');
      printer::print_info('Current setting Css: '.$nav_submenu_display);
-      $msg='Info: For Hovering it changes the visibility of the ul.sub-menu panel from hidden to visible and centers it with marginleft-right auto; Whereas for constant Display sub-menu panel is visible and sets li element to display:block; by default';
+     $msg='Info: For Hovering it changes the visibility of the ul.sub-menu panel from hidden to visible and centers it with marginleft-right auto; Whereas for constant Display sub-menu panel is visible and sets li element to display:block; by default';
      printer::print_info($msg);
      printer::close_print_wrap1('techinfo');
      $this->show_close('Style info');
      echo '</div><!--submenu hover-->';
      printer::pclear(10);
-     /*
-     $this->show_more('Optional Width/Max-width/Height settings for Nav Links');
-     printer::print_wrap('Optional Width');
-	echo '<div class="fsminfo editbackground editfont left floatleft" ><!--Link MAX width-->';
-     $nav_link_maxwidth_val=$this->spacing($data.'_'.$nav_name_ref.'_arrayed',$nav_link_maxwidth_index,'max-width','Choose Main Link max-width','Optionally choose a specific max-width for Nav MAIN Links Here.','','','','','.'.$this->dataCss.' .nav_gen UL.top-level>LI>A');  
-	 $this->show_more('Style info','','info tiny italic');
-     printer::print_wrap1('more inifo');
-     $nav_link_maxwidth_val=(!empty($nav_link_maxwidth_val))?$nav_link_maxwidth_val:'.'.$this->dataCss.' .nav_gen UL.top-level>LI>A {}';
-     printer::print_tip('If chosen applies Css Style: '.$nav_link_maxwidth_val);    
-     printer::print_info('Sets Specific max-width for top level Main Link Widths only');
-     printer::close_print_wrap1('more inifo');
-     $this->show_close('More info');
-     echo '</div><!--Link MAX width-->';
-	echo '<div class="fsminfo editbackground editfont left floatleft" ><!--Link MAX width-->';
-     $nav_sub_link_maxwidth_val=$this->spacing($data.'_'.$nav_name_ref.'_arrayed',$nav_sub_link_maxwidth_index,'max-width','Choose SUB Link max-width','Optionally choose a specific max-width for Nav SUB Links Here.','','','','','.'.$this->dataCss.' .nav_gen UL UL>LI>A');  
-	 $this->show_more('Style info','','info tiny italic');
-     printer::print_wrap1('more inifo');
-     $nav_sub_link_maxwidth_val=(!empty($nav_sub_link_maxwidth_val))?$nav_sub_link_maxwidth_val:'.'.$this->dataCss.' .nav_gen UL.top-level>LI>A {}';
-     printer::print_tip('If chosen applies Css Style: '.$nav_sub_link_maxwidth_val);    
-     printer::print_info('Sets Specific max-width for top level Main Link Widths only');
-     printer::close_print_wrap1('more inifo');
-     $this->show_close('More info');
-     echo '</div><!--Link MAX width-->';
-     echo '<div  class="fsminfo editbackground editfont left  floatleft" ><!--Link width-->';
-     printer::alertx('<p class="info" title="select a set width for navigation links" >Optionally choose a specific width for Navigation Links Here.</p>');
-     $nav_link_val=$this->spacing($data.'_'.$nav_name_ref.'_arrayed',$nav_link_width_index,'width','Choose Main Link width','Optionally choose a specific width for Nav Main Links Here.','','width:auto;','','','.'.$this->dataCss.' .nav_gen UL.top-level>LI>A');  
-	 $this->show_more('Style info','','info tiny italic');
-     printer::print_wrap1('more inifo');
-     $nav_link_val=(!empty($nav_link_val))?$nav_link_val:'.'.$this->dataCss.' .nav_gen UL.top-level>LI>A {}';
-     printer::print_tip('If chosen applies Css Style: '.$nav_link_val);    
-     printer::print_info('Sets Specific width for top level Main Link Widths only');
-     printer::close_print_wrap1('more inifo');
-     $this->show_close('More info');
-     echo '</div ><!--Link width Wrapper-->'; 
-     printer::pclear(5);
-     echo '<div class="fsminfo editbackground editfont left  floatleft"><!--SubLink width-->';
-     printer::alertx('<p class=" '.$this->column_lev_color.'" title="Lengthen you Sub Menu Navigation Link Width independently of the Main Links Here!" >Set Width For Sub Menu Links Only Here </p>');
-	$nav_sub_link_val=$this->spacing($data.'_'.$nav_name_ref.'_arrayed',$nav_sub_link_width_index,'width','Choose Sub Link width','Optionally choose a specific width for Nav Sub Links Here.','','width:auto;','','','.'.$this->dataCss.' .nav_gen UL UL>LI>A');  
-	 $this->show_more('Style info','','info tiny italic');
-     printer::print_wrap1('more inifo');
-     $nav_sub_link_val=(!empty($nav_sub_link_val))?$nav_sub_link_val:'.'.$this->dataCss.' .nav_gen UL UL>LI>A {}';
-     printer::print_tip('If chosen applies Css Style: '.$nav_sub_link_val);    
-     printer::print_info('Sets Specific width for SUB Link Widths only');
-     printer::close_print_wrap1('more inifo');
-     $this->show_close('More info');
-     echo '</div><!--SubLink width-->';
-     $current_link_height=(is_numeric($nav_params[$nav_link_height_index])&&$nav_params[$nav_link_height_index]>24&&$nav_params[$nav_link_height_index]<101)?$nav_params[$nav_link_height_index]:'default';
      echo '<div class="fsminfo editbackground editfont '.$this->column_lev_color.' floatleft"><!--Link Height-->';
-     printer::print_tip('Optionally set a Uniform Height for all the Menu Links. By Default Links have automatic Height Depending on The Number of Rows of Link TEXT. Set a specific Height here');
-     echo '<p class="highlight left" >Optionally Set a Fixed Link Height</p>';
-     $this->mod_spacing($data.'_'.$nav_name_ref.'_arrayed['.$nav_link_height_index.']',$current_link_height,24,101,1,'px','none'); 
-     echo '</div><!--Link Height-->'; 
-     printer::close_print_wrap('Optional Width');
-     $this->show_close('Optional Width/Max-width/Height settings for Nav Links');*/
-     echo '<div class="fsminfo editbackground editfont '.$this->column_lev_color.' floatleft"><!--Link Height-->';
-     printer::print_tip('Optionally set a Uniform Height for all the Menu Links. Normally Links have automatic Height Depending on The Number of Rows of Link TEXT and padding. Set a specific Height here',.7);
-     $nav_link_height=$this->spacing($data.'_'.$nav_name_ref.'_arrayed',$nav_link_height_index,'height','Choose Main Link height','Normally heights are set to auto; Optionally choose a specific height for Nav Main Links Here.','','','','','.'.$this->dataCss.' .nav_gen UL.top-level>LI>A');  
+     printer::print_tip('Optionally set a Uniform Height for all the Menu Links @non menu-icon widths. Normally Links have automatic Height Depending on The Number of Rows of Link TEXT and padding. Set a specific Height here',.7);
+     $nav_link_heightl=$this->spacing($data.'_'.$nav_name_ref.'_arrayed',$nav_link_height_index,'height','Choose Main Link height','Normally heights are set to auto; Optionally choose a specific height for Nav Main Links Here.','','','','','.'.$this->dataCss.' .nav_gen UL.top-level>LI>A');  
 	 $this->show_more('Style info','','info tiny italic');
      printer::print_wrap1('more inifo');
      $nav_link_heightl=(!empty($nav_link_heightl))?$nav_link_heightl:'.'.$this->dataCss.' .nav_gen UL.top-level>LI>A {}';
-     printer::print_tip('If chosen applies Css Style: '.$nav_link_heightl);    
+     printer::print_tip('If chosen applies Css Style: '.$nav_link_heightl.'. Also uses .'.$this->dataCss.' .nav_gen ul.top-level:NOT(.menuRespond)>LI>A{height:auto;} so that @menu-con widths are not affected');    
      printer::print_info('Sets Specific width for top level Main Link Widths only');
      printer::close_print_wrap1('more inifo');
      $this->show_close('More info');
      echo '</div><!--Link Height-->'; 
      printer::pclear();	echo '<div class="fsminfo editbackground editfont '.$this->column_lev_color.' floatleft"><!--Link Height-->';
-     printer::print_tip('Optionally set a Uniform Height for all the Menu Links. Normally Links have automatic Height Depending on The Number of Rows of Link TEXT and padding. Set a specific Height here',.7);
-     $nav_sub_link_height=$this->spacing($data.'_'.$nav_name_ref.'_arrayed',$nav_sub_link_height_index,'height','Choose SUB Link height','Normally heights are set to auto; Optionally choose a specific height for Nav SUB Links Here.','','','','','.'.$this->dataCss.' .nav_gen UL UL>LI>A');  
+     printer::print_tip('Optionally set a Uniform Height for all the SUB Menu Links @non menu-icon widths.  Normally Links have automatic Height Depending on The Number of Rows of Link TEXT and padding. Set a specific Height here',.7);
+     $nav_sub_link_heightl=$this->spacing($data.'_'.$nav_name_ref.'_arrayed',$nav_sub_link_height_index,'height','Choose SUB Link height','Normally heights are set to auto; Optionally choose a specific height for Nav SUB Links Here.','','','','','.'.$this->dataCss.' .nav_gen UL UL>LI>A');  
 	 $this->show_more('Style info','','info tiny italic');
      printer::print_wrap1('more inifo');
      $nav_sub_link_heightl=(!empty($nav_sub_link_heightl))?$nav_sub_link_heightl:'.'.$this->dataCss.' .nav_gen UL UL>LI>A {}';
-     printer::print_tip('If chosen applies Css Style: '.$nav_sub_link_heightl);    
+     printer::print_tip('If chosen applies Css Style: '.$nav_sub_link_heightl.'. Also uses .'.$this->dataCss.' .nav_gen ul.top-level:NOT(.menuRespond)>UL>LI>A{height:auto;} so that @menu-con widths are not affected');    
      printer::print_info('Sets Specific height for SUB Link Widths only');
      printer::close_print_wrap1('more inifo');
      $this->show_close('More info');
      echo '</div><!--Link Height-->'; 
      printer::pclear();	
-     $this->submit_button(); 
+     $this->submit_button();
+     printer::print_wrap('str to upper');
+     if($nav_params[$nav_force_caps_index]!=='force'){
+          printer::alertx('<p class=" highlight floatleft" title="Captialize All Main Menu and Sub Menu Link Titles/Names"><input type="radio" value="force"  name="'.$data.'_'.$nav_name_ref.'_arrayed['.$nav_force_caps_index.']">Use Uppercase Text Only</p>');
+          }
+     else {
+          printer::alertx('<p class=" highlight floatleft" title="Captialize All Main Menu and Sub Menu Link Titles/Names"><input type="radio" value="0"  name="'.$data.'_'.$nav_name_ref.'_arrayed['.$nav_force_caps_index.']">Disable Use Of Uppercase Text Only</p>');
+          }
+     printer::print_wrap('wrap server side options');
+     printer::print_tip('The following two choices will also @menu-icon width');
+     $this->show_more('Style info','asis','info italic smaller');
+     printer::print_wrap1('techinfo');
+     $msg='Info: Uses Server Side php strtoupper() in navigate.class.php'; 
+     printer::print_info($msg);
+     printer::close_print_wrap1('techinfo');
+     $this->show_close('Style info');
+     printer::close_print_wrap('str to upper');
+     printer::pclear(5); 
+     $checked1=($nav_params[$nav_repeat_submenu_index]!=='repeat')?'checked="checked"':''; 
+     $checked2=($nav_params[$nav_repeat_submenu_index]==='repeat')?'checked="checked"':'';#full 
+     echo '<div class="fsminfo"><!--repeat menu wrap-->';
+     printer::print_tip('A main link with a submenu can be repeated in the submenu by adding it manually by choosing the add/edit links menu or by choosing the Repeat Main Menu Links here');
+     printer::alertx('<p class="information" title="When Submenu links are Being Used Do Not Repeat the main menu link at the top of list of submenu links "><input type="radio" value="1" '.$checked1.' name="'.$data.'_'.$nav_name_ref.'_arrayed['.$nav_repeat_submenu_index.']">Do Not Repeat Main Link to Submenu</p>');
+	printer::pclear();
+     printer::alertx('<p class="information" title="When Submenu links are Being Used Repeat the main menu link at the top of list of submenu links"><input type="radio" value="repeat" '.$checked2.' name="'.$data.'_'.$nav_name_ref.'_arrayed['.$nav_repeat_submenu_index.']">Repeat Main Menu Link in sub menu list if used </p>'); 
+     printer::pclear();	
+     $this->show_more('Style info','asis','info italic smaller');
+     printer::print_wrap1('techinfo');
+     $msg='Info: Uses Server Side Link Repeat Management in navigate.class.php'; 
+     printer::print_info($msg);
+     printer::close_print_wrap1('techinfo');
+     $this->show_close('Style info');
+     printer::pspace(10); 
+	echo '</div><!--repeat menu wrap-->';
+     printer::close_print_wrap('wrap server side options');
+     printer::pclear();	
+     $this->submit_button();
      printer::close_print_wrap('detail link');
      $this->show_close('Detailed Link Area');//<!--End Show More Edit Nav-->'; 
-     $this->show_more('Style/Enable/Customize @ <h7>Menu Icon</h7> Width','','','',600);
+     $this->show_more('Style/Customize <b>@ Menu Icon</b> Width','','','',600);
      printer::print_wrap('rwd menu icon');
      printer::print_wrap('outer absolute relative menu icon');
      printer::print_tip('Customize  positioning of menu icon/open menu icon &amp; menu');
@@ -4328,7 +4285,6 @@ eol;
      $this->show_close('Absolute or Relative Positioning of menu icon');
      printer::close_print_wrap('outer absolute relative menu icon');
      printer::print_wrap('responsivmenustyle');
-     printer::print_tip('Check out options to Tweak the position the entire open menu and/or opened icon down below');
      $style_list='width_special,width_max_special,width_min_special,background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,font_family,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform';
      $this->show_more('Style individual Links @ icon width');
      printer::print_wrap('Style individual Links');
@@ -4342,8 +4298,8 @@ eol;
      printer::print_wrap('Style individual Sub Links');
      printer::print_tip('@ menu icon widths you can style both the LI A and the parent LI element which affects individual SUB links.');
      printer::print_info('Recomended to use LI A then for special needs use LI');
-     $this->edit_styles_close($data,'blog_data10','.'.$this->dataCss.' .ulTop.menuRespond2 ul li a','width_special,width_max_special,width_min_special,background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,text_align,borders,box_shadow,outlines,radius_corner,transform',"Style (LI A:LINK) Opened Nav Sub Menu Links Differently when Responsive Menu Icon is clicked",'','',true,true );
-     $this->edit_styles_close($data,'blog_data11','.'.$this->dataCss.' .ulTop.menuRespond2 ul li','width_special,width_max_special,width_min_special,background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,text_align,borders,box_shadow,outlines,radius_corner,transform',"Style (LI) Opened Nav Sub Menu Links Differently when Responsive Menu Icon is opened",'','',true,true ); 
+     $this->edit_styles_close($data,'blog_data10','.'.$this->dataCss.' .ulTop.menuRespond2 ul li a',$style_list,"Style (LI A:LINK) Opened Nav Sub Menu Links Differently when Responsive Menu Icon is clicked",'','',true,true );
+     $this->edit_styles_close($data,'blog_data11','.'.$this->dataCss.' .ulTop.menuRespond2 ul li',$style_list,"Style (LI) Opened Nav Sub Menu Links Differently when Responsive Menu Icon is opened",'','',true,true ); 
      printer::close_print_wrap('Style individual Sub Links');
      $this->show_close('Style individual Sub Links @ icon width');
      $this->edit_styles_close($data,'blog_data8','.'.$this->dataCss.' .ulTop.menuRespond2','width_special,width_max_special,width_min_special,background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,text_align,borders,box_shadow,outlines,radius_corner,transform',"Style opened Nav Link Background Area including Borders/etc. when Responsive Menu Icon is opened",'','',true,true );
@@ -4367,7 +4323,7 @@ eol;
      $checked2=($respond_menu_dimension==='icon full on')?'':'checked="checked"';
      printer::printx('<p class="info" title="checking here will enables menu icon to be displayed at all widths."><input type="radio" value="icon full on" name="'.$data.'_'.$nav_name_ref.'_arrayed['.$nav_icon_media_width_index.']" '.$checked1.'>Make Menu Icon Permanant</p>');
      printer::printx('<p class="info" title="checking here will removes menu icon to be displayed at all widths."><input type="radio" value="No full on" name="'.$data.'_'.$nav_name_ref.'_arrayed['.$nav_icon_media_width_index.']" '.$checked2.'>Do Not Make Menu Icon Permanant</p>');
-     $this->show_more('Style info','','info italic smaller');
+     $this->show_more('Style info','asis','info italic smaller');
      printer::print_wrap1('techinfo'); 
       $msg='Info: @media screen and (max-width:'.$respond_menu_dimension.'px) {}<br> @media max-width value used for various css styles is configured here'; 
      printer::print_info($msg);
@@ -4391,8 +4347,8 @@ eol;
   .'.$this->dataCss.'.iconOpen .nav_gen  UL :hover UL :hover UL  { VISIBILITY: visible;} 
 .'.$this->dataCss.'.iconOpen .nav_gen  UL LI:hover UL  { VISIBILITY: visible } 
 .'.$this->dataCss.'.iconOpen .nav_gen ul.sub-level,.hover .nav_gen  ul ul  {  Z-INDEX: 100; }
-.'.$this->dataCss.'.iconOpen .nav_gen  UL UL LI  {margin-right:auto; margin-left:auto;} 
 ';
+
           }
      else {
      $nav_openicon_submenu_display='
@@ -4429,7 +4385,7 @@ eol;
      $this->mod_spacing($data.'_'.$nav_name_ref.'_arrayed['.$nav_icon_width_index.'][0]',$icon_width,.3,10,.1,'unit');
      printer::print_tip('Nav Icon bar Width and Height will scale proportionately to width. Width may be activated with scaling (responsive to viewport width) if enabled here.');
      $this->rwd_scale($nav_params[$nav_icon_width_index],$data.'_'.$nav_name_ref.'['.$nav_icon_width_index.']',"#$this->dataCss .show_icon",'font-size','Navigation Menu Icon Size','px',0,1,false,16,20); 
-     $this->show_more('Style info','','info italic smaller');
+     $this->show_more('Style info','asis','info italic smaller');
      printer::print_wrap1('techinfo');
      printer::print_info('Current setting Css: #$this->dataCss .show_icon');
       $msg='Info: Sets the Width of the icon-menu itself uses the id with higher specificity over class'; 
@@ -4535,7 +4491,7 @@ eol;
      printer::pclear(5);
      $this->submit_button(); 
      printer::close_print_wrap('rwd menu icon');
-     $this->show_close('Style/Enable/Customize @ Menu Icon Width'); 
+     $this->show_close('Style/Customize <b>@ NON Menu-Icon Width</b>'); 
      echo'<p class="button'.$this->column_lev_color.' '.$this->column_lev_color.' editbackground editfont editcolor floatleft underline shadowoff"> <a class="linkcolorinherit" href="navigation_edit_page.php?table_ref='.$this->pagename.'&amp;data='.$data.'&amp;style='.'ID-'.$dir_menu_id.'-'.$datainc.'&amp;menuid='.$dir_menu_id.'&amp;postreturn='.Sys::Self.'&amp;pgtbn='.$this->pagename.'&amp;css='.$this->roots.Cfg::Style_dir.$this->pagename.'">Add Remove &amp; Edit Links for this Menu</a></p>';
 		printer::pclear();
    $pb=(!is_numeric($this->{$data.'_blog_data4_arrayed'}[$this->padding_bottom_index]))?0:$this->{$data.'_blog_data4_arrayed'}[$this->padding_bottom_index];
@@ -4608,9 +4564,11 @@ eol;
 .menuRespond .bar3 {
   -webkit-transform: rotate(45deg) translate(-.043em, -.3em);
   transform: rotate(45deg) translate(-.043em, -.3em);
-   } 
-
-.'.$this->dataCss.' .nav_gen UL UL A { '.$nav_sub_link_width.'height:auto; }
+   }
+.'.$this->dataCss.' .nav_gen ul.top-level:NOT(.menuRespond)>UL>LI>A{height:auto;}
+.'.$this->dataCss.' .nav_gen ul.top-level:NOT(.menuRespond) >LI>A{height:auto;}
+.'.$this->dataCss.' .nav_gen ul.top-level ul.sub-level li {display: block !important;}
+.'.$this->dataCss.' .nav_gen UL UL A { '.$nav_sub_link_width.';}
 .'.$this->dataCss.' .nav_gen ul.top-level:NOT(.menuRespond):NOT(.transitionEase) li:NOT(.show_icon){
   '.$nav_link_vertical_choice.'
      }

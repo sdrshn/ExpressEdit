@@ -555,9 +555,9 @@ static function close_print_wrap($msg='',$spacer=true){
 	printer::pclear();
 	}
      
-static function close_print_wrap1($msg=''){
+static function close_print_wrap1($msg='',$spacer=false){
 	if(Sys::Printoff||Sys::Quietmode)return;
-     printer::print_spacer();
+     ($spacer===true)&&printer::print_spacer(); 
 	$msg= '</div><!--close_print_wrap1-->';
 	echo $msg; 
 	printer::pclear();

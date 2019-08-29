@@ -2512,7 +2512,7 @@ function box_shadow($style, $val,$field){
 	if ($this->is_page|| ($this->is_blog&&!$this->is_clone)||($this->is_column&&!$this->is_clone||$this->clone_local_style)){  
 		$this->show_more('Box Shadow', 'noback','editfont highlight editbackground editfont',' add a Shadow around this text or image post',500);  
 		$this->print_redwrap('Box shadow',false);
-		echo '<p class="fbs1info '.$this->column_lev_color.' whitebackground editfont">We have used a maroon box shadow effect on the bottom right of this text. <span class="highlight" title="Blur Radius: 7px; Spread Radius -6px; Horizontal Offset: 4px; Vertical Offset: 4px; Color:#f7f2a8;">See Settings</span> for this box shadow!<br>Like Borders, Box Shadows provide styling around a Column Post or Menu Link Area, though providing a customizable shadow instead. For a quick overview  and examples see <a href="http://css-tricks.com/snippets/css/css-box-shadow/">Shadow Examples.</a>  </p>';
+		echo '<p class="fbs1info '.$this->column_lev_color.' editbackground editfont">We have used a maroon box shadow effect on the bottom right of this text. <span class="highlight" title="Blur Radius: 7px; Spread Radius -6px; Horizontal Offset: 4px; Vertical Offset: 4px; Color:#f7f2a8;">See Settings</span> for this box shadow!<br>Like Borders, Box Shadows provide styling around a Column Post or Menu Link Area, though providing a customizable shadow instead. For a quick overview  and examples see <a href="http://css-tricks.com/snippets/css/css-box-shadow/">Shadow Examples.</a>  </p>';
 		printer::pclear(8);
 		echo '<p class="fsminfo editbackground editfont rad3 floatleft '.$this->column_lev_color.' editfont">Shadow may be an outside box shadow (recommended for styling directly around images or an inside box shadow :<br> ';
           $checked2=($shadow_array[$this->shadowbox_insideout_index]==='inset')?'checked="checked"':''; 
@@ -5260,6 +5260,12 @@ function copy_to_clipboard(){
 function clipboard($type,$id,$field){
 	$this->print_wrap('global paste');
 	printer::print_tip('Copy to clipboard all the styles here then paste the current clipboard styles to any post, page, or column styles! Allows you to copy between different fields and between post &amp; column &amp; page styles.  Note:Copying from one style and Pasting on another results in the latest paste being the one copied. Only styles normally expressed will be utilized. Only one Copy to clipboard event will be registered.');
+     $this->show_more('Clipboard Style info','','info italic smaller');
+     printer::print_wrap1('techinfo');
+      $msg='Clipboard style is saved to the master_page table under the field page_clipboard then retrieved with a paste event. You can do both operations at once or do paste in separate submits. Always the last copied styles are used for pasting and may viewed below under current clipboard styles'; 
+     printer::print_info($msg);
+     printer::close_print_wrap1('techinfo');
+     $this->show_close('Style info');
 	printer::alert('Current Clipboard styles: <br>');
 	$this->display_style('page','page_clipboard',$this->page_id);
 	printer::alert('<input type="text" value=""  size="6" maxlength="6" name="paste_from_clipboard['.$type.']['.$field.'@x@x'.$id.'][]">Type the word "paste" into into box to paste the current clipboard replacing these styles');
@@ -6793,7 +6799,7 @@ function blog_import_export_options(){
 	printer::printx( '<p class="editcolor editbackground editfont" 	><input class="editcolor editbackground editfont" name="post_allconfigexport['.$this->blog_id.']"   type="checkbox" value="'.$this->blog_id.'">Also Include Exporting <b> Main Width, RWD Configs, and Float Settings</b> to '.$this->blog_type.' posts within this parent column</p>');
 	echo '</div><!--export-->';
 	//$this->show_more('Or choose individual Configuration to Export/Import');
-     $this->print_redwrap('individual port options'); 
+     //$this->print_redwrap('individual port options'); 
      printer::print_tip('Styles may exported/imported by using that option located at the bottom of every grouping of particular style options. Here we import/export other configuration options on indiviudal basis.');
 	echo '<div class="'.$this->column_lev_color.' fsminfo  editbackground editfont left "><!--import-->Import RWD Grid percentage selections to this post from another post from any page that has the same Grid Break Points set in the page options. Field: <span class="info" title="blog_gridspace_right, blog_gridspace_left, blog_grid_width">Info</span>';
 	printer::printx( '<p class="editcolor editbackground editfont" title="Be Sure to Use the Post Id Which Begins with a P ie P42.  Do Not Use the  Post# which simply refer to the Post Display Order Within the Column. Post Ids and #s are displayed at the top of each post"><input class="editcolor editbackground editfont" name="post_rwdcopy['.$this->blog_id.']" size="8" maxlength="8" type="text">Enter the  <span class="info">Post Id</span> <span class="red">(Not Post#) </span>that you wish to copy Post RWD grid break point percentages</p>');
@@ -6838,7 +6844,7 @@ function blog_import_export_options(){
       $this->submit_button();
 	printer::close_print_wrap('blog option Port');
     // $this->show_close('Or choose individual Configuration to Export/Import');
-     printer::close_print_wrap('individual port options');
+     //printer::close_print_wrap('individual port options');
      ########## 
 	$this->show_more('Inter-Database Export/Import Configs/Settings');
 	$dir= (is_dir(Sys::Common_dir))?Sys::Common_dir:Sys::Home_pub;
