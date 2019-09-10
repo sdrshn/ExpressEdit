@@ -320,9 +320,40 @@ function page_adjust_break_points(){
      $clean_id= (isset($_POST['page_sub_bp'])&& $_POST['page_sub_bp']==='site')?'all':$this->pagename;
      $this->clean_break_point_fields($clean_id);     
 	}//end clean_break_points
+
+function color_reset(){
+     $this->show_more('Reset Colors');
+	printer::print_wrap('color reset');
+	printer::printx('<p class="editbackground editcolor small"><input type="radio" value="reset" name="force_color_reset">Reset to default the column-level colors and any tweaked value on this Page Only</p>');
+	printer::printx('<p class="editbackground editcolor small"><input type="radio" value="reset_all" name="force_color_reset">Reset to default the column-level colors and any tweaked value on all the Pages in this Website</p>');
 	
+     printer::print_tip('Here you can reset to default the dark/light editor background and misc text colors.');
+	 printer::printx('<p class="editbackground editcolor small"><input type="radio" value="reset_back" name="reset_editor_background_colors">Reset dark/light editor background and misc. colors on this page</p>');
+	 printer::printx('<p class="editbackground editcolor small"><input type="radio" value="reset_back_all" name="reset_editor_background_colors">Reset dark/light editor background and misc. colors on all pages</p>');
+	$this->submit_button();
+     printer::close_print_wrap('color reset');
+	$this->show_close('Reset Colors');
+
+	}
+     
+     
+function reset_editor_background_colors(){ 
+	$where=($_POST['reset_editor_background_colors']==="reset_back_all")?'':"where page_ref='$this->pagename'";
+     if(!is_array($this->page_options))
+          $this->page_populate_options();//separately called  in non edit pages
+     $this->page_options[$this->page_darkeditor_background_index]='0';
+     $this->page_options[$this->page_darkeditor_color_index]='0';
+     $this->page_options[$this->page_lighteditor_background_index]='0';
+     $this->page_options[$this->page_lighteditor_color_index]='0';
+     $options=implode(',',$this->page_options);
+     $q="update $this->master_page_table  set page_options='$options' $where";  
+	$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
+     if ($this->mysqlinst->affected_rows())$this->success[]='Updated to default editor background/misc. colors';
+     else $this->message[]='No changes to default Background/Misc. Text colors'; 
+	}
+     
 function force_color_reset(){ 
-	$where=($_POST['force_color_reset']==="reset_all")?'':"where page_ref='$this->pagename'";
+	$where=($_POST['force_color_reset']==="reset_back_all")?'':"where page_ref='$this->pagename'";
 	 $q="update $this->master_page_table  set page_dark_editor_value='', page_light_editor_value='', page_dark_editor_order='', page_light_editor_order='' $where";
 	$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
 	 $q="update $this->master_page_table  set page_dark_editor_value='', page_light_editor_value='', page_dark_editor_order='', page_light_editor_order='' $where";
@@ -4085,6 +4116,7 @@ function update_sort_list($no,$big){
 	if (!$this->mysqlinst->affected_rows())return false;
 	return true;
 	}
+     
 function update_gall_list($no,$big){ 
 	$img_arr=array();
 	$sort_arr=explode('|',$no);
@@ -4098,21 +4130,42 @@ function update_gall_list($no,$big){
 	}
 
 function update_editor_color_list($no){ 
-	$img_arr=array();
+     $collect='';
+     $img_arr=array();
 	$sort_arr=explode('|',$no);
 	$color_list='';
-	$x=0;
 	foreach ($sort_arr as $e){
 		$new_arr=explode('!@!',$e);
 		$color_list.=$new_arr[1].',';
-		$x++;
-		}
-	
+          }
 	$editor_ref=strtolower($new_arr[2]);
 	$color_list=substr_replace($color_list,'',-1);
+      $q="select page_{$editor_ref}_editor_value, page_{$editor_ref}_editor_order from $this->master_page_table where page_ref='$this->pagename'";
+	$r=$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
+     list($values,$order)=$this->mysqlinst->fetch_row($r,__LINE__);
+     $values=(!empty($values))?explode(',',$values):array();
+     $order=explode(',',$order);
+     $array=array();
+     for ($i=0; $i<count($order); $i++){
+          if (array_key_exists($i,$values)&&preg_match(Cfg::Preg_color,$values[$i])){
+               $array[$order[$i]]=$values[$i];
+               }
+          else
+               $array[$order[$i]]=$this->{$order[$i]};
+               
+          }
+               process_data::write_to_file('tempfile',implode(',',$array));
+     foreach ($sort_arr as $e){
+		$new_arr=explode('!@!',$e);
+		$collect.=$array[$new_arr[1]].',';
+          }
+	$collect=substr_replace($collect,'',-1);
 	$q="update $this->master_page_table set page_{$editor_ref}_editor_order='$color_list' where page_ref='$this->pagename'";
+	$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
+	$q="update $this->master_page_table set page_{$editor_ref}_editor_value='$collect' where page_ref='$this->pagename'";
 	$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false); 
 	}
+     
 function get_image_list($gall_ref,$re_id){
 	$q="select picname from $this->master_gall_table where gall_ref='$gall_ref'";  
 	$r=$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);

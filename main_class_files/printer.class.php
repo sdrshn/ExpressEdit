@@ -411,8 +411,8 @@ static function printx($msg,$return=false){if(Sys::Printoff||Sys::Quietmode)retu
 static function print_tip($msg,$size='.9'){
 	if(Sys::Printoff||Sys::Quietmode)return;
 	echo "\n";
-	$msg= '<p class="tip floatleft clear editfont " style="font-size:'.($size*16).'px;">'.$msg.'</p>';
-	echo $msg;
+	$msgA= '<p class="tip floatleft clear editfont" style="font-size:'.($size*16).'px;">'.$msg.'</p>';
+	echo $msgA; echo '<!--print_tip-->';
 	self::pclear();
 	}
      

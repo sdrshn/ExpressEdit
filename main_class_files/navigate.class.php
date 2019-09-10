@@ -188,7 +188,7 @@ function return_url($pagename,$listed='',$class='navr1 floatleft',$show_all=fals
 	$msg=(!empty($show_all))?'<span class="info bold" title="Will Additionally Show Non-Published Posts including this one on Your Web Page View!">Preview All</span>':' Web '.$this->view_br.'Page mode'; 
 	printer::pclear();
 	($this->view_webpage)&&print '
-	 <p class="'.$class.' editfontfamily "><a  style="color:inherit;" target="_blank"  href="'.$file.$appendReturnUrl.$show_all.'" >'.$msg.'</a></p>
+	 <p class="'.$class.' editfontfamily "><a  style="color:inherit;" target="_blank"  href="'.$file.$appendReturnUrl.$show_all.'">'.$msg.'</a></p>
 		';
 	printer::pclear(1);
      }  

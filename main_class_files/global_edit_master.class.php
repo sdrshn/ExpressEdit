@@ -145,9 +145,11 @@ function edit_script(){if (Sys::Debug)  Sys::Debug(__LINE__,__FILE__,__METHOD__)
      $this->editpages_obj($this->master_page_table,'page_id,'.Cfg::Page_fields,'','page_ref',$this->pagename,'','','all','',",page_time=".time().",token='". mt_rand(1,mt_getrandmax())."', page_update='".date("dMY-H-i-s")."'");
      
      $this->generate_bps(); 
-	$this->page_populate_options();//separately called  in non edit pages 
-     $this->page_grid_units=(is_numeric($this->page_options[$this->page_grid_units_index])&&$this->page_options[$this->page_grid_units_index]>11&&$this->page_options[$this->page_grid_units_index]<101)?intval($this->page_options[$this->page_grid_units_index]):100;
+	if(!is_array($this->page_options))
+          $this->page_populate_options();//separately called  in non edit pages
+     
      $this->color_populate();
+     $this->page_grid_units=(is_numeric($this->page_options[$this->page_grid_units_index])&&$this->page_options[$this->page_grid_units_index]>11&&$this->page_options[$this->page_grid_units_index]<101)?intval($this->page_options[$this->page_grid_units_index]):100;
      $this->backup_copies=(is_numeric($this->page_options[$this->page_backup_copies_index])&&$this->page_options[$this->page_backup_copies_index]>20&&$this->page_options[$this->page_backup_copies_index]<1001)?$this->page_options[$this->page_backup_copies_index]:Cfg::Backup_copies;
 	$ports='page_style,page_editor_color,page_special_class,page_width,page_rwd,page_cache';
 	$exports='page_quality,page_dbbackups';
@@ -168,7 +170,8 @@ function edit_script(){if (Sys::Debug)  Sys::Debug(__LINE__,__FILE__,__METHOD__)
 	if (isset($_POST['submitted']))$this->process_col();
 	if (isset($_POST['delete_blog_clunc']))$this->process_delete_clunc(); 
 	if (isset($_POST['col_transfer_clone']))$this->process_col_transfer_clone();
-	if (isset($_POST['force_color_reset']))$this->force_color_reset();  
+	if (isset($_POST['force_color_reset']))$this->force_color_reset();
+	if (isset($_POST['reset_editor_background_colors']))$this->reset_editor_background_colors();
 	if (isset($_POST['gallpicsubmitted'])){
 		$addgallery=addgallery::instance();
 		$addgallery->submitted();
@@ -377,7 +380,7 @@ function body_defaults(){
 	$this->current_color=(preg_match(Cfg::Preg_color,$colors))?$colors:'000000'; 
      }
      
-function advanced_button(){
+function advanced_button(){return;
      ##################### advance off button
 	echo '<div class="inline floatleft"><!-- float buttons-->';
 	$msg='Advanced Style Css refers to custom css manually added at the bottom of the style options. You can change the default status of whether advances css is expressed in editmode under configure settings then toggle on or off here as needed. Please note some editor default styles may overwrite advanced css so always check results in webpage mode';
@@ -437,9 +440,9 @@ function magnify_margins(){
 	echo '<div class="inline floatleft"><!-- float buttons-->';
 	$msg='Click Button to enlarge borders and add margin and padding spacing in order to better see column arrangement. In certain circumstance can cause a floated post to break to new line';
      if (!isset($_GET['magnify_margins']))
-          printer::printx('<p class="info click buttoninfo highlight tiny" title="'.$msg.'"> <a style="color:inherit;"  href="'.Sys::Self.'?magnify_margins">Enable Margin Magnify</a></p>');
+          printer::printx('<p class="info click buttoneditcolor editfont smallest" title="'.$msg.'"> <a style="color:inherit;"  href="'.Sys::Self.'?magnify_margins">Enable Margin Magnify</a></p>');
      else 
-          printer::printx('<p class="info click buttoninfo highlight tiny" title="'.$msg.'"> <a style="color:inherit;"  href="'.Sys::Self.'">Disable Margin Magnify</a></p>'); 
+          printer::printx('<p class="info click buttoneditcolor editfont smallest" title="'.$msg.'"> <a style="color:inherit;"  href="'.Sys::Self.'">Disable Margin Magnify</a></p>'); 
 	echo '</div><!-- float buttons-->';
      }
     
@@ -459,7 +462,7 @@ function edit_header(){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__
 function editpages_obj($master_table,$field_data,$post_prepend,$ref1,$refval1,$ref2='',$refval2='',$do_all='all',$where3='',$update2=''){ #update# Updating posts in main process_blog function calling this function handles originals ie non-clones.. whereas updaing for local clone style and local clone data call this function in each repective section in the main blog_render function..  for the clones same parameters are passed cept has additional where blog_table_base='$this->pagename' clause  and instead of using master_post uses master_post_css or master_post_data for clone_local_style and  clone_local_data respectively
 	#the system uses the pagename and order instead of id  which allows for proper order information ie. placement to occur naturally
 	$print=($do_all!=='populate_data'&&isset($_POST['submitted'])&&(false))?true:false;    
-	 ($print)&&printer::alert_neu( NL.NL."master table: $master_table, field_data,$post_prepend,ref1: $ref1,refval: $refval1,ref2: $ref2,refval2 $refval2='',do: $do_all and where3 is $where3 and update2= $update2",1.5);
+	($print)&&printer::alert_neu( NL.NL."master table: $master_table, field_data,$post_prepend,ref1: $ref1,refval: $refval1,ref2: $ref2,refval2 $refval2='',do: $do_all and where3 is $where3 and update2= $update2",1.5);
 	$where2=(empty($ref2))?'':" AND $ref2='$refval2' "; 
 	$field_array=explode(',',$field_data); 
 	if (isset($_POST['submitted'])){	 
@@ -474,7 +477,8 @@ function editpages_obj($master_table,$field_data,$post_prepend,$ref1,$refval1,$r
 				foreach (array('','_arrayed') as $check_suffix){
 				 	if (isset($_POST[$post_prepend.$field_array[$x].$check_suffix])){ ($print)&&printer::alert_neg('is post '.$post_prepend.$field_array[$x].$check_suffix); 
 						if (is_array($_POST[$post_prepend.$field_array[$x].$check_suffix])){
-							$q='select '.$field_array[$x]." from $master_table WhErE $ref1 ='$refval1' $where2 $where3";    
+                                    ($print)&&printer::alert_pos('Is array ');
+							$q='select '.$field_array[$x]." from $master_table WhErE $ref1 ='$refval1' $where2 $where3";   ($print)&&printer::alert_pos("Select $q"); 
 							$r=$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);  
 							list($c_val)=$this->mysqlinst->fetch_row($r,__LINE__);
 							 
@@ -489,7 +493,8 @@ function editpages_obj($master_table,$field_data,$post_prepend,$ref1,$refval1,$r
 			if ($update=== 'SET '&& $do_all!=='all')return;
 			elseif ($update!= 'SET '){  
 				$update=substr_replace($update ,"",-1);     
-				$q="UPDATE $master_table $update $update2 WherE $ref1 ='$refval1' $where2 $where3";    ($print)&&printer::alert_pos($q. '  q is',1.5); 
+				$q="UPDATE $master_table $update $update2 WherE $ref1 ='$refval1' $where2 $where3";
+                    ($print)&&printer::alert_pos('  q is'.$q ,1.5); 
 				$r=$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
 				$vars=(mail::Defined_vars)?get_defined_vars():'defined vars set off';
 				$vars=print_r($vars,true); 
@@ -545,69 +550,60 @@ function editpages_obj($master_table,$field_data,$post_prepend,$ref1,$refval1,$r
 	if (Sys::Debug) echo 'leaving funct editpage entirely!!';  
 	}#end function edit pages_obj
       
-function color_populate(){
-	$this->page_options[$this->page_darkeditor_background_index]=(preg_match(Cfg::Preg_color,$this->page_options[$this->page_darkeditor_background_index]))?$this->page_options[$this->page_darkeditor_background_index]:'000000';
-	$this->page_options[$this->page_darkeditor_color_index]=(preg_match(Cfg::Preg_color,$this->page_options[$this->page_darkeditor_color_index]))?$this->page_options[$this->page_darkeditor_color_index]:'F7FDFF';
-	$this->page_options[$this->page_lighteditor_background_index]=(preg_match(Cfg::Preg_color,$this->page_options[$this->page_lighteditor_background_index]))?$this->page_options[$this->page_lighteditor_background_index]:'ffffff';
-	$this->page_options[$this->page_lighteditor_color_index]=(preg_match(Cfg::Preg_color,$this->page_options[$this->page_lighteditor_color_index]))?$this->page_options[$this->page_lighteditor_color_index]:'000000';
-	if ($this->page_options[$this->page_editor_choice_index]==='dark') : 
-		$indexes=explode(',',Cfg::Dark_editor_color_order);
-		foreach($indexes as $key =>$index){
-			if (!empty($index)) {
-				$this->{$index.'_index'}=$key; 
-				 //  print NL.  $index." = $key";  
-				}
-			}  
-		$config_darkeditor_arr=explode(',',Cfg::Dark_editor_color_order);
-		$count=count($config_darkeditor_arr);
-		$this->page_dark_editor_value=(empty($this->page_dark_editor_value))?array():explode(',',$this->page_dark_editor_value);
-		$color_order=($count===count(explode(',',$this->page_dark_editor_order)))?$this->page_dark_editor_order:Cfg::Dark_editor_color_order; 
-		foreach($config_darkeditor_arr as $key => $color){
-			if (!isset($this->$color)){
-				$msg="Error: Unconfigured color value for  $color being temporarily set to black";
-				$this->message[]=$msg;
-				$this->$color='000000';
-				}
-			$this->{$color.'_index'}=$key; 
-			if (array_key_exists($key,$this->page_dark_editor_value)&&preg_match(Cfg::Preg_color,$this->page_dark_editor_value[$key])) 
-				$this->$color=$this->page_dark_editor_value[$key];
-			else {
-				$this->page_dark_editor_value[$key]=$this->$color;
-				$this->hidden_array[]='<input class="allowthis" type="hidden" name="page_dark_editor_value['.$key.']" value="'.$this->$color.'">';
-				} 	
-			}
-		$this->editor_background=$this->page_options[$this->page_darkeditor_background_index];
-		$this->editor_color=$this->page_options[$this->page_darkeditor_color_index];
-	else :
-		$indexes=explode(',',Cfg::Light_editor_color_order);
-		foreach($indexes as $key =>$index){
-		if (!empty($index)) {
-			$this->{$index.'_index'}=$key; 
-			  //  print NL.  $index." = $key";  
-			}
-		} 
-		$config_lighteditor_arr=explode(',',Cfg::Light_editor_color_order);
-		$count=count($config_lighteditor_arr);
-		$this->page_light_editor_value=(empty($this->page_light_editor_value))?array():explode(',',$this->page_light_editor_value);
-		$color_order=($count===count(explode(',',$this->page_light_editor_order)))?$this->page_light_editor_order:Cfg::Light_editor_color_order;  
-		foreach($config_lighteditor_arr as $key => $color){
-			if (!isset($this->$color)){
-				$msg="Error: Unconfigured color value for  $color being temporarily set to black";
-				$this->message[]=$msg;
-				$this->$color='000000';
-				}
-			$this->{$color.'_index'}=$key; 
-			if (array_key_exists($key,$this->page_light_editor_value)&&preg_match(Cfg::Preg_color,$this->page_light_editor_value[$key])) 
-				$this->$color=$this->page_light_editor_value[$key];
-			else {
-				$this->page_light_editor_value[$key]=$this->$color;
-				$this->hidden_array[]='<input class="allowthis" type="hidden" name="page_light_editor_value['.$key.']" value="'.$this->$color.'">';
-				} 
-			}
-		$this->editor_background=$this->page_options[$this->page_lighteditor_background_index];
-		$this->editor_color=$this->page_options[$this->page_lighteditor_color_index];
-	endif;
-	$this->color_order_arr=explode(',',$color_order); 
+function color_populate(){ 
+     $this->page_options[$this->page_darkeditor_background_index]=(preg_match(Cfg::Preg_color,$this->page_options[$this->page_darkeditor_background_index]))?$this->page_options[$this->page_darkeditor_background_index]:'687867';
+	$this->page_options[$this->page_darkeditor_color_index]=(preg_match(Cfg::Preg_color,$this->page_options[$this->page_darkeditor_color_index]))?$this->page_options[$this->page_darkeditor_color_index]:'ffffff';
+	$this->page_options[$this->page_lighteditor_background_index]=(preg_match(Cfg::Preg_color,$this->page_options[$this->page_lighteditor_background_index]))?$this->page_options[$this->page_lighteditor_background_index]:'ECECEC';
+	$this->page_options[$this->page_lighteditor_color_index]=(preg_match(Cfg::Preg_color,$this->page_options[$this->page_lighteditor_color_index]))?$this->page_options[$this->page_lighteditor_color_index]:'687867';
+	$this->page_options[$this->page_darkeditor_info_index]=(preg_match(Cfg::Preg_color,$this->page_options[$this->page_darkeditor_info_index]))?$this->page_options[$this->page_darkeditor_info_index]:$this->page_options[$this->page_darkeditor_color_index];
+	$this->page_options[$this->page_lighteditor_info_index]=(preg_match(Cfg::Preg_color,$this->page_options[$this->page_lighteditor_info_index]))?$this->page_options[$this->page_lighteditor_info_index]:$this->page_options[$this->page_lighteditor_color_index];
+	$this->page_options[$this->page_darkeditor_red_index]=(preg_match(Cfg::Preg_color,$this->page_options[$this->page_darkeditor_red_index]))?$this->page_options[$this->page_darkeditor_red_index]:$this->redAlert; 
+	$this->page_options[$this->page_lighteditor_red_index]=(preg_match(Cfg::Preg_color,$this->page_options[$this->page_lighteditor_red_index]))?$this->page_options[$this->page_lighteditor_red_index]:$this->redAlert; 
+	$this->page_options[$this->page_darkeditor_pos_index]=(preg_match(Cfg::Preg_color,$this->page_options[$this->page_darkeditor_pos_index]))?$this->page_options[$this->page_darkeditor_pos_index]:$this->pos; 
+	$this->page_options[$this->page_lighteditor_pos_index]=(preg_match(Cfg::Preg_color,$this->page_options[$this->page_lighteditor_pos_index]))?$this->page_options[$this->page_lighteditor_pos_index]:$this->pos;
+     
+    if($this->page_options[$this->page_editor_choice_index]==='dark'){
+          $theme= 'dark';
+           $cfgorder=explode(',',Cfg::Dark_editor_color_order);
+           }
+     else {
+          $theme='light';
+          $cfgorder=explode(',',Cfg::Light_editor_color_order);
+          }
+     $this->info=$this->page_options[$this->{'page_'.$theme.'editor_info_index'}];
+     $page_order=(!empty($this->{'page_'.$theme.'_editor_order'}))?explode(',',$this->{'page_'.$theme.'_editor_order'}):array();
+     $this->{'page_'.$theme.'_editor_value'}=(empty($this->{'page_'.$theme.'_editor_value'}))?array():explode(',',$this->{'page_'.$theme.'_editor_value'});
+     $this->color_order_arr=(count($page_order)>5)?$page_order:$cfgorder;
+     if (count($page_order)<6){ 
+          $msg='You must maintain at least 5 column level colors or else the default column level colors and order will be used';
+          $this->message[]=$msg;
+          $collect='';
+          foreach($this->color_order_arr as $key =>$color){
+               $collect.="$color,";
+               }
+          $collect=substr_replace($collect,'',-1);
+          $q="Update $this->master_page_table set page_".$theme."_editor_order='$collect'";
+          $this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);
+          $this->success[]='Updated to default color level colors';
+          }
+     foreach($this->color_order_arr as $key =>$color){
+          if (!empty($color)){
+               $this->{$color.'_index'}=$key;  
+               }
+          if (array_key_exists($key,$this->{'page_'.$theme.'_editor_value'})&&preg_match(Cfg::Preg_color,$this->{'page_'.$theme.'_editor_value'}[$key]))
+               $this->$color=$this->{'page_'.$theme.'_editor_value'}[$key];
+          elseif (!isset($this->$color)){
+               $msg="Error: Unconfigured color value for  $color being temporarily set to black";
+               $this->message[]=$msg;
+               $this->$color='000000';
+               }
+          #You can add colors to default by setting up color value in global_master const then putting additional colors in Cfg_master list! uncomment here to auto print color and value
+          #if (isset($this->$color)&&strpos($color,'aqua')!==false)
+          #     echo 'protected $'."$color='".$this->$color."';
+          #     <br>";
+          }  
+     $this->editor_background=$this->page_options[$this->{'page_'.$theme.'editor_background_index'}];
+     $this->editor_color=$this->page_options[$this->{'page_'.$theme.'editor_color_index'}];
 	$this->color_arr_long=$this->color_order_arr;//explode(',',substr_replace(str_repeat($color_order.',',3),'',-1)); 
 	}//end function
      
@@ -645,7 +641,7 @@ function token_gen(){
      
 function view_page(){ if (Sys::Quietmode)return;  
 	echo '<div class="inline floatleft"><!-- float buttons-->';
-	$this->navobj->return_url($this->pagename,'','white darkslatebluebackground rad5 tiny buttondarkslateblue');
+	$this->navobj->return_url($this->pagename,'','white darkslatebluebackground rad5 smallest buttondarkslateblue');
 	echo '</div><!--float buttons-->';
 	}
 function leftover_view(){
@@ -765,7 +761,7 @@ function generate_bps(){
 function page_import_export_options(){
      $page_configs='Rem Units, RWD bps, Image Cache Sizes, Default Primary Column Width, Editor Colors, Special Class Styles';
 	echo '<div class="inline floatleft"><!-- float buttons-->';
-     $this->show_more('Port Page Opts','noback',$this->column_lev_color.' smallest editbackground editfont button'.$this->column_lev_color,'Import  Page options from another page or export chosen option of this page to all other pages',600);
+     $this->show_more('Export Page Opts','noback',$this->column_lev_color.' smallest editbackground editfont button'.$this->column_lev_color,'Import  Page options from another page or export chosen option of this page to all other pages',600);
 	$this->print_wrap('import page options',true);
 	echo '<div class="fsmcolor Os3darkslategray editbackground editfont floatleft" ><!--import page defaults-->Import the Page Level Settings ie('.$page_configs.')  from Another Page (Will Not Import Page Slide show). ';  
 	printer::pclear(1);
@@ -1120,14 +1116,14 @@ function configure(){if(Sys::Custom)return; if (Sys::Quietmode) return;
 	$this->print_wrap('iframe all','fsmredAlert');
 	printer::print_tip($msg);
 	echo '<p class="caution white fsmsalmon"><input type="checkbox" name="page_iframe_all" value="1" onchange="edit_Proc.oncheck(\'page_iframe_all\',\'Checking Here for Maintenance only. All edit-mode pages will be generated in Iframes and this will take a Long Time to Finish, Uncheck to Cancel\')" >Generate all Css,Page Flat Files, etc. for all Edit Mode Pages in Iframes</p>';
-	echo '<p title="Navigating to bottom of Iframe Quickly allows for a check of any error message" class="info  whitebackground fsmsalmon"><input type="checkbox" name="iframe_bottom" value="1">Nav to Iframe Bottom</p>';
+	echo '<p title="Navigating to bottom of Iframe Quickly allows for a check of any error message" class="caution white fsmsalmon"><input type="checkbox" name="iframe_bottom" value="1">Nav to Iframe Bottom</p>';
 	printer::close_print_wrap('iframe all');
 	$this->submit_button();
 	$msg='Generate all Webpages in iframes (non-edit mode) to quickly check for any errors or intitate custom query';
 	$this->print_wrap('iframe all_website');
 	printer::print_tip($msg);
-	echo '<p class="infobackground white fsmsalmon"><input type="checkbox" name="page_iframe_all_website" value="1">Quick Check, etc. all web-mode pages in iframes</p>';
-	echo '<p title="Navigating to bottom of Iframe Quickly allows for a check of any error message" class="highlight  whitebackground fsmsalmon"><input type="checkbox" name="iframe_bottom" value="1">Nav to Iframe Bottom</p>';
+	echo '<p class="white goldbackground fsmsalmon"><input type="checkbox" name="page_iframe_all_website" value="1">Quick Check, etc. all web-mode pages in iframes</p>';
+	echo '<p title="Navigating to bottom of Iframe Quickly allows for a check of any error message" class="white goldbackground fsmsalmon"><input type="checkbox" name="iframe_bottom" value="1">Nav to Iframe Bottom</p>';
 	printer::close_print_wrap('iframe all');
 	$this->submit_button();
 	$msg='Remove all cached Images and flat files then Re-Generate. Will removed all Images from posts that have been deleted and save disk space.';
@@ -1140,16 +1136,10 @@ function configure(){if(Sys::Custom)return; if (Sys::Quietmode) return;
 	$msg='Remove all flat files then Re-Generate. .';
 	$this->print_wrap('cache regen','fsmredAlert');
 	printer::print_tip($msg);
-	echo '<p class="caution white fsmsalmon"><input type="checkbox" name="cache_regenerate_flatfiles" value="1"  >Remove and RegGenerate all Page Flat Files & Generate Css.  Utilizes Iframes</p>';
-	echo '<p title="Navigating to bottom of Iframe Quickly allows for a check of any error message" class="highlight  whitebackground fsmsalmon"><input type="checkbox" name="iframe_bottom" value="1">Nav to Iframe Bottom</p>';
+	echo '<p class="caution white fsmsalmon"><input type="checkbox" name="cache_regenerate_flatfiles" value="1"  >Remove and Re-Generate all Page Flat Files & Generate Css.  Utilizes Iframes</p>';
+	echo '<p title="Navigating to bottom of Iframe Quickly allows for a check of any error message" class="caution white fsmsalmon"><input type="checkbox" name="iframe_bottom" value="1">Nav to Iframe Bottom</p>';
 	printer::close_print_wrap('cache regen');
-     $this->show_more('Reset Colors');
-	printer::print_wrap('color reset');
-	printer::print_tip('If you add new color choices or change the default color order in the configurations, the color matching may be out of sync. Check here to reset colors. Note the color order will return to default Order and colors will be in sync');
-	printer::printx('<p class="editbackground editcolor small"><input type="radio" value="reset" name="force_color_reset">Reset Colors on this Page Only</p>');
-	printer::printx('<p class="editbackground editcolor small"><input type="radio" value="reset_all" name="force_color_reset">Reset Colors on all the Pages in this Website</p>');
-	printer::close_print_wrap('color reset');
-	$this->show_close('Reset Colors');
+     $this->color_reset();
 	$this->submit_button();
 	printer::close_print_wrap('maintenance');
 	$this->show_close('Maintenance');
@@ -1218,7 +1208,7 @@ function uploads_spacer(){
      }
 function uploads(){ 
      echo '<div id="top_upload"><!-- float buttons-->';
-	$this->show_more('uploads','',$this->column_lev_color.'  tiny editpages editbackground editfont button'.$this->column_lev_color,'','full' );
+	$this->show_more('uploads','',$this->column_lev_color.'  smallest p10 editpages editbackground editfont button'.$this->column_lev_color,'','full' );
      printer::print_wrap('uploads');
      $msg='Image and video are uploaded through image and video posts to the uploads dir for images and the video directory for videos. However, additionally, images, video, and pdf files may be uploaded directly';
      printer::print_info($msg);
@@ -3892,7 +3882,7 @@ function blog_new($data,$tablename,$blog_order, $msg='', $msg_open_prefix='Inser
      $new_blog=$data.'_blog_new'; 
      $selected=$this->choose_blog_type;
      printer::pspace(5);
-     $this->show_more($msg_open_prefix.$msg.' Col#'.$this->column_order_array[$this->column_level],'','highlight fs1'.$this->column_lev_color.' editbackground editfont  rad3 editfont ','Click Here To Add New Posts/Column and For More info on making Choices',250);
+     $this->show_more($msg_open_prefix.$msg.' Col#'.$this->column_order_array[$this->column_level],'',$this->column_lev_color.' fs1'.$this->column_lev_color.' editbackground editfont  rad5 editfont ','Click Here To Add New Posts/Column and For More info on making Choices',250);
 	echo '<div class="editbackground editfont fsminfo"><!-- Add New Posts/Column wrap-->';
 	$this->show_more('Info Post Choices','noback','highlight smaller','click for more info on post choices');   
 	printer::alertx('<p class="width500 fsminfo editbackground editfont '.$this->column_lev_color.' editfont left">Not only create Post content here such as Text, Images, a Navigation menu, or Social Icons etc.  andalso Create a Nested Column as well or copy clone move previous posts and columns of posts.  A nested Column is a Column within a column  used for organizing the posts (and other columns) that you create within it.  Please Review the discussion of this important topic in the Overview Section at the top of the Page!!</p>');
@@ -6041,9 +6031,8 @@ function animation(){
 		animation-iteration-count: '.$animate_after_repeats.';
 		-webkit-animation-iteration-count: '.$animate_after_repeats.';
 		-moz-animation-iteration-count: '.$animate_after_repeats.';
-		visibility:visible;
 		}
-		';
+		';//visibility:visible;
 			}//endif animate_after_type
 		if ($animate_final_display==='visibleoff'){
                $this->css.=$css.='
@@ -6266,8 +6255,8 @@ function animation(){
 	$checked2=($animate_sibling==='next')? 'checked="checked"':'';
 	$checked3=($animate_sibling==='parent')? 'checked="checked"':'';
 	$checked4=($animate_sibling!=='prev'&&$animate_sibling!=='next'&&$animate_sibling!=='parent')?'checked="checked"':'';  
-     printer::alert('<p class="editbackground editfont info" ><input type="radio" '.$checked1.' name="'.$anim_name.'['.$this->animate_sibling_index.']" value="prev">Use Previous Sibling Activation of this Animation<p>');
-	printer::alert('<p class="editbackground editfont info" ><input type="radio" '.$checked2.' name="'.$anim_name.'['.$this->animate_sibling_index.']" value="next">Use Next Sibling Activation of this Animation<p>');
+     printer::alert('<p class="editbackground editfont info" ><input type="radio" '.$checked1.' name="'.$anim_name.'['.$this->animate_sibling_index.']" value="prev">Use Previous Sibling (animation completing) for activation this Animation<p>');
+	printer::alert('<p class="editbackground editfont info" ><input type="radio" '.$checked2.' name="'.$anim_name.'['.$this->animate_sibling_index.']" value="next">Use Next Sibling (animation completing) for activation this Animation<p>');
 	printer::alert('<p class="editbackground editfont info" ><input type="radio" '.$checked3.' name="'.$anim_name.'['.$this->animate_sibling_index.']" value="parent">Use Parent Column (animation completing) for Activation of this Animation<p>');
 	printer::alertx('<p class="editbackground editfont info"><input type="radio"  name="'.$anim_name.'['.$this->animate_sibling_index.']" value="inactive" '.$checked4.'>Turn Off Sibling/Parent Activation of this Animation<p>');	 	
 	printer::close_print_wrap('anim complete_id'); 
@@ -6506,7 +6495,9 @@ function animation(){
 	$checked3=($animate_final_display!=='displaynone'&&$animate_final_display!=='visibleoff')?'checked="checked"':'';
 	printer::print_tip('Optionally Choose your final display state here. You may wish your animation to fadeOut after its display and whether to retain the empty space or remove it. And Even animation choices that already fade out will still occupy their original space but you can choose to remove the occupied space for any animation by selecting the display none property here.');
 	printer::alert('<p class="editbackground editfont info" ><input type="radio" '.$checked1.' name="'.$anim_name.'['.$this->animate_final_display_index.']" value="displaynone">Set Display None-No Space After animation(s) complete<p>');
-	printer::alert('<p class="editbackground editfont info" ><input type="radio" '.$checked2.' name="'.$anim_name.'['.$this->animate_final_display_index.']" value="visibleoff">Set Visibilty None-Space Occupied After animation(s) complete.<p>');
+     printer::pclear(6);
+	printer::alert('<p class="editbackground editfont info" ><input type="radio" '.$checked2.' name="'.$anim_name.'['.$this->animate_final_display_index.']" value="visibleoff">Set Visibilty None- Space will be Occupied After animation(s) complete. <span class="caution smallest">(its use with fade-out type animations will cause double fadeout)</span><p>');
+     printer::pclear(6);
 	printer::alertx('<p class="editbackground editfont info" ><input type="radio"  name="'.$anim_name.'['.$this->animate_final_display_index.']" value="visible" '.$checked3.'>Display No Change<p>');	 	 
 	printer::close_print_wrap('anim final_display');
 	printer::pclear(5);
@@ -7023,12 +7014,14 @@ function editor_appearance(){
 	if($this->page_options[$this->page_editor_choice_index]==='dark'){
 		$checked1='';
 		$checked2='checked="checked"';
+		$page_color_order_property='page_dark_editor_order';
 		$page_color_value_property='page_dark_editor_value';
 		$editorref='Dark'; 
 		}
 	else {
 		$checked2='';
 		$checked1='checked="checked"';
+		$page_color_order_property='page_light_editor_order';
 		$page_color_value_property='page_light_editor_value';
 		$editorref='Light';
 		}
@@ -7040,16 +7033,34 @@ function editor_appearance(){
 	printer::alertx('<p class=" smaller  editcolor left editfont" style="padding: 4px 4px 4px 5px; border-width: 3px 0px 3px 0px;  border-style:solid; border-color: #'. $this->page_options[$this->page_lighteditor_color_index].';cursor:pointer;background:#'.$this->page_options[$this->page_lighteditor_background_index].';color:#'.$this->page_options[$this->page_lighteditor_color_index].';"> #<input onclick="jscolor.installByClassName(\'lighteditorbackcolor\');" style="cursor:pointer;background:#'.$this->page_options[$this->page_lighteditor_background_index].';color:#'.$this->page_options[$this->page_lighteditor_color_index].';" type="text"  name="page_options['.$this->page_lighteditor_background_index.']"   value="'.$this->page_options[$this->page_lighteditor_background_index].'" size="6" maxlength="6" class="lighteditorbackcolor {refine:false}">Change Background Color of Editor Light Theme </p>');
 	printer::pclear(3);
 	printer::alertx('<p class="smaller  left editfont" style="padding: 4px 4px 4px 5px; border-width: 3px 0px 3px 0px;  border-style:solid; border-color: #'. $this->page_options[$this->page_lighteditor_color_index].';cursor:pointer;background:#'.$this->page_options[$this->page_lighteditor_background_index].';color:#'.$this->page_options[$this->page_lighteditor_color_index].';">#<input onclick="jscolor.installByClassName(\'lighteditorcolor\');" style="cursor:pointer;background:#'.$this->page_options[$this->page_lighteditor_background_index].';color:#'.$this->page_options[$this->page_lighteditor_color_index].';" type="text"  name="page_options['.$this->page_lighteditor_color_index.'];"   value="'.$this->page_options[$this->page_lighteditor_color_index].'" size="6" maxlength="6" class="lighteditorcolor {refine:false}">Change Misc. Colors of Light Theme Editor</p>');
-	printer::pclear(3);
+     
+     printer::pclear(10);
+     $this->show_more('Change Info/Clone/Sucess/Error text colors &amp; Envelope background color for small width posts');
+     printer::print_wrap('Change Message Colors');
+     printer::print_tip('Style info color differently than editor text color. The info color is text that provides information upon hovering also used in submit messages &amp; other info purposes');
+printer::alertx('<p class="smaller  editcolor left editbackground editfont" style="padding: 4px 4px 4px 5px; cursor:pointer;background:#'.$this->page_options[$this->page_darkeditor_background_index].';color:#'.$this->page_options[$this->page_darkeditor_color_index].';">  #<input onclick="jscolor.installByClassName(\'darkeditorinfo\');" style="cursor:pointer;background:#'.$this->page_options[$this->page_darkeditor_background_index].';color:#'.$this->page_options[$this->page_darkeditor_color_index].';" type="text"  name="page_options['.$this->page_darkeditor_info_index.']"   value="'.$this->page_options[$this->page_darkeditor_info_index].'" size="6" maxlength="6" class="darkeditorinfo {refine:false}">Change information color for  Dark Theme Editor</p>');
+printer::alertx('<p class="smaller  editcolor left editbackground editfont" style="padding: 4px 4px 4px 5px; cursor:pointer;background:#'.$this->page_options[$this->page_lighteditor_background_index].';color:#'.$this->page_options[$this->page_lighteditor_color_index].';">  #<input onclick="jscolor.installByClassName(\'lighteditorinfo\');" style="cursor:pointer;background:#'.$this->page_options[$this->page_lighteditor_background_index].';color:#'.$this->page_options[$this->page_lighteditor_color_index].';" type="text"  name="page_options['.$this->page_lighteditor_info_index.']"   value="'.$this->page_options[$this->page_lighteditor_info_index].'" size="6" maxlength="6" class="lighteditorinfo {refine:false}">Change information color for Light Theme Editor</p>');
+     printer::pclear(20);
+     printer::print_tip('Style the successful upload/msg color and envelope color for small width posts differently than the default green shade.');
+printer::alertx('<p class="smaller  editcolor left editbackground editfont" style="padding: 4px 4px 4px 5px; cursor:pointer;background:#'.$this->page_options[$this->page_darkeditor_background_index].';color:#'.$this->page_options[$this->page_darkeditor_color_index].';">  #<input onclick="jscolor.installByClassName(\'darkeditorpos\');" style="cursor:pointer;background:#'.$this->page_options[$this->page_darkeditor_background_index].';color:#'.$this->page_options[$this->page_darkeditor_color_index].';" type="text"  name="page_options['.$this->page_darkeditor_pos_index.']"   value="'.$this->page_options[$this->page_darkeditor_pos_index].'" size="6" maxlength="6" class="darkeditorpos {refine:false}">Change the successful upload/etc. alert color for  Dark Theme Editor</p>');
+printer::alertx('<p class="smaller  editcolor left editbackground editfont" style="padding: 4px 4px 4px 5px; cursor:pointer;background:#'.$this->page_options[$this->page_lighteditor_background_index].';color:#'.$this->page_options[$this->page_lighteditor_color_index].';">  #<input onclick="jscolor.installByClassName(\'lighteditorpos\');" style="cursor:pointer;background:#'.$this->page_options[$this->page_lighteditor_background_index].';color:#'.$this->page_options[$this->page_lighteditor_color_index].';" type="text"  name="page_options['.$this->page_lighteditor_pos_index.']"   value="'.$this->page_options[$this->page_lighteditor_pos_index].'" size="6" maxlength="6" class="lighteditorpos {refine:false}">Change the successful upload/etc. alert color for Light Theme Editor</p>');
+     printer::pclear(20);
+     printer::print_tip('Style Error messages and Clone alert color differently than the default Red color.');
+printer::alertx('<p class="smaller  editcolor left editbackground editfont" style="padding: 4px 4px 4px 5px; cursor:pointer;background:#'.$this->page_options[$this->page_darkeditor_background_index].';color:#'.$this->page_options[$this->page_darkeditor_color_index].';">  #<input onclick="jscolor.installByClassName(\'darkeditorred\');" style="cursor:pointer;background:#'.$this->page_options[$this->page_darkeditor_background_index].';color:#'.$this->page_options[$this->page_darkeditor_color_index].';" type="text"  name="page_options['.$this->page_darkeditor_red_index.']"   value="'.$this->page_options[$this->page_darkeditor_red_index].'" size="6" maxlength="6" class="darkeditorred {refine:false}">Change the clone and error alert color for Dark Theme Editor</p>');
+printer::alertx('<p class="smaller  editcolor left editbackground editfont" style="padding: 4px 4px 4px 5px; cursor:pointer;background:#'.$this->page_options[$this->page_lighteditor_background_index].';color:#'.$this->page_options[$this->page_lighteditor_color_index].';">  #<input onclick="jscolor.installByClassName(\'lighteditorred\');" style="cursor:pointer;background:#'.$this->page_options[$this->page_lighteditor_background_index].';color:#'.$this->page_options[$this->page_lighteditor_color_index].';" type="text"  name="page_options['.$this->page_lighteditor_red_index.']"   value="'.$this->page_options[$this->page_lighteditor_red_index].'" size="6" maxlength="6" class="lighteditorred {refine:false}">Change the clone and error alert color for Light Theme Editor</p>');
+     printer::close_print_wrap('Change Message and Info Colors');
+     $this->show_close('Change Message and Info Colors');
+   	printer::pclear(10);
 	printer::alert('Choose Light or Dark Editor / Change the Default Editor Light/Dark Editor Colors. Text Color and Background Color Should Contrast One Another For Readability');
 	printer::alert('<input type="radio" name="page_options['.$this->page_editor_choice_index.']" '.$checked1.' value="light">Use Light Editor');
 	printer::alert('<input type="radio" name="page_options['.$this->page_editor_choice_index.']" '.$checked2.' value="dark">Use Dark Editor');
 	$this->show_more('Test View '.$editorref,'noback');
 	$this->print_wrap('test color view');
 	$x=1;
-	printer::printx('<p class="smaller floatleft editbackground editfont fs1info" style="margin:1px;width:110px; height:100px;color:#'.$this->info.'">Info color is the Information Text Color</p><p class="smaller floatleft editbackground editfont fs1redAlert" style="margin:1px;width:110px; height:100px;color:#'.$this->redAlert.'">redAlert is an Alert Text Message Color </p><p class="smallest floatleft editbackground editfont fs1pos" style="margin:1px;width:110px; height:100px;color:#'.$this->pos.'">Pos acts as a Positive Alert Color and Used to indicate Primary Column text and Borders</p>');
+	printer::printx('<p class="smaller floatleft editbackground editfont fs1info" style="margin:1px;width:110px; height:100px;color:#'.$this->info.'">Info color is the Information Text Color</p>
+  <p class="smaller floatleft editbackground editfont fs1redAlert" style="margin:1px;width:110px; height:100px;color:#'.$this->redAlert.'">redAlert used in error a clone alert Message Color </p><p class="smallest floatleft editbackground editfont fs1pos" style="margin:1px;width:110px; height:100px;color:#'.$this->pos.'">Pos alerts successful messages &amp; background envelope color for small posts.</p>');
 	printer::pclear(5);
-	printer::printx('<p class="fsminfo editbackground editfont">Note: Column Colors Are Useful To Indicate the Grouping of Posts within a Parent Column so Colors Change as the level of Nested Columns Changes. The lower level # Colors Generally Go unused whereas #1 #2 #3 and #4 are most extensively used.  Change the color level order for your chosen editor color theme in this section</p>');
+	printer::printx('<p class="fsminfo editbackground editfont">Note: Column Colors Are Useful To Indicate the Grouping of Posts within a Parent Column so Colors Change as the level of Nested Columns Changes. The highter # Colors Generally Go unused whereas #1 #2 #3 and #4 #5 #6 are most extensively used.  Change the color level order for your chosen editor color theme in this section</p>');
 	printer::pclear(5); 
 	foreach ($this->color_order_arr as $color){
 		echo '<p class="smaller floatleft editbackground editfont fs1'.$color.'" style="margin:1px; width:100px; height:100px;color:#'.$this->$color.'">This Color is '.$color.' @ Col Level: #'.$x.'</p>';
@@ -7059,10 +7070,12 @@ function editor_appearance(){
 	$this->show_close('Test View '.$editorref.' Editor Text Colors');
 	$this->show_more('Rearange '.$editorref.' Column Colors','noback');
 	$this->print_wrap('rearrange color view');
-	printer::printx('<p class="fsminfo editbackground editfont editcolor">Basically each successive layer of columns gets its own main text color and border color in the editor as a way to distinguish to which column a new post is being added, etc.');
+	printer::printx('<p class="fsminfo editbackground editfont editcolor">Basically each successive layer of degree of column nesting gets its own main text color and border color in the editor as a way to help distinguish to which column a new post is being added, etc.');
 	printer::printx('<p class="fsminfo editbackground editfont editcolor">Rearrange Colors that go with your theme towards the top of the color list which most often gets used.');
 	print'<p class="'.$this->column_lev_color.' large fsminfo floatleft left editbackground editfont">Drag color box to sort the color order. </p>';
 		printer::pclear();
+          #################
+          ##  class sortEdit initiates gen_Proc.classPass('sortEdit',edit_Proc.makelistSortable,edit_Proc.sendEditOrder);
 		echo '<p id="updatePageEdMsg" class="pos editbackground editfont larger "></p>';
 		printer::pclear(5);
 		echo '<div class="editbackground editfont editcolor"><ul id="sortPageEditor" class="nolist sortEdit" data-id="'.$this->pagename.'" data-inc="1">';
@@ -7073,22 +7086,25 @@ function editor_appearance(){
 	$this->close_print_wrap('rearrange color view');
 	$this->show_close('Rearange '.$editorref.' Column Colors');
 	printer::pclear();
-	$this->show_more('Color adjust '.$editorref.' Column Colors','noback');
+	$this->show_more('Add or Adjust '.$editorref.' Column Colors','noback');
 	$this->print_wrap('adjust color view');
-	printer::printx('<p>Basically each successive layer of columns gets its own main text color and border color in the editor as a way to distinguish to which column a new post is being added, etc.');
-	printer::printx('<p class="fsminfo editbackground editfont editcolor">If any of your colors do not contrast with your editor background then  adjust the color here or rearrange their column order to suit your style');
+	printer::print_tip('Basically each successive degree of column nesting gets its own main text color and border color in the editor as a way to help distinguish to which column a new post is being added, etc.');
+     printer::printx('<p class="fsminfo editbackground editfont editcolor">Customize your colors by adding your own that work for you. Be sure to give them an unique name</p>');  
+     $begin=count($this->color_order_arr);
+     for ($i=$begin; $i<$begin+11; $i++){
+          printer::alertx('<div class="smaller '.$color.' left editbackground editfont">New Color choose: #<input name="'.$page_color_value_property.'['.$i.']" onclick="jscolor.installByClassName(\'addcolor_array_'.$i.'\');" style="cursor:pointer;background:#'.$this->editor_background.';color:#'.$this->editor_color.';" type="text" id="addcolor_array_'.$i.'"  value="" size="6" maxlength="6" class="addcolor_array_'.$i.' {refine:false}">Add Name:<input type="text" value="" size="20" maxlength="25" name="'.$page_color_order_property.'['.$i.']"></div>');
+          }
+     $this->submit_button();
+     printer::printx('<p class="fsminfo editbackground editfont editcolor">Current color  names and values. You can tweak a color value insteading of adding new.</p>');
 	foreach ($this->color_order_arr as $color){
+          if (!isset($this->{$color.'_index'}))continue;
 		printer::alertx('<p class="smaller '.$color.' left editbackground editfont"> Color Adjust: #<input onclick="jscolor.installByClassName(\'color_array_'.$this->{$color.'_index'}.'\');" style="cursor:pointer;background:#'.$this->editor_background.';color:#'.$this->editor_color.';" type="text" id="color_array_'.$this->{$color.'_index'}.'" name="'.$page_color_value_property.'['.$this->{$color.'_index'}.']"   value="'.$this->$color.'" size="6" maxlength="6" class="color_array_'.$this->{$color.'_index'}.' {refine:false}">'.$color.'</p>'); 
-		} 
+		}
+     $this->submit_button();
 	$this->close_print_wrap('adjust color view');
-   $this->show_close('Color adjust '.$editorref.' Column Colors');
-	$this->show_more('Reset Colors');
-	printer::print_wrap('color reset');
-	printer::print_tip('If you add new color choices or change the default color order in the configurations, the color matching may be out of sync. Check here to reset colors. Note the color order will return to default Order and colors will be in sync');
-	printer::printx('<p class="editbackground editcolor small"><input type="radio" value="reset" name="force_color_reset">Reset Colors on this Page Only</p>');
-	printer::printx('<p class="editbackground editcolor small"><input type="radio" value="reset_all" name="force_color_reset">Reset Colors on all the Pages in this Website</p>');
-	printer::close_print_wrap('color reset');
-	$this->show_close('Reset Colors');
+     $this->show_close('Color adjust '.$editorref.' Column Colors');
+	$this->color_reset();
+     $this->submit_button();
 	$this->close_print_wrap('Editor colorWrap');
      $this->show_close('Configure Editor Colors');
      printer::pclear();

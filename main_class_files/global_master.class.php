@@ -95,7 +95,11 @@ class global_master extends global_edit_master{
 	static protected $plusmod=0;
 	protected $show_more=0;
 	protected  $col_child_table='';
-	#column level colors 
+	#column level colors
+	protected $lightlightaqua='CDFFF5';
+     protected $lighteraqua='7AFFE8';
+     protected $darkeraqua='04B18D';
+     protected $darkaqua='0FCEA6'; 
 	protected  $redAlert='c82c1d';  //message error color       
      protected  $brown='816227';
 	protected  $maroon='800000';
@@ -106,7 +110,8 @@ class global_master extends global_edit_master{
 	protected  $brightgreen='00ff00';
 	protected  $orange='ff6600';
 	protected  $pos='64C91D';// success color  and column level 1 color 
-	protected  $info='e5d805'; //information hover and instructional message
+     protected  $gold='e5d805'; 
+	//protected  $info='e5d805';//'e5d805';'EAE2E9'; //information hover and instructional message
 	protected  $ekblue='0075a0';
 	protected  $blue='1DBAC9';
 	protected  $navy='2B1DC9';
@@ -956,20 +961,20 @@ function col_data($prime=false){
                else printer::print_info('The Original '.$this->orig_val['blog_type'].' Post which was indirectly cloned then unmirrored here  is from page_ref: '.$this->orig_val['blog_table_base'].'  and is Post Id:'.$this->orig_val['blog_id'].'. If doing a template tranfer include this Post in your new template and you will automatically include this content from this current column here!');
                $this->show_close('From Info');
                }//$this->blog_unstatus==='unclone'
-          printer::print_wrap('column info', $this->column_lev_color.' fs1'.$this->column_lev_color.' floatleft editbackground editfont left'); 
-          printer::alertx('<p '.$title.'>'.$clone_msg.'Col #'.$this->col_order.'<br><span class="info">'.$clone_msg.'Column Id: C'.$this->col_id.'</span><br><span class="highlight smaller">From: <br>Column#'.$this->column_order_array[$this->column_level-1].' Post#'.$this->blog_order_array[$this->column_level].'</span>'); 
+          printer::print_wrap1('column info', $this->column_lev_color.' fs1'.$this->column_lev_color.' floatleft editbackground editfont left'); 
+          printer::alertx('<p '.$title.' class="'.$this->column_lev_color.'">'.$clone_msg.' Col #'.$this->col_order.'<br>'.$clone_msg.'Column Id: C'.$this->col_id.'<br><span class="highlight info smaller">From: <br>Column#'.$this->column_order_array[$this->column_level-1].' Post#'.$this->blog_order_array[$this->column_level].'</span>'); 
           $this->col_info();
           printer::pclear();
-          printer::close_print_wrap('column info',false);
+          printer::close_print_wrap1('column info',false);
 		}//$this->column_level > 0
 	else  {// is prime
 		$clone=($this->is_clone)?'<span class="red">Cloned </span>':'';
 		$title=(!$this->is_clone)?'title="The Unique Column Id: C'.$this->col_id.' would be Used to Copy/Mirror/Move This Entire Column"':'title="This entire column is cloned"';
-          printer::print_wrap('primal',$this->column_lev_color.' fs1'.$this->column_lev_color.' floatleft');
-		printer::alertx('<p '.$title.'>'.$clone.'Column#'.$this->col_order.'<br><span class="highlight ">Column Id: C'.$this->col_id.'</span><br><span class="info smaller">From: <br>The Body'.'</span> </p>');
+          printer::print_wrap1('primal',$this->column_lev_color.' fs1'.$this->column_lev_color.' floatleft');
+		printer::alertx('<p '.$title.' class="'.$this->column_lev_color.'">'.$clone.'Column#'.$this->col_order.'<br>Column Id: C'.$this->col_id.'<br><span class="info smaller">From: <br>The Body'.'</span> </p>');
           $this->col_info_prime();  
           printer::pclear();
-          printer::close_print_wrap('primal',false);
+          printer::close_print_wrap1('primal',false);
           }	 
 	printer::printx('<span id="col_'.$col_id.'"></span>');
      //Note is_clone can be directly cloned column or nested_column within directly cloned column
@@ -1713,7 +1718,7 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
                     $this->editoverridecss='
                     .'.$this->col_dataCss.'{display:block !important;}';
                }
-          echo '<p class="lineh90 shadowoff editcolor editfont editbackground ">Primary Column</p>';
+          echo '<p class="lineh90 shadowoff '.$this->column_lev_color.' editfont editbackground fs1'.$this->column_lev_color.'">Primary Column</p>';
           list($padding_total,$margin_total)=$this->pad_mar_calc($this->col_style,$this->column_total_width[$this->column_level]);
 		##width## @media tweak setting for primary column if margins are set then enable margin values.. margin auto will be set only when minimum width is > than the total column width!
 		$this->css.='
@@ -2895,7 +2900,7 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
           
                     $stylemore=($show_more_on)?'style="max-width:500px !important;width:500px;"':'';
                     $pid=(!$show_more_on)?' id="p'.$this->orig_val['blog_id'].'"':'';
-				 print '<div id="'.$this->dataCss.'" '.$stylemore.' class="'.$class.$addclass.' '.$this->blog_type.$float_image.' edit post"><!--Editpage fieldset post border--><p '.$pid.' class="lineh90  editcolor shadowoff editbackground editfont ">Post</p>'; 
+				 print '<div id="'.$this->dataCss.'" '.$stylemore.' class="'.$class.$addclass.' '.$this->blog_type.$float_image.' edit post"><!--Editpage fieldset post border--><p '.$pid.' class="lineh90 fs1'.$this->column_lev_color.' '.$this->column_lev_color.' p10 shadowoff editbackground editfont ">Post</p>'; 
 				printer::pclear();echo '<!--clear edit main blog div begin-->';
                     } 
 			$this->background_video('blog_style');
@@ -3118,10 +3123,10 @@ eol;
 				$addclass=(empty($bw))?' bdot'.$this->page_editborder.$this->color_arr_long[$this->column_level+1].' ':((empty($bs))?' bshad'.$this->page_editborder.$this->column_lev_color.' ':'');
                     $stylemore=($show_more_on)?'style="max-width:500px !important;width:500px;"':'';
 			#fieldset  switched to class     add addclass for edit border...
-				echo '<div id="'.$this->col_dataCss.'" '.$stylemore.' class="'.$class.$addclass.' nested column edit" ><!--Begin edit  Nested Column id'.$this->col_id.'-->';
+				echo '<div id="'.$this->col_dataCss.'" '.$stylemore.' class="'.$class.$addclass.' nested column edit" ><!--Begin edit Nested Column id'.$this->col_id.'-->';
                     #flexstay
                     if ($this->edit&&$this->flex_box_container)echo '<div class="flexstay"><!--wrap controls flexbox-->';
-                    echo'<p class="lineh90  shadowoff editcolor editbackground editfontcol">Nested Column</p>';
+                    echo'<p class="lineh90  shadowoff '.($this->color_arr_long[$this->column_level+1]).' editbackground editfontcol fs1'.$this->color_arr_long[$this->column_level+1].' p10">Nested Column</p>';
 				printer::pclear();echo '<!--clear nested col info-->';  
 				if($this->edit&&$show_more_on)printer::print_spacer();
                     if($blog_status==='clone'&&$blog_unstatus==='unclone'&&!empty($blog_clunc_id)){
@@ -3232,14 +3237,14 @@ eol;
 
 		
 function page_populate_options(){
-	if (empty($this->page_options)){ 
+	if (!is_array($this->page_options)&&empty($this->page_options)){ 
 			$this->page_options=array();
 			 for ($i=0; $i<count(explode(',',Cfg::Page_options));$i++){ 
 				$this->page_options[$i]=0;
 				}
 			}
 	else	{   
-		$this->page_options=explode(',',$this->page_options);
+		$this->page_options=(is_array($this->page_options))?$this->page_options:explode(',',$this->page_options);
 		for ($i=0; $i<count(explode(',',Cfg::Page_options));$i++){ 
 			if (!array_key_exists($i,$this->page_options)){
 				$this->page_options[$i]=0;
@@ -3421,7 +3426,7 @@ function render_body_main(){ //if (isset($_POST))print_r($_POST);
 		}
 	else { 
 		if ($this->edit){
-			$this->show_more('Add Primary','','editbackground floatleft editcolor editfont supersmall rad3 fs1info','',600);
+			$this->show_more('Add Primary Column','','editbackground floatleft editcolor editfont supersmall rad3 fs1color p10 ml10','',600);
 			printer::alertx('<p class="editbackground fsm'.$this->column_lev_color.' '.$this->column_lev_color.' editfont left maxwidth700" title=""><input type="checkbox" value="0" name="addnewcolumn[]">Check the box to Create another Primary Column directly on Top of Your Previous Primary Column in the body (as opposed to a &#34;Nested Column&#34; which is Column with a  Column as typically done in websites. Primary Columns occupy the center space of a page and do not &#34;float&#34; which is to say do not sit side by side with other columns.  Normally, Columns are created within the Main Column by choosing the New Column option in the Post Dropdown Menu. However you may directly create an additonal Primary Columns  HERE on Top of the Page Body or Following the Current Primary Column(s) Under  Add Primary Option  Below</p>');
 			printer::alertx('<p class="editbackground  editfont fs2'.$this->column_lev_color.' '.$this->column_lev_color.' right10 left10 left maxwidth700" title=""><input type="checkbox" value="0" name="copynewcolumn[]">OR Copy/Move/Clone a Column Starter HERE </p>');
 			$this->show_close();//<!--End Add Special-->';
@@ -4653,7 +4658,6 @@ function css_stylesheet_include(){
 	}
 	
 		
-
 function render_css(){  //accessed in edit mode only
 	(Sys::Deltatime)&&$this->deltatime->delta_log(__line__.' @ '.__method__.'  '); 
 	$this->css_stylesheet_include();//include stylesheets of non local clones
@@ -4811,7 +4815,7 @@ function css_initiate(){
      $this->initcss.='
 	.editfontfamily {font-family:'.$this->edit_font_family.';} 
 	.editfont {font-family:'.$this->edit_font_family.';text-shadow:none; text-align:left;font-size:'.($this->edit_font_size*16).'px;letter-spacing:0;font-weight:400;}  
-	#displayCurrentSize{padding:2px;z-index:10000000;} 
+	#displayCurrentSize{padding:5px;margin-top:4px;margin-left:5px;padding-top:6px;} 
      @media screen and (max-width:1000px) and (min-width:600px){ 
           html .editfont #displayCurrentSize{font-size:12px;padding:0px;}
           }
@@ -4896,8 +4900,8 @@ function css_initiate(){
 	a:link.alist,a.alist:visited{text-decoration: underline;color:inherit;} 
 	a:link.alist:hover,a.alist:visited:hover,a:link.alist:visited:hover,a.alist:visited:hover{color:blue}
 	a:link.info,a:visited.link {color:#'.$this->info.';background:rgba(255,255,255,0.33)}
-	a:link.click,a:visited.click {text-decoration: underline;padding:3px 3px;display:inline-block;text-align:left; cursor: pointer;  text-decoration: underline;}
-	.click{padding:3px 3px;display:inline-block;text-align:left; cursor: pointer;  text-decoration: underline;}
+	a:link.click,a:visited.click {text-decoration: underline;display:inline-block;text-align:left; cursor: pointer;  text-decoration: underline;}
+	.click{display:inline-block;text-align:left; cursor: pointer;  text-decoration: underline;}
 	.navnavy {color:#'.$this->navy.'; text-shadow: -.8px -.8px  0.4px #ffffff;}
 	.highlight,.highlight:visited{color:#'.$this->info.';font-style:italic;font-weight:500;}
 	.navr1 a:link, .navr1 a:visited{color:#'.$this->navy.';}
@@ -5015,7 +5019,7 @@ function css_initiate(){
     .darkblue {color:#224488;} 
      .pos {color:#'.Cfg::Pos_color.';}
 	 a.pos {color:#'.Cfg::Pos_color.';}
-    .neu {color:#'.Cfg::Info_color.';}
+    .neu {color:#'.$this->info.';}
     .opac {opacity:0}
     .red,.neg{color:#'.Cfg::RedAlert_color.';}
     .rad10{-webkit-border-radius: 10px 10px 10px 10px;
@@ -5054,20 +5058,7 @@ function css_initiate(){
 				background: -moz-linear-gradient(rgba(245,247,250,0.6),rgba(219,221,223,0.6),rgba(219,221,223,0.6),rgba(216,221,223,0.6),rgba(245,247,250,0.6)); /* For Firefox 3.6 to 15 */
 				background: linear-gradient(rgba(245,247,250,0.6),rgba(219,221,223,0.6),rgba(219,221,223,0.6),rgba(216,221,223,0.6),rgba(245,247,250,0.6));
 				 }
-	.buttonnavy{
-	   background: #FFFAFF; 
-	   margin: 5px 5px ;
-	   padding: 4px;
-	   border-width:1px;
-	   border-style: solid;
-	   border-color:#2B1DC9;  
-	   -moz-border-radius:3px;
-	   -webkit-border-radius:3px;
-	   border-radius:3px;
-	   -moz-box-shadow:inset -1px -1px  1px  #aaa5e9,inset 1px  1px  1px  #aaa5e9;
-	   -webkit-box-shadow:inset -1px -1px 1px  #aaa5e9,inset 1px  1px  1px  #aaa5e9;
-	   box-shadow:inset  -1px -1px  1px #aaa5e9, inset 1px  1px  1px  #aaa5e9;
-	    cursor:pointer; }
+	
 	.cursor {cursor: pointer;}
 	.mce-btn-group .mce-btn {
     float: left;
@@ -5233,7 +5224,7 @@ function css_gall(){
     } 
  .containbackto { position:relative; float:left;  width:6'.$this->rem.';  margin-left:200px; margin-top:100px; }
 .backto { position:absolute; top: 0px; left: 0px; background:#fff; filter:alpha(opacity=35);opacity:.35; 
-  width:100%; height:100%;  -moz-border-radius:3px; -webkit-border-radius:3px; border-radius:3px;}
+  width:100%; height:100%;  -moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px;}
 .refbackto{ position:absolute; top: 0px; left: 0px; width:100%;
 text-align:center; font-size: .9'.$this->rem.'; font-family: arial,sans-serif;font-weight: 700;
  color:rgba(217, 224, 152, 1);}
@@ -5243,7 +5234,7 @@ text-align:center; font-size: .9'.$this->rem.'; font-family: arial,sans-serif;fo
 .backtoborder,.backto,.containbackto{padding:.3'.$this->rem.' 0 .4'.$this->rem.' 0;}
 .backtoborder{ position:absolute; top: 0px; left: 0px;
  width:100%; height:100%; 
- -moz-border-radius:3px; -webkit-border-radius:3px; border-radius:3px;
+ -moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px;
 -moz-box-shadow: 1px 1px 5px -4px #0a2268;
 -webkit-box-shadow: 1px 1px 5px -4px #0a2268;
 box-shadow: 1px 1px 5px -4px #0a2268; 
@@ -5352,7 +5343,7 @@ html .button {
 	#topmenu {left:8px; top:10px;}
 	#botmenu {right:2px;top:6px;}
 	#topoutmenu {left:0;top:0px;opacity:.7;}
-     #top_upload{position:absolute;left:15px;}
+     #top_upload{position:absolute;left:15px;top:2px;}
      #toprefresh{position:absolute;left:0px; top:0px}
 	#botoutmenu {right:0px;top:3px;opacity:.7;}
 	#topconfig #topmenu,#topconfig  #botmenu{font-size:10px;color:black;cursor:pointer; z-index:10000000; position:fixed;padding:0;margin:0;}
@@ -5398,10 +5389,11 @@ background: linear-gradient(rgb(214,214,214),rgb(223,223,223),rgb(223,223,223),r
 	.nolist{list-style-type: none;}
     .inline {display:inline-block;padding:2px;}
     .purple{color:#'.$this->purple.';}
-    .information {display:inline-block;padding:.2em .5em;text-align:left; color:#'.Cfg::Info_color.'; display:inline;  }
-    .informationcenter {text-align:center;   font-style:italic; color:#'.Cfg::Info_color.'; }
-    .hightlight{color:#'.Cfg::Info_color.';text-decoration:italic;font-weight:700;}
-   .infoclick,a.infoclick{padding:3px 3px;display:inline-block;text-align:left; cursor: pointer; font-style:italic; color:#'.Cfg::Info_color.'; text-decoration: underline;}
+    .info{color:#'.$this->info.';}
+    .information {display:inline-block;padding:.2em .5em;text-align:left; color:#'.$this->info.'; display:inline;  }
+    .informationcenter {text-align:center;   font-style:italic; color:#'.$this->info.'; }
+    .hightlight{color:#'.$this->info.';text-decoration:italic;font-weight:700;}
+   .infoclick,a.infoclick{padding:3px 3px;display:inline-block;text-align:left; cursor: pointer; font-style:italic; color:#'.$this->info.'; text-decoration: underline;}
 	.inlinehighlight { padding:3px 10px;display:inline;background:#1E2F4D;color:#FFFAFF;}
 	.red, .neg{color:red;}
 	.expand{display:block; width:100%;} 
@@ -5458,10 +5450,10 @@ background: linear-gradient(rgb(214,214,214),rgb(223,223,223),rgb(223,223,223),r
 	.fs1npinfo {border: 1px  solid #'.$this->info.';} 
 	.fs1lpinfo{padding: 4px 4px 4px 25px; border: 1px  solid #'.$this->info.';} 
 	.fs2npred {margin:0;padding:0;border: 2px  solid #'.$this->redAlert.';}
-	.fs2npinfo {border: 2px  solid #'.$this->{'info'}.';}
+	.fs2npinfo {border: 2px  solid #'.$this->info.';}
 	 
-	.fsmcolor   { margin: 4px; padding:10px; border: 2px  double #'.$this->editor_color.' } 
-	.fsmlightred {margin: 4px auto; padding:10px; border: 2px  double #dc8c8c; }
+	.fsmcolor   { margin: 4px; padding:10px; border: 1px  solid #'.$this->editor_color.' } 
+	.fsmlightred {margin: 4px auto; padding:10px; border: 1px  solid #dc8c8c; }
 	.utilitygrad {
 		margin: 4px; padding:4px;
 		border: 4px  double #'.$this->info.';
@@ -5522,14 +5514,11 @@ $this->pageeditcss.='
 	.editfontcenter {font-size:'.($this->edit_font_size*16).'px;font-family:'.$this->edit_font_family.';text-align:center;font-weight:400;}
 	';
 	$this->editgencss.='
-     .buttoneditcolor{ text-align:left;  color:#'.$this->editor_color.'; 
+    
+         .buttoneditcolor{ text-align:left;  color:#'.$this->editor_color.' !important; 
 	   background: #'.$this->editor_background.';   margin: 2px;
-	   padding: 2px; line-height:110%; border-width:1px; border-style: solid; border-color:#'.$this->editor_color.';  
-	   -moz-border-radius:1px; -webkit-border-radius:1px; border-radius:2px; 
-	    cursor:pointer; }  .buttoneditcolor{ text-align:left;  color:#'.$this->editor_color.' !important; 
-	   background: #'.$this->editor_background.';   margin: 2px;
-	   padding: 2px; line-height:110%; border-width:1px; border-style: solid; border-color:#'.$this->editor_color.';  
-	   -moz-border-radius:1px; -webkit-border-radius:1px; border-radius:2px; 
+	   padding: 10px; line-height:110%; border-width:1px; border-style: solid; border-color:#'.$this->editor_color.';  
+	   -moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px; 
 	    cursor:pointer; }
 	 ';    
 foreach ($this->color_order_arr as $color){ 
@@ -5539,20 +5528,18 @@ foreach ($this->color_order_arr as $color){
 	$this->editgencss.='
 		.button'.$color.'{ text-align:left;
 	   background: #'.$this->editor_background.';   margin: 2px;
-	   padding: 2px; line-height:110%; border-width:1px; border-style: solid; border-color:#'.$this->$color.';  
-	   -moz-border-radius:1px; -webkit-border-radius:1px; border-radius:2px;
-	   -moz-box-shadow:inset -1px -1px  1px  #'.$colorlight.',inset 1px  1px  1px  #'.$colorlight.';
-	   -webkit-box-shadow:inset -1px -1px 1px  #'.$colorlight.',inset 1px  1px  1px  #'.$colorlight.';
-	   box-shadow:inset  -1px -1px  1px #'.$colorlight.', inset 1px  1px  1px  #'.$colorlight.'; 
+	   padding: 10px; line-height:110%; border-width:1px; border-style: solid; border-color:#'.$this->$color.';  
+	   -moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px;
+	  
 	    cursor:pointer; }  
 		.button'.$color.'mini{ text-align:left;
 	   background: #'.$this->editor_background.';   margin: 2px;
-	   padding: 2px; border-width:2px; border-style: solid; border-color:#'.$this->$color.';  
-	   -moz-border-radius:3px; -webkit-border-radius:3px; border-radius:3px;
+	   padding: 10px; border-width:1px; border-style: solid; border-color:#'.$this->$color.';  
+	   -moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px;
 	    cursor:pointer; }  
 	.glowbutton'.$color.'{ text-align:left;
 	   background: #'.$this->editor_background.';   margin: 5px 5px ;
-	   padding: 2px; line-height:120%; border-width:9px; border-style: solid; border-color:#'.$this->info.';  
+	   padding: 10px; line-height:120%; border-width:9px; border-style: solid; border-color:#'.$this->info.';  
 	   -moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px;
 	   -moz-box-shadow:inset -3px -3px  3px  #'.$colorlight.',inset 2px  2px  2px  #'.$colorlight.';
 	   -webkit-box-shadow:inset -3px -3px 3px  #'.$colorlight.',inset 2px  2px  2px  #'.$colorlight.';
@@ -5562,20 +5549,23 @@ foreach ($this->color_order_arr as $color){
 	$carr=$this->color_order_arr;
 	$carr[]='white';
 	$carr[]='black';
+     $carr[]='info';
+     $carr[]='redAlert';
+     $carr[]='pos';
 foreach ($carr as $color){
 	$this->editgencss.= 
-	'.fs1'.$color.'{padding:3px; margin:3px; border: 1px  solid #'.$this->$color.';} 
-	.fs2'.$color.'{padding: 3px; margin:3px; border: 2px  solid #'.$this->$color.';}  
-	.fs3'.$color.'{padding: 3px; margin:3px; border: 3px  solid #'.$this->$color.';} 
-	.fd1'.$color.'{padding: 4px; margin:4px; border: 1px  double #'.$this->$color.';} 
-	.fd2'.$color.'{padding: 4px; margin:4px; border: 2px  double #'.$this->$color.';}  
-	.fd3'.$color.'{padding: 4px; margin:4px; border: 3px  double #'.$this->$color.';}    
-	.bs1'.$color.'{border: 1px  solid #'.$this->$color.';}   
-	.bs2'.$color.'{border: 2px  solid #'.$this->$color.';}  
-	.bs3'.$color.'{border: 3px  solid #'.$this->$color.';} 
-	.bs4'.$color.'{border: 4px  solid #'.$this->$color.';}
-	.Os3'.$color.'{outline: 3px  solid #'.$this->$color.';}
-	.bdot1'.$color.'{margin:1px;border: 1px  dotted #'.$this->$color.';} 
+	'.fs1'.$color.'{-moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px;padding:10px; margin:3px; border: 1px  solid #'.$this->$color.';} 
+	.fs2'.$color.'{-moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px;padding: 10px; margin:3px; border: 2px  solid #'.$this->$color.';}  
+	.fs3'.$color.'{-moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px;padding: 10px; margin:3px; border: 3px  solid #'.$this->$color.';} 
+	.fd1'.$color.'{-moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px;padding: 10px; margin:4px; border: 1px  double #'.$this->$color.';} 
+	.fd2'.$color.'{-moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px;padding: 10px; margin:4px; border: 2px  double #'.$this->$color.';}  
+	.fd3'.$color.'{-moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px;padding: 10px; margin:4px; border: 3px  double #'.$this->$color.';}    
+	.bs1'.$color.'{-moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px;border: 1px  solid #'.$this->$color.';}   
+	.bs2'.$color.'{-moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px;border: 2px  solid #'.$this->$color.';}  
+	.bs3'.$color.'{-moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px;border: 3px  solid #'.$this->$color.';} 
+	.bs4'.$color.'{-moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px;border: 4px  solid #'.$this->$color.';}
+	.Os3'.$color.'{-moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px;outline: 3px  solid #'.$this->$color.';}
+	.bdot1'.$color.'{-moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px;margin:1px;border: 1px  dotted #'.$this->$color.';} 
 	
 	.bdoub1'.$color.'{border: 1px  double #'.$this->$color.';} 
      .bshad1'.$color.'{-moz-box-shadow: 0px 0px 1px 1px #'.$this->$color.'; 
@@ -5597,9 +5587,9 @@ box-shadow:  0px 0px 3px 3px #'.$this->$color.';}
 -webkit-box-shadow:  0px 0px 4px 4px #'.$this->$color.';    
 box-shadow:  0px 0px 4px 4px #'.$this->$color.';}
 	.fsec'.$color.'{margin: 2px; padding:3px; border: 4px  double #'.$this->$color.';}
-	.fsm2'.$color.'{margin: 4px; padding:10px; border: 2px  double #'.$this->$color.';}
-	.fsm'.$color.'{margin: 4px; padding:10px; border: 2px  double #'.$this->$color.';} 
-	.fsm1'.$color.'{margin: 4px; padding:10px; border: 1px  solid #'.$this->$color.';}';
+	.fsm2'.$color.'{-moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px;margin: 4px; padding:20px 10px; border: 2px  double #'.$this->$color.';}
+	.fsm'.$color.'{-moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px;margin: 4px; padding:20px 10px; border: 1px  solid #'.$this->$color.';} 
+	.fsm1'.$color.'{-moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px;margin: 4px; padding:20px 10px; border: 1px  solid #'.$this->$color.';}';
 	}
 foreach ($carr as $color){
 	$this->editgencss.= 
@@ -5616,7 +5606,7 @@ foreach ($carr as $color){
 	}
 	
    $this->editgencss.='
-     h7 {color:#'.$this->info.';} 
+     h7 {color:#'.$this->gold.';} 
 	.static{ position:static !important;}
 	.staticdim{ opacity:.98;}
 	.fullopacity{opacity:1.0}

@@ -4492,7 +4492,7 @@ eol;
      $this->submit_button(); 
      printer::close_print_wrap('rwd menu icon');
      $this->show_close('Style/Customize <b>@ NON Menu-Icon Width</b>'); 
-     echo'<p class="button'.$this->column_lev_color.' '.$this->column_lev_color.' editbackground editfont editcolor floatleft underline shadowoff"> <a class="linkcolorinherit" href="navigation_edit_page.php?table_ref='.$this->pagename.'&amp;data='.$data.'&amp;style='.'ID-'.$dir_menu_id.'-'.$datainc.'&amp;menuid='.$dir_menu_id.'&amp;postreturn='.Sys::Self.'&amp;pgtbn='.$this->pagename.'&amp;css='.$this->roots.Cfg::Style_dir.$this->pagename.'">Add Remove &amp; Edit Links for this Menu</a></p>';
+     echo'<p class="button'.$this->column_lev_color.' '.$this->column_lev_color.' editbackground editfont editcolor floatleft underline shadowoff"> <a class="linkcolorinherit" href="navigation_edit_page.php?table_ref='.$this->pagename.'&amp;data='.$data.'&amp;style='.'ID-'.$dir_menu_id.'-'.$datainc.'&amp;menuid='.$dir_menu_id.'&amp;postreturn='.Sys::Self.'&amp;pgtbn='.$this->pagename.'&amp;css='.$this->roots.Cfg::Style_dir.$this->pagename.'">GoTo Add &amp; Edit Links for this Menu</a></p>';
 		printer::pclear();
    $pb=(!is_numeric($this->{$data.'_blog_data4_arrayed'}[$this->padding_bottom_index]))?0:$this->{$data.'_blog_data4_arrayed'}[$this->padding_bottom_index];
 	$pt=(!is_numeric($this->{$data.'_blog_data4_arrayed'}[$this->padding_top_index]))?0:$this->{$data.'_blog_data4_arrayed'}[$this->padding_top_index];

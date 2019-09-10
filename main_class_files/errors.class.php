@@ -10,7 +10,10 @@ function __construct() {if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD_
      else $exit=true;
 	(Sys::Error_no_exit)&&$exit=false;
      echo '<div class="editbackground editcolor editfont">';
-     echo 'Check error log files';
+     $message1="e_message: $e_message  e_file: $e_file,  e_line: $e_line  <br><br>";
+     if (Sys::Loc)  
+		echo $message1;
+      
 	$ip = $_SERVER['REMOTE_ADDR']?:($_SERVER['HTTP_X_FORWARDED_FOR']?:$_SERVER['HTTP_CLIENT_IP']);
 	$message = NL.NL."newlog".NL.NL."error handler.php ".date("dMYHis").' IP:'.$ip. NL."url is: ".request::return_full_url().NL.' An error occurred in script '. $e_file.' on line '. $e_line.': '. $e_message.NL;
 	$data='';
@@ -41,7 +44,7 @@ function __construct() {if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD_
 		foreach ($addresses as $address){
 			$addresses=explode(',',Cfg::Admin_email);
 			foreach ($addresses as $address){
-				if (!mail($address,$subject,$message)){
+				if (!mail($address,$subject,$message1.$message)){
 					print('error handler mail send error');
 					}
 				}
@@ -59,7 +62,7 @@ function __construct() {if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD_
 				if (mkdir(Cfg_loc::Root_dir.Cfg::Backup_dir.Cfg::Logfile_dir,0755,true)){
 					$log_send_dir=Cfg_loc::Root_dir.Cfg::Backup_dir.Cfg::Logfile_dir;
 					}
-				else mail::error("problem in __FILE__, __LINE__ Logging $message");
+				else mail::error("problem in __FILE__, __LINE__ Logging $message1 $message");
 				exit("problem in __FILE__, __LINE__ Logging $message");
 				}
 			}

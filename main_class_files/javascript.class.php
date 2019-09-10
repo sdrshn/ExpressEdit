@@ -1179,7 +1179,8 @@ var gen_Proc = {
 		}, //end use_ajax
 	handle_replace	:   function () { 
 		if ( (this.ajax.readyState == 4) && (this.ajax.status == 200) ) {
-			if (this.ajax.responseText.length > 20) { 
+			if (this.ajax.responseText.length > 20) {
+                    console.log('OK>20');
 				console.log(this.ajax.responseText)
 				var jsonitems = JSON.parse(this.ajax.responseText); 
 				//console.log( jsonitems[0]);

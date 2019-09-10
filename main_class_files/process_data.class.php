@@ -17,11 +17,11 @@ static function spam_scrubber($value,$strict=false,$trim=true,$real_escape=true)
 		     }
 	     }  
 	$value=self::cleanup($value);//multifunction conversion
-	if ($real_escape){
+     if ($real_escape){
 		$mysqlinst = mysql::instance(); 
 		$value=$mysqlinst->escape($value);
 		}
-	if ($trim)
+     if ($trim)
 	return trim($value);
 	return ($value);   
      } // End of spam_scrubber() function.
