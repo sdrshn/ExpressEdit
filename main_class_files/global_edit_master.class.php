@@ -2,8 +2,7 @@
 #ExpressEdit 2.0.4
 /*
 ExpressEdit is an integrated Theme Creation CMS
-	Copyright (c) 2018  Brian Hayes expressedit.org  
-
+	Copyright (c) 2018  Brian Hayes expressedit.org
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -143,11 +142,9 @@ function edit_script(){if (Sys::Debug)  Sys::Debug(__LINE__,__FILE__,__METHOD__)
 	(Sys::Deltatime)&&$this->deltatime->delta_log(__LINE__.' @ '.__method__.'  ');
      $_SESSION['write_to_file']=array();
      $this->editpages_obj($this->master_page_table,'page_id,'.Cfg::Page_fields,'','page_ref',$this->pagename,'','','all','',",page_time=".time().",token='". mt_rand(1,mt_getrandmax())."', page_update='".date("dMY-H-i-s")."'");
-     
      $this->generate_bps(); 
 	if(!is_array($this->page_options))
           $this->page_populate_options();//separately called  in non edit pages
-     
      $this->color_populate();
      $this->page_grid_units=(is_numeric($this->page_options[$this->page_grid_units_index])&&$this->page_options[$this->page_grid_units_index]>11&&$this->page_options[$this->page_grid_units_index]<101)?intval($this->page_options[$this->page_grid_units_index]):100;
      $this->backup_copies=(is_numeric($this->page_options[$this->page_backup_copies_index])&&$this->page_options[$this->page_backup_copies_index]>20&&$this->page_options[$this->page_backup_copies_index]<1001)?$this->page_options[$this->page_backup_copies_index]:Cfg::Backup_copies;
@@ -549,6 +546,90 @@ function editpages_obj($master_table,$field_data,$post_prepend,$ref1,$refval1,$r
 		}  
 	if (Sys::Debug) echo 'leaving funct editpage entirely!!';  
 	}#end function edit pages_obj
+
+function scroll_height_fade(){
+      #this is for all posts including nested columns
+               $typ=($this->blog_type==='nested_column')?'col':'blog';
+               $fadeInval=($this->{$typ.'_options'}[$this->{$typ.'_fade_value_index'}]>=15&&$this->{$typ.'_options'}[$this->{$typ.'_fade_value_index'}]<=750)?$this->{$typ.'_options'}[$this->{$typ.'_fade_value_index'}]:'0';
+               $fadechoice=($this->{$typ.'_options'}[$this->{$typ.'_fade_choice_index'}]==='fadein'||$this->{$typ.'_options'}[$this->{$typ.'_fade_choice_index'}]==='fadeout')?$this->{$typ.'_options'}[$this->{$typ.'_fade_choice_index'}]:'none';
+              
+               $fademode=($this->{$typ.'_options'}[$this->{$typ.'_fade_mode_index'}]==='display')?$this->{$typ.'_options'}[$this->{$typ.'_fade_mode_index'}]:'visible';
+               if ($this->edit){
+                    $mode_name=($this->is_column)?$this->col_name.'_col_options['.$this->col_fade_mode_index.']':$this->data.'_blog_options['.$this->blog_fade_mode_index.']';
+                    $value_name=($this->is_column)?$this->col_name.'_col_options['.$this->col_fade_value_index.']':$this->data.'_blog_options['.$this->blog_fade_value_index.']';
+                    $choice_name=($this->is_column)?$this->col_name.'_col_options['.$this->col_fade_choice_index.']':$this->data.'_blog_options['.$this->blog_fade_choice_index.']';
+                    $type=($this->blog_type==='nested_column')?'nested column':'post';
+                    printer::print_wrap('scroll height fade');
+                    printer::print_tip('You can choose to scroll height fade in or fade out this '.$type.' at the specified height you choose below.');
+                    $checked1=($fadechoice!=='fadein'&&$fadechoice!=='fadeout')?'checked="checked"':'';
+                    $checked2=($fadechoice==='fadein')?'checked="checked"':'';
+                    $checked3=($fadechoice==='fadeout')?'checked="checked"':'';
+                    printer::alert('<input type="radio" name="'.$choice_name.'" value="fadein" '.$checked1.'>Do not enable scroll height visibility/displaying on this '.$type);
+                    printer::alert('<input type="radio" name="'.$choice_name.'" value="fadeout" '.$checked3.'>Choose to initially display post till specified scroll height is surpassed then hide this '.$type);
+                    printer::alert('<input type="radio" name="'.$choice_name.'" value="fadein" '.$checked2.'>Choose to initially hide this '.$type.' till specified scroll height is surpassed then make display/visible');
+                    $checked1=($fademode!=='display')?'checked="checked"':'';
+                    $checked2=($fademode==='display')?'checked="checked"':'';
+                    printer::print_tip('Visibility:hidden changes the opacity &amp; visibility properties. display:none is emulated by additionally including absolute positioning on the element so it removes the occupied space as well. For post types/nested columns already using <b>absolute  positioning</b> use the visibility option so that top left parameters are preserved!');
+                    printer::alert('<input type="radio" name="'.$mode_name.'" value="visible" '.$checked1.'>Use Visibility:hidden (Preserves spacing affects visiblity only. Use if absolutely positioned already)');
+                    printer::alert('<input type="radio" name="'.$mode_name.'" value="display" '.$checked2.'>Emulate Display:none (Removes/Puts Back Spacing and Visibility)');
+                    printer::print_tip('Choose the scroll height for the Visibility Transition');
+                    $this->mod_spacing($value_name,$fadeInval,15,750,1,'px');
+                    printer::close_print_wrap('scroll height fade');
+                    }
+               //$('#someElementID').css('position');
+               if (!$this->edit&&$fadechoice !=='none'&&!empty($fadeInval)){
+                    $cb_data=($this->blog_type==='nested_column')?$this->col_dataCss:$this->dataCss;
+                    $minheight='500px';
+                    if($fadechoice==='fadein'){
+                         if ($fademode!=='visible'){ 
+                              $inout='displayTransitionOn';
+                              $rev_inout='displayTransitionOff';
+                              $initclass='displayOff';
+                              }
+                              
+                         else{ 
+                              $inout='visibleTransitionOn';
+                              $rev_inout='visibleTransitionOff';
+                              $initclass='visibleOff';
+                              }
+                         }
+                    else {
+                         $initclass='';
+                         if ($fademode!=='visible'){ 
+                              $inout='displayTransitionOff';
+                              $rev_inout='displayTransitionOn';
+                              }
+                              
+                         else{ 
+                              $inout='visibleTransitionOff';
+                              $rev_inout='visibleTransitionOn';
+                              }
+                         }
+          echo '<script>
+	jQuery("document").ready(function($){';
+                    if ($fadechoice==='fadein'){
+               echo '$("#'.$cb_data.'").addClass("'.$initclass.'");';
+                         }         
+                    echo <<<eol
+    \$('body').css('min-height','$minheight');
+		var scrollTimer='';
+	   \$(window).scroll(function () {
+		clearTimeout(scrollTimer);
+		scrollTimer = setTimeout(function(){ //this will limit no of scroll events responding 
+               if (\$(this).scrollTop() >= $fadeInval) {  
+				\$('#$cb_data').addClass('$inout').removeClass('$rev_inout').removeClass('$initclass'); 
+				}
+			else if(\$(this).scrollTop() < $fadeInval) {
+				\$('#$cb_data').addClass('$rev_inout').removeClass('$inout');    
+				}
+				
+			},20);
+        }); 
+});
+</script>
+eol;
+                    }
+               }
       
 function color_populate(){ 
      $this->page_options[$this->page_darkeditor_background_index]=(preg_match(Cfg::Preg_color,$this->page_options[$this->page_darkeditor_background_index]))?$this->page_options[$this->page_darkeditor_background_index]:'687867';
@@ -636,9 +717,7 @@ Hover Over <span class="highlight" title="hovering over this color text having w
 function token_gen(){
 	return mt_rand(1,mt_getrandmax());
 	}
-     
-
-     
+         
 function view_page(){ if (Sys::Quietmode)return;  
 	echo '<div class="inline floatleft"><!-- float buttons-->';
 	$this->navobj->return_url($this->pagename,'','white darkslatebluebackground rad5 smallest buttondarkslateblue');
@@ -696,7 +775,7 @@ function browser_size_display(){if (!Sys::Info&&!$this->edit)return;
 	<div class="editfontfamily editcolor editbackground "><p id="clientw"></p>
 	</div>
 	</div><!--float buttons-->';
-	echo '<div id="displayCurrentSize2" '.$style.' class="'.$class2.' editfontfamily whitebackground "><p id="clientw2"></p>
+	echo '<div id="displayCurrentSize2" '.$style.' class="'.$class2.' editfontfamily whitebackground "><p id="clientw2" class="rad5"></p>
 	</div>';
 	}
 function generate_cache($cache='',$resize=false){   
@@ -3981,7 +4060,7 @@ function position(){
 		}  
 	$pos_horiz_vals_arr=array('none','left','right','center horizontally');
 	$pos_vert_vals_arr=array('none','top','bottom','center vertically'); 
-	$pos_arr=array('static','relative','absolute','fixed','none'); 
+	$pos_arr=array('static','relative','absolute','fixed','sticky','none'); 
 	#note: pos property, pos property, and advanced styles use css 	#id to override normal styles which use distinct classnames
 	$msg='Responsive positioning option for this '.$type;
 	$this->show_more('Position & Opacity Option','','',$msg,'800');
@@ -5386,7 +5465,7 @@ function edit_styles_open(){if(Sys::Custom)return;if (Sys::Methods) Sys::Debug(_
 	printer::alert('Post Css &amp; ID/CLASS: '.$this->dataCss);
 	printer::alert('Parent Col Id: '.$this->col_id);
 	printer::alert('Blog Order: '.$this->blog_order);
-     printer::alert('Name: '.$this->data);
+     printer::alert('Post Full Class Names: '.$this->post_full_class);
      if ($this->is_clone)printer::alert('Original Blog_id: '.$this->orig_val['blog_id']);
 	$widthSetting='&#x2715;';
      $float='&#x2715;'; 
@@ -5729,9 +5808,9 @@ function display_state(){
 	$msg='Select a min-width or max-width or both at which to display:none this '.$type;
 	$val_max=($this->is_column)?$this->col_options[$this->col_display_max_index]:$this->blog_options[$this->blog_display_max_index];
 	$val_min=($this->is_column)?$this->col_options[$this->col_display_min_index]:$this->blog_options[$this->blog_display_min_index];
-	$this->show_more('Display '.$type.' Off',$msg,'','','800');
+	$this->show_more('Display '.$type.' Off &amp; Scroll Height Visibility',$msg,'','','800');
 	$this->print_redwrap('Display state');
-	printer::print_tip('Optionally set a maximum and/or minimum with at which will initate a display:none for this post in webpage mode only. <br> Note: Display Property for RWD grid mode may be responsively Turned off using 0 grid units (ie %) for particular break pts.');
+	printer::print_tip('Optionally set a maximum and/or minimum with at which will initate a display:none for this post in webpage mode only. <br> Note: Display Property for RWD grid mode may also be responsively Turned off using 0 grid units (ie %) for particular break pts.');
 	$displayoff_maxpx=($val_max>199&&$val_max<2001)?$val_max:'none';
 	$displayoff_minpx=($val_min>199&&$val_min<3001)?$val_min:'none';
 	$mediacss=$css='';
@@ -5762,6 +5841,7 @@ function display_state(){
      printer::print_info($msg);
      printer::close_print_wrap1('techinfo');
      $this->show_close('Tech info');
+     
      $btype=($this->is_blog)?$this->blog_type:'nested';
      $this->css.=$mediacss;
      (!empty($this->display_edit_data))&&$this->editoverridecss.=" 
@@ -5780,6 +5860,7 @@ function display_state(){
      $this->mod_spacing($min_name,$displayoff_minpx,200,2000,1,'px','none');  
      printer::printx('<p ><input type="checkbox" name="'.$min_name.'" value="0">Remove min-width</p>');
      echo '</div><!--wrap min width-->';
+     $this->scroll_height_fade();
      $this->submit_button(); 
           printer::pclear();
      $this->close_print_wrap('Display state');
@@ -6765,7 +6846,7 @@ function calc_border_shadow($styles){  //shadowbox_horiz_offset,shadowbox_vert_o
 #end 
 	
 function nested_column(){ 
-	$this->column_level++;     
+	$this->column_level++;
 	$this->column_lev_color=$this->color_arr_long[$this->column_level];
 	if($this->blog_data2==='column_choice'){
 		$this->choose_column($this->blog_id,true);   

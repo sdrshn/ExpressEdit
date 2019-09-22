@@ -4142,7 +4142,7 @@ eol;
      printer::print_wrap('rwd menu icon');
      printer::print_wrap('outer absolute relative menu icon');
      printer::print_tip('Customize  positioning of menu icon/open menu icon &amp; menu');
-     $this->show_more('Positioning of menu icon');
+     $this->show_more('Positioning of menu icon/open menu');
      printer::print_wrap('Rel and Abs Pos');
      printer::print_wrap('menuicon pos width');
      printer::print_tip('Follow Absolute Positioning of Menu icon Procedure to Place the closed Menu icon @menu icon widths wherever you want vertically or horizontally on the page. To keep the closed Menu icon @menu icon widths in its Relative place vertically use Relative Positioning procedure.');

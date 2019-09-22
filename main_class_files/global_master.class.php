@@ -18,6 +18,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.*/
 class global_master extends global_edit_master{
+     protected $dataCss='';//initialize
      protected $pelement='';//sets a default used to carry current css selector 
      protected $flexfail=true;// if true and edimode init flex is off  see #flexfail affects editmode flex on or off
      protected $express=array();//update messages express after body call.
@@ -511,7 +512,7 @@ order:'.$order.';
                }
      $this->show_more('Style info #'.$i,'','info italic smaller');
      printer::print_wrap1('techinfo');
-     printer::print_info('Current setting Css: '.$css);
+     printer::print_info('Current setting Css: '.$css.' in '.$this->roots.Cfg::Style_dir.$this->pagename.'.css');
      $msg='Flex item css is applied directly to the '.$type .' main div element: .'.$css_id.' classname';
      printer::print_info($msg);
      printer::close_print_wrap1('techinfo');
@@ -697,7 +698,7 @@ function flex_container(){
                }
      $this->show_more('Style info #'.$i,'','info italic smaller');
      printer::print_wrap1('techinfo');
-     printer::print_info('Current setting Css: '.$css);
+     printer::print_info('Current setting Css: '.$css.' in '.$this->roots.Cfg::Style_dir.$this->pagename.'.css');
      $msg='Flex container css is applied directly to the parent column main div element: .'.$css_id.' classname';
      printer::print_info($msg);
      printer::close_print_wrap1('techinfo');
@@ -717,8 +718,8 @@ function overlapbutton(){
 function col_info_prime(){
      $this->show_more('info','off','info smaller');
 	$this->print_wrap('primal info');
-	printer::alert('Column Css &amp; ID/CLASS: '.$this->col_dataCss);
-     printer::alert('Name: '.$this->col_name);
+	printer::alert('Column Css element &amp; ID/CLASS: '.$this->col_dataCss);
+     printer::alert('Full class names: '.$this->col_full_class);
      $info=$this->check_spacing($this->col_options[$this->col_max_width_opt_index],'max-width');
      $info.=$this->check_spacing($this->col_options[$this->col_width_opt_index],'width');
      $info.=$this->check_spacing($this->col_options[$this->col_min_width_opt_index],'min-width');
@@ -790,7 +791,7 @@ function col_info(){
 	$this->print_wrap('non primal col info');
 	printer::alert('Post Parent Blog id'.$this->blog_id);
 	printer::alert('Column Css &amp; ID/Class: '.$this->col_dataCss);
-     printer::alert('Name: '.$this->col_name);
+     printer::alert('Full class names: '.$this->col_full_class);
      $info=$this->check_spacing($this->col_options[$this->col_max_width_opt_index],'max-width');
           $info.=$this->check_spacing($this->col_options[$this->col_width_opt_index],'width');
      $info.=$this->check_spacing($this->col_options[$this->col_min_width_opt_index],'min-width');
@@ -1079,12 +1080,13 @@ function column_main_width(){
      $this->show_more($opt);//Main Width Options
      printer::print_wrap('column width');  
      if ($this->column_level==0){
+          $widthmode='';
                //means the last primary column width gets passed on to new page start width
           $msg='Choose a Max-Width For this Top Level Column. This value will override any alterative max-width settings ie. px em % and rem. This perfoms the simple task of setting an upper limit on the overall size of Images and other Content Displays on Larger Size Screens. Default Value is '.Cfg::Page_width.' which can be changed here and by default in Page Setttings';
           $cw=(is_numeric($this->column_total_width[$this->column_level])&&$this->column_total_width[$this->column_level]>1)?$this->column_total_width[$this->column_level]:$this->page_width;
           $this->show_more('Style info','','info italic smaller');
      printer::print_wrap1('techinfo');
-      $msg='Info: Main width mode for the Primary Column uses max-width setting applied directly the primary main div tag. used the selected width property is applied as css style sheet styling to the main div element of this column ie class: .'.$this->col_dataCss.'.primary.column';
+      $msg='Info: Main width mode for the Primary Column uses max-width setting or alt em rem px units settings applied directly to the primary main div tag. The selected width property is applied as css style sheet styling to the main div element of this column ie class: .'.$this->col_dataCss.'.primary.column';
      printer::print_info($msg);
      printer::close_print_wrap1('techinfo');
      $this->show_close('Style info');
@@ -1098,6 +1100,29 @@ function column_main_width(){
           echo '<div class="fsminfo editbackground editfont floatleft" ><!--width float wrap-->';//Choose Column Width:
           }//column_level==0 main column
      else{
+          if ($this->rwd_post) 
+               $widthmode='Main RWD grid settings in Use';
+          else if ($this->flex_box_item)
+                $widthmode='Flex Box Container <b>is enabled </b>in the parent Column.';
+          
+          elseif ($this->use_col_main_width){
+               switch ($this->wmode) {
+               case  'off':
+                    $widthmode='main width not chosen. ';
+                    break;
+               case  'max-width':
+                    $widthmode='maxwidth:'.intval(ceil($this->column_total_width[$this->column_level]*10)/10).'px; ';
+                    break;
+               case 'compress_full_width':
+                    $widthmode='width: '.(ceil($column_percent*10)/10).'%; ';
+                    break; 
+               case 'compress_to_percentage': 
+                    $widthmode='Alternative RWD Percentage chosen. ';
+               default:
+                    $widthmode='maxwidth:'.intval(ceil($this->column_total_width[$this->column_level]*10)/10).'px; ';
+                    }
+               }
+          else  $widthmode='No Width system in Use. Will occupy 100% space available';
           if (!$this->flex_enabled_twice) {
                printer::alertx('<p class="highlight editbackground editfont" title="The Parent Column Width is the Upper Limit for this Nested Column. Optionally set a narrower Column Width as required.">Max Width Available: <span class="editcolor editbackground editfont">'.intval(ceil($maxwid*10)/10).'px</span></p>'); 
                echo '<div class="highlight editbackground editfont" title="The Column width setting will include the value of margins and will take up 100% of the available column width if no limiting width value is chosen! Limit the width if required.  Both the percentage available of the parent column width and the pixel value will be shown"><!--width float wrap-->Current Column Width: <span class="editcolor editbackground editfont">: '.intval(ceil($this->column_total_width[$this->column_level]*10)/10).'px   ('.(ceil($column_percent*10)/10).'%)</span>';
@@ -1108,7 +1133,7 @@ function column_main_width(){
                 echo '<div class="highlight editbackground editfont" ><!--width float wrap-->Current Column Width: <span class="editcolor editbackground editfont">: '.(ceil($column_percent*10)/10).'%</span>';
                }
           if (!$this->use_col_main_width){
-               printer::alert('Main Width Units for this primary column not used. Alternative width units are Active and are overridden by choosing a value here.'); 
+               printer::alert('Main Width Units for this primary column not used. Alternative width units are overridden by choosing a value here.'); 
                }
           printer::pclear(); 
           }//not prime
@@ -1120,9 +1145,19 @@ function column_main_width(){
      printer::print_info('Choosing a main-width value overrides any choice made  from option under em, rem, %, px & px scale opt for min-width, max-width, & width choices');
      $this->show_more('Style info','','info italic smaller');
      printer::print_wrap1('techinfo');
-     printer::print_info('Current setting Css for alternative widths is applied to main div for col class: .'.$this->col_dataCss);
-     $msg='Info: Sets the float of the li element to display:block or display:inline or float:left @ NON menu icon widths.'; 
-     printer::print_info($msg);
+     echo $widthmode.'<br>';
+     printer::printx('Current setting Css choices are applied to main div for col class: .'.$this->col_dataCss.' in '.$this->roots.Cfg::Style_dir.$this->pagename.'.css<br>');
+     if (!$this->flex_enabled_twice) {
+          echo 'Current Column Width: <span class="editcolor editbackground editfont">: '.intval(ceil($this->column_total_width[$this->column_level]*10)/10).'px   ('.(ceil($column_percent*10)/10).'%)</span>';
+               }
+                    #column width  #col width  
+     else{
+          printer::print_warn('Previous activation of Flex Box in column tree means that max-width chosen here may no longer be accurate and percent (ie. choice 2) used instead or choose other width options');
+           echo 'Current Column Width: <span class="editcolor editbackground editfont">: '.(ceil($column_percent*10)/10).'%</span>';
+          }
+     if (!$this->use_col_main_width){
+          printer::alertx('Main Width Units for this primary column not used. Alternative width units are overridden by choosing a value here.'); 
+          }
      printer::close_print_wrap1('techinfo');
      $this->show_close('Style info');
      if (!$prime)
@@ -1138,7 +1173,7 @@ function column_main_width(){
      }//end col_main_width     
 
 function column_bp_width_track(){
-     //here we are adjusting the column_bp_width_arr which keeps track of the column level net width percent...
+     //here we are adjusting xe column_bp_width_arr which keeps track of the column level net width percent...
 	 // if rwd is used then not used then used again it should maintain the correct  column level width percent... 
      if($this->column_use_grid_array[$this->column_level]==='use_grid'){#setup conditions for all posts within column  note that this->rwd build called before enabling correct parent column vals
           $this->column_grid_css_arr[]=$this->page_grid_units.'@@'.$this->page_br_points;//for rendering css
@@ -1199,7 +1234,7 @@ function column_options(){
                printer::print_info('Flex Box Container <b>is enabled </b>in the parent Column. Disables float positioning for flex items ie. this nested column.  Use scaling width unit selection ie. em rem vw % px as needed.');
           else printer::print_info('Flex Box Container <b>Not enabled</b> in the parent Column');
           if ($this->use_col_main_width){
-               $mode=($this->column_level<1)?'max-width':(($this->blog_width_mode[$this->blog_width_mode_index]==='max-width'||$this->blog_width_mode[$this->blog_width_mode_index]==='compress_full_width'||$this->blog_width_mode[$this->blog_width_mode_index]==='compress_to_percentage')?$this->blog_width_mode[$this->blog_width_mode_index]:'max-width');
+               $this->wmode=$mode=($this->column_level<1)?'max-width':(($this->blog_width_mode[$this->blog_width_mode_index]==='max-width'||$this->blog_width_mode[$this->blog_width_mode_index]==='compress_full_width'||$this->blog_width_mode[$this->blog_width_mode_index]==='compress_to_percentage')?$this->blog_width_mode[$this->blog_width_mode_index]:'max-width');
               printer::print_info('Main Width using '.$mode.' <b>Is Active</b> <br>&amp; Overrides any chosen alt width units',.8); 
                }
           else printer::print_info('Main Width <b>Not Active</b>',.8);    
@@ -1387,7 +1422,7 @@ function column_options(){
      
      $this->show_more('Style info','','info italic smaller');
      printer::print_wrap1('techinfo');
-     printer::print_info('Current setting Css: '.$css);
+     printer::print_info('Current setting Css: '.$css.' in '.$this->roots.Cfg::Style_dir.$this->pagename.'.css');
      $msg='Vertical Positioning applied to col main div.';
      printer::print_info($msg);
      printer::close_print_wrap1('techinfo');
@@ -1420,7 +1455,14 @@ function column_options(){
 	printer::printx( '<p class="editcolor editbackground editfont" title="Be Sure to Use the Column Id Which Begins with a C ie C11.  Do Not Use the  Col# which simply refer to the Column Display Order Within the Page. Col Ids and #s are displayed at the top of each column"><input class="editcolor editbackground editfont" name="col_transfer_clone['.$this->col_id.']" size="8" maxlength="8" type="text">Enter the new <span class="info">Col Id</span> <span class="red">(Not Col#) </span>that you wish to Clone Transfer to</p>');
 	printer::close_print_wrap('clone transfer');
 	$this->show_close('Transfer Clone Column');
-     printer::pclear(2); 
+     printer::pclear(2);
+     $this->show_more('Special Text','','smaller cursor editbackground '.$this->column_lev_color.' editfont p10');
+	$this->print_redwrap('Special Text');
+     printer::print_info('This is an area for custom advanced text that needs to work directly within this parent column so that elements can work directly with the column flex-container setting or with column masonary turned on. Great for repetitive text such as a restaurant menu written with flex-items. Style with custom classes.');
+     if ($this->edit)$this->textarea('col_text',$this->col_name.'_col_text');
+     printer::pclear(5);
+     printer::close_print_wrap('Special Text');
+	$this->show_close('Special Text');
      $this->submit_button();
      printer::close_print_wrap('Col Opts');
      $this->show_close('Column Options');echo '<!--column options-->';
@@ -1613,7 +1655,7 @@ function blog_options($data,$tablename){if(Sys::Custom)return;
      printer::pclear();
      $this->show_more('Style info','','info italic smaller');
      printer::print_wrap1('techinfo');
-     printer::print_info('Current setting Css: '.$css);
+     printer::print_info('Current setting Css: '.$css.' in '.$this->roots.Cfg::Style_dir.$this->pagename.'.css');
      $msg='Changes default vertical align css';
      printer::print_info($msg);
      printer::close_print_wrap1('techinfo');
@@ -1697,16 +1739,20 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 	#primary
 	#Note if prime column,  data for this column has been populated already in method   render_body_main  
 	$style=''; 
-	if($prime&&!$this->edit){
-		list($anim_type,$anim_height,$anim_lock,$aef_class)=$this->preanimation(); 
+	if($prime){
+		list($anim_type,$anim_height,$anim_lock,$aef_class)=$this->preanimation();
+          
 		$anim_class=($anim_type!=='none' && !$aef_class)?" $anim_type animated active-anim " :(($anim_type!=='none')?" $anim_type animated ":'');
 		$dataAnimHeight=($anim_type!=='none')?' data-hchange="'.$anim_height.'" ':'';
 		$dataAnimLock=($anim_type!=='none')?' data-hlock="'.$anim_lock.'" ':'';
           #primediv #primarydiv
+          }
+     if ($prime&&!$this->edit){
 		print '<div id="'.$this->col_dataCss.'"  class="'.$this->col_dataCss.$anim_class.' primary" '.$dataAnimHeight.$style.'><!--Begin Primary Column id'.($this->col_id).'-->';
 		}
 	elseif ($prime){// this is edit
-        list($bw,$bh)=$this->border_calc($this->col_style);
+          $this->col_full_class=$this->col_dataCss.$anim_class.' primary';
+          list($bw,$bh)=$this->border_calc($this->col_style);
 		if (!empty($bw)) 
 			$bs=$this->calc_border_shadow($this->col_style);
 		$addclass=(empty($bw))?' bdoub'.$this->page_editborder.$this->column_lev_color.' ':((empty($bs))?' bshad'.$this->page_editborder.$this->column_lev_color.' ':'editcol');
@@ -2814,7 +2860,8 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
           #use_blog_main_width #use_col_main_with #use_'.$type.'_main_width
           #this value for blog or col use_blog_main_width is set in function total float
           #if blog main width not set we may be using #3 blog width main mode and we can update the main width value to equal this initial setting made in mode #3 so we allow it here
-          if ($this->edit)$mediapercent=(is_numeric($this->blog_width_mode[$this->{'blog_percent_init_index'}])&&$this->blog_width_mode[$this->blog_percent_init_index]>0&&$this->blog_width_mode[$this->blog_percent_init_index]<=100)?$this->blog_width_mode[$this->blog_percent_init_index]:''; 
+          if ($this->edit)$mediapercent=(is_numeric($this->blog_width_mode[$this->{'blog_percent_init_index'}])&&$this->blog_width_mode[$this->blog_percent_init_index]>0&&$this->blog_width_mode[$this->blog_percent_init_index]<=100)?$this->blog_width_mode[$this->blog_percent_init_index]:'';
+          else $this->scroll_height_fade();
           #mainmode  #mode 
           if ($this->edit&&!$this->rwd_post&&(is_numeric($this->{$type.'_width'})&&$this->{$type.'_width'}>0&&$this->{'use_'.$type.'_main_width'} ||$this->blog_width_mode[$this->blog_width_mode_index]==='compress_to_percentage'&&!empty($mediapercent))){ 
                $mode=($this->blog_width_mode[$this->blog_width_mode_index]==='maxwidth'||$this->blog_width_mode[$this->blog_width_mode_index]==='compress_full_width'||$this->blog_width_mode[$this->blog_width_mode_index]==='compress_to_percentage'||$this->blog_width_mode[$this->blog_width_mode_index]==='off')?$this->blog_width_mode[$this->blog_width_mode_index]:'maxwidth'; 
@@ -2870,12 +2917,12 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
                }//$this->edit&&use_blog/col main width
          #mainanimation && !$this->rwd_post&&!$this->flex_box_item
 		$masonclass=($this->is_masonry)?' grid-item_'.$this->col_id:''; 
-		if (!$this->edit){//note these  values are also used below in nested column divisions 
-			list($anim_type,$anim_height,$anim_lock,$aef_class)=$this->preanimation(); 
-			$anim_class=($anim_type!=='none' && !$aef_class)?" $anim_type animated active-anim " :(($anim_type!=='none')?" $anim_type animated ":'');
-			$dataAnimHeight=($anim_type!=='none')?' data-hchange="'.$anim_height.'" ':'';
-			$dataAnimLock=($anim_type!=='none')?' data-hlock="'.$anim_lock.'" ':''; 
-			} 
+		//note these  values are also used below in nested column divisions 
+          list($anim_type,$anim_height,$anim_lock,$aef_class)=$this->preanimation(); 
+          $anim_class=($anim_type!=='none' && !$aef_class)?" $anim_type animated active-anim " :(($anim_type!=='none')?" $anim_type animated ":'');
+          $dataAnimHeight=($anim_type!=='none')?' data-hchange="'.$anim_height.'" ':'';
+          $dataAnimLock=($anim_type!=='none')?' data-hlock="'.$anim_lock.'" ':''; 
+          
 		if ($this->blog_type!=='nested_column'){
                $blog_custom_class=(!empty($this->blog_options[$this->blog_custom_class_index])&&!is_numeric($this->blog_options[$this->blog_custom_class_index]))?$this->blog_options[$this->blog_custom_class_index]:''; 
 			$style=($this->edit&&$this->current_total_width<50)?'style="width:50px;"':'';
@@ -2895,6 +2942,7 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 		 	if (!$this->edit)
 				print '<div id="'.$this->dataCss.'" '.$style.' class="'.$class.$anim_class.$classHeight.$masonclass.' '.$this->blog_type.$float_image.' webmode"'.$dataHeight.$dataMinheight.$dataAnimHeight.$dataAnimLock.' >';
 			else {
+                    $this->post_full_class=$class.$anim_class.$classHeight.$masonclass.' '.$this->blog_type.$float_image.' webmode';
 				$addclass=(empty($bw))?' bs'.$this->page_editborder.$this->column_lev_color.' ':((empty($bs))?' bshad'.$this->page_editborder.$this->column_lev_color.' ':'');
 		#fieldset  switched to class  //removed style="max-width:'.$this->current_total_width.'px;"
           
@@ -3071,19 +3119,18 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 			list($bw,$bh)=$this->border_calc($this->col_style); 
 			if (!empty($bw)) 
 				$bs=$this->calc_border_shadow($this->col_style);
-			if (!$this->edit){ 
-				 $col_masonry=($col_par_masonry)?' grid-item_'.$col_id:'';#we could go with col level arr setup but this works also..
-				$enablemasonclass='';
-	 #################
-			#Here we are checking raw col_option data as it hasn't been passed around yet to col_data.
-			
-				if ($this->col_options[$this->col_enable_masonry_index]==='masonry'){
-                         $enablemasonclass=' gridcol_'.$this->col_id; 
-					$this->load_masonry();//load files..
-					$masonryClass='gridcol_'.$this->col_id;
-					$mclass=".$masonryClass";
-					if (!$this->edit){// padleft,
-						echo <<<eol
+               $col_masonry=($col_par_masonry)?' grid-item_'.$col_id:'';#we could go with col level arr setup but this works also..
+               $enablemasonclass='';
+#################
+         #Here we are checking raw col_option data as it hasn't been passed around yet to col_data.
+         
+               if ($this->col_options[$this->col_enable_masonry_index]==='masonry'){
+                   $enablemasonclass=' gridcol_'.$this->col_id; 
+                   $this->load_masonry();//load files..
+                   $masonryClass='gridcol_'.$this->col_id;
+                   $mclass=".$masonryClass";
+                   if (!$this->edit){// padleft,
+                        echo <<<eol
 					
 <script>
 var resizeTimer1_$this->col_id='';
@@ -3116,8 +3163,12 @@ var mopts={
 </script>
 eol;
 						}//masonry but not edit\
-					}//end is masonry  
+					}//end is masonry 
+			if (!$this->edit){  
 				print '<div id="'.$this->col_dataCss.'" class="'.$class.$anim_class.$enablemasonclass.$col_masonry.' nested webmode" '.$dataAnimHeight.$dataAnimLock.'><!--Begin Nested Column id:'.$this->col_id.'-->';
+                    if (!empty($this->col_text)){
+                        echo $this->col_text.'<!--custom column text-->';
+                        } 
 				}
 			else  {//edit mode and nested colmn
 				$addclass=(empty($bw))?' bdot'.$this->page_editborder.$this->color_arr_long[$this->column_level+1].' ':((empty($bs))?' bshad'.$this->page_editborder.$this->column_lev_color.' ':'');
@@ -3125,6 +3176,7 @@ eol;
 			#fieldset  switched to class     add addclass for edit border...
 				echo '<div id="'.$this->col_dataCss.'" '.$stylemore.' class="'.$class.$addclass.' nested column edit" ><!--Begin edit Nested Column id'.$this->col_id.'-->';
                     #flexstay
+                    $this->col_full_class=$class.$anim_class.$enablemasonclass.$col_masonry.' nested webmode';
                     if ($this->edit&&$this->flex_box_container)echo '<div class="flexstay"><!--wrap controls flexbox-->';
                     echo'<p class="lineh90  shadowoff '.($this->color_arr_long[$this->column_level+1]).' editbackground editfontcol fs1'.$this->color_arr_long[$this->column_level+1].' p10">Nested Column</p>';
 				printer::pclear();echo '<!--clear nested col info-->';  
@@ -4024,12 +4076,12 @@ function call_body(){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
      if(!isset($_POST['submit']))return;
      if (!empty($dbname)) 
           $this->mysqlinst->dbconnect($dbname);
-      else return;//return if not backup restore or viewing external theme db
+      //else return;//cancel out for updating fields or will return if not backup restore or viewing external theme db
      $this->express[]=printer::alert_neu('Database fields being updated mode',1,1); 
      $q="UPDATE master_col_data SET col_table = REPLACE(col_table, '_post_', '_col_') WHERE col_table LIKE '%_post_%'";
      $r = $this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
-     $columns_array=array('col_id'=>'key','col_table_base'=>'tinytext','col_table'=>'tinytext','col_num'=>'tinyint(4)','col_primary'=>'tinyint(1)','col_options'=>'text','col_clone_target'=>'tinytext','col_status'=>'tinytext','col_gridspace_right'=>'tinytext','col_gridspace_left'=>'tinytext','col_flex_box'=>'tinytext','col_grid_width'=>'tinytext','col_grid_clone'=>'tinytext','col_style'=>'text','col_style2'=>'tinytext','col_temp'=>'tinytext','col_grp_bor_style'=>'text','col_comment_style'=>'text','col_date_style'=>'text','col_comment_date_style'=>'text','col_comment_view_style'=>'text','col_clone_target_base'=>'tinytext','col_hr'=>'tinytext','col_update'=>'tinytext','col_width'=>'tinytext','col_tcol_num'=>'decimal(5,1)','token'=>'tinytext','col_time'=>'tinytext');
-     $master_col_css_array=array('css_id'=>'smallint(5) unsigned','col_id'=>'tinytext','col_table_base'=>'tinytext','col_table'=>'tinytext','col_num'=>'tinyint(4)','col_primary'=>'tinyint(1)','col_options'=>'tinytext','col_clone_target'=>'tinytext','col_status'=>'tinytext','col_gridspace_right'=>'tinytext','col_gridspace_left'=>'tinytext','col_grid_width'=>'tinytext','col_grid_clone'=>'tinytext','col_flex_box'=>'tinytext','col_style'=>'text','col_style2'=>'tinytext','col_temp'=>'tinytext','col_grp_bor_style'=>'text','col_comment_style'=>'text','col_date_style'=>'text','col_comment_date_style'=>'text','col_comment_view_style'=>'text','col_clone_target_base'=>'tinytext','col_hr'=>'tinytext','col_update'=>'tinytext','col_width'=>'tinytext','col_tcol_num'=>'decimal(5,1)','token'=>'tinytext','col_time'=>'tinytext');
+     $columns_array=array('col_id'=>'key','col_table_base'=>'tinytext','col_table'=>'tinytext','col_num'=>'tinyint(4)','col_primary'=>'tinyint(1)','col_options'=>'text','col_clone_target'=>'tinytext','col_status'=>'tinytext','col_gridspace_right'=>'tinytext','col_gridspace_left'=>'tinytext','col_flex_box'=>'tinytext','col_grid_width'=>'tinytext','col_grid_clone'=>'tinytext','col_style'=>'text','col_style2'=>'tinytext','col_temp'=>'tinytext','col_grp_bor_style'=>'text','col_comment_style'=>'text','col_date_style'=>'text','col_comment_date_style'=>'text','col_comment_view_style'=>'text','col_clone_target_base'=>'tinytext','col_hr'=>'tinytext','col_update'=>'tinytext','col_width'=>'tinytext','col_tcol_num'=>'decimal(5,1)','token'=>'tinytext','col_time'=>'tinytext','col_text'=>'text');
+     $master_col_css_array=array('css_id'=>'smallint(5) unsigned','col_id'=>'tinytext','col_table_base'=>'tinytext','col_table'=>'tinytext','col_num'=>'tinyint(4)','col_primary'=>'tinyint(1)','col_options'=>'tinytext','col_clone_target'=>'tinytext','col_status'=>'tinytext','col_gridspace_right'=>'tinytext','col_gridspace_left'=>'tinytext','col_grid_width'=>'tinytext','col_grid_clone'=>'tinytext','col_flex_box'=>'tinytext','col_style'=>'text','col_style2'=>'tinytext','col_temp'=>'tinytext','col_grp_bor_style'=>'text','col_comment_style'=>'text','col_date_style'=>'text','col_comment_date_style'=>'text','col_comment_view_style'=>'text','col_clone_target_base'=>'tinytext','col_hr'=>'tinytext','col_update'=>'tinytext','col_width'=>'tinytext','col_tcol_num'=>'decimal(5,1)','token'=>'tinytext','col_time'=>'tinytext','col_text'=>'text');
 
      $master_page_array=array('page_id'=>'key','page_ref'=>'tinytext','page_title'=>'tinytext','page_filename'=>'tinytext','page_width'=>'smallint(6)','page_pic_quality'=>'tinyint(4)','page_style'=>'text','page_custom_css'=>'tinytext','page_head'=>'text','keywords'=>'tinytext','metadescription'=>'tinytext','page_data1'=>'text','page_data2'=>'text','page_update'=>'tinytext','page_data3'=>'text','page_data4'=>'text','page_data5'=>'text','page_data6'=>'text','page_data7'=>'text','page_data8'=>'text','page_data9'=>'text','page_data10'=>'text','use_tags'=>'tinyint(4)','page_options'=>'text','page_break_points'=>'tinytext','page_cache'=>'tinytext','page_dark_editor_value'=>'text','page_light_editor_value'=>'text','page_dark_editor_order'=>'text','page_light_editor_order'=>'text','page_comment_style'=>'text','page_date_style'=>'text','page_comment_date_style'=>'text','page_comment_view_style'=>'text','page_style_day'=>'text','page_style_month'=>'text','page_grp_bor_style'=>'text','page_hr'=>'tinytext','page_h1'=>'text','page_h2'=>'text','page_h3'=>'text','page_h4'=>'text','page_h5'=>'text','page_h6'=>'text','page_myclass1'=>'text','page_myclass2'=>'text','page_myclass3'=>'tinytext','page_myclass4'=>'text','page_myclass5'=>'text','page_myclass6'=>'text','page_myclass7'=>'text','page_myclass8'=>'text','page_myclass9'=>'text','page_myclass10'=>'text','page_myclass11'=>'text','page_myclass12'=>'text','page_tiny_data1'=>'tinytext','page_tiny_data2'=>'tinytext','page_tiny_data3'=>'tinytext','page_tiny_data4'=>'tinytext','page_tiny_data5'=>'tinytext','page_tiny_data6'=>'tinytext','page_tiny_data7'=>'tinytext','page_tiny_data8'=>'tinytext','page_tiny_data9'=>'tinytext','page_tiny_data10'=>'tinytext','page_clipboard'=>'text','page_link'=>'text','page_link_hover'=>'text','page_time'=>'tinytext','token'=>'tinytext');
      $master_post_array=array('blog_id'=>'key','blog_col'=>'mediumint(11) unsigned','blog_order'=>'smallint(5) unsigned','blog_type'=>'tinytext','blog_table'=>'tinytext','blog_gridspace_right'=>'tinytext','blog_gridspace_left'=>'tinytext','blog_grid_width'=>'tinytext','blog_flex_box'=>'tinytext','blog_data1'=>'text','blog_data2'=>'text','blog_data3'=>'text','blog_data4'=>'text','blog_data5'=>'text','blog_data6'=>'text','blog_data7'=>'text','blog_data8'=>'text','blog_data9'=>'text','blog_data10'=>'text','blog_data11'=>'text','blog_data12'=>'text','blog_data13'=>'text','blog_data14'=>'text','blog_data15'=>'text','blog_tiny_data1'=>'tinytext','blog_tiny_data2'=>'tinytext','blog_tiny_data3'=>'tinytext','blog_tiny_data4'=>'tinytext','blog_tiny_data5'=>'tinytext','blog_tiny_data6'=>'tinytext','blog_tiny_data7'=>'tinytext','blog_tiny_data8'=>'tinytext','blog_tiny_data9'=>'tinytext','blog_tiny_data10'=>'tinytext','blog_tiny_data11'=>'tinytext','blog_tiny_data12'=>'tinytext','blog_tiny_data13'=>'tinytext','blog_tiny_data14'=>'tinytext','blog_tiny_data15'=>'tinytext','blog_grid_clone'=>'tinytext','blog_style'=>'text','blog_style2'=>'tinytext','blog_table_base'=>'tinytext','blog_text'=>'text','blog_border_start'=>'tinytext','blog_border_stop'=>'tinytext','blog_global_style'=>'tinytext','blog_date'=>'tinytext','blog_width'=>'tinytext','blog_width_mode'=>'tinytext','blog_status'=>'tinytext','blog_unstatus'=>'tinytext','blog_clone_target'=>'tinytext','blog_target_table_base'=>'tinytext','blog_clone_table'=>'tinytext','blog_float'=>'tinytext','blog_unclone'=>'tinytext','blog_tag'=>'tinytext','blog_options'=>'text','blog_update'=>'tinytext','blog_pub'=>'tinyint(4)','blog_temp'=>'mediumint(5) unsigned','blog_time'=>'tinytext','token'=>'tinytext');
@@ -5109,6 +5161,59 @@ width: 100%;
 height: 100%;
 }
 body{text-align:center;}
+displayOn {
+  visibility: visible;
+  opacity: 1;
+  z-index:initial;
+  position:initial;
+}
+.visibleOff {
+  opacity: 0;
+  visibility: hidden;
+}
+.visibleOn {
+  visibility: visible;
+  opacity: 1;
+}
+.displayOff {
+  position: absolute;
+  opacity: 0;
+  visibility: hidden;
+  z-index:-1000000;
+}
+.displayTransitionOff {
+  position: absolute;
+  opacity: 0;
+  visibility: hidden;
+  -webkit-transition: opacity 600ms, visibility 600ms;
+  transition: opacity 600ms, visibility 600ms;
+  z-index:-1000000;
+}
+
+.displayTransitionOn {
+  visibility: visible;
+  -webkit-transition: opacity 600ms, visibility 600ms;
+  transition: opacity 600ms, visibility 600ms;
+  opacity: 1;
+  z-index:initial;
+  position:initial;
+  top:initial;
+  left:initial;
+  right:initial;
+  bottom:initial;
+}
+.visibleTransitionOff {
+  opacity: 0;
+  visibility: hidden;
+  -webkit-transition: opacity 600ms, visibility 600ms;
+  transition: opacity 600ms, visibility 600ms;
+}
+.visibleTransitionOn {
+  visibility: visible;
+  -webkit-transition: opacity 600ms, visibility 600ms;
+  transition: opacity 600ms, visibility 600ms;
+  opacity: 1;
+}
     ';
     }
  
