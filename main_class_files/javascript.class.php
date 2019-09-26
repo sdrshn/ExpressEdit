@@ -114,7 +114,8 @@ function onload(){
              }
           var resizeTimer='';
           window.USER_IS_TOUCHING=false; 
-          gen_Proc.scrollAnimate(); 
+          gen_Proc.scrollAnimate();
+          gen_Proc.scrollFadeInOut();
           window.addEventListener('touchstart', function onFirstTouch() {//detect touch devices..David Gilbertson  
                window.USER_IS_TOUCHING = true;   
                window.removeEventListener('touchstart', onFirstTouch, false);
@@ -275,11 +276,37 @@ var gen_Proc = {
 		\$window.on('scroll resize', gen_Proc.check_if_in_view); 
 		\$window.trigger('scroll');
 		},
+     scrollFadeInOut :  function(){// 
+		\$scroll_elements = \$('.scrollFade');
+		var \$window = \$(window);
+		\$window.on('scroll resize', gen_Proc.check_fade_view); 
+		\$window.trigger('scroll');
+		},
+     check_fade_view   : function () {
+          var window_height = \$(window).height();
+		var window_top_position = \$(window).scrollTop();
+		var window_bottom_position = (window_top_position + window_height);
+		\$.each(\$scroll_elements, function(i) {
+			var elem = \$(this)
+			var hattr=elem.attr('data-scrollchange');
+               var attrArr=hattr.split('@');
+               var hchange=parseInt(attrArr[0]);
+               var helem=document.getElementById(attrArr[1]);
+               var element_height = elem.outerHeight(true); 
+               var element_top_position = helem.offset().top;
+               var element_bottom_position = (element_top_position + element_height);
+               var height_change = (hchange * element_height/100); 
+               if ((element_bottom_position  >= window_top_position ) &&
+                    (element_top_position +height_change <= window_bottom_position)) {
+                    elem.addClass('in-view'); 
+                    elem.removeClass('animated');
+                    }
+               });
+          },
 	check_if_in_view  :	function () {// modified  from: George Martsoukos  www.sitepoint.com  
 		var window_height = \$(window).height();
 		var window_top_position = \$(window).scrollTop();
 		var window_bottom_position = (window_top_position + window_height);
-		
 		\$.each(\$animation_elements, function(i) {
 			var elem = \$(this)
 			var hchange=elem.attr('data-hchange');
@@ -289,7 +316,6 @@ var gen_Proc = {
 				elem.removeClass('animated');
                     }
                else {
-                    
                     var hchange=parseInt(hchange);
                     var hlock = (parseFloat(elem.attr('data-hlock'))>0)?parseFloat(elem.attr('data-hlock')):0;
                     if (hlock===0&&!elem.hasClass("animated"))return true;

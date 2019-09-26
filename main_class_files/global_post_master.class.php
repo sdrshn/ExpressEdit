@@ -199,7 +199,7 @@ function build_pic($data,$picdir='',$style_ref='blog_style',$styles_open=true,$b
         else {
           $msg="Missing Image in Post: $picname";
           printer::alert_neg($msg);
-          mail::alert($msg);
+          mail::alert_min($msg);
           }
         
 			}//! $image_noresize
@@ -238,7 +238,7 @@ function build_pic($data,$picdir='',$style_ref='blog_style',$styles_open=true,$b
    elseif (!$image_noresize&&!is_file($fullpicdir.$picname)&&is_file(Cfg_loc::Root_dir.Cfg::Upload_dir.$picname)){#create image even if not in edit mode
 		$quality=(!empty($img_opt_arr[$image_quality_index])&&$img_opt_arr[$image_quality_index]>9&&$img_opt_arr[$image_quality_index]<101)?$img_opt_arr[$image_quality_index]:((!empty($this->page_options[$this->page_image_quality_index])&&$this->page_options[$this->page_image_quality_index]<101&&$this->page_options[$this->page_image_quality_index]>9)?$this->page_options[$this->page_image_quality_index]:Cfg::Pic_quality);
 		image::image_resize($picname,$image_width,0,0,Cfg_loc::Root_dir.Cfg::Upload_dir, $fullpicdir,'file',NULL,$quality);
-		(Cfg::Development)&&mail::alert("creating image resize for $picname edit mode is $this->edit");
+		(Cfg::Development)&&mail::alert_min("creating image resize for $picname edit mode is $this->edit");
 		}
 	elseif (!is_file($fullpicdir.$picname)&&is_file(Cfg_loc::Root_dir.Cfg::Upload_dir.$picname)){
 		copy(Cfg_loc::Root_dir.Cfg::Upload_dir.$picname,$fullpicdir.$picname);
@@ -249,11 +249,10 @@ function build_pic($data,$picdir='',$style_ref='blog_style',$styles_open=true,$b
      }
      else {   
         $msg='Missing main master Image File uploads/'.$picname;
-        mail::alert($msg.' on line'.__LINE__,__METHOD__);
+        mail::alert_min($msg.' on line'.__LINE__,__METHOD__);
         printer::alert_neg($msg);
         ($this->edit)&&printer::alert_neg('Your Previous Image Does not Exist. Upload a New Image &nbsp;<a href="add_page_pic.php?orig_id='.$this->orig_val['blog_id'].'&amp;clone_local_data='.$this->clone_local_data.'&amp;blog_image_noexpand='.$image_expand.'&amp;wwwexpand='.$maxplus.'&amp;image_noresize='.$image_noresize.'&amp;expandfield=blog_tiny_data2&amp;prevpic=0&amp;www='.$maxwidth.'&amp;ttt='.$this->blog_table.'&amp;fff=blog_data1&amp;quality='.$quality.'&amp;id='. $this->blog_id.'&amp;id_ref=blog_id&amp;pgtbn='.$this->pagename.'&amp;postreturn='.Sys::Self.'&amp;css='.$this->roots.Cfg::Style_dir.$this->pagename. '&amp;sess_override&amp;sess_token='.$this->sess->sess_token.'"><u>Here</u></a>');
         printer::pclear(5);
-        return;
         }
 		}//picname not exists
 	switch ($this->blog_type){
@@ -2642,7 +2641,7 @@ function auto_slide($data,$type){
           else {
              $msg="Missing Auto Slide Image: $picname";
              printer::alert_neg($msg);
-             mail::alert($msg);
+             mail::alert_min($msg);
              }
 				}//foreach picname
 			 printer::close_print_wrap('Quality info wrap');	
@@ -2665,7 +2664,7 @@ function auto_slide($data,$type){
           $msg='The following slide images were found missing in autoslide and can be regenerated in editmode automatically by going to this page '. Sys::Self.'. If problem persists set Cfg::Conserve_image_cachespace to false in Cfg_master.class.php or if set in Cfg.class.php set to false there
           ';
           $msg.=implode("/n",$arr);
-          mail::alert($msg);
+          mail::alert_min($msg);
           }
 			}//! edit
 		if (!is_file($picdir.$image_width_dir.$pic_init)){// 
@@ -2677,12 +2676,12 @@ function auto_slide($data,$type){
 		  else {
 			  if(!is_file(Cfg_loc::Root_dir.Cfg::Upload_dir.$pic_init)){
 					$msg='Missing main master Image File uploads/'.$pic_init;
-					mail::alert($msg);
+					mail::alert_min($msg);
 					return;
 					}
           else {
 					image::image_resize($pic_init,$image_size,0,0,Cfg_loc::Root_dir.Cfg::Upload_dir, $picdir.$image_width_dir,'file',NULL,$quality);//happens on non editpages...
-					mail::alert('non edit auto_slide resize for '.$picdir.$image_width_dir);
+					mail::alert_min('non edit auto_slide resize for '.$picdir.$image_width_dir);
 					}
 			  $fullpicdir=$picdir.$image_width_dir;
 			  }
@@ -2883,7 +2882,7 @@ function auto_slide($data,$type){
           $position='fixed';
           break;
         default :
-          mail::alert('auto slide show type not specified');
+          mail::alert_min('auto slide show type not specified');
         }
      $background_graphic=(false)?'background: transparent url(../graphics/slidepattern.png) repeat;':''; 
      $this->css.= '
@@ -3482,7 +3481,7 @@ function contact_mail_process($data,$contact_arr){
         $sendvar='sent to for each: ';
 			if(empty($this->blog_data2)){
 				$msg='CONFIGURE YOUR CONTACT INFO ON EDITPAGE ADD EMAIL ADDRESSES';
-				mail::alert($msg);
+				mail::alert_min($msg);
 				exit($msg);
 				} 
 			$newtomail=explode(',',$this->blog_data2);
@@ -4285,7 +4284,7 @@ eol;
      $this->show_close('Absolute or Relative Positioning of menu icon');
      printer::close_print_wrap('outer absolute relative menu icon');
      printer::print_wrap('responsivmenustyle');
-     $style_list='width_special,width_max_special,width_min_special,background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,font_family,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform';
+     $style_list='width_special,width_max_special,width_min_special,background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,font_family,font_size,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform';
      $this->show_more('Style individual Links @ icon width');
      printer::print_wrap('Style individual Links');
      printer::print_tip('@ menu icon widths you can style either/both the LI A and the parent LI element which affects individual links.');
@@ -4589,7 +4588,7 @@ eol;
 @media screen and (max-width:'.$respond_menu_dimension.'px) {
  .'.$this->dataCss.' .nav_gen{display:block;}
  .'.$this->dataCss.' {padding:0px}
-.nav_gen ul.top-level {
+.'.$this->dataCss.' ul.top-level {
 max-height:0; 
 overflow:hidden;
 -webkit-transition: max-height 1s ease-in;
@@ -4599,10 +4598,10 @@ overflow:hidden;
 	}
    
  
-.nav_gen ul.top-level.transitionEase li:NOT("show_icon"){
+.'.$this->dataCss.' ul.top-level.transitionEase li:NOT("show_icon"){
      opacity:0;'.$icon_vertical_choice.'
 }
-.nav_gen ul.top-level.transitionEase {
+.'.$this->dataCss.' ul.top-level.transitionEase {
  max-height:0;
  overflow:hidden;
  -webkit-transition: opacity .1s ease;

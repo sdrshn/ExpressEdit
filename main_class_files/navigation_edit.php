@@ -147,8 +147,10 @@ function menu_add_item($dir_menu_id,$dir_menu_order,$dir_sub_menu_order,$sub,$ti
      printer::close_print_wrap('other opts');
 	echo '</div><!--close show_more Other Options-->';  
 	 echo '</div><!--close show_more Add Link-->';
+     submit();
      printer::close_print_wrap('add menu link');
 	printer::pclear();
+     submit();
 	}
 	
 function sort_box($dir_menu_id,$menutype,$mo){
@@ -187,7 +189,7 @@ function show_more($msg_open,$msg_close='close',$class='',$title='',$border=fals
     } 
      
 function submit(){
-    echo '<p><input class="rad5 editbackground editcolor fs3pos" type="submit" name="submit" value="CHANGE" ></p>';
+    echo '<p><input class="rad5 editbackground editcolor fs1pos" type="submit" name="submit" value="SUBMIT CHANGES" ></p>';
     }
     
 $mysqlinst=mysql::instance();
@@ -354,7 +356,8 @@ while (list($dir_menu_order,$dir_sub_menu_order,$dir_title,$dir_ref)=$mysqlinst-
      printer::pclear();
 
 printer::close_print_wrap('goto wrap');
-echo '</div><!--show close choose goto menu-->';   
+echo '</div><!--show close choose goto menu-->'; 
+submit();  
 $q2="select distinct dir_menu_id from $directory_table where dir_menu_id !='$dir_menu_id'";
 $r2=$mysqlinst->query($q2,__METHOD__,__LINE__,__FILE__,false);
 if ($mysqlinst->affected_rows()){

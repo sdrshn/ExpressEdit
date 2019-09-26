@@ -300,6 +300,13 @@ function __construct($edit=false,  $return=false){
 			  //print NL.  $index." = $key"; 
 			}
 		}
+	$indexes=explode(',',Cfg::Display_options );
+	foreach($indexes as $key =>$index){
+		if (!empty($index)) {
+			$this->{$index.'_index'}=$key;
+			  //print NL.  $index." = $key"; 
+			}
+		}
 	$indexes=explode(',',Cfg::Position_options );
 	foreach($indexes as $key =>$index){
 		if (!empty($index)) {
@@ -3694,23 +3701,294 @@ eol;
 }
 #tinymce	
 function tinymce(){  
-//function tinymce_4_4_dev 
-           
+//function tinymce_4_4_dev      
 	$style=Cfg_loc::Root_dir.'styling/'.$this->pagename.'.css';
 	$script=Cfg_loc::Root_dir.'scripts/tinymce/js/tinymce/tinymce.dev.js';
 	$return='/\r?\n/g';
-	
 	echo <<<eol
 
 <script  src="$script"></script>
   <script >
 	 <!--Tiny MCE: by Ephox-->
+      <!--Color Pallete by Boot Strap: -->
   tinymce.init({
-	setup: function (editor) {
+    setup: function (editor) {
 		editor.on('BeforeSetContent', function (contentEvent) {
 		contentEvent.content = contentEvent.content.replace($return, '<br>'); 
 		})   
 		},
+     textToggle : 0,
+      textcolor_map: [
+    "ffebee", "red lighten-5",
+"ffcdd2", "red lighten-4",
+"ef9a9a", "red lighten-3",
+"e57373", "red lighten-2",
+"ef5350", "red lighten-1",
+"f44336", "red",
+"e53935", "red darken-1",
+"d32f2f", "red darken-2",
+"c62828", "red darken-3",
+"b71c1c", "red darken-4",
+"ff8a80", "red accent-1",
+"ff5252", "red accent-2",
+"ff1744", "red accent-3",
+"d50000", "red accent-4",
+"fce4ec", "pink lighten-5",
+"f8bbd0", "pink lighten-4",
+"f48fb1", "pink lighten-3",
+"f06292", "pink lighten-2",
+"ec407a", "pink lighten-1",
+"e91e63", "pink",
+"d81b60", "pink darken-1",
+"c2185b", "pink darken-2",
+"ad1457", "pink darken-3",
+"880e4f", "pink darken-4",
+"ff80ab", "pink accent-1",
+"ff4081", "pink accent-2",
+"f50057", "pink accent-3",
+"c51162", "pink accent-4",
+"f3e5f5", "purple lighten-5",
+"e1bee7", "purple lighten-4",
+"ce93d8", "purple lighten-3",
+"ba68c8", "purple lighten-2",
+"ab47bc", "purple lighten-1",
+"9c27b0", "purple",
+"8e24aa", "purple darken-1",
+"7b1fa2", "purple darken-2",
+"6a1b9a", "purple darken-3",
+"4a148c", "purple darken-4",
+"ea80fc", "purple accent-5",
+"e040fb", "purple accent-5",
+"d500f9", "purple accent-5",
+"aa00ff", "purple accent-4",
+"ede7f6", "deep-purple lighten-5",
+"d1c4e9", "deep-purple lighten-4",
+"b39ddb", "deep-purple lighten-3",
+"9575cd", "deep-purple lighten-2",
+"7e57c2", "deep-purple lighten-1",
+"673ab7", "deep-purple",
+"5e35b1", "deep-purple darken-1",
+"512da8", "deep-purple darken-2",
+"4527a0", "deep-purple darken-3",
+"311b92", "deep-purple darken-4",
+"b388ff", "deep-purple accent-1",
+"7c4dff", "deep-purple accent-2",
+"651fff", "deep-purple accent-3",
+"6200ea", "deep-purple accent-4",
+"e8eaf6", "indigo lighten-5",
+"c5cae9", "indigo lighten-4",
+"9fa8da", "indigo lighten-3",
+"7986cb", "indigo lighten-2",
+"5c6bc0", "indigo lighten-1",
+"3f51b5", "indigo",
+"3949ab", "indigo darken-1",
+"303f9f", "indigo darken-2",
+"283593", "indigo darken-3",
+"1a237e", "indigo darken-4",
+"8c9eff", "indigo accent-1",
+"536dfe", "indigo accent-2",
+"3d5afe", "indigo accent-3",
+"304ffe", "indigo accent-4",
+"e3f2fd", "blue lighten-5",
+"bbdefb", "blue lighten-4",
+"90caf9", "blue lighten-3",
+"64b5f6", "blue lighten-2",
+"42a5f5", "blue lighten-1",
+"2196f3", "blue",
+"1e88e5", "blue darken-1",
+"1976d2", "blue darken-2",
+"1565c0", "blue darken-3",
+"0d47a1", "blue darken-4",
+"82b1ff", "blue accent-1",
+"448aff", "blue accent-2",
+"2979ff", "blue accent-3",
+"2962ff", "blue accent-4",
+"e1f5fe", "light-blue lighten-5",
+"b3e5fc", "light-blue lighten-4",
+"81d4fa", "light-blue lighten-3",
+"4fc3f7", "light-blue lighten-2",
+"29b6f6", "light-blue lighten-1",
+"03a9f4", "light-blue",
+"039be5", "light-blue darken-1",
+"0288d1", "light-blue darken-2",
+"0277bd", "light-blue darken-3",
+"01579b", "light-blue darken-4",
+"80d8ff", "light-blue accent-1",
+"40c4ff", "light-blue accent-2",
+"00b0ff", "light-blue accent-3",
+"0091ea", "light-blue accent-4",
+"e0f7fa", "cyan lighten-5",
+"b2ebf2", "cyan lighten-4",
+"80deea", "cyan lighten-3",
+"4dd0e1", "cyan lighten-2",
+"26c6da", "cyan lighten-1",
+"00bcd4", "cyan",
+"00acc1", "cyan darken-1",
+"0097a7", "cyan darken-2",
+"00838f", "cyan darken-3",
+"006064", "cyan darken-4",
+"84ffff", "cyan accent-1",
+"18ffff", "cyan accent-2",
+"00e5ff", "cyan accent-3",
+"00b8d4", "cyan accent-4",
+"e0f2f1", "teal lighten-5",
+"b2dfdb", "teal lighten-4",
+"80cbc4", "teal lighten-3",
+"4db6ac", "teal lighten-2",
+"26a69a", "teal lighten-1",
+"009688", "teal",
+"00897b", "teal darken-1",
+"00796b", "teal darken-2",
+"00695c", "teal darken-3",
+"004d40", "teal darken-4",
+"a7ffeb", "teal accent-1",
+"64ffda", "teal accent-2",
+"1de9b6", "teal accent-3",
+"00bfa5", "teal accent-4",
+"e8f5e9", "green lighten-5",
+"c8e6c9", "green lighten-4",
+"a5d6a7", "green lighten-3",
+"81c784", "green lighten-2",
+"66bb6a", "green lighten-1",
+"4caf50", "green",
+"43a047", "green darken-1",
+"388e3c", "green darken-2",
+"2e7d32", "green darken-3",
+"1b5e20", "green darken-4",
+"b9f6ca", "green accent-1",
+"69f0ae", "green accent-2",
+"00e676", "green accent-3",
+"00c853", "green accent-4",
+"f1f8e9", "light-green lighten-5",
+"dcedc8", "light-green lighten-4",
+"c5e1a5", "light-green lighten-3",
+"aed581", "light-green lighten-2",
+"9ccc65", "light-green lighten-1",
+"8bc34a", "light-green",
+"7cb342", "light-green darken-1",
+"689f38", "light-green darken-2",
+"558b2f", "light-green darken-3",
+"33691e", "light-green darken-4",
+"ccff90", "light-green accent-1",
+"b2ff59", "light-green accent-2",
+"76ff03", "light-green accent-3",
+"64dd17", "light-green accent-4",
+"f9fbe7", "lime lighten-5",
+"f0f4c3", "lime lighten-4",
+"e6ee9c", "lime lighten-3",
+"dce775", "lime lighten-2",
+"d4e157", "lime lighten-1",
+"cddc39", "lime",
+"c0ca33", "lime darken-1",
+"afb42b", "lime darken-2",
+"9e9d24", "lime darken-3",
+"827717", "lime darken-4",
+"f4ff81", "lime accent-1",
+"eeff41", "lime accent-2",
+"c6ff00", "lime accent-3",
+"aeea00", "lime accent-4",
+"fffde7", "yellow lighten-5",
+"fff9c4", "yellow lighten-4",
+"fff59d", "yellow lighten-3",
+"fff176", "yellow lighten-2",
+"ffee58", "yellow lighten-1",
+"ffeb3b", "yellow",
+"fdd835", "yellow darken-1",
+"fbc02d", "yellow darken-2",
+"f9a825", "yellow darken-3",
+"f57f17", "yellow darken-4",
+"ffff8d", "yellow accent-1",
+"ffff00", "yellow accent-2",
+"ffea00", "yellow accent-3",
+"ffd600", "yellow accent-4",
+"fff8e1", "amber lighten-5",
+"ffecb3", "amber lighten-4",
+"ffe082", "amber lighten-3",
+"ffd54f", "amber lighten-2",
+"ffca28", "amber lighten-1",
+"ffc107", "amber",
+"ffb300", "amber darken-1",
+"ffa000", "amber darken-2",
+"ff8f00", "amber darken-3",
+"ff6f00", "amber darken-4",
+"ffe57f", "amber accent-1",
+"ffd740", "amber accent-2",
+"ffc400", "amber accent-3",
+"ffab00", "amber accent-4",
+"fff3e0", "orange lighten-5",
+"ffe0b2", "orange lighten-4",
+"ffcc80", "orange lighten-3",
+"ffb74d", "orange lighten-2",
+"ffa726", "orange lighten-1",
+"ff9800", "orange",
+"fb8c00", "orange darken-1",
+"f57c00", "orange darken-2",
+"ef6c00", "orange darken-3",
+"e65100", "orange darken-4",
+"ffd180", "orange accent-1",
+"ffab40", "orange accent-2",
+"ff9100", "orange accent-3",
+"ff6d00", "orange accent-4",
+"fbe9e7", "deep-orange lighten-5",
+"ffccbc", "deep-orange lighten-4",
+"ffab91", "deep-orange lighten-3",
+"ff8a65", "deep-orange lighten-2",
+"ff7043", "deep-orange lighten-1",
+"ff5722", "deep-orange",
+"f4511e", "deep-orange darken-1",
+"e64a19", "deep-orange darken-2",
+"d84315", "deep-orange darken-3",
+"bf360c", "deep-orange darken-4",
+"ff9e80", "deep-orange darken-1",
+"ff6e40", "deep-orange darken-2",
+"ff3d00", "deep-orange darken-3",
+"dd2c00", "deep-orange darken-4",
+"efebe9", "brown lighten-5",
+"d7ccc8", "brown lighten-4",
+"bcaaa4", "brown lighten-3",
+"a1887f", "brown lighten-2",
+"8d6e63", "brown lighten-1",
+"795548", "brown",
+"6d4c41", "brown darken-1",
+"5d4037", "brown darken-2",
+"4e342e", "brown darken-3",
+"3e2723", "brown darken-4",
+"fafafa", "grey lighten-5",
+"f5f5f5", "grey lighten-4",
+"eeeeee", "grey lighten-3",
+"e0e0e0", "grey lighten-2",
+"bdbdbd", "grey lighten-1",
+"9e9e9e", "grey",
+"757575", "grey darken-1",
+"616161", "grey darken-2",
+"424242", "grey darken-3",
+"212121", "grey darken-4",
+"eceff1", "blue-grey lighten-5",
+"cfd8dc", "blue-grey lighten-4",
+"b0bec5", "blue-grey lighten-3",
+"90a4ae", "blue-grey lighten-2",
+"78909c", "blue-grey lighten-1",
+"607d8b", "blue-grey",
+"546e7a", "blue-grey darken-1",
+"455a64", "blue-grey darken-2",
+"37474f", "blue-grey darken-3",
+"263238", "blue-grey darken-4",
+"000000", "black",
+"ffffff", "white",
+"d0d6e2", "mdb-color lighten-5",
+"b1bace", "mdb-color lighten-4",
+"929fba", "mdb-color lighten-3",
+"7283a7", "mdb-color lighten-2",
+"59698d", "mdb-color lighten-1",
+"45526e", "mdb-color",
+"3b465e", "mdb-color darken-1",
+"2e3951", "mdb-color darken-2",
+"1c2a48", "mdb-color darken-3",
+"1c2331", "mdb-color darken-4"
+  ],
+     textcolor_rows:"15",
+     textcolor_cols:"17",
+     font_formats: 'Allura = Allura;Amaranth = Amaranth;Antic = Antic;Architects Daughter = Architects Daughter;Arial, Helvetica, sans-serif = Arial, Helvetica, sans-serif; Arial Black, Gadget, sans-serif = Arial Black, Gadget, sans-serif;Aubrey = Aubrey;Bad Script = Bad Script;Basic = Basic;Cabin = Cabin;Cedarville Cursive = Cedarville Cursive;Chancur = Chancur;Chivo = Chivo;Cinzel Decorative = Cinzel Decorative;Comfortaa = Comfortaa; Comic Sans MS, Comic Sans MS5, cursive = Comic Sans MS, Comic Sans MS5, cursive; Constantia, cambria, sans-serif = Constantia, cambria, sans-serif;Contrail One = Contrail One; Courier New, monospace = Courier New, monospace;Delius = Delius;Delius Swash Caps = Delius Swash Caps;Diplomata SC = Diplomata SC;Eagle Lake = Eagle Lake;Fely = Fely; Georgia1, Georgia, serif = Georgia1, Georgia, serif;Give You Glory = Give You Glory;GothicA1 = GothicA1;Handlee = Handlee;Happy Monkey = Happy Monkey; Helvetica, sans-serif = Helvetica, sans-serif;Hind = Hind; Impact, Impact5, Charcoal6, sans-serif = Impact, Impact5, Charcoal6, sans-serif;Indie Flower = Indie Flower;Josefin Slab = Josefin Slab;Julee = Julee;Kite One = Kite One; Lucida Console, Monaco5, monospace = Lucida Console, Monaco5, monospace; Lucida Sans Unicode, Lucida Grande, sans-serif = Lucida Sans Unicode, Lucida Grande, sans-serif;Macondo Swash Caps = Macondo Swash Caps;MeathFLF = MeathFLF;Merienda = Merienda;Miama = Miama;Michroma = Michroma;Nothing You Could Do = Nothing You Could Do;Nova Slim = Nova Slim;Numans = Numans;Over the Rainbow = Over the Rainbow;Oxygen = Oxygen; Palatino Linotype, Book Antiqua3, Palatino, serif = Palatino Linotype, Book Antiqua3, Palatino, serif;Paprika = Paprika;Questrial = Questrial;Redressed,cursive = Redressed,cursive;Ruluko = Ruluko;Shadows Into Light = Shadows Into Light;Shadows Into Light Two = Shadows Into Light Two;Sintony = Sintony;Sofia = Sofia; Tahoma, Geneva, sans-serif = Tahoma, Geneva, sans-serif;Text Me One = Text Me One; Times New Roman, Times New Roman, Times, serif = Times New Roman, Times New Roman, Times, serif; Trebuchet MS1, Trebuchet MS, sans-serif = Trebuchet MS1, Trebuchet MS, sans-serif; Verdana, Verdana, Geneva, sans-serif = Verdana, Verdana, Geneva, sans-serif;',
     selector: '.enableTiny',  
 	inline: true,
 	entity_encoding : "raw",//disable
@@ -3727,7 +4005,7 @@ function tinymce(){
        ],
 	
         
-       toolbar: " undo | redo | styleselect | bold |italic | alignleft | aligncenter | alignright | alignjustify | bullist | numlist | outdent | indent | link | print | media | fullpage |  forecolor | backcolor | fontselect | fontsizeselect | emoticons   ", 
+       toolbar: " undo | redo | styleselect | bold |italic | alignleft | aligncenter | alignright | alignjustify | bullist | numlist | outdent | indent | link | print | media | fullpage |  forecolor | backcolor | fontselect | fontsizeselect | textshadow | emoticons   ", 
        style_formats: [
                {title: 'h1', inline: 'h1'},
                {title: 'h2', inline: 'h2'},
@@ -3771,16 +4049,114 @@ function tinymce(){
                {title: 'p myclass10', inline: 'p', 'classes' : 'myclass10', exact : true}, 
                {title: 'p myclass11', inline: 'p', 'classes' : 'myclass11', exact : true}, 
                {title: 'p myclass12', inline: 'p', 'classes' : 'myclass12', exact : true},
-               
-          
-        ]
+         ],
+     
+     
+  
+  style_formats: [
+    {title: 'Header htags', items: [
+      {title: 'Header 1', format: 'h1'},
+      {title: 'Header 2', format: 'h2'},
+      {title: 'Header 3', format: 'h3'},
+      {title: 'Header 4', format: 'h4'},
+      {title: 'Header 5', format: 'h5'},
+      {title: 'Header 6', format: 'h6'}
+    ]},
+    {title: 'Inline Styles', items: [
+      {title: 'Bold', icon: 'bold', format: 'bold'},
+      {title: 'Italic', icon: 'italic', format: 'italic'},
+      {title: 'Underline', icon: 'underline', format: 'underline'},
+      {title: 'Strikethrough', icon: 'strikethrough', format: 'strikethrough'},
+      {title: 'Superscript', icon: 'superscript', format: 'superscript'},
+      {title: 'Subscript', icon: 'subscript', format: 'subscript'},
+      {title: 'Code', icon: 'code', format: 'code'}
+    ]},
+    {title: 'Text-Shadow', items: [
+          {title: 'Remove shadow',inline: 'span',styles: {'text-shadow': '0px 0px 0px rgba(0,0,0,0.4)'}},
+          {title: 'Dark shadow 1px',inline: 'span',styles: {'text-shadow': '0px 1px 1px rgba(0,0,0,0.4)'}},
+          {title: 'Dark shadow 3px',inline: 'span',styles: {'text-shadow': '0px 1px 3px rgba(0,0,0,0.4)'}},
+          {title: 'Dark shadow 5px',inline: 'span',styles: {'text-shadow': '0px 2px 5px rgba(0,0,0,0.4)'}},
+          {title: 'Light shadow 1px',inline: 'span',styles: {'text-shadow': '0px 1px 1px rgba(255,255,255,0.4)'}},
+          {title: 'Light shadow 3px',inline: 'span',styles: {'text-shadow': '0px 1px 3px rgba(255,255,255,0.4)'}},
+          {title: 'Light shadow 5px',inline: 'span',styles: {'text-shadow': '0px 2px 5px rgba(255,255,255,0.4)'}}
+    ]},
+    {title: 'Exact Font Weight', items: [
+          {title: 'Normal 400',inline: 'span',styles: {'text-shadow': '0px 0px 0px rgba(0,0,0,0.4)'}},
+          {title: '100 lightest',inline: 'span',styles: {'font-weight': '100'}},
+          {title: '200 very light',inline: 'span',styles: {'font-weight': '200'}},
+          {title: '300 light',inline: 'span',styles: {'font-weight': '300'}},
+          {title: '400 normal',inline: 'span',styles: {'font-weight': '400'}},
+          {title: '500',inline: 'span',styles: {'font-weight': '500'}},
+          {title: '600',inline: 'span',styles: {'font-weight': '600'}},
+          {title: '700 bold',inline: 'span',styles: {'font-weight': '700'}},
+          {title: '800',inline: 'span',styles: {'font-weight': '800'}},
+          {title: '900',inline: 'span',styles: {'font-weight': '900'}}
+    ]},
+    {title: 'Blocks', items: [
+      {title: 'Paragraph', format: 'p'},
+      {title: 'Blockquote', format: 'blockquote'},
+      {title: 'Div', format: 'div'},
+      {title: 'Pre', format: 'pre'}
+    ]},
+    {title: 'Image align', items: [
+          {title: 'Image Left',selector: 'img',styles: {'float': 'left','margin': '0 10px 0 10px'}},
+          {title: 'Image Right',selector: 'img', styles: {'float': 'right','margin': '0 0 10px 10px' }}
+    ]},
+    {title: 'Alignment', items: [
+          {title: 'Left', icon: 'alignleft', format: 'alignleft'},
+          {title: 'Center', icon: 'aligncenter', format: 'aligncenter'},
+          {title: 'Right', icon: 'alignright', format: 'alignright'},
+          {title: 'Justify', icon: 'alignjustify', format: 'alignjustify'}
+    ]},
+    {title: 'Special Class Wrap (span)', items: [
+     {title: 'span myclass1', inline: 'span', 'classes' : 'myclass1', exact : true},
+          {title: 'span myclass2', inline: 'span', 'classes' : 'myclass2', exact : true}, 
+          {title: 'span myclass3', inline: 'span', 'classes' : 'myclass3', exact : true}, 
+          {title: 'span myclass4', inline: 'span', 'classes' : 'myclass4', exact : true}, 
+          {title: 'span myclass5', inline: 'span', 'classes' : 'myclass5', exact : true}, 
+          {title: 'span myclass6', inline: 'span', 'classes' : 'myclass6', exact : true}, 
+          {title: 'span myclass7', inline: 'span', 'classes' : 'myclass7', exact : true}, 
+          {title: 'span myclass8', inline: 'span', 'classes' : 'myclass8', exact : true}, 
+          {title: 'span myclass9', inline: 'span', 'classes' : 'myclass9', exact : true}, 
+          {title: 'span myclass10', inline: 'span', 'classes' : 'myclass10', exact : true}, 
+          {title: 'span myclass11', inline: 'span', 'classes' : 'myclass11', exact : true}, 
+          {title: 'span myclass12', inline: 'span', 'classes' : 'myclass12', exact : true}
+    ]},
+    {title: 'Special Class Wrap (div)', items: [
+          {title: 'div myclass1', inline: 'div', 'classes' : 'myclass1', exact : true},
+          {title: 'div myclass2', inline: 'div', 'classes' : 'myclass2', exact : true}, 
+          {title: 'div myclass3', inline: 'div', 'classes' : 'myclass3', exact : true}, 
+          {title: 'div myclass4', inline: 'div', 'classes' : 'myclass4', exact : true}, 
+          {title: 'div myclass5', inline: 'div', 'classes' : 'myclass5', exact : true}, 
+          {title: 'div myclass6', inline: 'div', 'classes' : 'myclass6', exact : true}, 
+          {title: 'div myclass7', inline: 'div', 'classes' : 'myclass7', exact : true}, 
+          {title: 'div myclass8', inline: 'div', 'classes' : 'myclass8', exact : true}, 
+          {title: 'div myclass9', inline: 'div', 'classes' : 'myclass9', exact : true}, 
+          {title: 'div myclass10', inline: 'div', 'classes' : 'myclass10', exact : true}, 
+          {title: 'div myclass11', inline: 'div', 'classes' : 'myclass11', exact : true}, 
+          {title: 'div myclass12', inline: 'div', 'classes' : 'myclass12', exact : true},
+    ]},
+    {title: 'Special Class Wrap (p tag)', items: [
+               {title: 'p myclass1', inline: 'p', 'classes' : 'myclass1', exact : true},
+               {title: 'p myclass2', inline: 'p', 'classes' : 'myclass2', exact : true}, 
+               {title: 'p myclass3', inline: 'p', 'classes' : 'myclass3', exact : true}, 
+               {title: 'p myclass4', inline: 'p', 'classes' : 'myclass4', exact : true}, 
+               {title: 'p myclass5', inline: 'p', 'classes' : 'myclass5', exact : true}, 
+               {title: 'p myclass6', inline: 'p', 'classes' : 'myclass6', exact : true}, 
+               {title: 'p myclass7', inline: 'p', 'classes' : 'myclass7', exact : true}, 
+               {title: 'p myclass8', inline: 'p', 'classes' : 'myclass8', exact : true}, 
+               {title: 'p myclass9', inline: 'p', 'classes' : 'myclass9', exact : true}, 
+               {title: 'p myclass10', inline: 'p', 'classes' : 'myclass10', exact : true}, 
+               {title: 'p myclass11', inline: 'p', 'classes' : 'myclass11', exact : true}, 
+               {title: 'p myclass12', inline: 'p', 'classes' : 'myclass12', exact : true}
+  ]}
+    ] 
   });
   </script>
 eol;
 //image | video |
-  }  
-  
-  
+  }   
+   
  
 #gen_Proc	javascript initiate
 function gen_Proc_init(){
@@ -4060,8 +4436,9 @@ function call_body(){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
 			//printer::alert_neu('<a class="acolor click" href="'.Sys::Self.'?viewdboff">Return Back to Normal WebPages</a>');
 			printer::close_print_wrap('restore opts');  
 			}
-	} 
-
+	}
+     
+     #ion db_
      function update_db($dbname=''){
      if (!$this->edit)return;
       $table_array=array('master_post','master_post_css','master_post_data');
@@ -4825,9 +5202,9 @@ function css_at_fonts(){
 	foreach($this->at_fonts as $af){   
 		$af=explode(',',$af);
 		$after=str_replace(' ','',$af[0]);
-		if (!in_array($after,$check)){
-			foreach($font_ext as $ext){ 
-				if (is_file('../fonts/'.$after.'.'.$ext)){
+		if (!in_array($after,$check)){//checks doubles
+			foreach($font_ext as $ext){  
+				if (is_file('../fonts/'.$after.'.'.$ext)){ 
 					$type=($ext==='ttf')?'truetype':$ext;
 			$this->fontcss.='
 @font-face {

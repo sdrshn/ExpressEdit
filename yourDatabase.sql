@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: May 24, 2019 at 08:56 PM
--- Server version: 5.7.26-0ubuntu0.18.04.1
--- PHP Version: 7.2.17-0ubuntu0.18.04.1
+-- Generation Time: Sep 26, 2019 at 01:11 PM
+-- Server version: 5.7.27-0ubuntu0.18.04.1
+-- PHP Version: 7.2.19-0ubuntu0.18.04.2
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET AUTOCOMMIT = 0;
@@ -19,7 +19,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `myclass`
+-- Database: `yourDatabase`
 --
 
 -- --------------------------------------------------------
@@ -29,14 +29,14 @@ SET time_zone = "+00:00";
 --
 
 CREATE TABLE `backups_db` (
-  `backup_id` int(11) NOT NULL,
-  `backup_filename` tinytext COLLATE utf8_bin NOT NULL,
-  `backup_time` tinytext COLLATE utf8_bin NOT NULL,
-  `backup_date` tinytext COLLATE utf8_bin NOT NULL,
-  `backup_restore_time` tinytext COLLATE utf8_bin NOT NULL,
-  `backup_data1` tinytext COLLATE utf8_bin NOT NULL,
-  `token` tinytext COLLATE utf8_bin NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+  `backup_id` mediumint(8) UNSIGNED NOT NULL,
+  `backup_filename` tinytext NOT NULL,
+  `backup_time` tinytext NOT NULL,
+  `backup_date` tinytext NOT NULL,
+  `backup_restore_time` tinytext NOT NULL,
+  `backup_data1` tinytext NOT NULL,
+  `token` tinytext NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -46,19 +46,20 @@ CREATE TABLE `backups_db` (
 
 CREATE TABLE `columns` (
   `col_id` smallint(5) UNSIGNED NOT NULL,
-  `col_table_base` tinytext CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
-  `col_table` tinytext CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
+  `col_table_base` tinytext NOT NULL,
+  `col_table` tinytext NOT NULL,
   `col_num` tinyint(4) NOT NULL,
   `col_primary` tinyint(1) NOT NULL,
-  `col_options` text CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
+  `col_options` text NOT NULL,
   `col_clone_target` tinytext NOT NULL,
   `col_status` tinytext NOT NULL,
   `col_gridspace_right` tinytext NOT NULL,
   `col_gridspace_left` tinytext NOT NULL,
-  `col_grid_width` tinytext NOT NULL,
   `col_flex_box` tinytext NOT NULL,
+  `col_grid_width` tinytext NOT NULL,
   `col_grid_clone` tinytext NOT NULL,
-  `col_style` text CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
+  `col_style` text NOT NULL,
+  `col_text` text CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
   `col_style2` tinytext NOT NULL,
   `col_temp` tinytext NOT NULL,
   `col_grp_bor_style` text NOT NULL,
@@ -66,12 +67,12 @@ CREATE TABLE `columns` (
   `col_date_style` text NOT NULL,
   `col_comment_date_style` text NOT NULL,
   `col_comment_view_style` text NOT NULL,
-  `col_clone_target_base` tinytext CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
+  `col_clone_target_base` tinytext NOT NULL,
   `col_hr` tinytext NOT NULL,
   `col_update` tinytext NOT NULL,
   `col_width` tinytext NOT NULL,
   `col_tcol_num` decimal(5,1) NOT NULL,
-  `token` tinytext CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
+  `token` tinytext NOT NULL,
   `col_time` tinytext NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
@@ -84,14 +85,15 @@ CREATE TABLE `columns` (
 CREATE TABLE `comments` (
   `com_id` int(11) NOT NULL,
   `com_blog_id` int(11) NOT NULL,
-  `com_text` text COLLATE utf8_bin NOT NULL,
-  `com_name` tinytext COLLATE utf8_bin NOT NULL,
+  `com_text` text NOT NULL,
+  `com_name` tinytext NOT NULL,
+  `com_email` tinytext NOT NULL,
   `com_status` tinyint(4) NOT NULL,
-  `com_update` tinytext COLLATE utf8_bin NOT NULL,
-  `com_token` tinytext COLLATE utf8_bin NOT NULL,
-  `com_time` tinytext COLLATE utf8_bin NOT NULL,
-  `token` tinytext COLLATE utf8_bin NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+  `com_update` tinytext NOT NULL,
+  `com_token` tinytext NOT NULL,
+  `com_time` tinytext NOT NULL,
+  `token` tinytext NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -157,9 +159,10 @@ CREATE TABLE `master_col_css` (
   `col_gridspace_right` tinytext NOT NULL,
   `col_gridspace_left` tinytext NOT NULL,
   `col_grid_width` tinytext NOT NULL,
-  `col_flex_box` tinytext NOT NULL,
   `col_grid_clone` tinytext NOT NULL,
+  `col_flex_box` tinytext NOT NULL,
   `col_style` text CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
+  `col_text` text CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
   `col_style2` tinytext NOT NULL,
   `col_temp` tinytext NOT NULL,
   `col_grp_bor_style` text NOT NULL,
@@ -284,13 +287,6 @@ CREATE TABLE `master_page` (
   `token` tinytext NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
---
--- Dumping data for table `master_page`
---
-
-INSERT INTO `master_page` (`page_id`, `page_ref`, `page_title`, `page_filename`, `page_width`, `page_pic_quality`, `page_style`, `page_custom_css`, `page_head`, `keywords`, `metadescription`, `page_data1`, `page_data2`, `page_update`, `page_data3`, `page_data4`, `page_data5`, `page_data6`, `page_data7`, `page_data8`, `page_data9`, `page_data10`, `use_tags`, `page_options`, `page_break_points`, `page_cache`, `page_dark_editor_value`, `page_light_editor_value`, `page_dark_editor_order`, `page_light_editor_order`, `page_comment_style`, `page_date_style`, `page_comment_date_style`, `page_comment_view_style`, `page_style_day`, `page_style_month`, `page_grp_bor_style`, `page_hr`, `page_h1`, `page_h2`, `page_h3`, `page_h4`, `page_h5`, `page_h6`, `page_myclass1`, `page_myclass2`, `page_myclass3`, `page_myclass4`, `page_myclass5`, `page_myclass6`, `page_myclass7`, `page_myclass8`, `page_myclass9`, `page_myclass10`, `page_myclass11`, `page_myclass12`, `page_tiny_data1`, `page_tiny_data2`, `page_tiny_data3`, `page_tiny_data4`, `page_tiny_data5`, `page_tiny_data6`, `page_tiny_data7`, `page_tiny_data8`, `page_tiny_data9`, `page_tiny_data10`, `page_clipboard`, `page_link`, `page_link_hover`, `page_time`, `token`) VALUES
-(1, 'indexpage', 'HOME', 'index', 1005, 0, ',0,0,0,0,0,0,0,0,Lucida Sans Unicode=> Lucida Grande=> sans-serif;,0,0,0,444,0,0,0,0,0,0,ffffff@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@no-repeat,0,0,0,0@@0@@0@@0@@0@@inset,0,8@@000@@0@@top', '', '', ' ', ' ', '', '', '05May2019-14-33-32', '', '', '', '', '', '', '', '', 0, 'dark,7B081A,0,ffffff,000000,,,,,,,,,,,,,,1600,320,60', '950', '100,200,300,400,500,700,900,1100,1300,1700,2100', '64C91D,00ffff,00ff00,FFFF00,ede5e5,afeeee,ffe4b5,98fb98,0075a0,ff6600,2B1DC9,dccbcb,ff00ff,800000,816227,266a2e,a9a9a9,bdb76b,8b008b,556b2f,ff8c00,9932cc,8b0000,e9967a,8fbc8f,483d8b,2f4f4f,00ced1,9400d3,ff1493,00bfff,696969,696969,1e90ff,b22222,fffaf0,228b22,ff00ff,dcdcdc,ffdead,fdf5e6,808000,6b8e23,ff4500,c6a5a5,da70d6,eee8aa,d87093,ffefd5,ffdab9,cd853f,dda0dd,b0e0e6,bc8f8f,4169e1,8b4513,fa8072,f4a460,2e8b57,C91B45,000000,ffffff,e5d805,c82c1d', '', '', '', ',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@no-repeat', ',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@no-repeat', ',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@no-repeat', ',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@no-repeat', ',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@no-repeat', ',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@no-repeat', ',0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@no-repeat', ',,,,,,,,,,,,,,,,,,,,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@no-repeat', ',,,,,,,,,,,,,,,,,,,,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@no-repeat', ',,,,,,,,,,,,,,,,,,,,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@no-repeat', ',,,,,,,,,,,,,,,,,,,,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@no-repeat', ',,,,,,,,,,,,,,,,,,,,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@no-repeat', ',,,,,,,,,,,,,,,,,,,,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@no-repeat', ',,,,,,,,,,,,,,,,,,,,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@no-repeat', ',,,,,,,,,,,,,,,,,,,,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@no-repeat', ',,,,,,,,,,,,,,,,,,,,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@no-repeat', ',,,,,,,,,,,,,,,,,,,,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@no-repeat', ',,,,,,,,,,,,,,,,,,,,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@no-repeat', ',,,,,,,,,,,,,,,,,,,,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@no-repeat', ',,,,,,,,,,,,,,,,,,,,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@no-repeat', ',,,,,,,,,,,,,,,,,,,,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@no-repeat', ',,,,,,,,,,,,,,,,,,,,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@no-repeat', ',,,,,,,,,,,,,,,,,,,,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@no-repeat', ',,,,,,,,,,,,,,,,,,,,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@no-repeat', ',,,,,,,,,,,,,,,,,,,,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@no-repeat', ',,,,,,,,,,,,,,,,,,,,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@no-repeat', '', '', '', '', '', '', '', '', '', '', '', '', '', '1557081212', '588041036');
-
 -- --------------------------------------------------------
 
 --
@@ -306,6 +302,7 @@ CREATE TABLE `master_post` (
   `blog_gridspace_right` tinytext NOT NULL,
   `blog_gridspace_left` tinytext NOT NULL,
   `blog_grid_width` tinytext NOT NULL,
+  `blog_flex_box` tinytext NOT NULL,
   `blog_data1` text NOT NULL,
   `blog_data2` text NOT NULL,
   `blog_data3` text NOT NULL,
@@ -347,7 +344,6 @@ CREATE TABLE `master_post` (
   `blog_date` tinytext CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
   `blog_width` tinytext NOT NULL,
   `blog_width_mode` tinytext NOT NULL,
-  `blog_flex_box` tinytext NOT NULL,
   `blog_status` tinytext CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
   `blog_unstatus` tinytext NOT NULL,
   `blog_clone_target` tinytext NOT NULL,
@@ -421,8 +417,8 @@ CREATE TABLE `master_post_css` (
   `blog_global_style` tinytext NOT NULL,
   `blog_date` tinytext CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
   `blog_width` tinytext NOT NULL,
-  `blog_width_mode` tinytext NOT NULL,
   `blog_flex_box` tinytext NOT NULL,
+  `blog_width_mode` tinytext NOT NULL,
   `blog_status` tinytext CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
   `blog_unstatus` tinytext NOT NULL,
   `blog_clone_target` tinytext NOT NULL,
@@ -466,11 +462,11 @@ CREATE TABLE `master_post_data` (
   `blog_data8` text NOT NULL,
   `blog_data9` text NOT NULL,
   `blog_data10` text NOT NULL,
+  `blog_data15` text NOT NULL,
   `blog_data11` text NOT NULL,
   `blog_data12` text NOT NULL,
   `blog_data13` text NOT NULL,
   `blog_data14` text NOT NULL,
-  `blog_data15` text NOT NULL,
   `blog_tiny_data1` tinytext NOT NULL,
   `blog_tiny_data2` tinytext NOT NULL,
   `blog_tiny_data3` tinytext NOT NULL,
@@ -488,6 +484,7 @@ CREATE TABLE `master_post_data` (
   `blog_tiny_data15` tinytext NOT NULL,
   `blog_grid_clone` tinytext NOT NULL,
   `blog_style` text NOT NULL,
+  `blog_adv_media` tinytext NOT NULL,
   `blog_style2` tinytext NOT NULL,
   `blog_table_base` tinytext NOT NULL,
   `blog_text` text NOT NULL,
@@ -613,13 +610,13 @@ ALTER TABLE `members`
 -- AUTO_INCREMENT for table `backups_db`
 --
 ALTER TABLE `backups_db`
-  MODIFY `backup_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=661;
+  MODIFY `backup_id` mediumint(8) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=672;
 
 --
 -- AUTO_INCREMENT for table `columns`
 --
 ALTER TABLE `columns`
-  MODIFY `col_id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1480;
+  MODIFY `col_id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=223;
 
 --
 -- AUTO_INCREMENT for table `comments`
@@ -631,49 +628,49 @@ ALTER TABLE `comments`
 -- AUTO_INCREMENT for table `directory`
 --
 ALTER TABLE `directory`
-  MODIFY `dir_id` smallint(3) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `dir_id` smallint(3) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=116;
 
 --
 -- AUTO_INCREMENT for table `login_attempting`
 --
 ALTER TABLE `login_attempting`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `master_col_css`
 --
 ALTER TABLE `master_col_css`
-  MODIFY `css_id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `css_id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `master_gall`
 --
 ALTER TABLE `master_gall`
-  MODIFY `pic_id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13604;
+  MODIFY `pic_id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
 
 --
 -- AUTO_INCREMENT for table `master_page`
 --
 ALTER TABLE `master_page`
-  MODIFY `page_id` smallint(4) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `page_id` smallint(4) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=110;
 
 --
 -- AUTO_INCREMENT for table `master_post`
 --
 ALTER TABLE `master_post`
-  MODIFY `blog_id` mediumint(4) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3956;
+  MODIFY `blog_id` mediumint(4) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=535;
 
 --
 -- AUTO_INCREMENT for table `master_post_css`
 --
 ALTER TABLE `master_post_css`
-  MODIFY `css_id` mediumint(4) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `css_id` mediumint(4) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `master_post_data`
 --
 ALTER TABLE `master_post_data`
-  MODIFY `data_id` mediumint(4) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `data_id` mediumint(4) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=56;
 
 --
 -- AUTO_INCREMENT for table `members`

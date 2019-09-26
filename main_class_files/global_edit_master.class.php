@@ -549,69 +549,114 @@ function editpages_obj($master_table,$field_data,$post_prepend,$ref1,$refval1,$r
 
 function scroll_height_fade(){
       #this is for all posts including nested columns
-               $typ=($this->blog_type==='nested_column')?'col':'blog';
-               $fadeInval=($this->{$typ.'_options'}[$this->{$typ.'_fade_value_index'}]>=15&&$this->{$typ.'_options'}[$this->{$typ.'_fade_value_index'}]<=750)?$this->{$typ.'_options'}[$this->{$typ.'_fade_value_index'}]:'0';
-               $fadechoice=($this->{$typ.'_options'}[$this->{$typ.'_fade_choice_index'}]==='fadein'||$this->{$typ.'_options'}[$this->{$typ.'_fade_choice_index'}]==='fadeout')?$this->{$typ.'_options'}[$this->{$typ.'_fade_choice_index'}]:'none';
-              
-               $fademode=($this->{$typ.'_options'}[$this->{$typ.'_fade_mode_index'}]==='display')?$this->{$typ.'_options'}[$this->{$typ.'_fade_mode_index'}]:'visible';
-               if ($this->edit){
-                    $mode_name=($this->is_column)?$this->col_name.'_col_options['.$this->col_fade_mode_index.']':$this->data.'_blog_options['.$this->blog_fade_mode_index.']';
-                    $value_name=($this->is_column)?$this->col_name.'_col_options['.$this->col_fade_value_index.']':$this->data.'_blog_options['.$this->blog_fade_value_index.']';
-                    $choice_name=($this->is_column)?$this->col_name.'_col_options['.$this->col_fade_choice_index.']':$this->data.'_blog_options['.$this->blog_fade_choice_index.']';
-                    $type=($this->blog_type==='nested_column')?'nested column':'post';
-                    printer::print_wrap('scroll height fade');
-                    printer::print_tip('You can choose to scroll height fade in or fade out this '.$type.' at the specified height you choose below.');
-                    $checked1=($fadechoice!=='fadein'&&$fadechoice!=='fadeout')?'checked="checked"':'';
-                    $checked2=($fadechoice==='fadein')?'checked="checked"':'';
-                    $checked3=($fadechoice==='fadeout')?'checked="checked"':'';
-                    printer::alert('<input type="radio" name="'.$choice_name.'" value="fadein" '.$checked1.'>Do not enable scroll height visibility/displaying on this '.$type);
-                    printer::alert('<input type="radio" name="'.$choice_name.'" value="fadeout" '.$checked3.'>Choose to initially display post till specified scroll height is surpassed then hide this '.$type);
-                    printer::alert('<input type="radio" name="'.$choice_name.'" value="fadein" '.$checked2.'>Choose to initially hide this '.$type.' till specified scroll height is surpassed then make display/visible');
-                    $checked1=($fademode!=='display')?'checked="checked"':'';
-                    $checked2=($fademode==='display')?'checked="checked"':'';
-                    printer::print_tip('Visibility:hidden changes the opacity &amp; visibility properties. display:none is emulated by additionally including absolute positioning on the element so it removes the occupied space as well. For post types/nested columns already using <b>absolute  positioning</b> use the visibility option so that top left parameters are preserved!');
-                    printer::alert('<input type="radio" name="'.$mode_name.'" value="visible" '.$checked1.'>Use Visibility:hidden (Preserves spacing affects visiblity only. Use if absolutely positioned already)');
-                    printer::alert('<input type="radio" name="'.$mode_name.'" value="display" '.$checked2.'>Emulate Display:none (Removes/Puts Back Spacing and Visibility)');
-                    printer::print_tip('Choose the scroll height for the Visibility Transition');
-                    $this->mod_spacing($value_name,$fadeInval,15,750,1,'px');
-                    printer::close_print_wrap('scroll height fade');
+     $options=($this->is_column)?$this->col_options[$this->col_display_state_index]:$this->blog_options[$this->blog_display_state_index]; 
+	$options=explode('@@',$options);
+	$c_opts=count(explode(',',Cfg::Display_options));
+	for ($i=0;$i<$c_opts; $i++){
+		if (!array_key_exists($i,$options))$options[$i]=0;
+		}
+     $ok_arr=array('p','P','c','C');
+    // echo $options[$this->display_fade_id_index]. ' is id';  
+      $display_fade_id=$options[$this->display_fade_id_index];
+     //echo '<br>'.$display_fade_id. 'is dfi';
+     $active_element_follow=(array_key_exists($options[$this->display_fade_id_index],$this->sibling_id_arr))?$this->sibling_id_arr[$options[$this->display_fade_id_index]]:'none';
+     $display_fade_percent=($options[$this->display_fade_percent_index]>=10&&$options[$this->display_fade_percent_index]<=100)?$options[$this->display_fade_percent_index]:100; 
+     $fadeInval=($options[$this->display_fade_px_index]>=15&&$options[$this->display_fade_px_index]<=750)?$options[$this->display_fade_px_index]:'0';
+     $fadechoice=($options[$this->display_fade_choice_index]==='fadein'||$options[$this->display_fade_choice_index]==='fadeout')?$options[$this->display_fade_choice_index]:'none';
+     $fademode=($options[$this->display_fade_mode_index]==='display')?$options[$this->display_fade_mode_index]:'visible';
+     $basis=($options[$this->display_basis_index]==='px'||$options[$this->display_basis_index]==='percent')?$options[$this->display_basis_index]:'none';
+     if ($this->edit){
+          if ($this->edit&&($fadechoice ==='none'||empty($fadeInval))&&$basis==='px') 
+               printer::alert_neg('Youve chosen method 1. but need to both choose fadein/fadeout value and a px value');
+          if ($this->edit&&$active_element_follow ==='none'&&$basis==='percent') 
+               printer::alert_neg('Youve chosen method 2  but need to choose a valid element id include the prefix: p for post type and c for nested column. Current chosen '.$display_fade_id);
+          $display_name=($this->is_column)?$this->col_name.'_col_options['.$this->col_display_state_index.']':$this->data.'_blog_options['.$this->blog_display_state_index.']';
+          $mode_name=$display_name.'['.$this->display_fade_mode_index.']';
+          $value_name=$display_name.'['.$this->display_fade_px_index.']';
+          $choice_name=$display_name.'['.$this->display_fade_choice_index.']';
+          $basis_name=$display_name.'['.$this->display_basis_index.']';
+          $type=($this->blog_type==='nested_column')?'nested column':'post';
+          printer::print_wrap('scroll height fade');
+          printer::print_wrap('overall choice');
+          printer::print_tip('For <b>ScrollHeight Methods: </b> Choose one of two options to change the display property of this element:
+                             <br><br>0. No scrollHeight display control.
+                             <br><br>Method 1. Choose direct window scrollHeight in px units to fade in/out this element.  
+                             <br><br>Medthod 2. Instead choose id of any element and the scrollHeight percentage that element. For example choosing 100% would mean when that element has scrolled on the viewscreen to the point where the bottom of that element goes off the top of the viewscreen then this '.$type.' element will fade in/out as chosen.');
+          #######################
+          $checked1=($basis!=='px'&&$basis!=='percent')?'checked="checked"':'';
+          $checked2=($basis==='px')?'checked="checked"':'';
+          $checked3=($basis==='percent')?'checked="checked"':'';
+          printer::alert('<input type="radio" name="'.$basis_name.'" value="none" '.$checked1.'>0. Turn off');
+          printer::alert('<input type="radio" name="'.$basis_name.'" value="px" '.$checked2.'>1. Choose direct method based on window scrollHeight in px');
+          printer::alert('<input type="radio" name="'.$basis_name.'" value="percent" '.$checked3.'>2. Use Id of any element to base percentage scroll of that element to fade in this element.');
+          printer::close_print_wrap('overall choice');
+          ################
+          $checked1=($fadechoice!=='fadeout')?'checked="checked"':'';
+          $checked2=($fadechoice==='fadeout')?'checked="checked"':'';
+          printer::print_wrap('fade in or out display');
+          printer::alert('<input type="radio" name="'.$choice_name.'" value="fadein" '.$checked1.'>Choose fadein to initially hide this '.$type.' till specified scroll height is surpassed then make display/visible');
+          printer::alert('<input type="radio" name="'.$choice_name.'" value="fadeout" '.$checked2.'>Choose fadeout to initially display this '.$type.' till specified scroll height is surpassed then hide');
+          printer::close_print_wrap('fade in or out display');
+          $checked1=($fademode!=='display')?'checked="checked"':'';
+          $checked2=($fademode==='display')?'checked="checked"':'';
+          printer::print_wrap('hidden vs absolute fade display');
+          printer::print_tip('This choice works with both method1 and method2:');
+          printer::print_tip('Visibility:hidden changes the opacity &amp; visibility properties. display:none is emulated by additionally including absolute positioning on the element so it removes the occupied space as well. If the post types/nested columns to fade is already using <b>absolute  positioning</b> use the visibility option so that top left parameters are preserved!');
+          printer::alert('<input type="radio" name="'.$mode_name.'" value="visible" '.$checked1.'>Use Visibility:hidden (Preserves spacing affects visiblity only. Use if this '.$type.' to fade in/out is <b>absolutely positioned already</b> to preserve additional settings: top/left etc.)');
+          printer::alert('<input type="radio" name="'.$mode_name.'" value="display" '.$checked2.'>Emulate Display:none (Removes/Puts Back Spacing and Visibility)');
+          printer::close_print_wrap('hidden vs absolute fade display');
+          printer::print_wrap('choose display fade px');
+          printer::print_tip('This choice affects method 1 px value');
+          printer::print_tip('Choose the scroll height for the Visibility Transition');
+          $this->mod_spacing($value_name,$fadeInval,15,750,1,'px'); 
+          printer::close_print_wrap('choose display fade px');
+          
+          printer::print_wrap('display','editbackground editfont Os3salmon fsmaqua');
+          printer::print_tip('For Method 2 use the following two options to set the id of the element to follow the scroll height and set the percentage of the height of that element scrolled before which this element will display according to fade in/out chosen');
+          printer::alert('Enter the id (include c or p prefix) of the animated post or column you wish to complete before this animation starts:<input type="text" value="'.$display_fade_id.'" name="'.$display_name.'['.$this->display_fade_id_index.']">');
+          printer::print_tip('By default scroll height is 100%. <br>');
+          printer::alert('Change elements scrollHeight:');
+          $this->mod_spacing($display_name.'['.$this->display_fade_percent_index.']',$display_fade_percent,10,200,1,'%');
+           printer::close_print_wrap('display');
+          printer::close_print_wrap('scroll height fade');
+          }
+     //$('#someElementID').css('position');
+     if (!$this->edit&&($basis==='px'||$basis==='percent')){
+          $cb_data=($this->blog_type==='nested_column')?$this->col_dataCss:$this->dataCss;
+          $minheight='500px';
+          if($fadechoice==='fadein'){
+               if ($fademode!=='visible'){ 
+                    $inout='displayTransitionOn';
+                    $rev_inout='displayTransitionOff';
+                    $initclass='displayOff';
                     }
-               //$('#someElementID').css('position');
-               if (!$this->edit&&$fadechoice !=='none'&&!empty($fadeInval)){
-                    $cb_data=($this->blog_type==='nested_column')?$this->col_dataCss:$this->dataCss;
-                    $minheight='500px';
-                    if($fadechoice==='fadein'){
-                         if ($fademode!=='visible'){ 
-                              $inout='displayTransitionOn';
-                              $rev_inout='displayTransitionOff';
-                              $initclass='displayOff';
-                              }
-                              
-                         else{ 
-                              $inout='visibleTransitionOn';
-                              $rev_inout='visibleTransitionOff';
-                              $initclass='visibleOff';
-                              }
-                         }
-                    else {
-                         $initclass='';
-                         if ($fademode!=='visible'){ 
-                              $inout='displayTransitionOff';
-                              $rev_inout='displayTransitionOn';
-                              }
-                              
-                         else{ 
-                              $inout='visibleTransitionOff';
-                              $rev_inout='visibleTransitionOn';
-                              }
-                         }
-          echo '<script>
-	jQuery("document").ready(function($){';
-                    if ($fadechoice==='fadein'){
-               echo '$("#'.$cb_data.'").addClass("'.$initclass.'");';
-                         }         
+                    
+               else{ 
+                    $inout='visibleTransitionOn';
+                    $rev_inout='visibleTransitionOff';
+                    $initclass='visibleOff';
+                    }
+               }
+          else {
+               $initclass='';
+               if ($fademode!=='visible'){ 
+                    $inout='displayTransitionOff';
+                    $rev_inout='displayTransitionOn';
+                    }
+                    
+               else{ 
+                    $inout='visibleTransitionOff';
+                    $rev_inout='visibleTransitionOn';
+                    }
+               }
+          $initaddclass= ($fadechoice==='fadein')?"\$('#$cb_data').addClass('$initclass');":'';
+          }
+     if (!$this->edit&&!empty($fadeInval)&&$basis==='px'){
                     echo <<<eol
-    \$('body').css('min-height','$minheight');
+     <script>
+	jQuery("document").ready(function($){
+          $initaddclass                    
+          \$('body').css('min-height','$minheight');
 		var scrollTimer='';
 	   \$(window).scroll(function () {
 		clearTimeout(scrollTimer);
@@ -623,14 +668,50 @@ function scroll_height_fade(){
 				\$('#$cb_data').addClass('$rev_inout').removeClass('$inout');    
 				}
 				
-			},20);
+			},200);
         }); 
 });
 </script>
 eol;
+          }
+     if (!$this->edit&&$basis==='percent'&&$active_element_follow!=='none'){
+          echo <<<eol
+     <script>
+	jQuery("document").ready(function($){
+          $initaddclass                    
+          \$('body').css('min-height','$minheight');
+          var elem = \$('#$cb_data');
+          elem.addClass('$initclass');
+          var helem=\$('#$active_element_follow');
+          var element_height = helem.outerHeight(true); 
+          var scrollTimer='';
+          \$(window).scroll(function () {
+               clearTimeout(scrollTimer);
+               scrollTimer = setTimeout(function(){ //this will limit no of scroll events responding 
+               var window_height = \$(window).height();
+               var window_top_position = \$(window).scrollTop();
+               var window_bottom_position = (window_top_position + window_height);
+               var hchange=parseInt($display_fade_percent);
+               var element_top_position = helem.offset().top;
+               var element_bottom_position = (element_top_position + element_height);
+               var height_change = (hchange * element_height/100);
+               if ((element_bottom_position * hchange/100 <= window_top_position ) && !elem.hasClass('$inout')) {
+                    elem.addClass('$inout'); 
+                    elem.removeClass('$rev_inout').removeClass('$initclass');
                     }
-               }
-      
+               else if ((element_bottom_position * hchange/100 > window_top_position ) && elem.hasClass('$inout')) {
+                    elem.addClass('$rev_inout'); 
+                    elem.removeClass('$inout'); 
+                    }
+              },200);
+          }); 
+     });
+     </script>
+eol;
+          }
+     }
+
+     
 function color_populate(){ 
      $this->page_options[$this->page_darkeditor_background_index]=(preg_match(Cfg::Preg_color,$this->page_options[$this->page_darkeditor_background_index]))?$this->page_options[$this->page_darkeditor_background_index]:'687867';
 	$this->page_options[$this->page_darkeditor_color_index]=(preg_match(Cfg::Preg_color,$this->page_options[$this->page_darkeditor_color_index]))?$this->page_options[$this->page_darkeditor_color_index]:'ffffff';
@@ -1979,7 +2060,7 @@ function font_family($style, $val, $field,$show_style=false){if (Sys::Methods) S
                $mod_val=str_replace(';','',$this->{$style}[$val]);
                $init= ($mod_val=='inherit')?'checked="checked"':'';
 		   echo  "\n".'<p style="font-family:inherit" ><input type="radio" name="'.$style.'['.$val.']" '.$init.' value="inherit">inherit</p>';
-             foreach ($this->fonts_all as $family){ 
+             foreach ($this->fonts_all as $family){
 			$mod_family=str_replace(',','=>',$family);
 			$checked=(trim($mod_family)===trim($mod_val))?'checked="checked"':'';
 			echo  "\n".'<p style="font-family:'.$family.';" ><input type="radio" name="'.$style.'['.$val.']" '.$checked.' value="'.$mod_family.';">'.$family.'</p>';
@@ -3203,7 +3284,7 @@ function background($style, $val,$field='',$msg='Background color'){
 		echo '</div><!--background color-->';
 		printer::pclear();
 		echo '<div class="editbackground editfont fs1color"><!--border opacity-->';
-		echo '<p class="fsminfo  rad3   editfont" style="color:rgba(0,0,255,1); background:rgba(0,0,255,.25);">Background color of this text is set at  blue,   the same hexcode blue as the text except the blue background color has been set  with a 25% opacity. The parent background color is the editbackground editfont color which bleeds through. Change the opacity of your background color by choosing an opacity near 0% for very transparent allowing most of the parent background color or image to bleed through. At 50% opacity we see ~ half background color half parent background and at 100% opacity the parent background is colored over completely! </p>';
+		//echo '<p class="fsminfo  rad3   editfont" style="color:rgba(0,0,255,1); background:rgba(0,0,255,.25);">Background color of this text is set at blue,   the same hexcode blue as the text except the blue background color has been set  with a 25% opacity. The parent background color is the editbackground editfont color which bleeds through. Change the opacity of your background color by choosing an opacity near 0% for very transparent allowing most of the parent background color or image to bleed through. At 50% opacity we see ~ half background color half parent background and at 100% opacity the parent background is colored over completely! </p>';
 		echo '<p class="editcolor editbackground editfont ">Change Background Color Opacity:  </p>';
 		$this->mod_spacing($style.'['.$val.']['.$background_opacity_index.']',$background_color_opacity,0,100,1,'%');
 		echo '</div><!--border opacity-->'; 
@@ -5802,15 +5883,17 @@ function edit_form_head(){   if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__ME
 function display_state(){ 
 	#note: display property and advanced styles use css #id to override normal styles which use distinct classnames
 	$css_id=($this->is_column)?$this->col_dataCss:$this->dataCss;
-	$max_name=($this->is_column)?$this->col_name.'_col_options['.$this->col_display_max_index.']':$this->data.'_blog_options['.$this->blog_display_max_index.']';
-	$min_name=($this->is_column)?$this->col_name.'_col_options['.$this->col_display_min_index.']':$this->data.'_blog_options['.$this->blog_display_min_index.']';
+	$max_name=($this->is_column)?$this->col_name.'_col_options['.$this->display_max_index.']':$this->data.'_blog_options['.$this->display_max_index.']';
+	$min_name=($this->is_column)?$this->col_name.'_col_options['.$this->display_min_index.']':$this->data.'_blog_options['.$this->display_min_index.']';
 	$type=($this->is_column)?'Column':'Post'; 
 	$msg='Select a min-width or max-width or both at which to display:none this '.$type;
-	$val_max=($this->is_column)?$this->col_options[$this->col_display_max_index]:$this->blog_options[$this->blog_display_max_index];
-	$val_min=($this->is_column)?$this->col_options[$this->col_display_min_index]:$this->blog_options[$this->blog_display_min_index];
+	$val_max=($this->is_column)?$this->col_options[$this->display_max_index]:$this->blog_options[$this->display_max_index];
+	$val_min=($this->is_column)?$this->col_options[$this->display_min_index]:$this->blog_options[$this->display_min_index];
 	$this->show_more('Display '.$type.' Off &amp; Scroll Height Visibility',$msg,'','','800');
 	$this->print_redwrap('Display state');
-	printer::print_tip('Optionally set a maximum and/or minimum with at which will initate a display:none for this post in webpage mode only. <br> Note: Display Property for RWD grid mode may also be responsively Turned off using 0 grid units (ie %) for particular break pts.');
+     printer::print_tip('Control dipslay based on <b>@media queries</b>  or <b>scroll height methods</b>');
+     printer::print_wrap('display media method');
+	printer::print_tip('<b>Use @media quieries</b> to optionally set a maximum and/or minimum with at which will initate a display:none for this post in webpage mode only. <br> Note: Display Property for RWD grid mode may also be responsively Turned off using 0 grid units (ie %) for particular break pts.');
 	$displayoff_maxpx=($val_max>199&&$val_max<2001)?$val_max:'none';
 	$displayoff_minpx=($val_min>199&&$val_min<3001)?$val_min:'none';
 	$mediacss=$css='';
@@ -5860,6 +5943,7 @@ function display_state(){
      $this->mod_spacing($min_name,$displayoff_minpx,200,2000,1,'px','none');  
      printer::printx('<p ><input type="checkbox" name="'.$min_name.'" value="0">Remove min-width</p>');
      echo '</div><!--wrap min width-->';
+     printer::close_print_wrap('display media method');
      $this->scroll_height_fade();
      $this->submit_button(); 
           printer::pclear();
@@ -5867,7 +5951,8 @@ function display_state(){
      $this->show_close('display state Off'); 
      printer::pclear();
      }//end display 
-     
+
+ 
 
 function preanimation(){ 
 	$max_duration=10;

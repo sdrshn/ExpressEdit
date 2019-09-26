@@ -391,6 +391,7 @@ static function info($msg,$subject='Update Info: '){
 				}
 			}
 		}
+          printer::pclear();
 	}    	
  
 static function alert_min($msg,$subject='Update Info: '){
@@ -408,6 +409,7 @@ static function alert_min($msg,$subject='Update Info: '){
 				}
 			}
 		}
+          printer::pclear();
 	}
      
 public static function instance(){ if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);//static allows it to create an instance without creating a new object
