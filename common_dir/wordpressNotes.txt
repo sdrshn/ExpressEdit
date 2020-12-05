@@ -1,0 +1,77 @@
+INSERT INTO  `wp_users` (`ID`, `user_login`, `user_pass`, `user_nicename`, `user_email`, `user_url`, `user_registered`, `user_activation_key`, `user_status`, `display_name`) VALUES ('4', 'demo', MD5('demo'), 'Your Name', 'test@yourdomain.com', 'http://www.test.com/', '2011-06-07 00:00:00', '', '0', 'Your Name');
+ 
+ 
+INSERT INTO  `wp_usermeta` (`umeta_id`, `user_id`, `meta_key`, `meta_value`) VALUES (NULL, '4', 'wp_capabilities', 'a:1:{s:13:"administrator";s:1:"1";}');
+ 
+ 
+INSERT INTO  `wp_usermeta` (`umeta_id`, `user_id`, `meta_key`, `meta_value`) VALUES (NULL, '4', 'wp_user_level', '10');
+
+SELECT * FROM `wp_posts` where post_type !='post' and post_type !='shop_order' and id=28952 ORDER BY `wp_posts`.`ID` DESC;
+
+
+SELECT * FROM `wp_postmeta` where post_id=28952
+
+example:
+
+mysql> SELECT * FROM tutorials_tbl 
+   -> INTO OUTFILE '/tmp/tutorials.txt';
+   
+  SELECT ... FROM ... WHERE ... 
+INTO OUTFILE 'textfile.csv'
+FIELDS TERMINATED BY '|'
+ 
+ 
+ SELECT * FROM `wp_posts` where post_id=28952 INTO OUTFILE '/var/lib/mysql-files/textfile.sql'
+ select * FROM wp_postmeta where post_id=28952 into outfile '/var/lib/mysql-files/textfile.sql'
+ 287975  28952   _us_in_content_ids      22717
+287976  28952   us_og_image     
+287977  28952   _edit_lock      1576730571:15
+287978  28952   _edit_last      15
+287979  28952   _wp_page_template       default
+287980  28952   slide_template  default
+288025  28952   _wpb_vc_js_status       true
+288026  28952   us_header_id    __defaults__
+288027  28952   us_header_sticky_override       0
+288028  28952   us_header_sticky        \N
+288029  28952   us_header_transparent_override  0
+288030  28952   us_header_transparent   \N
+288031  28952   us_header_shadow        0
+288032  28952   us_header_sticky_pos    
+288033  28952   us_titlebar_id  \N
+288034  28952   us_content_id   __defaults__
+288035  28952   us_sidebar_id   \N
+288036  28952   us_sidebar_pos  \N
+288037  28952   us_footer_id    __defaults__
+288038  28952   us_tile_bg_color        
+288039  28952   us_tile_text_color      
+288040  28952   us_tile_size    1x1
+288041  28952   us_tile_link    {"url":"","target":""}
+288042  28952   us_tile_additional_image
+
+SELECT * FROM `wp_posts` where id=28952 INTO OUTFILE '/var/lib/mysql-files/textfile.sql' FIELDS ENCLOSED BY '"' TERMINATED BY ',' ESCAPED BY '"' LINES TERMINATED BY '\n'
+
+"28952",
+"15",
+"2019-12-18 23:21:54",
+"2019-12-19 04:21:54",
+"[vc_row][vc_column][us_grid post_type=""current_query"" pagination=""regular"" items_layout=""22717"" columns=""1""][/vc_column][/vc_row]",
+"Search Results",
+"",
+"publish",
+"closed",
+"closed",
+"",
+"search-results",
+"",
+"",
+"2019-12-18 23:44:45",
+"2019-12-19 04:44:45",
+"",
+"0",
+"https://arunachala.org/?page_id=28952",
+"0",
+"page",
+"",
+"0"
+
+ 

@@ -1,9 +1,9 @@
 <?php
-#ExpressEdit 2.0.4
+#ExpressEdit 3.01
 #see top of global edit master class for system overview comment dir..
 /*
 ExpressEdit is an integrated Theme Creation CMS
-	Copyright (c) 2018 Brian Hayes expressedit.org 
+	Copyright (c) 2018  expressedit.org 
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -46,15 +46,17 @@ function build_pic($data,$picdir='',$style_ref='blog_style',$styles_open=true,$b
 		$image_noresize=true;
 		}
 	else if (check_data::noexpand(Cfg_loc::Root_dir.Cfg::Upload_dir.$picname)){ //make sure image is safe to resize
-		$image_noresize=true;
-		echo '<input type="hidden" name="'.$data.'_'.$img_opt.'['.$image_noresize_index.']"  value="noresize">';//auto set value to noresize when submitted...
+          if (!is_file(Cfg_loc::Root_dir.Cfg::Upload_dir.$picname))
+              mail::alert( 'Missing Image File uploads '.Cfg_loc::Root_dir.Cfg::Upload_dir.$picname);
+          else mail::alert( 'Animate Gif being resized '.Cfg_loc::Root_dir.Cfg::Upload_dir.$picname);
+          $image_noresize=false;
 		}
-	else $image_noresize=false;
+	else $image_noresize=false; 
 	$image_expand=(!$bypass&&$img_opt_arr[$image_noexpand_index]==='display')?'display':0;
-   $wpercent=($img_opt_arr[$image_width_limit_index]>=5&&$img_opt_arr[$image_width_limit_index]<100)?$img_opt_arr[$image_width_limit_index]:(($this->blog_type==='image')?100:50); 
-   $image_height_set=($img_opt_arr[$image_height_set_index]==='overridesetheight')?false:true;
+     $wpercent=($img_opt_arr[$image_width_limit_index]>=5&&$img_opt_arr[$image_width_limit_index]<100)?$img_opt_arr[$image_width_limit_index]:(($this->blog_type==='image')?100:50); 
+     $image_height_set=($img_opt_arr[$image_height_set_index]==='overridesetheight')?false:true;
 	$imagestyle=($image_height_set)?'width:auto;':'width:100%; height:auto;';
-   $overridestyle=($image_height_set)?'':'style="width:'.$wpercent.'%; height:auto;"';
+     $overridestyle=($image_height_set)?'':'style="width:'.$wpercent.'%; height:auto;"';
 	list($border_width,$border_height)=$this->border_calc($this->blog_data4);//img
 	list($post_pad_width,$post_mar_width)=$this->pad_mar_calc($this->blog_style,$this->column_total_width[$this->column_level]); //around post
 	$shadowcalc=$this->calc_border_shadow($this->blog_data4); 
@@ -67,7 +69,7 @@ function build_pic($data,$picdir='',$style_ref='blog_style',$styles_open=true,$b
 	$width_min_mode=($this->blog_tiny_data1==='maintain_width')?'max-width:'.($this->current_net_width*$wpercent/100).'px':'width:'.$wpercent.'%;'.$min_width_val;
    $image_height_media=(is_numeric($img_opt_arr[$image_height_media_index])&&$img_opt_arr[$image_height_media_index]>=300&&$img_opt_arr[$image_height_media_index]<=3000)?$img_opt_arr[$image_height_media_index]:0;
    /*(!empty($image_height_media))&&
-     $this->imagecss.='
+     $this->css.='
    @media screen and (max-width:'.$image_height_media.'px){ 
      div .'.$this->dataCss.'_img {width:100%;height:auto;}  
      div .'.$this->dataCss.' {max-height:auto; height:auto;} 
@@ -76,10 +78,18 @@ function build_pic($data,$picdir='',$style_ref='blog_style',$styles_open=true,$b
 		$this->blog_options($data,$this->blog_table);
 	printer::pclear();
    if ($this->edit){
-     $this->imagecss.='
-     .'.$this->dataCss.'_img {'.$imagestyle.'}';
-		print('<p id="return_'.$this->blog_id.'">&nbsp;</p>');
-     $bp_arr=$this->page_break_arr;
+     $this->css.='
+     .'.$this->dataCss.'_img {'.$imagestyle.'}';//set up initial image behavior regarding sizing
+		print('<p id="return_'.$this->blog_id.'">&nbsp;</p>');//ref for interpage anchoring
+          ## the following is overly complicated editpage determination of initial image download as fallback ... 
+          ##if the $this->viewport_current_width is not determined for webmode on the initial downloaded page derieved from cookies to get viewport width, the fallback determined in this editpage determined best guess will be retrieved from flat file..
+          #the system itself keeps track of post current width on full size screen widths: ie this->current-width..  
+          ## Now we start some overly complicated editpage only  determination for initial image size which will be used if the $this->viewport_current_width is not avail. We trying to download the smallest image that does the job. Javascript will resize to larger image as necessry from  samesize/larger cache size of the image.
+          ##in general the system keeps track of post width utiliized within the max size of the primary column except when flex box is as the width determinant then it will be more approx.
+          ##Initial size determined from maxsize desktop and in webpage mode actual viewport width determined from cookie if populated 
+          ##if the rwd system is involved we will bring in max chose##rwd value.
+          ## if break point...
+          $bp_arr=$this->page_break_arr;
 		$maxwidth=0;//intitialize width of maximumun maintain width in maintain_width mode
 		if ($this->column_use_grid_array[$this->column_level]==='use_grid'){ 
 			$max_pic_size=$this->grid_width_chosen_arr['max'.$bp_arr[0]]*$wpercent/100; 
@@ -117,6 +127,7 @@ function build_pic($data,$picdir='',$style_ref='blog_style',$styles_open=true,$b
 			}//display
 		if (!$image_noresize&&!$bypass){
         $maxfullwidth=(!Cfg::Conserve_image_cachespace||(!$this->flex_grow_enabled&&!$this->flex_box_item))?$this->max_width_limit:$maxfullwidth;//ok here we either generate full cache or limit cache under three conditionals:  Cfg::Conserve_image_cachespace is not set to true or not flex_grow_enabled in the parent column tree opening up a column and not flex_box_item  (assumes flex grow enabled in one or more @media).. flex_grow_enabled makes for bigger than expected image spaces under certain conditions.
+	   
 			$dir=Cfg_loc::Root_dir.Cfg::Page_images_dir.Cfg::Response_dir_prefix;
 			$parr=array();
 			$total=$x=0;
@@ -209,6 +220,8 @@ function build_pic($data,$picdir='',$style_ref='blog_style',$styles_open=true,$b
 	list($best_guess,$type,$current_grid_chosen_arr,$maxwidth)=$pic_info_arr; 
 	$current_grid_chosen_arr=(!empty($current_grid_chosen_arr))?unserialize($current_grid_chosen_arr):'';////array becomes size of pic plugging in viewport
 	$best_guess=check_data::key_up($this->page_cache_arr,$best_guess,'val',$this->max_width_limit); //page width provided as ultimate limiter if misconfiged
+     ##ok webmode determination of image size to download!!
+     ##if viewport available::
 	if (!empty($this->viewport_current_width)&&$this->viewport_current_width>200){
 		 if ($type==='rwd'){ 
 			list($key,$width_value)=check_data::key_up($current_grid_chosen_arr,$this->viewport_current_width,'keyval');
@@ -222,39 +235,42 @@ function build_pic($data,$picdir='',$style_ref='blog_style',$styles_open=true,$b
 	else {
 		 $image_width=$best_guess; //do not repspond to no resize images
 		}
-   $image_caption_hover=($img_opt_arr[$image_caption_hover_index]==='nohover')?'nohover':(($img_opt_arr[$image_caption_hover_index]==='hover')?'hover':'below'); 
-   $image_caption_text=(empty($this->blog_tiny_data3))?'':$this->blog_tiny_data3; 
+     $image_caption_hover=($img_opt_arr[$image_caption_hover_index]==='nohover')?'nohover':(($img_opt_arr[$image_caption_hover_index]==='hover')?'hover':'below'); 
+     $image_caption_text=(empty($this->blog_tiny_data3))?'':$this->blog_tiny_data3; 
 	$imagecaption_height=300;//this value may not be necessary (is_numeric($img_opt_arr[$imagecaption_height_index])&&$img_opt_arr[$imagecaption_height_index]>=30&&$img_opt_arr[$imagecaption_height_index]<=125)?$img_opt_arr[$imagecaption_height_index]:75;
    $imagecaption_bottom=(is_numeric($img_opt_arr[$imagecaption_bottom_index])&&$img_opt_arr[$imagecaption_bottom_index]>=-100&&$img_opt_arr[$imagecaption_bottom_index]<=100)?$img_opt_arr[$imagecaption_bottom_index]:0; 
-   $image_internal_link=(strlen($this->blog_tiny_data6)>6)?$this->blog_tiny_data6:'none'; 
-    $image_external_link=(strlen($this->blog_tiny_data5)>8&&strpos($this->blog_tiny_data5,'http')!==false)?$this->blog_tiny_data5:'none'; 
+     $image_internal_link=(strlen($this->blog_tiny_data6)>6)?$this->blog_tiny_data6:'none'; 
+     $image_external_link=(strlen($this->blog_tiny_data5)>8&&strpos($this->blog_tiny_data5,'http')!==false)?$this->blog_tiny_data5:'none'; 
 	$image_width=check_data::key_up($this->page_cache_arr,$image_width,'val',$this->max_width_limit);
 	$respond_data=' data-max-wid="'.$maxwidth.'" data-wid="'.$image_width.'" '; //here we are getting the responsive directory size of image cache... going up in size ...
 	$image_width_dir=Cfg::Response_dir_prefix.$image_width.'/';
-	$fullpicdir=($image_noresize)?Cfg_loc::Root_dir.Cfg::Image_noresize_dir:Cfg_loc::Root_dir.Cfg::Page_images_dir.$image_width_dir;
-   if ($bypass || $picname==='default.jpg'){
+	$fullpicdir=($image_noresize)?Cfg_loc::Root_dir.Cfg::Image_noresize_dir:Cfg_loc::Root_dir.Cfg::Page_images_dir.$image_width_dir; 
+     if ($bypass || $picname==='default.jpg'){
 		$fullpicdir=Cfg_loc::Root_dir; 
-		} 
-   elseif (!$image_noresize&&!is_file($fullpicdir.$picname)&&is_file(Cfg_loc::Root_dir.Cfg::Upload_dir.$picname)){#create image even if not in edit mode
+		}
+          
+     elseif (!$image_noresize&&!is_file($fullpicdir.$picname)&&is_file(Cfg_loc::Root_dir.Cfg::Upload_dir.$picname)){#create image even if not in edit mode
 		$quality=(!empty($img_opt_arr[$image_quality_index])&&$img_opt_arr[$image_quality_index]>9&&$img_opt_arr[$image_quality_index]<101)?$img_opt_arr[$image_quality_index]:((!empty($this->page_options[$this->page_image_quality_index])&&$this->page_options[$this->page_image_quality_index]<101&&$this->page_options[$this->page_image_quality_index]>9)?$this->page_options[$this->page_image_quality_index]:Cfg::Pic_quality);
 		image::image_resize($picname,$image_width,0,0,Cfg_loc::Root_dir.Cfg::Upload_dir, $fullpicdir,'file',NULL,$quality);
 		(Cfg::Development)&&mail::alert_min("creating image resize for $picname edit mode is $this->edit");
 		}
-	elseif (!is_file($fullpicdir.$picname)&&is_file(Cfg_loc::Root_dir.Cfg::Upload_dir.$picname)){
-		copy(Cfg_loc::Root_dir.Cfg::Upload_dir.$picname,$fullpicdir.$picname);
+	elseif (!is_file($fullpicdir.$picname)&&is_file(Cfg_loc::Root_dir.Cfg::Upload_dir.$picname)){//this is no image resize
+		copy(Cfg_loc::Root_dir.Cfg::Upload_dir.$picname,$fullpicdir.$picname);//this is no image resize
 		}
-	else if(empty($picname)||!is_file(Cfg_loc::Root_dir.Cfg::Upload_dir.$picname)){
-     if (is_file(Cfg_loc::Root_dir.Cfg::Large_image_dir.$picname)){
-     copy(Cfg_loc::Root_dir.Cfg::Large_image_dir.$picname,Cfg_loc::Root_dir.Cfg::Upload_dir.$picname);
-     }
-     else {   
-        $msg='Missing main master Image File uploads/'.$picname;
-        mail::alert_min($msg.' on line'.__LINE__,__METHOD__);
-        printer::alert_neg($msg);
-        ($this->edit)&&printer::alert_neg('Your Previous Image Does not Exist. Upload a New Image &nbsp;<a href="add_page_pic.php?orig_id='.$this->orig_val['blog_id'].'&amp;clone_local_data='.$this->clone_local_data.'&amp;blog_image_noexpand='.$image_expand.'&amp;wwwexpand='.$maxplus.'&amp;image_noresize='.$image_noresize.'&amp;expandfield=blog_tiny_data2&amp;prevpic=0&amp;www='.$maxwidth.'&amp;ttt='.$this->blog_table.'&amp;fff=blog_data1&amp;quality='.$quality.'&amp;id='. $this->blog_id.'&amp;id_ref=blog_id&amp;pgtbn='.$this->pagename.'&amp;postreturn='.Sys::Self.'&amp;css='.$this->roots.Cfg::Style_dir.$this->pagename. '&amp;sess_override&amp;sess_token='.$this->sess->sess_token.'"><u>Here</u></a>');
-        printer::pclear(5);
-        }
-		}//picname not exists
+	else if($this->edit&&!is_file(Cfg_loc::Root_dir.Cfg::Upload_dir.$picname)){
+          if (is_file(Cfg_loc::Root_dir.Cfg::Large_image_dir.$picname)){
+               copy(Cfg_loc::Root_dir.Cfg::Large_image_dir.$picname,Cfg_loc::Root_dir.Cfg::Upload_dir.$picname);
+               $msg='Large image directory image coped to file uploads with Missing main master Image File uploads/'.$picname;//
+               mail::alert_min($msg.' on line'.__LINE__,__METHOD__);
+               }
+          else {   
+               $msg='Previous image does not exist. Missing main master Image File uploads/'.$picname;//
+               mail::alert_min($msg.' on line'.__LINE__,__METHOD__);
+               printer::alert_neg($msg);
+               ($this->edit)&&printer::alert_neg('Upload a New Image &nbsp;<a href="add_page_pic.php?orig_id='.$this->orig_val['blog_id'].'&amp;clone_local_data='.$this->clone_local_data.'&amp;blog_image_noexpand='.$image_expand.'&amp;wwwexpand='.$maxplus.'&amp;image_noresize='.$image_noresize.'&amp;expandfield=blog_tiny_data2&amp;prevpic=0&amp;www='.$maxwidth.'&amp;ttt='.$this->blog_table.'&amp;fff=blog_data1&amp;quality='.$quality.'&amp;id='. $this->blog_id.'&amp;id_ref=blog_id&amp;pgtbn='.$this->pagename.'&amp;postreturn='.Sys::Self.'&amp;css='.$this->roots.Cfg::Style_dir.$this->pagename. '&amp;sess_override&amp;sess_token='.$this->sess->sess_token.'"><u>Here</u></a>');
+               printer::pclear(5);
+               }
+		}//picname not exists 
 	switch ($this->blog_type){
 		case 'image':
 			$fstyle='margincenter';
@@ -269,31 +285,34 @@ function build_pic($data,$picdir='',$style_ref='blog_style',$styles_open=true,$b
 			}
 			
 	if ($image_caption_hover==='hover'){
-     echo <<<eol
-   <script>
-   \$(function(){
-     if (window.TOUCHSTART){ 
-        \$('.$this->dataCss a.image_caption p.caption-text').css({'bottom': 0});
+          echo "
+          <!--$this->pagename.js script @ build_pic $this->dataCss-->
+          ";
+     $this->script.= <<<eol
+    
+    
+    if (window.TOUCHSTART){ 
+        jQuery('.$this->dataCss a.image_caption p.caption-text').css({'bottom': 0});
         }
-     });
-   </script>
+     }); 
 eol;
    }     
 	##&&&& Css tweak
 	if ($this->edit){ 
      /*if ($image_height_set){
-       $this->imagecss.='
+       $this->css.='
 			 #'.$this->dataCss.' div.imagewrap img {min-width:0px;}
 			';
         }
      else {//use width set*/
         #set minimum width for image in image text
-         $this->imagecss.='
+         $this->css.='
            .'.$this->dataCss.' div.imagewrap {'.$width_min_mode.'}
-          '; 
+          ';
+          //check for RWD grid array..
         if ($this->blog_tiny_data1==='maintain_width'&&$this->column_use_grid_array[$this->column_level]==='use_grid'){
           $bp_arr=$this->page_break_arr;
-          $this->imagecss.='
+          $this->css.='
            .'.$this->dataCss.'_img {width:'.($this->grid_width_chosen_arr['max'.$bp_arr[0]]*$wpercent/100-$shadowcalc).'px;max-width:'.$maxwidth_adjust_shadow_calc.'%;
            }
           '; 
@@ -305,44 +324,45 @@ eol;
    -webkit-user-select: none !important;
    -webkit-touch-callout: none !important;
    }*/
-          $this->imagecss.='
+          $this->css.='
           @media screen and (max-width: '.$maxdisplay_maintain.'px){';
           
-          $this->imagecss.='
+          $this->css.='
            .'.$this->dataCss.' div.imagewrap { float:none; text-align:center; padding-left:0; padding-right:0;
            } 
            .'.$this->dataCss.'_img { text-align:center;
            }
           ';
-          $this->imagecss.='}
+          $this->css.='}
           ';
            }
         else {
-          $this->imagecss.='
+          $this->css.='
           .'.$this->dataCss.'_img {width:'.$maxwidth_adjust_shadow_calc.'% 
              }
              ';
           }//grid array
         //}//if not image_height set..
-     if (!empty($image_caption_text&&($image_caption_hover==='nohover'||$image_caption_hover==='hover'))){ 
+	  
+     if (!empty($image_caption_text)&&($image_caption_hover==='nohover'||$image_caption_hover==='hover')){  
         static $imagcss=0; $imagcss++;
         if ($imagcss < 2){
-        $this->imagecss.='
-   a.image_caption {
+		$this->css.='
+   .'.$this->dataCss.' a.image_caption {
    display:block;
    position: relative;
    overflow: hidden;
    } 
-   .image_caption p.caption-text {
+   .'.$this->dataCss.' p.caption-text {
    width: 100%;
    position: absolute;
    left: 0; 
    transition: 1s; 
      } ';
       
-        }
-        if ($image_caption_hover==='hover'){
-          $this->imagecss.='
+			}
+     	if ($image_caption_hover==='hover'){
+          $this->css.='
           
    .'.$this->dataCss.' a.image_caption:hover p.caption-text {
     bottom: 0;
@@ -354,18 +374,17 @@ eol;
      bottom: -'.$imagecaption_height.'px;
      }
      ';
-          }
-        else {
-          $this->imagecss.='
+			}
+		else {//nohover
+			$this->css.='
    .'.$this->dataCss.' a.image_caption p.caption-text {
      bottom: '.$imagecaption_bottom.'px;;
      }';
-          } 
-			}
-     else {
-        $this->imagecss.='
+			} 
+		}//hover and no hover
+     else {//below
+        $this->css.='
      .'.$this->dataCss.' a.image_caption p.caption-text {
-     display:inline-block;
      }
      ';
         }
@@ -373,72 +392,76 @@ eol;
 	##&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 	//width="100%" height="'.$hpercent.'%"
 	$imagerespond=(!$image_noresize)?'imagerespond':'';
-   $nolink=false;
-   if (strlen($image_internal_link) > 6)
-     $imagealink='href="'.$image_internal_link.'?gallreturnurl='.Sys::Self.'@@@'.$this->dataCss.str_replace('?','&',$image_internal_query).'"';
-   elseif (strlen($image_external_link) > 6)
-     $imagealink='href="'.$image_external_link.'"';
-   elseif (is_file(Cfg_loc::Root_dir.Cfg::Page_images_expand_dir. $picname)&&$img_opt_arr[$image_noexpand_index]==='display'){
-     $size=process_data::get_size(Cfg::Page_images_expand_dir. $picname);
-     $imagealink='href="#" onclick="gen_Proc.imageexpand(\''.Cfg_loc::Root_dir.Cfg::Page_images_expand_dir. $picname .'\','.$size[0].','.$size[1].');return false;"';
+     $nolink=false;
+     if (strlen($image_internal_link) > 6)
+          $imagealink='href="'.$image_internal_link.'?gallreturnurl='.Sys::Self.'@@@'.$this->dataCss.str_replace('?','&',$image_internal_query).'"';
+     elseif (strlen($image_external_link) > 6)
+          $imagealink='href="'.$image_external_link.'" target="_blank"';
+     elseif (is_file(Cfg_loc::Root_dir.Cfg::Page_images_expand_dir. $picname)&&$img_opt_arr[$image_noexpand_index]==='display'){
+          $size=process_data::get_size(Cfg::Page_images_expand_dir. $picname);
+          $imagealink='href="#" onclick="gen_Proc.imageexpand(\''.Cfg_loc::Root_dir.Cfg::Page_images_expand_dir. $picname .'\','.$size[0].','.$size[1].');return false;"';
      }
-   else {#imagewebpage #image webpage mode
-     $imagealink='href="#" style="cursor:default;text-decoration:none;"';
-     $nolink=true;
-     }
-   if(!$this->edit||($this->is_clone&&!$this->clone_local_data)){ 
-     printer::printx('<div class="'.$imagerespond.' imagewrap '.$fstyle. '"'.$respond_data.'><a class="image_caption" '.$imagealink.'> <img '.$overridestyle.' class="'.$this->dataCss.'_img '.$this->blog_type.'_img" src="'.$fullpicdir. $picname.'"  alt="'.$alt.'" ><p class="caption-text">'.$image_caption_text.'</p></a></div>');
-     ($this->blog_type!=='image')&&
-     $this->blog_text_float_box($data);//!edit			 
-		}
+     else {#imagewebpage #image webpage mode
+          $imagealink='href="#" style="cursor:default;text-decoration:none;"';
+          $nolink=true;
+          }
+     #express webmode image
+     if(!$this->edit||($this->is_clone&&!$this->clone_local_data)){ 
+          printer::printx('
+<div class="'.$imagerespond.' imagewrap '.$fstyle. '"'.$respond_data.'><a class="image_caption" '.$imagealink.'> <img '.$overridestyle.' class="'.$this->dataCss.'_img '.$this->blog_type.'_img" src="'.$fullpicdir. $picname.'"  alt="'.$alt.'" ><p class="caption-text">'.$image_caption_text.'</p></a></div>');
+          ($this->blog_type!=='image')&&
+          $this->blog_text_float_box($data);//!edit
+          }
 	if (!$this->edit||($this->is_clone&&!$this->clone_local_data&&!$this->clone_local_style))return;
-   if ($nolink) 
-        $this->imagecss.='
-        #'.$this->dataCss.'a.image_caption:hover,#'.$this->dataCss.' a:hover {color:inherit;}
+     if ($nolink) 
+        $this->css.='
+        #'.$this->dataCss.' a.image_caption:hover,#'.$this->dataCss.' a:hover {color:inherit;}
         ';
 	printer::pspace(5); 
 	printer::pclear(5); 
-   $prefix=($this->clone_local_data)?'p':'';
+     $prefix=($this->clone_local_data)?'p':'';
 	$minwid= ($this->current_net_width >100)?$this->current_net_width:100;//
 	$size=process_data::input_size($minwid,16,40);// Not that font size is css hard coded to 16px in edit_build_pic...
 	if (!$this->is_clone||$this->clone_local_data){ 	
 		printer::alert('Click the photo to upload a new one','',' left floatleft fsminfo editbackground editfont infoback rad5 info maroonshadow');
 		printer::pclear();
-		printer::alertx('<div class="'.$imagerespond.' imagewrap '.$fstyle. '"'.$respond_data.'><a class="image_caption" href="add_page_pic.php?orig_id='.$this->orig_val['blog_id'].'&amp;clone_local_data='.$this->clone_local_data.'&amp;blog_image_noexpand='.$image_expand.'&amp;wwwexpand='.$maxplus.'&amp;expandfield=blog_tiny_data2&amp;www='.$fwidth.'&amp;ttt='.$this->blog_table.'&amp;fff=blog_data1&amp;id='.$prefix.$this->blog_id.'&amp;id_ref=blog_id&amp;pgtbn='.$this->pagename.'&amp;postreturn='.Sys::Self.'&amp;css='.$this->roots.Cfg::Style_dir.$this->pagename.'&amp;quality='.$quality.'&amp;sess_override&amp;sess_token='.$this->sess->sess_token.'"><img class="'.$this->dataCss.'_img '.$this->blog_type.'_img" src="'.$fullpicdir. $picname.'"  alt="'.$alt.'" ><p class="caption-text">'.$image_caption_text.'</p></a></div>');
+		printer::alertx('
+<div class="'.$imagerespond.' imagewrap '.$fstyle. '"'.$respond_data.'><a class="image_caption" href="add_page_pic.php?orig_id='.$this->orig_val['blog_id'].'&amp;clone_local_data='.$this->clone_local_data.'&amp;blog_image_noexpand='.$image_expand.'&amp;wwwexpand='.$maxplus.'&amp;expandfield=blog_tiny_data2&amp;www='.$fwidth.'&amp;ttt='.$this->blog_table.'&amp;fff=blog_data1&amp;id='.$prefix.$this->blog_id.'&amp;id_ref=blog_id&amp;pgtbn='.$this->pagename.'&amp;postreturn='.Sys::Self.'&amp;css='.$this->roots.Cfg::Style_dir.$this->pagename.'&amp;quality='.$quality.'&amp;sess_override&amp;sess_token='.$this->sess->sess_token.'"><img class="'.$this->dataCss.'_img '.$this->blog_type.'_img" src="'.$fullpicdir. $picname.'"  alt="'.$alt.'" ><p class="caption-text">'.$image_caption_text.'</p></a></div>');
 		}
 	if($this->blog_type!=='image'){//&&!$this->is_clone
 		$this->blog_text_float_box($data);
-		printer::pclear(5); 
-		printer::pclear(5);
 		}
-   
-   
-   if (!$this->is_clone||$this->clone_local_style)$this->show_more('Styling &amp; Image Configs');
-   if (!$this->is_clone||$this->clone_local_style)printer::print_wrap('image configs');
-   if (!$this->is_clone||$this->clone_local_style)$this->submit_button();
-   if (!$this->is_clone||$this->clone_local_data){   
-     $this->show_more('Change Image Filename/Alt image title');
-     $this->print_redwrap('image name'); 
-     printer::print_tip('Change Image to a Previously uploaded Image<input type="text" name="'.$data.'_blog_data1[0]" size="75" value="'.$picname.'">');  
-     printer::printx('<div class=" maroonshadow floatleft left fsmcherry editbackground editfont fsmblack rad5 infoback editfont"> The alt title is an accessibility tool and has Search Engine (ie. duckduckgo, google) value to better search-rank your site so you can choose a title which reflects a couple search terms that describe this page and/or image<p class="editcolor editbackground editfont">Optional Alt title for Image:<br><textarea name="'.$data.'_blog_data1[1]" cols="50" rows="3" onkeyup="gen_Proc.autoGrowFieldScroll(this)">'.$alt.'</textarea></p></div>');
-     printer::pclear();
-     printer::close_print_wrap('Change Image Filename');
-     $this->show_close('Change Image Filename');
-     }
-   $msg=(!$this->is_clone)?'Add/Style Image Caption/Link':(($this->clone_local_style)?'Style Image Caption/Link':'Add Image Caption/Link');
+     if (!$this->is_clone||$this->clone_local_style)$this->show_more('Styling &amp; Image Configs');
+     if (!$this->is_clone||$this->clone_local_style)printer::print_wrap('image configs');
+     if (!$this->is_clone||$this->clone_local_style)$this->submit_button();
+     if (!$this->is_clone||$this->clone_local_data){   
+          $this->show_more('Change Image Filename/Alt image title');
+          $this->print_redwrap('image name'); 
+          printer::print_tip('Change Image to a Previously uploaded Image<input type="text" name="'.$data.'_blog_data1[0]" size="75" value="'.$picname.'">');  
+          printer::printx('
+<div class=" maroonshadow floatleft left fsmcherry editbackground editfont fsmblack rad5 infoback editfont"> The alt title is an accessibility tool and has Search Engine (ie. duckduckgo, google) value to better search-rank your site so you can choose a title which reflects a couple search terms that describe this page and/or image<p class="editcolor editbackground editfont">Optional Alt title for Image:<br><textarea name="'.$data.'_blog_data1[1]" cols="50" rows="3" onkeyup="gen_Proc.autoGrowFieldScroll(this)">'.$alt.'</textarea></p></div>');
+          printer::pclear();
+          printer::close_print_wrap('Change Image Filename');
+          $this->show_close('Change Image Filename');
+          }
+     $msg=(!$this->is_clone)?'Add/Style Image Caption/Link':(($this->clone_local_style)?'Style Image Caption/Link':'Add Image Caption/Link');
      $this->show_more($msg,'','','',500,'','float:left',true);
-		$this->print_redwrap('Image Caption/Link');
+	$this->print_redwrap('Image Caption/Link');
      if (!$this->is_clone||$this->clone_local_style){
         $imagecaptiontitle='.'.$this->dataCss.' .image_caption p.caption-text';printer::print_info('Style captions in Image with choices below for background color with opacity change and top and bottom padding. You can also tweak the height setting for hover captions if needed!');
         printer::print_tip('Choose Hover to display caption only when image is hovered over (touchscreen devices will display fulltime however). Choose Display Caption In Image to display all the time inside the image for all devices. Choose Display Caption Under Image to display all the time under the image');
-        $this->edit_styles_close($data,'blog_data5',$imagecaptiontitle,'width_special,width_max_special,width_min_special,float,background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,borders,box_shadow,outlines,radius_corner,font_color,text_shadow,font_family,font_size,font_weight,text_align,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline','Style the <b>Background/Spacing/Text</b> of Captions in Images',false,''); 
+        $this->edit_styles_close($data,'blog_data5',$imagecaptiontitle,'width_special,width_max_special,width_min_special,width_media_unit,float,background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,margin_right,borders,box_shadow,outlines,radius_corner,font_color,text_shadow,font_family,font_size,font_media_unit,font_weight,text_align,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline','Style Caption',false,''); 
         $checked1=($image_caption_hover==='nohover')?' checked="checked"':'';
         $checked2=($image_caption_hover==='hover')?' checked="checked"':'';
         $checked3=($image_caption_hover!=='hover'&&$image_caption_hover!=='nohover')?' checked="checked"':'';
+	   printer::print_wrap('wrap caption choice');
         printer::alert('<input type="radio" value="nohover" name="'.$data.'_'.$img_opt.'['.$image_caption_hover_index.']" '.$checked1.'>Display Caption in Image on all devices');
         printer::alert('<input type="radio" value="hover" name="'.$data.'_'.$img_opt.'['.$image_caption_hover_index.']" '.$checked2.'>Hover Caption in Image (Hovers on non touchscreen devices and displays In-Image by default on touchscreen devices)');
-        printer::alert('<input type="radio" value="under_image" name="'.$data.'_'.$img_opt.'['.$image_caption_hover_index.']" '.$checked3.'>Display Caption Under Image');
-        echo '<div class="fsminfo editbackground editfont '.$this->column_lev_color.' floatleft editfont maxwidth500"><!--finetunebottom--> 
+        printer::alert('<input type="radio" value="below" name="'.$data.'_'.$img_opt.'['.$image_caption_hover_index.']" '.$checked3.'>Display Caption Under Image');
+	   
+	   printer::close_print_wrap('wrap caption choice');
+        echo '
+<div class="fsminfo editbackground editfont '.$this->column_lev_color.' floatleft editfont maxwidth500"><!--finetunebottom--> 
         Fine Tune Your Caption Bottom if Necessary (on hover if set to hover)'; 
         printer::print_tip('By Default the bottom of the caption is set to the bottom of the Image 0px. Fine tune that value here as required. Negative #s lower Positive numbers raise it');
         $msgjava='Choose height adjust caption bottom:';
@@ -456,10 +479,12 @@ eol;
         printer::print_notice('<br>Note: internal links will override external links. Use None to remove internal link');
         $this->choose_nav($data,'blog_tiny_data6');
         printer::pclear();
-        printer::alertx('<p class="floatleft editcolor editbackground editfont smaller">Add an internal link query ie. ?slipstart=2<br><input type="text" name="'.$data.'_blog_tiny_data4" value="'.$this->blog_tiny_data4.'"> <span class="info" title="query starts with ? &amp; slipstart=2 would start slippry gallery on slide #2 if the linked page contains a slippry gallery with configuration option set to auto play">More info </span></p>'); 
+        printer::alertx('<p class="floatleft editcolor editbackground editfont smaller">Add an internal link query ie. ?slipstart=2<br><input type="text" name="'.$data.'_blog_tiny_data4" value="'.$this->blog_tiny_data4.'"> <span class="info" title="query starts with ? &amp; slipstart=2 would start slippry gallery on slide #2 if the linked page contains a slippry gallery with configuration option set to auto play">hover info </span></p>'); 
         printer::close_print_wrap1('internalwrap');
         printer::pclear(5);
-        printer::alert('OR Enter an external link<br><input type="text" name="'.$data.'_blog_tiny_data5" value="'.$this->blog_tiny_data5.'">'); 
+        printer::alert('OR Enter an external link<br>(opens in new window)');
+	   $this->textarea($this->blog_tiny_data5 ,$data.'_blog_tiny_data5','600','16');
+        printer::pclear(5);
         $this->close_print_wrap('image link');
         $this->show_close('Add image link'); 
         }
@@ -481,7 +506,8 @@ eol;
      printer::print_wrap('Relative Image Sizing');
      printer::print_notice('Optionally tweak Customize the relative Image proportion <b>(generally for Image Float Right/Left Text posts)</b> with the following Options. ');
      printer::pclear();
-     echo '<div class="fs1color floatleft"><!--Edit image Width Adjust-->';  
+     echo '
+<div class="fs1color floatleft"><!--Edit image Width Adjust-->';  
      $msgjava='Choose Relative Width percent of image in post:'; 
      $this->mod_spacing($data.'_'.$img_opt.'['.$image_width_limit_index.']',$wpercent,0,100,1,'%','none',$msgjava); 
      echo '</div><!--Edit image Width Adjust-->';
@@ -508,19 +534,19 @@ eol;
      $mediamin=$media_arr[0];
      $image_per=$media_arr[1];
      if(!empty($mediamax)&&!empty($mediamin)&&!empty($image_per)) {
-			 $this->mediacss.='
+			 $this->css.='
 @media screen and (max-width:'.$mediamax.'px) and (min-width:'.$mediamin.'px){ 	
    div.'.$this->dataCss.' div.imagewrap{width:'.$image_per.'%;max-width:none;min-width:none;}
 }';
 			}
 		elseif (!empty($mediamax)&&!empty($image_per)){
-			 $this->mediacss.='
+			 $this->css.='
 @media screen and (max-width: '.$mediamax.'px){ 
    div.'.$this->dataCss.' div.imagewrap{width:'.$image_per.'%;max-width:none;min-width:none;}
 }';
         }
 		elseif (!empty($mediamax)&&!empty($image_per)) {
-			 $this->mediacss.='
+			 $this->css.='
 @media screen and (min-width: '.$mediamin.'px){
  div.'.$this->dataCss.' div.imagewrap{width:'.$image_per.'%;max-width:none;min-width:none;}
 }';
@@ -530,12 +556,15 @@ eol;
      printer::close_print_wrap('media 100 percent');
      $checked1=($this->blog_tiny_data1==='maintain_width')? 'checked="checked"':'';
      $checked2=($this->blog_tiny_data1==='maintain_width')?'':'checked="checked"';
-     echo '<div class="fsminfo floatleft '.$this->column_lev_color.' editfont editbackground editfont editcolor"><!--Edit image Limiter Mode-->';
+     echo '
+<div class="fsminfo floatleft '.$this->column_lev_color.' editfont editbackground editfont editcolor"><!--Edit image Limiter Mode-->';
      printer::print_tip('If Width adjust is being used such as with text image floating posts you can Choose To Scale Image or Maintain Image Size when scaling down For smaller Screen Views <br>');
      printer::alertx('<p class="fs1'.$this->column_lev_color.'" title="In Maintain Image Size Mode, Images with width limiting or Images with float text size will not scale down proportionally but maintain size up to the post max width!"><input type="radio" name="'.$data.'_blog_tiny_data1" '.$checked1.' value="maintain_width">Maintain Image Size<span class="info"> more info</span><p>');
      $stylemin='';//($this->blog_tiny_data1==='maintain_width')?'style="display:none;':'';		 
-     echo '<div class="fs1'.$this->column_lev_color.'" title="In image Scale mode Mode images will scale down proportionally with spaces or text on smaller view screens"><!--scale images--><input type="radio" onclick="gen_Proc.showIt(\''.$data.'_showmin\');" name="'.$data.'_blog_tiny_data1" '.$checked2.' value="0">Scale Images<span class="info"> more info</span>';
-     echo '<div id="'.$this->dataCss.'_showmin" '.$stylemin.'><!--show min width-->';
+     echo '
+<div class="fs1'.$this->column_lev_color.'" title="In image Scale mode Mode images will scale down proportionally with spaces or text on smaller view screens"><!--scale images--><input type="radio" onclick="gen_Proc.showIt(\''.$data.'_showmin\');" name="'.$data.'_blog_tiny_data1" '.$checked2.' value="0">Scale Images<span class="info"> more info</span>';
+     echo '
+<div id="'.$this->dataCss.'_showmin" '.$stylemin.'><!--show min width-->';
      printer::alert('Optionally Choose a minimum width for scaled images as necessary',0,'fsmredAlert editbackground editfont editcolor editfont');
      $this->mod_spacing($data.'_'.$img_opt.'['.$image_min_index.']',$image_min,10,600,1,'px','none');
      echo '</div><!--show min width-->';
@@ -553,7 +582,8 @@ eol;
      else printer::printx('<p class="highlight floatleft fsminfo" title="Check to prevent Image Expansion when this Image is clicked"><input type="checkbox" name="'.$data.'_'.$img_opt.'['.$image_noexpand_index.']" value="no_display">Prevent Image Click Expanded Image</p>');
      printer::pclear();
      $maxplus=(!empty($img_opt_arr[$image_max_expand_index])&&$img_opt_arr[$image_max_expand_index]>50)?$img_opt_arr[$image_max_expand_index]:((!empty($this->page_options[$this->page_max_expand_image_index])&&$this->page_options[$this->page_max_expand_image_index]>50)?$this->page_options[$this->page_max_expand_image_index]:Cfg::Page_pic_expand_plus);
-     printer::printx('<div title="Change this default maximum width or height value '.$maxplus.' for this image." id="'.$this->dataCss.'_expandsize_show" '.$genstyle.' class="fsminfo highlight floatleft"><!--imageplus-->Change Expanded Image height or width setting whichever is larger:');
+     printer::printx('
+<div title="Change this default maximum width or height value '.$maxplus.' for this image." id="'.$this->dataCss.'_expandsize_show" '.$genstyle.' class="fsminfo highlight floatleft"><!--imageplus-->Change Expanded Image height or width setting whichever is larger:');
      $this->mod_spacing($data.'_'.$img_opt.'['.$image_max_expand_index.']',$maxplus,25,1500,10,'px');
      printer::printx('</div><!--imageplus-->');
      printer::pclear();
@@ -576,11 +606,14 @@ eol;
      printer::pclear();
      $this->print_wrap('image resize');
      printer::print_tip('Image Cache generation is suggested for larger images which enables Optimum download sizes for speed and bandwidth usage. Small images are better off not being resized to maintain maximum image quality. Animated Gif and Svg images will not be resized from original uploaded sizes.');
+	printer::print_wrap('resize');
      if ($img_opt_arr[$image_noresize_index]!=='noresize') 
         printer::printx ('<p class="highlight floatleft" title="Check to Allow Image Resize when this Image is clicked"><input type="checkbox" name="'.$data.'_'.$img_opt.'['.$image_noresize_index.']"  value="noresize">Do not Allow Image Resize Cache Generation</p>');
              
      else printer::printx('<p class="highlight floatleft fsminfo" title="Check to prevent Image Expansion when this Image is clicked"><input type="checkbox" name="'.$data.'_'.$img_opt.'['.$image_noresize_index.']" value="resize">Allow Image Resize Cache Generation</p>');
-     echo'<div class="floatleft editbackground editfont editcolor fsminfo highlight" title="By Default Uploaded Images will have a Quality factor of '.Cfg::Pic_quality.' with 100 being the highest and 10 the lowest. The higher the image quality the larger the filesize and the slower the download speed. Change the Default value here which will effect all uploaded images on the site that are not specifically configured for this value in the image, slideshow, or gallery configurations" ><!--quality image-->Change Default Image Quality setting:';
+	printer::close_print_wrap('resize');
+     echo'
+<div class="floatleft editbackground editfont editcolor fsminfo highlight" title="By Default Uploaded Images will have a Quality factor of '.Cfg::Pic_quality.' with 100 being the highest and 10 the lowest. The higher the image quality the larger the filesize and the slower the download speed. Change the Default value here which will effect all uploaded images on the site that are not specifically configured for this value in the image, slideshow, or gallery configurations" ><!--quality image-->Change Default Image Quality setting:';
      $this->mod_spacing($data.'_'.$img_opt.'['.$image_quality_index.']',$quality,10,100,1,'%');
         printer::print_info('Images will auto reload @ new Quality setting');
      echo'</div><!--quality image-->'; 
@@ -594,7 +627,7 @@ eol;
 	$this->background_img_px=$fwidth+$pad_width;
 	$global_field=($this->blog_global_style==='global')?',.'.$this->col_dataCss.' > .'.$this->blog_type.'_img , .'.$this->col_dataCss.' >fieldset>.'.$this->blog_type.'_img':'';
 	$globalmsg=($this->blog_global_style==='global')?' Global Style':'';
-	$this->edit_styles_close($data,'blog_data4','.'.$this->dataCss.'_img'.$global_field,'background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,borders,box_shadow,outlines,radius_corner','Style Image Border,Radius, &amp; Image Spacing '.$globalmsg,false,'Style an Image Border and background effect here. Remember that Margin spacing is outside the image border whereas Padding spacing will put space between a border and the image.',true,'',true); 
+	$this->edit_styles_close($data,'blog_data4','.'.$this->dataCss.'_img'.$global_field,'background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,borders,box_shadow,outlines,radius_corner','Style Image Border,Radius, &amp; Image Spacing '.$globalmsg,false,'Style an Image Border and background effect here. Remember that Margin spacing is outside the image border whereas Padding spacing will put space between a border and the image.',true,'',true); 
 	printer::pclear();
 	#ok here if marked as global the results of these styles choices will directly style this blog type but also the parent column.text.. as shown...
 	#all fields done cause blog_global_style equalling global applies to all fields that are chosen to be included
@@ -611,7 +644,8 @@ function choose_nav($data,$index){if (Sys::Quietmode) return; if (Sys::Pass_clas
 	$this->show_more('Choose Link to Page within this site','',$this->column_lev_color.' smaller editbackground editfont button'.$this->column_lev_color,'',800);
 	echo '<p class="info Os3darkslategray fsmyellow editbackground editfont click" onclick="gen_Proc.use_ajax(\''.Sys::Self.'?choose_pagenav='.$data.'&amp;choose_index='.$index.'\',\'handle_replace\',\'get\');" >Gen Page List to choose From</p>';
 	printer::pclear();
-	echo '<div id="choose_pagenav_'.$data.'" class="small width100 left floatleft fsminfo editbackground editfont editcolor"></div>'; 
+	echo '
+<div id="choose_pagenav_'.$data.'" class="small width100 left floatleft fsminfo editbackground editfont editcolor"></div>'; 
 	$this->show_close('restore backups');
    printer::pclear(7);
 	}
@@ -626,6 +660,7 @@ function blog_text_float_box($data){
 	static $myinc=0; $myinc++;
 	if (!empty($this->blog_text&&!$this->edit)){
 		echo process_data::clean_break($this->blog_text);
+          printer::pclear();
 		return; 
 		} 
 	else if (!$this->edit)return;
@@ -639,11 +674,13 @@ function blog_text_float_box($data){
 	$display_editor=($this->blog_options[$this->blog_editor_use_index]==='use_editor')?'enableTiny ':'divTextArea';
 	$rowlength=($cols<3)?3:process_data::row_length($this->blog_text,$cols); 
 	$print=($this->blog_options[$this->blog_editor_use_index]==='use_editor')?'':
-		'<div class="'.$this->column_lev_color.' floatleft cursor smallest editbackground editfont editcolor editfont shadowoff rad3 button'.$this->column_lev_color.'" onclick="edit_Proc.enableTiny(this,\''.$data.'_blog_text\',\'divTextArea\');">Use TinyMce</div>';
+		'
+<div class="'.$this->column_lev_color.' floatleft cursor smallest editbackground editfont editcolor editfont shadowoff rad3 button'.$this->column_lev_color.'" onclick="edit_Proc.enableTiny(this,\''.$data.'_blog_text\',\'divTextArea\');">Use TinyMce</div>';
 	echo $print;
 	printer::pspace(3);
    $this->blog_text=(strlen($this->blog_text)<2)?'<br>Enter text here':$this->blog_text;
-	echo '<div id="'.$data.'_blog_text" class="'.$display_editor.' '.$data.' min100 cursor">'; 
+	echo '
+<div id="'.$data.'_blog_text" class="'.$display_editor.' '.$data.' min100 cursor">'; 
 		echo process_data::clean_break($this->blog_text); 
 	echo '</div>';
 	$blog_text=($this->blog_options[$this->blog_editor_use_index]==='use_editor')?process_data::textarea_validate($this->blog_text):process_data::textarea_validate(process_data::remove_html_break($this->blog_text));
@@ -774,18 +811,22 @@ function gallery($data,$gall_ref=''){
 					}
 				printer::printx('</select></p>');
 				printer::pclear(20);
-				echo '<div id="gallref_image_choice_'.$inc.'"><!--display image choice--></div><!--display image choice-->';
+				echo '
+<div id="gallref_image_choice_'.$inc.'"><!--display image choice--></div><!--display image choice-->';
 				printer::pclear(20);
-				echo '<div id="gallref_title_'.$inc.'" class="editbackground editfont editcolor" style="display:none">Enter a title For Your Gallery<input type="text" name="master_title['.$gall_ref.']" maxlength="50" size="50"></div>'; 
+				echo '
+<div id="gallref_title_'.$inc.'" class="editbackground editfont editcolor" style="display:none">Enter a title For Your Gallery<input type="text" name="master_title['.$gall_ref.']" maxlength="50" size="50"></div>'; 
 				printer::pclear();
-				echo '<div id="dis_gallref_title_'.$inc.'"><!--or Continue-->';
+				echo '
+<div id="dis_gallref_title_'.$inc.'"><!--or Continue-->';
 				printer::alert('<br>OR<br><br>');
 				printer::pclear();
 				printer::alertx('<p class="highlight floatleft editbackground editfont" title="two or more galleries required to make master gallery">Continue Below to Configure a Normal Gallery and Upload your first image</p>');
 				printer::pspace(20);
 				echo '</div><!--or Continue-->';
 				printer::pspace(20);
-				echo'<div id="show_gallref_title_'.$inc.'" class="warn1 center inline" style="display:none;">Following your selection of image and entering the title hit any submit button and Configurations applicable to a Master Gallery Will Appear along with your First Gallery choice in this Master Gallery Post<!--show submit button and info-->';
+				echo'
+<div id="show_gallref_title_'.$inc.'" class="warn1 center inline" style="display:none;">Following your selection of image and entering the title hit any submit button and Configurations applicable to a Master Gallery Will Appear along with your First Gallery choice in this Master Gallery Post<!--show submit button and info-->';
 				$this->submit_button('Submit Create Master Gallery');
 				echo'</div>';
 				//echo '</div><!--wrap master gall href-->';
@@ -796,7 +837,8 @@ function gallery($data,$gall_ref=''){
 	 	else {
 			$this->show_more('Master Gallery Info','noback','fs2info rad3 smallest editbackground editfont '.$this->column_lev_color,'',500);
 			printer::print_wrap('Master Gallery Info');
-        echo '<div class="fsminfo floatleft editbackground editfont"><!--wrap master gall href-->';
+        echo '
+<div class="fsminfo floatleft editbackground editfont"><!--wrap master gall href-->';
 			if (!$this->master_gallery)
 				printer::alertx('<p class="'.$this->column_lev_color.' floatleft editbackground editfont"> When two or more galleries are created on this site and A new gallery is created with no images uploaded an option to create a master gallery will be displayed here. A master gallery is a Gallery of Galleries having a Title, an Image, and link to each Gallery Collection.</p>');
 			else printer::alertx('<p class="'.$this->column_lev_color.' floatleft editbackground editfont">New Gallery Collections may be added to the Master Gallery see the option below</p>');
@@ -809,7 +851,8 @@ function gallery($data,$gall_ref=''){
      if ($gcount >0){
         $this->show_more('Import/Start New Gallery','noback','fsminfo rad3 small editbackground editfont '.$this->column_lev_color,'','full');
         printer::print_wrap('Import/Start New Gallery');
-        echo '<div class="fs2black floatleft editbackground editfont maxwidth700"><!--wrap reg gall href-->';
+        echo '
+<div class="fs2black floatleft editbackground editfont maxwidth700"><!--wrap reg gall href-->';
         printer::alertx('<p class="tip rad3 maxwidth100 floatleft " title="Move Previously Created gallery Here">'.$gcount.' galleries exist in this site</p>');
         printer::pclear();
         printer::alertx('<p class="'.$this->column_lev_color.' floatleft editbackground editfont">When two or more galleries are created on this site a "master gallery" may be created to display a Gallery of Galleries or in other words a listing of your galleies with each having a Title, an Image, and link to each individual Gallery Collection.</p>');
@@ -823,8 +866,10 @@ function gallery($data,$gall_ref=''){
           printer::printx('<option value="'.$choosegall_ref.'">'."GallRef: $choosegall_ref with PageRef: $ch_gall_table".'</option>');
           }
         printer::printx('</select></p>');
-        echo '<div class="editcolor editbackground editfont" id="gall_image_select_'.$inc.'"><!--display image choice--></div><!--display image choice-->';
-        echo '<div class="editcolor editbackground editfont" id="gallref_title_'.$inc.'"><!--display hold--></div><!--display hold-->';//this is not used in regular gallery provides div id placeholder only because is needed in master gallery
+        echo '
+<div class="editcolor editbackground editfont" id="gall_image_select_'.$inc.'"><!--display image choice--></div><!--display image choice-->';
+        echo '
+<div class="editcolor editbackground editfont" id="gallref_title_'.$inc.'"><!--display hold--></div><!--display hold-->';//this is not used in regular gallery provides div id placeholder only because is needed in master gallery
         printer::pclear(20);
         printer::pclear(20);
         echo '</div><!--wrap reg gall href-->';
@@ -1139,36 +1184,41 @@ function gallery($data,$gall_ref=''){
 		if (!$this->master_gallery){ 
 			$this->show_more('Configure Your Gallery Display','','','',700,'','float:left;',true);#<!--Configure gallery-->
 			printer::print_wrap('config Gallery');
-        echo '<div class="'.$this->column_lev_color.' fs1color floatleft editbackground editfont left" ><!--config gall settings-->';
+        echo '
+<div class="'.$this->column_lev_color.' fs1color floatleft editbackground editfont left" ><!--config gall settings-->';
 			 
-			echo '<div class="fsmmaroon floatleft left maroon" style="background:#c6a5a5;" > <span class="bold whiteshadow">The open source Slippry, Photoswipe, and Highslide projects offer 3 different gallery presentation options for expanded closeup views of images and captions. For extensive captions Slippry is best option.</span><!--gall display setting-->';
+			echo '
+<div class="fsmmaroon floatleft left maroon" style="background:#c6a5a5;" > <span class=" white">The open source Slippry, Photoswipe, and Highslide projects offer 3 different gallery presentation options for expanded closeup views of images and captions. For larger captions Slippry is best option.</span><!--gall display setting-->';
 			printer::pclear(7); 
-			echo '<div class="maroon fs2maroon floatleft left" style="background:#dccbcb;"><!--Expand Gallery display setting-->';
+			echo '
+<div class="maroon fs2maroon floatleft left" style="background:#dccbcb;"><!--Expand Gallery display setting-->';
 			printer::print_tip('Slippry Gallery works well with special height effects');
-			printer::alert('These first 7 Choices utilize the Slippry Gallery Project:',false,'whitebackground center bold fs1maroon'); 
-			echo '<div class="maroon fs1maroon floatleft left" style="background:#dccbcb;" ><!--separate preview Expand Gallery display setting--> ';
+			printer::alert('These first 7 Choices utilize the <a href="https://github.com/booncon/slippry" class="underline ekblue cursor" target="_blank"> Slippry Gallery Project</a> by booncon:',false,'whitebackground center bold fs1maroon'); 
+			echo '
+<div class="maroon fs1maroon floatleft left" style="background:#dccbcb;" ><!--separate preview Expand Gallery display setting--> ';
 			printer::print_custom_wrap('separate preview page','maroon','whitebackground maroon');
 			printer::print_tip('Choice for separate preview images page display. When clicked the gallery slideshow expands to simulate new page');
-			printer::printx('<p class="bold">1.<input type="radio" value="expand_preview_multiple" name="'.$data.'_blog_data2['.$preview_index.']" '.$checked1.'>Choose Slippry with Multiple Preview Images Per Row for Separate Preview Display.</p>');
-			printer::printx('<p class="bold">2.<input type="radio" value="expand_preview_single_row" name="'.$data.'_blog_data2['.$preview_index.']" '.$checked2.'>Choose Slippry with a Single Preview Images Per Row for Separate Preview Display </p>');
-			printer::printx('<p class="bold">3.<input type="radio" value="expand_preview_single_pic" name="'.$data.'_blog_data2['.$preview_index.']" '.$checked3.'>Choose Slippry with one Preview Image only to open into full gallery </p>');
+			printer::printx('<p class="">1.<input type="radio" value="expand_preview_multiple" name="'.$data.'_blog_data2['.$preview_index.']" '.$checked1.'>Choose Slippry with Multiple Preview Images Per Row for Separate Preview Display.</p>');
+			printer::printx('<p class="">2.<input type="radio" value="expand_preview_single_row" name="'.$data.'_blog_data2['.$preview_index.']" '.$checked2.'>Choose Slippry with a Single Preview Images Per Row for Separate Preview Display </p>');
+			printer::printx('<p class="">3.<input type="radio" value="expand_preview_single_pic" name="'.$data.'_blog_data2['.$preview_index.']" '.$checked3.'>Choose Slippry with one Preview Image only to open into full gallery </p>');
 			printer::close_print_wrap('separate preview page'); 
 			printer::pclear(15); 
 			printer::print_custom_wrap('preview under or none sub choices','maroon','whitebackground maroon');
 			//$this->print_wrap('preview under or none sub choices','fsmmaroon');
 			printer::print_tip('The following four choices display in normal page context');
-			printer::printx('<p class="bold">4.<input type="radio" value="preview_under_expand" name="'.$data.'_blog_data2['.$preview_index.']" '.$checked4.'>Choose Slippry full set of small Preview Images Under the Expanded Image Gallery</p>'); 
-			printer::printx('<p class="bold">5.<input type="radio" value="expand_preview_none" name="'.$data.'_blog_data2['.$preview_index.']" '.$checked5.'>Choose Slippry with No Preview Images </p>');
+			printer::printx('<p class="">4.<input type="radio" value="preview_under_expand" name="'.$data.'_blog_data2['.$preview_index.']" '.$checked4.'>Choose Slippry full set of small Preview Images Under the Expanded Image Gallery</p>'); 
+			printer::printx('<p class="">5.<input type="radio" value="expand_preview_none" name="'.$data.'_blog_data2['.$preview_index.']" '.$checked5.'>Choose Slippry with No Preview Images </p>');
 			printer::print_custom_wrap('slide_show','maroon','lightestmaroonbackground maroon');
 			printer::print_tip('Use Slippry slide show Mode. Slide show mode differs from gallery mode by running automatically with no controls at top nor within the image, no preview images, no captions below the image with only a short title caption (if mini chosen and added) inset into images.'); 
-			printer::printx('<p class="bold">6.<input type="radio" value="slide_caption" name="'.$data.'_blog_data2['.$preview_index.']" '.$checked6.'>Choose Slippry with Auto slide Show Mode with mini captions within photo</p>'); 
-			printer::printx('<p class="bold">7.<input type="radio" value="slide" name="'.$data.'_blog_data2['.$preview_index.']" '.$checked7.'>Choose Slippry with Auto slide Show Mode No captions</p>');
+			printer::printx('<p class="">6.<input type="radio" value="slide_caption" name="'.$data.'_blog_data2['.$preview_index.']" '.$checked6.'>Choose Slippry with Auto slide Show Mode with mini captions within photo</p>'); 
+			printer::printx('<p class="">7.<input type="radio" value="slide" name="'.$data.'_blog_data2['.$preview_index.']" '.$checked7.'>Choose Slippry with Auto slide Show Mode No captions</p>');
 			printer::pclear(5);
 			
 			printer::close_print_wrap('slide_show'); 
 			printer::close_print_wrap('preview under or none sub choices');
 			printer::pclear(10); 
-			echo '<div class="fsmlightred marginauto center inline-table" style="width:70%; background: rgba(255,255,255,.5);" ><!--Choose Transition Type--><p class="center small bold">Choose Slippry Gallery Transition:<span class="smallest"> <br>(for all the above choices)</span></p>';
+			echo '
+<div class="fsmlightred marginauto center inline-table" style="width:70%; background: rgba(255,255,255,.5);" ><!--Choose Transition Type--><p class="center small ">Choose Slippry Gallery Transition:<span class="smallest"> <br>(for all the above choices)</span></p>';
 			$trans_arr=array('fade','kenburns','vertical','horizontal');
 			for ($i=0; $i<4; $i++){
 				$msg=($trans_arr[$i]==='kenburns')?'kenburns (Magnifies and moves image)':$trans_arr[$i];
@@ -1176,7 +1226,8 @@ function gallery($data,$gall_ref=''){
 				printer::printx('<p class="left"> <input type="radio" value="'.$trans_arr[$i].'" name="'.$data.'_blog_data2['.$transition_index.']" '.${'checked'.$i}.'>&nbsp;'.$msg.'&nbsp;</p>');
 				}
 			printer::pclear(10);
-			echo '<div class="fsmmaroon whitebackground maroon"><!--wrap transtime-->';
+			echo '
+<div class="fsmmaroon whitebackground maroon"><!--wrap transtime-->';
 			printer::printp('Set the transition time in which fading, vertical or horizontal change takes place. Ken Burns timing not affected use Pause time instead');
 			$this->mod_spacing($data.'_blog_data2['.$transition_time_index.']',$transition_time,.2,5,.2,'secs');
 			printer::pclear(5);
@@ -1199,7 +1250,8 @@ function gallery($data,$gall_ref=''){
 			$checked1=($blog_data2[$slippry_maintain_index]==='maintain')?$checked:'';
 			$checked2=($blog_data2[$slippry_maintain_index]==='simulate')?$checked:'';
 			$checked3=($blog_data2[$slippry_maintain_index]!=='simulate'&&$blog_data2[$slippry_maintain_index]!=='maintain')?$checked:'';
-			echo '<div class="'.$this->column_lev_color.' fsminfo editbackground editfont floatleft left"> <!--imagecontrol bar-->
+			echo '
+<div class="'.$this->column_lev_color.' fsminfo editbackground editfont floatleft left"> <!--imagecontrol bar-->
 			<p><input type="radio" name="'.$data.'_blog_data2['.$slippry_maintain_index.']" '.$checked1.' value="maintain">&nbsp;Maintain page context of gallery</p>
 			<p><input type="radio" name="'.$data.'_blog_data2['.$slippry_maintain_index.']" '.$checked2.' value="simulate">Simulate New Page</p>
 			<p><input type="radio" name="'.$data.'_blog_data2['.$slippry_maintain_index.']" '.$checked3.' value="defaultgalpagecontext">&nbsp;Use Default Mode for galltype</p>
@@ -1222,10 +1274,12 @@ function gallery($data,$gall_ref=''){
         printer::pclear(5);
         $this->show_more('Choose Return Menu Icon for Simulated New Page Mode','noback','fs2info rad5 editbackground editfont editcolor left5 right5','',500);
 			printer::print_wrap('Choose Return Menu Icon');
-        echo '<div class="fsminfo whitebackground " ><!--link color--><br>';
+        echo '
+<div class="fsminfo whitebackground " ><!--link color--><br>';
 			printer::print_tip('Choose Color for slippry Return Icon when viewing expanded images in simulated new page mode.'); 
 printer::pclear(5);
-        echo '<div class="fsminfo whitebackground " ><!--link color--><br>'; 
+        echo '
+<div class="fsminfo whitebackground " ><!--link color--><br>'; 
         printer::alertx('<p class="left editbackground editfont editcolor">Change the Menu Icon Color: #<input onclick=" window.jscolor(this);" style="cursor:pointer;background:#'.$this->editor_background.';color:#'.$this->editor_color.';" type="text" name="'.$data.'_blog_data2['.$gall_icon_color_index.']." id="'.$this->blog_table.'_'.$this->blog_order.'expandiconcolor" value="'.$gall_expand_menu_icon.'" size="6" maxlength="6" class="jscolor {refine:false}"><span style="font-size: 1.1em; color:#'.Cfg::Info_color.';" id="'.$this->blog_table.'_'.$this->blog_order.'expandiconcolorinstruct"></span></p>');
 			printer::pclear();
 			echo '</div><!--link color-->';
@@ -1250,14 +1304,16 @@ printer::pclear(5);
 			echo '</div><!--separate preview Expand Gallery display setting--> ';
         ##############
        ############## slippry opts 
-			echo '<div class="'.$this->column_lev_color.' fsminfo editbackground editfont floatleft left"> <!--limitmax-->';
+			echo '
+<div class="'.$this->column_lev_color.' fsminfo editbackground editfont floatleft left"> <!--limitmax-->';
 			printer::print_tip('Using 95-97% will show off the shadowbox border effect in use');
 			echo 'Adjust whether the maximum width of slippry gallery/slide images go to 100% of the post width or less. This option is to allow for box shadows to show to the left and right when the image is full screen or just to show some space. However, To limit the pixel size of the expanded gallery image to less than the available post space use the limit width options below. <p>';
 			$this->mod_spacing($data.'_blog_data2['.$limitmax_index.']',$limitmax,90,100,1,'%','none');
 			echo '</div><!--limitmax-->';
 			printer::pclear();
 			printer::pclear(5); 
-			echo '<div class="'.$this->column_lev_color.' fsminfo editbackground editfont floatleft left">Configure your Expanded Gallery image size. Enter a maximum width or height (which ever is greater) for your image. For <b>simulated new pages</b> Image Width will be limited by this setting or the page width whereas for <b>maintain page context</b>options Image width will be limited by the current gallery post width or this value which ever is less.  <!--wpplus-->';
+			echo '
+<div class="'.$this->column_lev_color.' fsminfo editbackground editfont floatleft left">Configure your Expanded Gallery image size. Enter a maximum width or height (which ever is greater) for your image. For <b>simulated new pages</b> Image Width will be limited by this setting or the page width whereas for <b>maintain page context</b>options Image width will be limited by the current gallery post width or this value which ever is less.  <!--wpplus-->';
 			$this->mod_spacing($data.'_blog_data2['.$largepic_index.']',$largepicplus,125,3000,5,'px');// 
 			echo '</div><!---wfplus-->';
 			
@@ -1268,7 +1324,8 @@ printer::pclear(5);
 			printer::print_wrap('controls','fsmmaroon');
 			printer::print_tip('Using Slippry in Slide Show Mode disables the controls and sets the slide on show on automatic');
 			
-			echo '<div class="'.$this->column_lev_color.' fsminfo editbackground editfont floatleft left"> <!--imagecontrol bar-->
+			echo '
+<div class="'.$this->column_lev_color.' fsminfo editbackground editfont floatleft left"> <!--imagecontrol bar-->
 			
 			Enable/Disable Top Gallery controls for Slippry<p><input type="radio" name="'.$data.'_blog_data2['.$slippry_top_control_index.']" '.$checked1.' value="topcontrol">&nbsp;Enable Top Gall Control Bar</p>
 			<p><input type="radio" name="'.$data.'_blog_data2['.$slippry_top_control_index.']" '.$checked2.' value="notopcontrol">&nbsp;Disable Gall Top Control Bar</p>
@@ -1278,7 +1335,8 @@ printer::pclear(5);
 			$checked='checked="checked"';
 			$checked1=($blog_data2[$slippry_mid_control_index]!=='nomidcontrol')?$checked:'';
 			$checked2=($blog_data2[$slippry_mid_control_index]==='nomidcontrol')?$checked:'';
-			echo '<div class="'.$this->column_lev_color.' fsminfo editbackground editfont floatleft left"> <!--imagecontrol bar-->
+			echo '
+<div class="'.$this->column_lev_color.' fsminfo editbackground editfont floatleft left"> <!--imagecontrol bar-->
 			Enable/Disable Gall middle Navigation Icon for slippry<p><input type="radio" name="'.$data.'_blog_data2['.$slippry_mid_control_index.']" '.$checked1.' value="midcontrol">&nbsp;Enable Gall middle Nav Icon</p>
 			<p><input type="radio" name="'.$data.'_blog_data2['.$slippry_mid_control_index.']" '.$checked2.' value="nomidcontrol">&nbsp;Disable middle Nav Icon</p>
 			 
@@ -1291,7 +1349,8 @@ printer::pclear(5);
 			$checked='checked="checked"';
 			$checked1=($blog_data2[$slippry_force_auto_index]==='forceauto')?$checked:'';
 			$checked2=($blog_data2[$slippry_force_auto_index]!=='forceauto')?$checked:'';
-			echo '<div class="'.$this->column_lev_color.' fsminfo editbackground editfont floatleft left"> <!--imagecontrol bar-->
+			echo '
+<div class="'.$this->column_lev_color.' fsminfo editbackground editfont floatleft left"> <!--imagecontrol bar-->
 			<p><input type="radio" name="'.$data.'_blog_data2['.$slippry_force_auto_index.']" '.$checked1.' value="forceauto">&nbsp;Auto Run Slippry Gallery</p>
 			<p><input type="radio" name="'.$data.'_blog_data2['.$slippry_force_auto_index.']" '.$checked2.' value="noforceauto">&nbsp;Disable Auto Run Slippry Gallery</p>
 			 
@@ -1305,11 +1364,12 @@ printer::pclear(5);
 			echo '</div><!--Expand Gallery display setting--> '; 
 			###############################3
 			printer::pclear(15);
-			echo '<div class="maroon fs2maroon floatleft left" style="background:#dccbcb;"><!--photoswipe display setting-->';
-			printer::alert('The next three Utilize the Photoswipe Gallery Project:',false,'whitebackground center bold fs1maroon');
+			echo '
+<div class="maroon fs2maroon floatleft left" style="background:#dccbcb;"><!--photoswipe display setting-->';
+			printer::alert('The next three Utilize the <a href="https://github.com/dimsemenov/PhotoSwipe" class="cursor underline" target="_blank">Photoswipe Gallery Project </a>by Dimsemenov:',false,'whitebackground center  fs1maroon');
 			
-			printer::printx('<p class="bold">8.<input type="radio" value="photoswipe_multiple" name="'.$data.'_blog_data2['.$preview_index.']" '.$checked8.'>Display  Multiple Preview Images Per Row</p>');
-			printer::printx('<p class="bold">9.<input type="radio" value="photoswipe_single_row" name="'.$data.'_blog_data2['.$preview_index.']" '.$checked9.'>Display  Single Preview Image Per Row</p>');
+			printer::printx('<p class="">8.<input type="radio" value="photoswipe_multiple" name="'.$data.'_blog_data2['.$preview_index.']" '.$checked8.'>Display  Multiple Preview Images Per Row</p>');
+			printer::printx('<p class="">9.<input type="radio" value="photoswipe_single_row" name="'.$data.'_blog_data2['.$preview_index.']" '.$checked9.'>Display  Single Preview Image Per Row</p>');
 			printer::pclear(5);
         
 			printer::pclear(10); 
@@ -1331,7 +1391,8 @@ printer::pclear(5);
         $checked1=($blog_data2[$controltheme_index]!=='dark'&&$blog_data2[$controltheme_index]!=='med')?$checked:'';
         $checked2=($blog_data2[$controltheme_index]==='med')?$checked:'';
         $checked3=($blog_data2[$controltheme_index]==='dark')?$checked:'';
-        echo '<div class="'.$this->column_lev_color.' fsminfo lightestmaroonbackground maroon floatleft left"> <!--highslide control bar-->
+        echo '
+<div class="'.$this->column_lev_color.' fsminfo lightestmaroonbackground maroon floatleft left"> <!--highslide control bar-->
         Choose Light or Dark Gallery control Icons<p><input type="radio" name="'.$data.'_blog_data2['.$controltheme_index.']" '.$checked1.' value="light">&nbsp;Light Theme Control Bar</p>
         <p><input type="radio" name="'.$data.'_blog_data2['.$controltheme_index.']" '.$checked2.' value="med">&nbsp;Med Gray Theme Control Bar</p>
         <p><input type="radio" name="'.$data.'_blog_data2['.$controltheme_index.']" '.$checked3.' value="dark">&nbsp;Dark Gray Theme Control Bar</p>
@@ -1344,18 +1405,20 @@ printer::pclear(5);
 			printer::pclear(5);
 			echo '</div><!--photoswipe display setting-->';
 			printer::pclear(15); 
-			echo '<div class="maroon fs2maroon floatleft left" style="background:#dccbcb;"><!--highslide display setting-->';
-			printer::alert('The next two Utilize the Highslide Gallery Project:',false,'whitebackground center bold fs1maroon'); 
-			printer::printx('<p class="bold">10.<input type="radio" value="highslide_multiple" name="'.$data.'_blog_data2['.$preview_index.']" '.$checked10.'>Display with Multiple Representative Images Per Row</p>');
-			printer::printx('<p class="bold">11.<input type="radio" value="highslide_single" name="'.$data.'_blog_data2['.$preview_index.']" '.$checked11.'>Display with a Single Image Per Row</p>');
+			echo '
+<div class="maroon fs2maroon floatleft left" style="background:#dccbcb;"><!--highslide display setting-->';
+			printer::alert('The next two Utilize the Highslide Gallery Project by Tornstein:',false,'whitebackground center  fs1maroon'); 
+			printer::printx('<p class="">10.<input type="radio" value="highslide_multiple" name="'.$data.'_blog_data2['.$preview_index.']" '.$checked10.'>Display with Multiple Representative Images Per Row</p>');
+			printer::printx('<p class="">11.<input type="radio" value="highslide_single" name="'.$data.'_blog_data2['.$preview_index.']" '.$checked11.'>Display with a Single Image Per Row</p>');
 			printer::pclear(5); 
 			$this->show_more('Highslide Options','','buttonmaroon whitebackground maroon');
 			printer::print_wrap('highlside info');
-			printer::alert('Highslide gallery utilizes iframes that make it difficult to add further customization options. It make work as is for you as is otherwise we recommend slippry or photoswipe');
+			printer::print_warnlight('Highslide gallery not be updated for mobile views. Use photowipe or slippry');
 			$checked='checked="checked"';
             $checked1=($blog_data2[$controltheme_index]!='dark')?$checked:'';
             $checked2=($blog_data2[$controltheme_index]==='dark')?$checked:'';
-            echo '<div class="'.$this->column_lev_color.' fsminfo lightestmaroonbackground maroon floatleft left"> <!--highslide control bar-->
+            echo '
+<div class="'.$this->column_lev_color.' fsminfo lightestmaroonbackground maroon floatleft left"> <!--highslide control bar-->
             Choose Light or Dark Gallery controls<p><input type="radio" name="'.$data.'_blog_data2['.$controltheme_index.']" '.$checked1.' value="light">&nbsp;Light Theme Control Bar</p>
         <p><input type="radio" name="'.$data.'_blog_data2['.$controltheme_index.']" '.$checked2.' value="dark">&nbsp;Dark Theme Control Bar</p>
         </div><!--highslide control bar-->';
@@ -1363,7 +1426,8 @@ printer::pclear(5);
 			$this->show_close('Highslide Option Info');
 			echo '</div><!--highslide display setting-->'; 
 			printer::pclear();
-			echo '<div class="maroon fs2maroon floatleft left" style="background:#dccbcb;"><!--outer wrap more expand-preview display settings-->';
+			echo '
+<div class="maroon fs2maroon floatleft left" style="background:#dccbcb;"><!--outer wrap more expand-preview display settings-->';
 			printer::pspace(10); 
 			printer::pclear(5);	
 			$this->show_more('Adjusting Separate Page Multiple Images Per Row','','buttonmaroon lightestmaroonbackground maroon','Style/Config an initial Preview Images Page if Selected'); 
@@ -1382,24 +1446,28 @@ printer::pclear(5);
         $checked='checked="checked"';
         $checked2=($gall_masonry)?$checked:'';
         $checked1=(($gall_masonry))?'':$checked;
-        printer::print_tip('Optionally enable Masonry to Assist in grid Layout of multiple preview images.');
+        printer::print_tip('Alternatively enable Masonry (without Flex Enabled) to Assist in grid Layout of multiple preview images.');
 			printer::print_tip('Masonry if enabled can potentially change the order of your preview images to get the best fit');
 			printer::printx('<p><input type="radio" '.$checked1.' value="nomasonry" name="'.$data.'_blog_data2['.$gall_masonry_index.']">No Masonry</p>');
 			printer::printx('<p><input type="radio" '.$checked2.' value="gall_masonry" name="'.$data.'_blog_data2['.$gall_masonry_index.']">Use Masonry Assist</p>'); 
 			printer::close_print_wrap1('wrap masonry' );
-			echo '<div class="fs2info editbackground editfont"><!--border previews-->'; 
+			echo '
+<div class="fs2info editbackground editfont"><!--border previews-->'; 
 			
-			echo '<div class="fsminfo editbackground editfont '.$this->column_lev_color.' floatleft editfont maxwidth500"><!--preview image spacing-->
+			echo '
+<div class="fsminfo editbackground editfont '.$this->column_lev_color.' floatleft editfont maxwidth500"><!--preview image spacing-->
 			Change default spacing between images when choosing multiple display:'; 
 			printer::alert('Choose your Preview Side Spacing Setting:');
 			$this->mod_spacing($data.'_blog_data2['.$padleft_index.']',$padleft,0,60,1,'px');
 			echo '</div><!--preview image spacing-->';
 			printer::pclear();
-			echo '<div class="fsminfo editbackground editfont editcolor floatleft">Choose the Spacing Between the rows of Preview Images:';
+			echo '
+<div class="fsminfo editbackground editfont editcolor floatleft">Choose the Spacing Between the rows of Preview Images:';
 			$this->mod_spacing($data.'_blog_data2['.$preview_pad_bottom_index.']',$preview_pad_bottom,0,175,1,'px');
 			echo '</div>';
 			printer::pclear();
-			echo '<div class="fsminfo editbackground editfont '.$this->column_lev_color.' floatleft editfont maxwidth500"><!--final width adjust gal--> 
+			echo '
+<div class="fsminfo editbackground editfont '.$this->column_lev_color.' floatleft editfont maxwidth500"><!--final width adjust gal--> 
 			 Additionally set a maximum width of the available preview presentaion space to narrow the gallery on and create more unused space on the end of the each preview row. This also effects the number of preview images in a multiple images in a row option is chosen. The final width will be determined which ever is smallest: the overall post width, the width you set here or the viewers view screen! <br>'; 
 			printer::alert('Final Width Adjust Gallery Preview:');
 			$this->mod_spacing($data.'_blog_data2['.$limit_width_index.']',$limit_width,300,1000,1,'px','none');
@@ -1412,7 +1480,8 @@ printer::pclear(5);
 			printer::pspace(10);
 			$this->show_more('Further Adjust Separate Page Preview Images','','buttonmaroon lightestmaroonbackground maroon','Style/Config an initial Preview Images Page if Selected',500);
 			$msg=($this->master_gallery)?'By Default Your Master Gallery Representative Images are equal width but you can choose Equal height/width Depending which is greater': 'By Default Gallery Preview Page Images (if used) are set to a maximum height/width depending which is greater but theres a choice for equal width instead';
-			echo '<div class="'.$this->column_lev_color.' fsminfo editbackground editfont floatleft left"><!--wpplus-->';
+			echo '
+<div class="'.$this->column_lev_color.' fsminfo editbackground editfont floatleft left"><!--wpplus-->';
 			printer::printx('<p>'.$msg.'</p>');
 			$checked1=($thumb_width_type==='width')?'checked="checked"':'';
 			$checked2=($thumb_width_type==='width_height')?'checked="checked"':'';
@@ -1421,12 +1490,14 @@ printer::pclear(5);
 			printer::printx('<p><input type="radio" '.$checked1.' value="width" name="'.$data.'_blog_data2['.$thumb_width_type_index.']">Choose Equal Width Setting</p>');
 			printer::printx('<p><input type="radio" '.$checked2.' value="width_height" name="'.$data.'_blog_data2['.$thumb_width_type_index.']">Choose Max Width/Height Setting</p>');
 			echo '</div><!---prev image size-->';
-			echo '<div class="'.$this->column_lev_color.' fsminfo editbackground editfont floatleft left">Configure your preview image size for separate preview image displays <b>For the preview under slide images go to the slippry option for that</b>. Enter the max value for width or height for your image (Scaled down Images will be used for Smaller devices)<!--prev image size-->';
+			echo '
+<div class="'.$this->column_lev_color.' fsminfo editbackground editfont floatleft left">Configure your preview image size for separate preview image displays <b>For the preview under slide images go to the slippry option for that</b>. Enter the max value for width or height for your image (Scaled down Images will be used for Smaller devices)<!--prev image size-->';
 			$this->mod_spacing($data.'_blog_data2['.$smallpic_index.']',$smallpicplus,50,1000,5,'px');// 
 			echo '</div><!---wfplus-->';
 			printer::pclear(5);
 			################
-			echo '<div class="'.$this->column_lev_color.' fsminfo editbackground editfont floatleft left"><!--wpplus-->';
+			echo '
+<div class="'.$this->column_lev_color.' fsminfo editbackground editfont floatleft left"><!--wpplus-->';
 			printer::print_tip('Enable Percent to allow smaller preview images on smaller screen sizes without breaking to a new row. Choose a percent compression. For example, if 4 preview images just fit on a large screen and the setting is changed to 50%, then 4 images would fit on a screen 50% as wide and be half the size. On still smaller screens images would break to three on a row. A default compression of 70% is used. Use none to display all preview images to the full width you choose above or the full screen width whichever is smaller');
 			printer::printp('Enable Preview Percent & set Maximum Compression of Preview Images');
 			$this->mod_spacing($data.'_blog_data2['.$preview_minimum_index.']',$preview_minimum,10,90,1,'%','none');// 
@@ -1435,8 +1506,10 @@ printer::pclear(5);
 			$this->show_close('Adjust Separate Preview Image Display');
 			printer::pclear(7); 
 			$this->show_more('Slippry Preview Under Slide Selection','noback','buttonmaroon lightestmaroonbackground maroon','Style/Config the Preview Images under a Gallery if Selected',500);
-			echo '<div class="fs2info"><!--border previews-->';
-			echo '<div class="fsminfo editbackground editfont '.$this->column_lev_color.' floatleft editfont maxwidth500"><!--preview image spacing-->
+			echo '
+<div class="fs2info"><!--border previews-->';
+			echo '
+<div class="fsminfo editbackground editfont '.$this->column_lev_color.' floatleft editfont maxwidth500"><!--preview image spacing-->
 			If you have chosen the slippry option for previewing images under the slippry slide show change the default sizing and spacing of your preview images here'; 
 			printer::alertx('<p class="fs1info">Choose the Spacing Above the first Row of Preview Images:</p>');
 			$this->mod_spacing($data.'_blog_data2['.$preview_padtop_index.']',$preview_padtop,0,135,1,'px');
@@ -1465,7 +1538,8 @@ printer::pclear(5);
 			##################################
 				$this->show_more('Adjust Expanded Image Quality','noback','buttonmaroon lightestmaroonbackground maroon','Expanded image quality may be adjusted for better quality versus smaller image size',450);
 			printer::print_wrap('Adjust Expanded');
-        echo'<div class="floatleft editbackground editfont fsminfo highlight" title="By Default Expanded Gallery Images will have a Default Quality factor with 100 being the highest and 10 the lowest. The higher the image quality the larger the filesize and the slower the download speed. Its possible to change the Default value in the Page Configuration options which will effect all cache images on the site that are not specifically configured for this value in the post type: image, slideshow, or gallery configurations" ><!--quality image-->Change Current Image Quality setting:';
+        echo'
+<div class="floatleft editbackground editfont fsminfo highlight" title="By Default Expanded Gallery Images will have a Default Quality factor with 100 being the highest and 10 the lowest. The higher the image quality the larger the filesize and the slower the download speed. Its possible to change the Default value in the Page Configuration options which will effect all cache images on the site that are not specifically configured for this value in the post type: image, slideshow, or gallery configurations" ><!--quality image-->Change Current Image Quality setting:';
 			$this->mod_spacing($data.'_blog_data2['.$image_quality_index.']',$quality,10,100,1,'%');
 			printer::print_info('Expanded Images will auto reload @ new Quality setting');
 			echo'</div><!--quality image-->';
@@ -1491,12 +1565,16 @@ printer::pclear(5);
 			$checked3=($blog_data2[$preview_index]==='multiple_hover_caption')?$checked:'';
 			$checked4=($blog_data2[$preview_index]!=='rows_caption'&&$blog_data2[$preview_index]==='multiple_image_caption'&&$blog_data2[$preview_index]==='multiple_hover_caption')?$checked:'';
 			$this->show_more('Configure Your Master Gallery Display','','','',700,'','float:left;',true);#<!--Configure gallery--> 
-			echo '<div class="fsmmaroon maroon floatleft lightmaroonbackground left "><!--config gall settings-->';
+			echo '
+<div class="fsmmaroon maroon floatleft lightmaroonbackground left "><!--config gall settings-->';
 			################33
-			echo '<div class="fsmmaroon floatleft left maroon" style="background:#c6a5a5;" > <span class="bold whiteshadow">Choose One of the following Choices of Display type for the Gallery Collection Preview Image Link and Caption</span><!--Master gall display setting-->';
+			echo '
+<div class="fsmmaroon floatleft left maroon" style="background:#c6a5a5;" > <span class=" ">Choose One of the following Choices of Display type for the Gallery Collection Preview Image Link and Caption</span><!--Master gall display setting-->';
 			printer::pclear(7);
-			echo '<div class="maroon fs2maroon floatleft left" style="background:#dccbcb;"><!--highslide display setting-->';
-			echo '<div class="fs1maroon lightermaroonbackground " ><!--wrap float caption choice-->';
+			echo '
+<div class="maroon fs2maroon floatleft left" style="background:#dccbcb;"><!--highslide display setting-->';
+			echo '
+<div class="fs1maroon lightermaroonbackground " ><!--wrap float caption choice-->';
 			printer::printx('<p class="">1.<input type="radio" value="rows_caption" name="'.$data.'_blog_data2['.$preview_index.']" '.$checked1.'>Preview with Multiple Images Per Row with optional title/subtitle/description Captions Under photo</p>');
 			
 			printer::printx('<p class="">2.<input type="radio" value="multiple_image_caption" name="'.$data.'_blog_data2['.$preview_index.']" '.$checked2.'>Multiple Images Per Row with title/SubTitle caption option inside the image</p>');
@@ -1504,12 +1582,14 @@ printer::pclear(5);
 			printer::printx('<p class="">3.<input type="radio" value="multiple_hover_caption" name="'.$data.'_blog_data2['.$preview_index.']" '.$checked3.'>Multiple Images Per Row with Hover Title/SubTitle within image(Hovers on non touchscreen devices and displays by default on touchscreen devices)</p>');
 			 
 			echo '</div><!--wrap float caption choice-->';
-			echo '<div class="fs1maroon lightermaroonbackground "><!--wrap float caption choice-->4.<input type="radio" value="display_single_row" name="'.$data.'_blog_data2['.$preview_index.']" '.$checked4.'>Preview with a Single Image Per Row and optional title/subtitle/description caption';
+			echo '
+<div class="fs1maroon lightermaroonbackground "><!--wrap float caption choice-->4.<input type="radio" value="display_single_row" name="'.$data.'_blog_data2['.$preview_index.']" '.$checked4.'>Preview with a Single Image Per Row and optional title/subtitle/description caption';
 			printer::printx('<p class="left">Further Choice For Single Image Per Row: </p>');
 			
 			printer::printx('<p class="left pl25"> <input type="radio" value="float" name="'.$data.'_blog_data2['.$galltype_index.']" '.$expandchecked5.'>Float Captions to Left of Image</p>');
 			$this->show_more('Adjust Position of Left Align Captions','','smallest fsmmaroon maroon whitebackground');
-			printer::alertx('<div class="pl25 maroon fsmmaroon maxwidth500 floatleft lightermaroonbackground smallest">Vertical Align Left Captions Top Middle or Bottom to photo '); 
+			printer::alertx('
+<div class="pl25 maroon fsmmaroon maxwidth500 floatleft lightermaroonbackground smallest">Vertical Align Left Captions Top Middle or Bottom to photo '); 
 		 
 			
 			forms::form_dropdown(array('top','middle','bottom'),'','','',$data.'_blog_data2['.$caption_vertical_align_index.']',$caption_vertical_align,false,'maroon whitebackground left');
@@ -1522,11 +1602,13 @@ printer::pclear(5);
 			
 			echo '</div><!--single-mult display setting-->';
 			echo '</div><!--Master gall display setting-->';
-			echo '<div class="fsmmaroon floatleft left maroon" style="background:#c6a5a5;" > <span class="bold whiteshadow">Choose One of the following Two Choices of Display type for the Gallery Collection Preview Image Link and Title/Caption</span><!--Master gall image display-->';
+			echo '
+<div class="fsmmaroon floatleft left maroon" style="background:#c6a5a5;" > <span class=" ">Choose One of the following Two Choices of Display type for the Gallery Collection Preview Image Link and Title/Caption</span><!--Master gall image display-->';
 			printer::pclear(15); 
 			$checked='checked="checked"'; 
 			$this->show_more('Adjust Master Preview Gallery Image','noback','fs2info rad5 editbackground editfont highlight left5 right5','Style/Config Image Preview Links in Master Gallery',500,'','float:left;',true);
-			echo '<div class="'.$this->column_lev_color.' fsminfo editbackground editfont floatleft left"><!--prev image size-->';
+			echo '
+<div class="'.$this->column_lev_color.' fsminfo editbackground editfont floatleft left"><!--prev image size-->';
 			printer::printx('<p>Configure your thumb image size  Enter the max value for width or width/height for your Master Gallery preview image (Scaled down Images will be used for Smaller devices)');
 			$this->mod_spacing($data.'_blog_data2['.$smallpic_index.']',$smallpicplus,50,1000,5,'px');// 
 			printer::pclear();
@@ -1538,8 +1620,10 @@ printer::pclear(5);
 			printer::printx('<p><input type="radio" '.$checked1.' value="width" name="'.$data.'_blog_data2['.$thumb_width_type_index.']">Choose Equal Width Setting</p>');
 			printer::printx('<p><input type="radio" '.$checked2.' value="width_height" name="'.$data.'_blog_data2['.$thumb_width_type_index.']">Choose Max Width/Height Setting</p>');
 			 $this->show_more('Adjusting Gallery Image Rows in Master Gallery','noback');
-			echo '<div class="fs2info"><!--border previews-->';
-			echo '<div class="fsminfo editbackground editfont '.$this->column_lev_color.' floatleft editfont maxwidth500"><!--preview image spacing-->
+			echo '
+<div class="fs2info"><!--border previews-->';
+			echo '
+<div class="fsminfo editbackground editfont '.$this->column_lev_color.' floatleft editfont maxwidth500"><!--preview image spacing-->
 			Change default side spacing between images when choosing multiple display:
 			';
 			
@@ -1547,19 +1631,22 @@ printer::pclear(5);
 			$this->mod_spacing($data.'_blog_data2['.$padleft_index.']',$padleft,0,60,1,'px');
 			echo '</div><!--preview image spacing-->';
 			printer::pclear();
-			echo '<div class="fsminfo editbackground editfont editcolor floatleft">Choose the Spacing Between the rows of Preview Images:';
+			echo '
+<div class="fsminfo editbackground editfont editcolor floatleft">Choose the Spacing Between the rows of Preview Images:';
 			$this->mod_spacing($data.'_blog_data2['.$preview_pad_bottom_index.']',$preview_pad_bottom,0,175,1,'px');
 			echo '</div>';
 			printer::pclear();
 			
-			echo '<div class="fsminfo editbackground editfont '.$this->column_lev_color.' floatleft editfont maxwidth500"><!--final width adjust gal-->
+			echo '
+<div class="fsminfo editbackground editfont '.$this->column_lev_color.' floatleft editfont maxwidth500"><!--final width adjust gal-->
 			
 			 Further adjust the width of the available presentaion space and create more unused space on the end of the each image row.  This also effects the number of preview images when the multiple images in a row option is chosen. The final width will be determined which ever is smallest: the overall post width, the width you set here or the viewers view screen! <br>'; 
 				printer::alert('Final Width Adjust Master Gallery Preview:');
 			 $this->mod_spacing($data.'_blog_data2['.$limit_width_index.']',$limit_width,300,1000,1,'px','none');
 			echo '</div><!--Edit Final Width Adjust Preview Gall-->'; 
 			printer::pclear(); 
-				echo '<div class="fsminfo editbackground editfont '.$this->column_lev_color.' floatleft editfont maxwidth500"><!--final width adjust captions--> 
+				echo '
+<div class="fsminfo editbackground editfont '.$this->column_lev_color.' floatleft editfont maxwidth500"><!--final width adjust captions--> 
 			 Optionally Set width of caption area (for non-title within image captions)'; 
 				printer::alert('Set Specific Width For Master Gallery Caption. A default width of 300px will be used if using display single row with left float captions. To enable fluid response layout for your page left float Captions will automatically be displayed below the image when the viewport device width is below the total width of the image plus caption width:');
 			 $this->mod_spacing($data.'_blog_data2['.$caption_width_index.']',$caption_width,100,701,5,'px','none');
@@ -1582,21 +1669,26 @@ printer::pclear(5);
 	if ($this->edit&&!$this->master_gallery&&(!empty($this->clone_local_data)||!$this->is_clone)){
 		printer::pclear();
      $this->show_more('Default Caption Option','noback','','',600,'','float:left;',true);
-		echo '<div class="'.$this->column_lev_color.' fsminfo editbackground editfont floatleft left">Image specific captions are made under the "Edit Individual Image Captions or Delete an Image Here" Link Below. However, Here optionally Add Default Title, Subtitle and/or descriptions which will be applied to images that don&#34;t have them<!--global captions-->';
+		echo '
+<div class="'.$this->column_lev_color.' fsminfo editbackground editfont floatleft left">Image specific captions are made under the "Edit Individual Image Captions or Delete an Image Here" Link Below. However, Here optionally Add Default Title, Subtitle and/or descriptions which will be applied to images that don&#34;t have them<!--global captions-->';
 		printer::alertx('<p class="tip">Tip: If You are using a Default title,subtitle, or description but want to leave a certain image caption empty type the word empty and the particular caption for that will not appear!!</p>');	
-		echo '<div class="fs2redAlert editbackground editfont"><!--wrap edit captions-->';
+		echo '
+<div class="fs2redAlert editbackground editfont"><!--wrap edit captions-->';
 		printer::pclear();//$dataname,$name,$width,$fontsize,$turn_on='',$float='left',$percent=90,$inherit=false,$class=''
-		echo '<div class="fsminfo width100 editbackground editfont floatleft left '.$this->column_lev_color.'"> Add Default Title:';
+		echo '
+<div class="fsminfo width100 editbackground editfont floatleft left '.$this->column_lev_color.'"> Add Default Title:';
 		$this->textarea($default_imagetitle,$data.'_blog_tiny_data4','600',16,'','left',100);
 		printer::pclear();
 		echo '</div>';
 		printer::pclear();
-		echo '<div class="fsminfo width100 editbackground editfont floatleft left '.$this->column_lev_color.'"> Add Default Subtitle:';
+		echo '
+<div class="fsminfo width100 editbackground editfont floatleft left '.$this->column_lev_color.'"> Add Default Subtitle:';
 		$this->textarea($default_subtitle,$this->data.'_blog_tiny_data5','600','16','','left',100);
 		printer::pclear();
 		echo '</div>';
 		printer::pclear();
-		echo '<div class="fsminfo width100 editbackground editfont floatleft left '.$this->column_lev_color.'"> Add Default description:';
+		echo '
+<div class="fsminfo width100 editbackground editfont floatleft left '.$this->column_lev_color.'"> Add Default description:';
 		$this->textarea($default_description,$this->data.'_blog_data7','600','16','','left',100);
 		echo '</div>';
 		printer::pclear();
@@ -1608,56 +1700,56 @@ printer::pclear(5);
 	$fixheight='noheight'; //used in fixing slippry gallery height when post height is set.. Adjustment is made in expandgallery to image sizes and 100%
 	#masonry
 	$previewFlexContainer=($gall_flex&&!$this->edit)?' previewFlexContainer':''; 
-	$masonry=(!$gall_flex&&$preview_display==='multiple'&&$gall_masonry&&!$this->edit)?true:false;
+	$masonry=(!$gall_flex&&$preview_display==='multiple'&&$gall_masonry)?true:false;
+	
 	if ($masonry){
-		$this->load_masonry();
+		 
 		$masonryClass='gridgall_'.$this->blog_id;
 		$mclass=".$masonryClass";
+		echo "
+               <!--$this->pagename.js script @ masonary gallery $mclass-->
+               "; 	
 		if (!$this->edit){
-			echo <<<eol
-   <script>
-   var resizeTimer1_$this->blog_id='';
-   var mopts={ 
-     gutter: $padleft, 
-     isFitWidth: true, 
-     itemSelector: '.grid-item'
-     } 
-   \$(function(){
-     $('$mclass').imagesLoaded().always( function( instance ) {
-        \$gridgall_$this->blog_id=\$('$mclass').masonry(mopts); 
-        \$gridgall_$this->blog_id=\$('$mclass').masonry(mopts); //initiating twice makes it re-initate on change..
-        var windowWidth = \$(window).width();
-        window.addEventListener('resize', function(){//overcomes 
-        if (\$(window).width() != windowWidth) {
-          windowWidth = \$(window).width();
-          if (\$gridgall_$this->blog_id.masonry()!=='undefined')\$gridgall_$this->blog_id.masonry('destroy'); 
-           clearTimeout(resizeTimer1_$this->blog_id); 
-           resizeTimer1_$this->blog_id=setTimeout( function(){ 
-           \$gridgall_$this->blog_id=\$('$mclass').masonry(mopts); 
-           \$gridgall_$this->blog_id=\$('$mclass').masonry(mopts);//initiating twice 
-          }, 300);
-          }
-        }, true);
-     });
-   });
-   </script>
+			$this->load_masonry();
+			}
+		else {
+			$script= <<<eol
+   
+     //<!-- masonry gallery preview thumbs version script  $mclass-->
+    var mopts={ 
+          gutter: $padleft, 
+          isFitWidth: true, 
+          itemSelector: '.grid-item'
+          } 
+     jQuery('$mclass').imagesLoaded().always( function( instance ) {
+        jQuerygridgall_$this->blog_id=jQuery('$mclass').masonry(mopts); 
+        jQuerygridgall_$this->blog_id=jQuery('$mclass').masonry(mopts); //initiating twice makes it re-initate on change..
+	   });
 eol;
-			}//masonry but not edit
-			/**/
-		else {//masonry edit
-			$this->css.='
+     $this->handle_script_edit($script,'masonry_gall','script');
+$resize_script=<<<eol
+          if (jQuerygridgall_$this->blog_id.masonry()!=='undefined')jQuerygridgall_$this->blog_id.masonry('destroy'); 
+		jQuerygridgall_$this->blog_id=jQuery('$mclass').masonry(mopts); 
+		jQuerygridgall_$this->blog_id=jQuery('$mclass').masonry(mopts);//initiating twice 
+eol;
+		$this->handle_script_edit($resize_script,'masonry_gall','onresizescript');
+          
+		$this->css.='
    .'.$this->dataCss.' grid-item{margin-bottom:'.$preview_pad_bottom.'px;}
    ';
-			}
-		}//end is masonry
-	else $masonryClass='';//not masonry
-   
+               }//end is edit	
+          }//end is masonry
+	else $masonryClass='';//not masonry 
 	if ($gall_display==='highslide'){
 		$this->render_highslide();
 		$allowSizeReduction=($this->edit)?'hs.allowSizeReduction: false':'hs.allowSizeReduction:true';
-echo <<<eol
-
-<script >  
+          echo "
+          <!--$this->pagename.js script @ highslide gallery option $this->dataCss-->
+          ";
+          if ($this->edit){
+               $script= <<<eol
+ 
+//<!--highslide gallery post script $this->dataCss-->
 if (hs.addSlideshow) hs.addSlideshow({ 
 	slideshowGroup: "$this->blog_data1",
 	interval: $pause*1000, 
@@ -1671,23 +1763,31 @@ if (hs.addSlideshow) hs.addSlideshow({
      hideOnMouseOut: true
      }
 
-});
-</script>
+}); 
 eol;
-	(!$this->is_clone||$this->clone_local_style)&&
-     $this->css.=' 
+          $this->handle_script_edit($script,'highslide_gall','noloadscript');
+         
+          (!$this->is_clone||$this->clone_local_style)&&
+          $this->css.=' 
    .dimming_gall_img_'.$this->blog_id.'{background:#'.$simulate_background.'; }
    '; 
-		}// if highslide
+            }//end if edit    
+          }// if highslide
 
 		#photoswipe
 	elseif ($gall_display==='photoswipe'){// load code only if necessary
-		if (!$this->edit){
-			$this->load_photoswipe();
-echo <<<eol
-	 <script>
-	\$(function(){		
-	(function() { 
+		echo "<!--script @ photoshop gallery $this->dataCss-->";
+          if ($this->edit){
+               $this->handle_script_edit('photoswipe/photoswipe.js','photoswipe','header_script_once'); 
+               $this->handle_script_edit('photoswipe/photoswipe-ui-default.js','photoswipe','header_script_once'); 
+               $this->handle_css_edit('page','photoswipe/photoswipe.css','header_css_once');
+               $this->handle_css_edit('page','photoswipe/photoswipe-skin.css','header_css_once');
+                 echo "<!--$this->pagename.js photoswipe $this->dataCss -->";
+               $script= <<<eol
+	
+     
+     //photoswipe gallery post $this->dataCss
+     (function() { 
 		var initPhotoSwipeFromDOM = function(gallerySelector) { 
 			var parseThumbnailElements = function(el) {
 				var thumbElements = el.childNodes,
@@ -1920,74 +2020,79 @@ echo <<<eol
           }
         }; 
 		initPhotoSwipeFromDOM('.photoswipe_$this->blog_id'); 
-		})();
-	}); 
-</script>
+	})();
 eol;
-        }//photoswipe not edit
-     else { //is photoswipe edit
-        if (!$this->is_clone||$this->clone_local_style){
-          if ($photoswipe_caption_background!=='none'){
-             $back_color='#'.$photoswipe_caption_background;
-             $backstyle=' background-color:'.$back_color.';';
-             $captionstyle=' background-color:'.$back_color.' !important;';
-             }
-          else $captionstyle='';
-          if ($photoswipe_prevnext_background!=='none'){
-             $back_color='#'.$photoswipe_prevnext_background;
-             $prevnextstyle=' background-color:'.$back_color.';';
-             }
-          else $prevnextstyle='';
-          if ($photoswipe_topcontrol_background!=='none'){
-             $back_color='#'.$photoswipe_topcontrol_background;
-             $topcontrolstyle=' background-color:'.$back_color.';';
-             }
-          else $topcontrolstyle='';
-          $this->css.='
-             #gallery_'.$this->blog_id.'{background:#'.$simulate_background.';}
-             .holder figure{display:none;}
-             .pswp__top-bar,.pswp__ui--fit .pswp__top-bar {'.$topcontrolstyle.'}
-             .pswp__caption, 
-             .pswp__ui--fit .pswp__caption { 
-             '.$captionstyle.'
-             }
-               
-               .pswp__button,
-     .pswp__button--arrow--left:before,
-     .pswp__button--arrow--right:before {
-      background: url('.$controlbar.') 0 0 no-repeat;}
-               .pswp__button--arrow--left:before,
-               .pswp__button--arrow--right:before {'.$prevnextstyle.'
-               }
-               .'.$this->dataCss.' figure{display:none;} 
-               ';
-               
-               if ($controltheme==='light'){//we need to create dark svg also.
-             $this->css.='        
-     @media (-webkit-min-device-pixel-ratio: 1.1), (-webkit-min-device-pixel-ratio: 1.09375), (min-resolution: 105dpi), (min-resolution: 1.1dppx) {
-      /* Serve SVG sprite if browser supports SVG and resolution is more than 105dpi */
-      .pswp--svg .pswp__button,
-      .pswp--svg .pswp__button--arrow--left:before,
-      .pswp--svg .pswp__button--arrow--right:before {
-       background-image: url(default-skin.svg); }
-       }';
+          $this->handle_script_edit($script,'photoswipe_gall','script');
+     
+          
+          if (!$this->is_clone||$this->clone_local_style){
+               if ($photoswipe_caption_background!=='none'){
+                  $back_color='#'.$photoswipe_caption_background;
+                  $backstyle=' background-color:'.$back_color.';';
+                  $captionstyle=' background-color:'.$back_color.' !important;';
+                  }
+               else $captionstyle='';
+               if ($photoswipe_prevnext_background!=='none'){
+                  $back_color='#'.$photoswipe_prevnext_background;
+                  $prevnextstyle=' background-color:'.$back_color.';';
+                  }
+               else $prevnextstyle='';
+               if ($photoswipe_topcontrol_background!=='none'){
+                  $back_color='#'.$photoswipe_topcontrol_background;
+                  $topcontrolstyle=' background-color:'.$back_color.';';
+                  }
+               else $topcontrolstyle='';
+               $this->css.='
+                  #gallery_'.$this->blog_id.'{background:#'.$simulate_background.';}
+                  .holder figure{display:none;}
+                  .pswp__top-bar,.pswp__ui--fit .pswp__top-bar {'.$topcontrolstyle.'}
+                  .pswp__caption, 
+                  .pswp__ui--fit .pswp__caption { 
+                  '.$captionstyle.'
+                  }
+                    
+                    .pswp__button,
+          .pswp__button--arrow--left:before,
+          .pswp__button--arrow--right:before {
+           background: url('.$controlbar.') 0 0 no-repeat;}
+                    .pswp__button--arrow--left:before,
+                    .pswp__button--arrow--right:before {'.$prevnextstyle.'
+                    }
+                    .'.$this->dataCss.' figure{display:none;} 
+                    ';
+                    
+                    if ($controltheme==='light'){//we need to create dark svg also.
+                  $this->css.='        
+          @media (-webkit-min-device-pixel-ratio: 1.1), (-webkit-min-device-pixel-ratio: 1.09375), (min-resolution: 105dpi), (min-resolution: 1.1dppx) {
+           /* Serve SVG sprite if browser supports SVG and resolution is more than 105dpi */
+           .pswp--svg .pswp__button,
+           .pswp--svg .pswp__button--arrow--left:before,
+           .pswp--svg .pswp__button--arrow--right:before {
+            background-image: url(default-skin.svg); }
+            }';
              }//if light
           }//!clone or local
-        }//end photoswipe edit
+        }//end  edit
      }//end if photoswipe 
 	elseif ($gall_display==='slippry'){
-		$this->load_slippry();
-     $adaptiveHeight=true;
-#slippry
-$fixheight='noheight';
-echo <<<eol
+          $adaptiveHeight=true;
+          #slippry
+          $fixheight='noheight';
+          echo "
+          <!--$this->pagename.js script @ slippry gallery $this->dataCss-->
+          ";
+          if ($this->edit){
+			$this->handle_script_edit('slippry/slippry.js','slippry','header_script_once');
+               $this->handle_css_edit('page','slippry/slippry.css','header_css_once');
+               
+               $script= <<<eol
 
-<script >
+//slippry post gallery $this->dataCss
 function slippry_$this->blog_id(pic,ele){  
-	$(ele).fadeOut(300, function() { 
-	$(this).html(gen_Proc.slippry_$this->blog_id).fadeIn(300);});
+	jQuery(ele).fadeOut(300, function() { 
+	jQuery(this).html(gen_Proc.slippry_$this->blog_id).fadeIn(300);});
 	setTimeout(function(){
-	slippry_$this->blog_id = \$("#slippry_$this->blog_id").slippry({
+	slippry_$this->blog_id = jQuery("#slippry_$this->blog_id").slippry({
 	transition: '$transition',
 	useCSS: true, 
 	speed: $transition_time*1000,
@@ -1995,7 +2100,7 @@ function slippry_$this->blog_id(pic,ele){
 	pause: $pause*1000,
 	auto: '$autorun',
 	slide: '$slide',
-   mainEle: '$this->dataCss',
+     mainEle: '$this->dataCss',
 	captions: '$slipcaption',
 	controls: '$slippry_mid_control',
 	//largepicplus : '$largepicplus',
@@ -2006,52 +2111,53 @@ function slippry_$this->blog_id(pic,ele){
 	autoHover: false
 	});
 	
-	$('.$this->dataCss .pause').click(function () {
+	jQuery('.$this->dataCss .pause').click(function () {
 			slippry_$this->blog_id.stopAuto();
 	  });
-	  $('.$this->dataCss .play').click(function () {
+	  jQuery('.$this->dataCss .play').click(function () {
 		  slippry_$this->blog_id.goToNextSlide();
 		  slippry_$this->blog_id.startAuto();
 	  });
-	  $('.$this->dataCss .previous').click(function () { 
+	  jQuery('.$this->dataCss .previous').click(function () { 
 		  slippry_$this->blog_id.goToPrevSlide();
 		  return false;
 	  });
-	  $('.$this->dataCss .next').click(function () {
+	  jQuery('.$this->dataCss .next').click(function () {
 		  slippry_$this->blog_id.goToNextSlide();
 		  return false;
 	  });
-	  $('.$this->dataCss .close').click(function () { 
-		   $(ele).fadeOut(300, function() {
-$(this).html(gen_Proc.slipprybackup).fadeIn(300); }); 
+	  jQuery('.$this->dataCss .close').click(function () { 
+		   jQuery(ele).fadeOut(300, function() {
+               jQuery(this).html(gen_Proc.slipprybackup).fadeIn(300); }); 
 		  //slippry_$this->blog_id.destroySlider();
-	  });
-	  $('.$this->dataCss .reload').click(function () {
+          });
+	  jQuery('.$this->dataCss .reload').click(function () {
 		  slippry_$this->blog_id.reloadSlider();
 		  return false;
 	  });
-	  $('.$this->dataCss .init').click(function () {
+	  jQuery('.$this->dataCss .init').click(function () {
 		  slippry_$this->blog_id = slippry_$this->blog_id.slippry({auto: true});
 		  return false;
 	  });
 		},310);
 	  
 	} 
-</script>
 eol;
-     }//is slippry
+               $this->handle_script_edit($script,'slippry_gall','noloadscript');
+               }//end is edit
+          }//is slippry
+     
    //$heightclass=($fixheight!=='noheight')?' height100':'';
 	$holderid=($new_page_effect)?'':' id="holder_'.$this->blog_id.'" ';
-	echo '<div class="holder" '.$holderid.'><!--gall holder-->'; 
+	echo '
+<div class="holder" '.$holderid.'><!--gall holder-->'; 
 	if(empty($gall_ref)){ // printer::alert_neg('reinitiate creat new gall ref');
-		 
 		if (!$this->edit){ 
 			printer::printx('<p class="fsminfo editbackground editfont '.$this->column_lev_color.'">New Gallery Coming Soon</p>');
 			return;
 			}
 		} //if empty gall ref
-     
-   if ($this->edit&&(!$this->is_clone||$this->clone_local_style)&&$inc<2&&$gall_display==='slippry'){
+     if ($this->edit&&(!$this->is_clone||$this->clone_local_style)&&$inc<2&&$gall_display==='slippry'){
      $this->css.='
 .slippry_wrapper{width:'.$limitmax.'%; max-width:'.$largepicplus.'px;margin:0 auto;}';
      $this->css.='
@@ -2155,15 +2261,14 @@ border-right: 0.3em solid #'.$color.';
    ';
      }//gall = slippry 
    if ($gall_display==='multiple_hover_caption'){
-     echo <<<eol
+          echo "
+          <!--$this->pagename.js script @ multiple hover caption gallery $this->dataCss-->
+          ";
+      $this->script.= <<<eol
    
-   <script>
-   \$(function(){
      if (window.TOUCHSTART){
-        \$('#$this->dataCss .hover_caption .caption_wrap').css({'bottom':'0'});
+        jQuery('#$this->dataCss .hover_caption .caption_wrap').css({'bottom':'0'});
         }
-     });
-   </script>
 eol;
      } //multiple_hover_caption 
    if ($this->edit&&(!$this->is_clone||$this->clone_local_style)){
@@ -2230,7 +2335,7 @@ eol;
 	list($border_add_width2,$border_add_height)=$this->border_calc($this->blog_style);
 	
    if (is_file(Cfg_loc::Root_dir.Cfg::Include_dir.'gallery_loc.class.php'))
-     $gallery= new gallery_loc();//local gallery can be used for custom modification
+	 $gallery= new gallery_loc();//local gallery can be used for custom modification
    else $gallery= new gallery_master();// look for local gallery if exists
 	$gallery->masonry=$masonry;
 	$gallery->gall_flex=$gall_flex;
@@ -2296,7 +2401,8 @@ eol;
 	$gallery->maxwidth_adjust_preview=$maxwidth_adjust_preview;//adjust maxwidt 100 to acount for box shadow
 	$gallery->ext=$this->ext;
 	###
-	echo '<div class="inlineblock_'.$this->blog_id.' '.$masonryClass.$previewFlexContainer.'" '.$maxstyle.'><!--limiter on width available for preview images-->';
+	echo '
+<div class="inlineblock_'.$this->blog_id.' '.$masonryClass.$previewFlexContainer.'" '.$maxstyle.'><!--limiter on width available for preview images-->';
 	$gallery->pre_render_data($gall_ref);
 	$gallery->gallery_display();
 	$this->large_images_arr=$gallery->large_images_arr;//collecting image informations
@@ -2308,7 +2414,7 @@ eol;
 		return;
 		}
 	$msg=($this->master_gallery)?'Edit general Master Gallery Styles':'Edit General Gallery Styles';
-	 $this->edit_styles_close($data,'blog_style','.'.$this->dataCss,'background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,font_family,font_size,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner',$msg,true,'Background Styles will not affect the Expanded image Background in Simulated New Pages. Use the specific option for this. Set General Caption Styles Here. Individual Caption Styles for Title Subtitle and Description May be set below',true);
+	 $this->edit_styles_close($data,'blog_style','.'.$this->dataCss,'background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,margin_right,font_family,font_size,font_media_unit,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner',$msg,true,'Background Styles will not affect the Expanded image Background in Simulated New Pages. Use the specific option for this. Set General Caption Styles Here. Individual Caption Styles for Title Subtitle and Description May be set below',true);
 	if (!$this->master_gallery){
 		$this->edit_styles_close($data,'blog_tiny_data3','.preview_border_'.$this->blog_id,'borders,box_shadow,outlines,radius_corner','Style Borders for Preview Images',false,'',true); 
 		printer::pclear();
@@ -2321,18 +2427,19 @@ eol;
      ######################
      $msg=($this->master_gallery)?'':'Expanded';
 		$imagetitle='.imagetitle_'.$this->blog_id;
-		$this->edit_styles_close($data,'blog_data3',$imagetitle,'padding_top,font_family,font_size,font_weight,text_align,font_color,text_shadow,text_underline,italics_font,small_caps,line_height,letter_spacing','Style the <b>TITLE</b> of '.$msg.' Image Captions for this Gallery',false,''); 
+		$this->edit_styles_close($data,'blog_data3',$imagetitle,'padding_top,font_family,font_size,font_media_unit,font_weight,text_align,font_color,text_shadow,text_underline,italics_font,small_caps,line_height,letter_spacing','Style the <b>TITLE</b> of '.$msg.' Image Captions for this Gallery',false,''); 
 		$subtitle='.subtitle_'.$this->blog_id;
-		$this->edit_styles_close($data,'blog_data4',$subtitle,'padding_top,font_family,font_size,font_weight,text_align,font_color,text_shadow,italics_font,small_caps,line_height,letter_spacing,text_underline','Style the <b>SUBTITLE</b> of '.$msg.' Image Captions for this Gallery',false,'',false);
+		$this->edit_styles_close($data,'blog_data4',$subtitle,'padding_top,font_family,font_size,font_media_unit,font_weight,text_align,font_color,text_shadow,italics_font,small_caps,line_height,letter_spacing,text_underline','Style the <b>SUBTITLE</b> of '.$msg.' Image Captions for this Gallery',false,'',false);
      $msg=($this->master_gallery)?'':'Expanded';
      $description='.description_'.$this->blog_id; 
-     $this->edit_styles_close($data,'blog_data5',$description,'padding_top,font_family,font_size,font_weight,text_align,font_color,text_shadow,italics_font,small_caps,line_height,letter_spacing,text_underline','Style the <b>DESCRIPTION</b> of '.$msg.' Image Captions for this Gallery',false,'',false); 
+     $this->edit_styles_close($data,'blog_data5',$description,'padding_top,font_family,font_size,font_media_unit,font_weight,text_align,font_color,text_shadow,italics_font,small_caps,line_height,letter_spacing,text_underline','Style the <b>DESCRIPTION</b> of '.$msg.' Image Captions for this Gallery',false,'',false); 
      $this->edit_styles_close($data,'blog_data9','body.simulated.'.$this->pagename,'background','Style the background differently in new Page Simulate Mode',true,'If slippry gallery used in Simulate new Page Mode Style the Page background here',true);
      if ($this->master_gallery&&$imagecaptiontitle){
         $this->show_more('Additional Styles for Master Galleries with title in image' ,'','','','500','','float:left;',true);
-        echo '<div class="editcolor editbackground editfont fs2black"><!--features of expand gall images-->';  
+        echo '
+<div class="editcolor editbackground editfont fs2black"><!--features of expand gall images-->';  
         $imagecaptiontitle='.'.$this->dataCss.' .hover_caption .caption_wrap';
-        $this->edit_styles_close($data,'blog_data8',$imagecaptiontitle,'background,padding_top,padding_bottom,padding_left,padding_right,borders,box_shadow,outlines,radius_corner','Style the <b>Background &amp; Spacing</b> of Captions in Image Type Captions',false,''); 
+        $this->edit_styles_close($data,'blog_data8',$imagecaptiontitle,'background,padding_all,padding_top,padding_bottom,padding_left,padding_right,borders,box_shadow,outlines,radius_corner','Style the <b>Background &amp; Spacing</b> of Captions in Image Type Captions',false,''); 
         echo '</div><!--features of expand gall images-->'; 
         $this->show_close('Special Styles for Master Galleries with title in image'); 
         }
@@ -2340,7 +2447,8 @@ eol;
 		
 		$msg=($this->master_gallery)?'Additional Styles for All Other Master Gallery':'Styles for Expanded Images and Captions';
 		$this->show_more($msg,'','','','500','','float:left;',true);
-		echo '<div class="editcolor editbackground editfont fs2black"><!--features of expand gall images-->'; 
+		echo '
+<div class="editcolor editbackground editfont fs2black"><!--features of expand gall images-->'; 
 		//$this->clone_local_style||!$this->is_clone
      $image_border='.pswp_'.$this->blog_id.' img,.sy-slides-crop_'.$this->blog_id.',.gall_img_'.$this->blog_id.' img'; 
      $msg=($this->master_gallery)?'Image Border Style for Master Gallery':'Style the <b>Image Border &amp; Radius</b> of Expanded Images for this Gallery';
@@ -2348,10 +2456,10 @@ eol;
      printer::pclear(); 
      $msg=($this->master_gallery)?'':'Expanded';
      $description='.description_'.$this->blog_id; 
-     $this->edit_styles_close($data,'blog_data5',$description,'padding_top,font_family,font_size,font_weight,text_align,font_color,text_shadow,italics_font,small_caps,line_height,letter_spacing,text_underline','Style the <b>DESCRIPTION</b> of '.$msg.' Image Captions for this Gallery',false,'',false);
+     $this->edit_styles_close($data,'blog_data5',$description,'padding_top,font_family,font_size,font_media_unit,font_weight,text_align,font_color,text_shadow,italics_font,small_caps,line_height,letter_spacing,text_underline','Style the <b>DESCRIPTION</b> of '.$msg.' Image Captions for this Gallery',false,'',false);
      
      $mainPicInfo='.mainPicInfo_'.$this->blog_id.',.highslide-caption_'.$this->blog_id; 
-      $this->edit_styles_close($data,'blog_data6',$mainPicInfo,'background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,borders,box_shadow,outlines,radius_corner','Style the <b>BACKGROUND AREA</b> of the '.$msg.' Image Captions for this Gallery',false,'',false); 
+      $this->edit_styles_close($data,'blog_data6',$mainPicInfo,'background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,borders,box_shadow,outlines,radius_corner','Style the <b>BACKGROUND AREA</b> of the '.$msg.' Image Captions for this Gallery',false,'',false); 
      if ($this->clone_local_style||!$this->is_clone){ 
         echo '</div><!--features of expand gall images-->';
         $this->show_close('features of expand gall images');
@@ -2385,10 +2493,478 @@ eol;
    ($this->edit&&$this->overlapbutton)&&$this->overlapbutton();
 	}//end gallery
 #endgall
+#carousel
+function carousel($data,$type){//http://kenwheeler.github.io/slick/
+     static $inc=0; $inc++;
+      $carouselitems_arr=array('arrows','maxwidth','slidesToShow','slidesToScroll','dots','centerMode','autoplay','fade','unslick','','','','','','','');//leaving room for future extra options
+     $carouselset_arr=array('infinite','speed','autoplaySpeed','arrowBackground','arrows','slidesToShow','slidesToScroll','dots','centerMode','autoplay','fade','carouselOn');//these all used in initial values.
+	
+	foreach($carouselset_arr as $key=>$index){
+		${$index.'_index'}=$key;
+		}
+     $carouselitems=explode(',',$this->blog_data2);
+     $carouselset=explode(',',$this->blog_data3);
+     $cnt=count($carouselset_arr); 
+     for ($c=0; $c<$cnt; $c++){
+          if (!array_key_exists($c,$carouselset)) 
+               $carouselset[$c]=''; 
+          }
+     $image_max_width=$this->page_carousel_cache_min;//
+     $quality=95;
+     $style_field='blog_style';//not used for col
+     $table=$this->blog_table;
+     $field_id_val=$this->blog_id;
+     $delete='delete_carousel_blog';
+     $dbtable=$this->master_post_table;
+     $pic_field='blog_data1';
+     $field_id='blog_id';
+     $sort_id=$this->blog_id;
+     $pic_arr=(!empty($this->$pic_field))?explode(',',$this->$pic_field):array();
+	if ($this->edit&&isset($_POST['submitted'])){//check for deleted images
+		if (isset($_POST[$delete][$field_id_val])){
+			$new_arr=array();
+			$delete_arr=array();
+			foreach($_POST[$delete][$field_id_val] as $arrayed => $del_img){ 
+                    $this->message[]=printer::alert_neg('Removed '.$del_img. ' from slide show',.9,1);
+                    $delete_arr[]=$del_img; 
+                    }
+			foreach ($pic_arr as $image){
+				if (!in_array($image,$delete_arr)){
+					$new_arr[]=$image;
+					}
+				}
+			$newval=implode(',',$new_arr);
+			$q="update $dbtable set $pic_field='$newval' where $field_id='$field_id_val'";
+			$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);
+			}
+		}
+	$this->edit_styles_open();
+	($this->edit&&$this->is_blog)&&  
+	$this->blog_options($data,$this->blog_table); 
+	if (empty($this->$pic_field)){ 
+		if (!$this->edit){
+               printer::alert_neu('Carousel Coming soon');
+               return;
+               }
+		$msg=printer::alert_pos('Upload Your First Carousel Slide Show Image!!',1.1,true);
+		} 
+	$piccount=count($pic_arr);
+	$maxfullwidth=check_data::key_up($this->page_cache_arr,$image_max_width,'val'); //image size used from image directory 
+     $respond_data=' data-wid="'.$maxfullwidth.'" '; 
+     $prefix=Cfg::Response_dir_prefix;
+     $picdir=Cfg_loc::Root_dir.Cfg::Carousel_slide_dir;
+     $fullpicdir=$picdir.$prefix.$maxfullwidth.'/';
+     $css_id=$this->dataCss;
+     //$carouselOn=($carouselset[$carouselOn_index]==='carouselOn')?true:false;
+     $arrowBackground= (preg_match(Cfg::Preg_color,$carouselset[$arrowBackground_index]))?$carouselset[$arrowBackground_index]:'';
+     $slidesToShow=(is_numeric($carouselset[$slidesToShow_index])&&$carouselset[$slidesToShow_index]>0&&$carouselset[$slidesToShow_index]<=15)?$carouselset[$slidesToShow_index]:5;
+     $slidesToScroll=(is_numeric($carouselset[$slidesToScroll_index])&&$carouselset[$slidesToScroll_index]>0&&$carouselset[$slidesToScroll_index]<=15)?$carouselset[$slidesToScroll_index]:2;
+     $speed=(is_numeric($carouselset[$speed_index])&&$carouselset[$speed_index]>199&&$carouselset[$speed_index]<=1000)?$carouselset[$speed_index]:600;
+     $autoplaySpeed=(is_numeric($carouselset[$autoplaySpeed_index])&&$carouselset[$autoplaySpeed_index]>=1&&$carouselset[$autoplaySpeed_index]<=9)?$carouselset[$autoplaySpeed_index]:2;
+     $infinite=($carouselset[$infinite_index]==='infiniteoff')?false:true;
+     $dots=($carouselset[$dots_index]==='dotsoff')?false:true;
+     $fade=($carouselset[$fade_index]==='fadeon')?true:false;
+     $arrows=($carouselset[$arrows_index]==='arrowsoff')?false:true;
+     $autoplay=($carouselset[$autoplay_index]==='autoplayon')?true:false;
+     $centerMode=($carouselset[$centerMode_index]==='centerModeon')?true:false;
+     
+     if ($this->edit&&(!$this->is_clone||$this->clone_local_style)){
+          
+          $this->show_more('Carousel Options','buffer_carousel_'.$this->blog_id);
+          printer::print_redwrap('carousel items');
+          $this->submit_button();
+          printer::print_tip(' For Slick carousel overview: <a  class="underline ekblue cursor" href="http://kenwheeler.github.io/slick/" target="_blank"  >see on Github</a>'); 
+          printer::print_header('Set up initial values. You can reset value for smaller screens using max-width options below.');
+           $select=$slidesToShow;
+           printer::print_wrap1('carousel show');
+          printer::print_tip('Choose Initial # of images to show.');
+          echo'<select class="editcolor editbackground editfont"  name="'.$data.'_blog_data3['.$slidesToShow_index.']">';       
+          echo '<option  value="'.$select.'" selected="selected">'.$select.'</option>';
+             for ($a=1;$a<=15;$a++){
+               echo '<option  value="'.$a.'">'.$a.'</option>';
+               } 
+          echo '</select>';
+          printer::close_print_wrap1('carousel show');
+          $select=$slidesToScroll;
+          printer::print_wrap1('carousel infinite');
+          printer::print_tip('Choose Initial # of images to move on Scroll.');
+          echo'<select class="editcolor editbackground editfont"  name="'.$data.'_blog_data3['.$slidesToScroll_index.']">';       
+          echo '<option  value="'.$select.'" selected="selected">'.$select.'</option>';
+             for ($a=1;$a<=15;$a++){
+               echo '<option  value="'.$a.'">'.$a.'</option>';
+               } 
+         echo '</select>';
+           printer::close_print_wrap1('carousel scroll');
+          printer::print_wrap1('carousel infinite');
+          printer::print_tip('Toggle looping from last image to first image');
+          if ($infinite) 
+               printer::alert('<input type="checkbox" value="infiniteoff" name="'.$data.'_blog_data3['.$infinite_index.']" >Infinite Loop off'); 
+          else
+               printer::alert('<input type="checkbox" value="infiniteon" name="'.$data.'_blog_data3['.$infinite_index.']" >Infinite Loop on');
+          printer::close_print_wrap1('carousel infinite');
+
+               printer::print_wrap1('carousel centerMode');
+               printer::print_tip('Toggle centerMode. Centermode centers the images splitting the one on either end if even number. Enlarges center image.?');
+          if ($centerMode) 
+               printer::alert('<input type="checkbox" value="centerModeoff" name="'.$data.'_blog_data3['.$centerMode_index.']" >CenterMode Off'); 
+          else
+               printer::alert('<input type="checkbox" value="centerModeon" name="'.$data.'_blog_data3['.$centerMode_index.']" >CenterMode On');
+          printer::close_print_wrap1('carousel centerMode');
+          printer::print_wrap1('carousel arrows');
+          printer::print_tip('Toggle arrows for prev next image(s)');
+          if ($arrows) 
+               printer::alert('<input type="checkbox" value="arrowsoff" name="'.$data.'_blog_data3['.$arrows_index.']" >Show Arrows Off'); 
+          else
+               printer::alert('<input type="checkbox" value="arrowson" name="'.$data.'_blog_data3['.$arrows_index.']" >Show Arrows On');
+          printer::close_print_wrap1('carousel arrows');
+          printer::print_wrap1('carousel dots');
+          printer::print_tip('Toggle dots that represent carousel images present');
+          if ($dots) 
+               printer::alert('<input type="checkbox" value="dotsoff" name="'.$data.'_blog_data3['.$dots_index.']" >Images dots Off'); 
+          else
+               printer::alert('<input type="checkbox" value="dotson" name="'.$data.'_blog_data3['.$dots_index.']" >Images dots On');
+          printer::close_print_wrap1('carousel dots');
+          printer::print_wrap1('carousel autoplay');
+          printer::print_tip('Toggle autoplay. Autoplay scrolls images at the rate you choose.');
+          if ($autoplay) 
+               printer::alert('<input type="checkbox" value="autoplayoff" name="'.$data.'_blog_data3['.$autoplay_index.']" >Autoplay Off'); 
+          else
+               printer::alert('<input type="checkbox" value="autoplayon" name="'.$data.'_blog_data3['.$autoplay_index.']" >Autoplay On');
+          printer::close_print_wrap1('carousel autoplay');
+          printer::print_wrap1('carousel fade');
+          printer::print_warnlight('Choosing Fade overrides imagesToShow and imagesToScroll to 1 each.');
+          if ($fade) 
+               printer::alert('<input type="checkbox" value="fadeoff" name="'.$data.'_blog_data3['.$fade_index.']" >Fade Off'); 
+          else
+               printer::alert('<input type="checkbox" value="fadeon" name="'.$data.'_blog_data3['.$fade_index.']" >Fade On');
+          printer::close_print_wrap1('carousel fade');
+          printer::print_wrap1('carousel speed');
+          printer::alert('Carousel speed (milli-seconds) to switch images when arrow is clicked :');
+          $this->mod_spacing($this->data.'_blog_data3['.$speed_index.']',$speed,200,1000,50,'');
+          printer::close_print_wrap1('carousel speed');
+          printer::print_wrap1('carousel autoplaySpeed');
+          printer::alert('If autoplay is on Carousel autoplaySpeed (seconds) determines time before images are scrolled :');
+          $this->mod_spacing($this->data.'_blog_data3['.$autoplaySpeed_index.']',$autoplaySpeed,200,1000,50,'');
+          printer::close_print_wrap1('carousel autoplaySpeed');
+          printer::print_wrap('back color arrow');
+          printer::alertx('<p class="left editbackground editfont editcolor">Prev/Next Arrow Background Color: #<input onclick=" window.jscolor(this);" style="cursor:pointer;background:#'.$this->editor_background.';color:#'.$this->editor_color.';" type="text" name="'.$data.'_blog_data3['.$arrowBackground_index.']." id="'.$this->blog_table.'_'.$this->blog_order.'iconcolor" value="'.$arrowBackground.'" size="6" maxlength="6" class="jscolor {refine:false}"><span style="font-size: 1.1em; color:#'.Cfg::Info_color.';" id="'.$this->blog_table.'_'.$this->blog_order.'iconcolorinstruct"></span></p>');
+          printer::close_print_wrap('back color arrow');
+          $this->submit_button();
+          }
+     $fadeval=($fade)?'fade: true':'fade: false';
+     $infiniteval=($infinite)?'infinite: true':'infinite: false';
+     $centerModeval=($centerMode)?'centerMode: true':'centerMode: false';
+     $autoplayval=($autoplay)?'autoplay: true':'autoplay: false';
+     $dotsval=($dots)?'dots: true':'dots: false';
+     $arrowsval=($arrows)?'arrows: true':'arrows: false';
+     $autoplaySpeed=$autoplaySpeed*1000;
+     if($fade)$slidesToShow=$slidesToScroll=1;
+     
+     echo "
+     <!--$this->pagename.js @ slick carousel $this->dataCss-->
+     ";
+     $carouselOn=true;//no need to toggle
+     if($this->edit){
+           
+          $this->handle_script_edit('slick/slick.min.js','slick','header_script_once');
+          $this->handle_script_edit('slick/slick.min.js','slick','header_script_once');
+          $once="gen_Proc.classPass('carouselrespond',gen_Proc.carouselResponse);";
+		$this->handle_script_edit($once,'carousel_script_once','initiate_script_once');
+		$this->handle_css_edit('page','slick/slick.css','header_css_once');
+          $this->handle_css_edit('page','slick/slick-theme.css','header_css_once');
+          echo '<!--$this->pagename.js @ slick carousel $this->dataCss-->';      
+          $script= <<<eol
+     
+     
+     //<!--post carousel  @ slick carousel $this->dataCss-->
+     jQuery("#carousel_$inc").css('visibility','visible');
+     jQuery("#carousel_$inc").slick({
+          slidesToShow: $slidesToShow,
+          slidesToScroll: $slidesToScroll,
+          $infiniteval,
+          $dotsval, 
+          speed: $speed,
+          $centerModeval,
+          centerPadding: '',
+          $autoplayval,
+          adaptiveHeight: true,
+          autoplaySpeed: $autoplaySpeed,
+          $fadeval,
+          $arrowsval,
+          variableWidth: false,
+          responsive: [
+eol;
+     
+          if ($this->edit&&(!$this->is_clone||$this->clone_local_style)){
+               $optional='Optionally choose  additional max-width controlled options for this carousel post. Tweak settings as necessary with up to 8 additional @media query controlled choices below.';
+                printer::print_tip("<i>$optional</i>");
+                printer::print_warnlight('Caution: Using unslick to disable slide display is not reponsive to further to further resizing. Also noticing no effect with centerMode. ');
+          printer::print_warnlight('Choosing Fade overrides imagesToShow and imagesToScroll to 1 each.');
+                printer::print_header('Turn off media value changes by using max-width: none;  Values w/o a valid  max width will be ignored.');
+                 echo '<table class="carotable"><tbody><tr><th>Max Width</th><th>slides To Show</th><th>slides To Scroll</th><th>arrows</th><th>dots</th><th>auto play</th><th>center Mode</th><th>fade</th><th>unslick</th></tr>';
+                 }
+     foreach($carouselitems_arr as $key=>$index){
+		${$index.'_index'}=$key;
+		}
+     $count=count($carouselitems_arr);
+     $reps=7;
+     $mcount=$reps*$count;
+     for ($c=0; $c<$mcount; $c++){
+          if (!array_key_exists($c,$carouselitems)) 
+               $carouselitems[$c]=''; 
+          }
+     $add_arr=array();
+     for ($i=0; $i<$reps; $i++){
+          $k=$i*$count;//
+          $maxwidth=(is_numeric($carouselitems[$maxwidth_index+$k])&&$carouselitems[$maxwidth_index+$k]>199&&$carouselitems[$maxwidth_index+$k]<=3000)?$carouselitems[$maxwidth_index+$k]:'none';
+          $slidesToShow=(is_numeric($carouselitems[$slidesToShow_index+$k])&&$carouselitems[$slidesToShow_index+$k]>0&&$carouselitems[$slidesToShow_index+$k]<=15)?$carouselitems[$slidesToShow_index+$k]:5;
+          $slidesToScroll=(is_numeric($carouselitems[$slidesToScroll_index+$k])&&$carouselitems[$slidesToScroll_index+$k]>0&&$carouselitems[$slidesToScroll_index+$k]<=15)?$carouselitems[$slidesToScroll_index+$k]:1;
+          //$infinite=($carouselitems[$infinite_index+$k]==='infiniteoff')?0:true;
+          $dots=($carouselitems[$dots_index+$k]==='dotsoff')?false:true;
+          $fade=($carouselitems[$fade_index+$k]==='fadeon')?true:false;
+          $arrows=($carouselitems[$arrows_index+$k]==='arrowsoff')?false:true;
+          $unslick=($carouselitems[$unslick_index+$k]==='unslickon')?true:false;
+          $autoplay=($carouselitems[$autoplay_index+$k]==='autoplayon')?true:false;
+          $centerMode=($carouselitems[$centerMode_index+$k]==='centerModeon')?true:false;
+          if ($fade)$slidesToShow=$slidesToScroll=1;
+               
+          $fadeval=($fade)?'fade: true,':'fade: false,';
+          $infiniteval=($infinite)?'infinite: true,':'infinite: false,';
+          $centerModeval=($centerMode)?'centerMode: true,':'centerMode: false,';
+          $autoplayval=($autoplay)?'autoplay: true,':'autoplay: false,';
+          $dotsval=($dots)?'dots: true,':'dots: false,';
+          $arrowsval=($arrows)?'arrows: true,':'arrows: false,';
+          $unslickval=($unslick)?'"unslick"':'';
+          $slidesToShowval="slidesToShow: $slidesToShow,";
+          $slidesToScrollval="slidesToScroll: $slidesToScroll,";
+          $add_arr[$maxwidth]=array($unslickval,$slidesToShowval,$slidesToScrollval,$dotsval,$fadeval,$arrowsval,$autoplayval,$centerModeval);
+         if($this->edit&&(!$this->is_clone||$this->clone_local_style)){
+               $select=$maxwidth;
+               echo'<tr><td><select class="editcolor editbackground editfont"  name="'.$data.'_blog_data2['.($speed_index+$k).']">';       
+               echo '<option  value="'.$select.'" selected="selected">'.$select.'</option>
+               <option  value="none">None</option>';
+                  for ($a=300;$a<=3000;$a+=10){
+                    echo '<option  value="'.$a.'">'.$a.'</option>';
+                    } 
+              echo '</select></td>';
+              
+              $select=$slidesToShow;
+               echo'<td><select class="editcolor editbackground editfont"  name="'.$data.'_blog_data2['.($slidesToShow_index+$k).']">';       
+               echo '<option  value="'.$select.'" selected="selected">'.$select.'</option>';
+                  for ($a=1;$a<=15;$a++){
+                    echo '<option  value="'.$a.'">'.$a.'</option>';
+                    } 
+              echo '</select></td>';
+              $select=$slidesToScroll;
+               echo'<td><select class="editcolor editbackground editfont"  name="'.$data.'_blog_data2['.($slidesToScroll_index+$k).']">';       
+               echo '<option  value="'.$select.'" selected="selected">'.$select.'</option>';
+                  for ($a=1;$a<=15;$a++){
+                    echo '<option  value="'.$a.'">'.$a.'</option>';
+                    } 
+              echo '</select></td>';
+              
+              
+              $select=($arrows)?"ON":"OFF";
+              $val=($arrows)?"arrowson":"arrowsoff";
+               echo'<td><select class="editcolor editbackground editfont"  name="'.$data.'_blog_data2['.($arrows_index+$k).']">';       
+               echo '<option  value="'.$val.'" selected="selected">'.$select.'</option>
+               <option  value="arrowson">ON</option>
+               <option  value="arrowsoff">OFF</option> 
+              </select></td>';
+              
+              $select=($dots)?"ON":"OFF";
+              $val=($dots)?"dotson":"dotssoff";
+               echo'<td><select class="editcolor editbackground editfont"  name="'.$data.'_blog_data2['.($dots_index+$k).']">';       
+               echo '<option  value="'.$val.'" selected="selected">'.$select.'</option>
+               <option  value="dotson">ON</option>
+               <option  value="dotsoff">OFF</option> 
+              </select></td>';
+              
+              $select=($autoplay)?"ON":"OFF";
+              $val=($autoplay)?"autoplayon":"autoplaysoff";
+               echo'<td><select class="editcolor editbackground editfont"  name="'.$data.'_blog_data2['.($autoplay_index+$k).']">';       
+               echo '<option  value="'.$val.'" selected="selected">'.$select.'</option>
+               <option  value="autoplayon">ON</option>
+               <option  value="autoplayoff">OFF</option> 
+              </select></td>';
+              
+              $select=($centerMode)?"ON":"OFF";
+              $val=($centerMode)?"centerModeon":"centerModesoff";
+               echo'<td><select class="editcolor editbackground editfont"  name="'.$data.'_blog_data2['.($centerMode_index+$k).']">';       
+               echo '<option  value="'.$val.'" selected="selected">'.$select.'</option>
+               <option  value="centerModeon">ON</option>
+               <option  value="centerModeoff">OFF</option> 
+              </select></td>';
+              $select=($fade)?"ON":"OFF";
+              $val=($fade)?"fadeon":"fadesoff";
+               echo'<td><select class="editcolor editbackground editfont"  name="'.$data.'_blog_data2['.($fade_index+$k).']">';       
+               echo '<option  value="'.$select.'" selected="selected">'.$select.'</option>
+               <option  value="fadeon">ON</option>
+               <option  value="fadeoff">OFF</option> 
+              </select></td>';
+              
+              
+              $select=($unslick)?"ON":"OFF";
+              $val=($unslick)?"unslickon":"unslicksoff";
+               echo'<td><select class="editcolor editbackground editfont"  name="'.$data.'_blog_data2['.($unslick_index+$k).']">';       
+               echo '<option  value="'.$val.'" selected="selected">'.$select.'</option>
+               <option  value="unslickon">ON</option>
+               <option  value="unslickoff">OFF</option> 
+              </select></td>';
+              echo '</tr>'; 
+              
+               }// if edit
+  
+          }//end for
+     
+     if ($this->edit&&(!$this->is_clone||$this->clone_local_style)){
+          echo '</tbody></table>';
+          $this->submit_button();
+          printer::close_print_wrap('carousel items');
+          $this->show_close('Change carousel options','buffer_carousel_'.$this->blog_id);
+          }
+     krsort($add_arr);
+     foreach($add_arr as $key => $array){
+          if ($key=='none')continue;
+          $temp1='
+          {
+      breakpoint: '.$key.',
+      settings: { 
+          ';
+          $temp2='';
+          foreach($array as $value){ 
+               $temp2.=
+                    $value;
+               if ($value=='"unslick"')break;
+                   
+               }
+               
+          if ($value=='"unslick"'){//unslick not working
+               $temp2='';
+               $temp1='
+               {
+          breakpoint: '.$key.',
+          settings: "unslick"
+          ';
+               }
+          else $temp2=substr_replace($temp2,'',-1).'
+               }';
+          $temp1.=$temp2;
+          
+          $script.=$temp1.'
+               
+          },';
+          }
+     
+     $script=substr_replace($script,'',-1);
+     $script.='
+     ]
+    });
+    ';
+          if ($this->edit&&$carouselOn)$this->handle_script_edit($script,'carousel_post','script');
+          $this->show_more('View Carousel','full');
+          printer::printx('<p class="center pt10 smallest">click  prev/next or swipe if images not appearing in editmode');
+          echo'
+<div id="carousel_'.$inc.'" class="">';
+          if (!is_dir($picdir))mkdir($picdir,0755,1);
+          foreach ($pic_arr as $picname){
+               $parr=array();
+               $total=$x=0;
+               if (is_file(Cfg_loc::Root_dir.Cfg::Upload_dir.$picname)){ //editmode generate cache if !is_file
+                    foreach($this->page_cache_arr as $ext){ 
+                         (!is_dir($picdir.$prefix.$ext))&&mkdir($picdir.$prefix.$ext,0755,1);
+                              if (!is_file($picdir.$prefix.$ext.'/'.$picname)){
+                                   image::image_resize($picname,$ext,0,0,Cfg_loc::Root_dir.Cfg::Upload_dir, $picdir.$prefix.$ext,'file',NULL,$quality); 
+                              }//if less than maxfullwidth
+                         }//end foreach ext  
+                    }//if !file..
+               else if (Sys::Pass_class){
+                    $picname=Cfg::Pass_image; 
+                    $fullpicdir=Cfg_loc::Root_dir;
+                    }
+               else {
+                    $msg="missing uploads image '.$picname";
+                    mail::alert($msg);
+                    $this->message[]=$msg;
+                    continue;
+                    }
+               if (is_file($fullpicdir.$picname))
+               echo' <p  class="center marginauto carouselrespond" '.$respond_data.'> 
+        <img  class=""  src="'.$fullpicdir.$picname.'" alt="Carousel Slide Show"></p> ';
+          else echo $fullpicdir.$picname.' is missing';
+               }//end foreach
+          echo '</div>';
+          $this->show_close('edit show carousel');
+          }//if edit
+     if (!$this->edit){
+          $arr=array();
+          echo'
+<div id="carousel_'.$inc.'" class="hidden">';
+          foreach ($pic_arr as $picname){
+               foreach($this->page_cache_arr as $ext){ 
+                    if (!is_file($picdir.$prefix.$ext.'/'.$picname)){
+                         image::image_resize($picname,$ext,0,0,Cfg_loc::Root_dir.Cfg::Upload_dir,$picdir.$prefix.$ext,'file',NULL,$quality);
+                         $arr[]="Image cache generation required for webpage mode rendering of $picdir$prefix$ext/$picname";
+                         }
+                    }//foreach
+               if (is_file($fullpicdir.$picname))
+                     ///<p  class="p25 carouselrespond" '.$respond_data.'> 
+        echo '<img  class="carouselrespond" '.$respond_data.'  src="'.$fullpicdir.$picname.'" alt="Carousel Slide Show"> '; 
+               }//foreach
+          echo '</div>';
+          if (count($arr)>0){
+               $msg='The following carousel slide images was found missing in carousel and regenerated in editmode automatically in this page '. Sys::Self.'. 
+            ';
+               $msg.=implode("/n",$arr);
+               mail::alert_min($msg);
+               }
+          }//! edit
+          
+     if (!$this->edit)return; 
+     if (!$this->is_clone||$this->clone_local_data){
+          $this->show_more('Rearrange or Remove Slide Images','','','',900,'','float:left;',true); 
+          echo '
+          <div style="background:#'.$this->editor_background.'; color:#555; text-align:left; width:1000px; float:left;  border:3px solid #'.$this->redAlert.'; padding: 10px 30px 60px 30px;" ><!--Sorting-->
+          
+          <p id="updateMsg_'.$inc.'" class="pos larger editbackground editfont left"></p> 
+          <p class="fsminfo editbackground editfont editcolor floatleft left">Drag Image To ReOrder Slide Show. <br> <span class="neg">Check box to delete images.</span></p>';
+          printer::pclear();
+          echo'<ul id="sort_'.$inc.'" data-id="'.$sort_id.'" data-inc="'.$inc.'" class="nolist sortSlide" >';//#sort
+          $x=0;
+          foreach ($pic_arr as $image){
+               printer::printx('<li class="floatleft fs1npinfo" id="autosort!@!'.$image.'!@!'.$x.'"><input type="checkbox" name="'.$delete.'['.$field_id_val.'][]" value="'.$image.'"><img src="'.$fullpicdir.$image.'" height="75" alt="'.$image.'"></li>');
+               $x++;
+               }
+          echo '</ul>'; 
+          echo '</div><!--Sorting-->';
+          printer::pclear(10);	
+          $this->show_close('Rearrange or Remove Slide Images');
+          }//!clone
+	if (!$this->is_clone||$this->clone_local_data){
+		$this->print_wrap('upload slide image','editbackground editfont Os3salmon fsminfo');
+		printer::alert('Click here for the Image Uploader to add a new photo to the Automatic Slideshow.','',$this->column_lev_color.' left floatleft ');
+          $width_available=(isset($width_available))?$width_available:600;//width available may not be set yet as with page type
+		printer::printx('<p class="navy underline"><a href="add_page_pic.php?www='.$width_available.'&amp;ttt='.$table.'&amp;fff='.$pic_field.'&amp;id='.$field_id_val.'&amp;id_ref='.$field_id.'&amp;bbb=auto_slide&amp;pgtbn='.$this->pagename.'&amp;quality='.$quality.'&amp;postreturn='.Sys::Self.'&amp;append=append&amp;css='.$this->roots.Cfg::Style_dir.$this->pagename.'&amp;no_image_resize&amp;sess_override&amp;sess_token='.$this->sess->sess_token.'">Upload A New Carousel Image</a></p>');
+		printer::close_print_wrap('upload slide image');
+		}
+     if (!empty($arrowBackground)) 
+           $this->css.='
+         .'.$this->dataCss.' .slick-prev,.slick-next{background:#'.$arrowBackground.'!important;z-index:100;}';
+     $this->css.='
+.carouselrespond{max-width:100%;} 
+           ';
+     $this->edit_styles_close($data,'blog_data4','.'.$this->dataCss.' .slick-slide img','background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,margin_right,borders,box_shadow,outlines,radius_corner','Style the Images',false,'',true);
+     
+     $this->edit_styles_close($data,$style_field,'.'.$this->dataCss,'background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,margin_right,borders,box_shadow,outlines,radius_corner','Edit Carousel General Post Styles',true,'',true); 
+ ($this->edit&&$this->overlapbutton)&&$this->overlapbutton();
+ 
+     }//end carousel
+
+
 #slide #auto
-function auto_slide($data,$type){ 
+function auto_slide($data,$type){ //currently handles two types of slideshows background images for full page effect and auto slide image for blog posts
 	static $inc=0; $inc++;
-	$min_opac=10;
+	$min_opac=40;
 	$shadowcalc=0;//initialize  where $table_ref='$ttt' AND $id_ref='$id'";
 	$options='time,transit,image_quality,use_page_slide';//use page slide used in page options
 	$options_arr=explode(',',$options);
@@ -2408,14 +2984,14 @@ function auto_slide($data,$type){
 			$pic_field='page_tiny_data1';
 			$field_id='page_id';
 			$sort_id='page'.$this->page_id;
-        $this->max_width_limit=end($this->page_cache_arr); 
+               $this->max_width_limit=end($this->page_cache_arr); 
 			$image_pos_data_arr=(strlen($this->page_tiny_data3)>10)?unserialize($this->page_tiny_data3):array();
 			break;
 		case 'blog' :
         #currently background slide type working only in pagetypes
 			$background_slide=false;//($this->blog_tiny_data1==='background_slide')?true:false;
 			$option_field='blog_data2';
-			$border_field='blog_data2';//blog_data5
+			$border_field='blog_data5';//blog_data5
 			$style_field='blog_style';//not used for col
 			$table=$this->blog_table;
 			$field_id_val=$this->blog_id;
@@ -2438,6 +3014,7 @@ function auto_slide($data,$type){
 			$field_id='col_id';
 			break;
 		}//end switch
+     $pic_arr=(!empty($this->$pic_field))?explode(',',$this->$pic_field):array();
 	$option_field_arr=explode(',',$this->$option_field);
 	for ($i=0; $i<count($options_arr); $i++){
 		if (!array_key_exists($i,$option_field_arr)){
@@ -2447,8 +3024,7 @@ function auto_slide($data,$type){
 	if ($this->edit&&isset($_POST['submitted'])){
 		if (isset($_POST[$delete][$field_id_val])){
 			$new_arr=array();
-			$delete_arr=array();
-			$pic_arr=explode(',',$this->$pic_field); 
+			$delete_arr=array(); 
 			foreach($_POST[$delete][$field_id_val] as $arrayed => $del_img){ 
           $this->message[]=printer::alert_neg('Removed '.$del_img. ' from slide show',.9,1);
           $delete_arr[]=$del_img; 
@@ -2471,17 +3047,16 @@ function auto_slide($data,$type){
 		$msg=printer::alert_pos('Upload Your First Slide Show Image!!',1.1,true);
 		#$maxwid=$this->column_net_width[$this->column_level];
 		}
-	$piccount=count(explode(',',$this->$pic_field));
+	$piccount=count($pic_arr);
 	$quality=(!empty($option_field_arr[$image_quality_index])&&$option_field_arr[$image_quality_index]>9&&$option_field_arr[$image_quality_index]<101)?$option_field_arr[$image_quality_index]:((!empty($this->page_options[$this->page_image_quality_index])&&$this->page_options[$this->page_image_quality_index]<101&&$this->page_options[$this->page_image_quality_index]>9)?$this->page_options[$this->page_image_quality_index]:Cfg::Pic_quality); 
 	$time=(!empty($option_field_arr[$time_index])&&$option_field_arr[$time_index]>=3&&$option_field_arr[$time_index]<15)?$option_field_arr[$time_index]:8;// time between images 
 	$transit=(!empty($option_field_arr[$transit_index]))?$option_field_arr[$transit_index]:.9; 
 	$wpercent=100;//not used at moment($this->blog_data3>4&&$this->blog_data3<=100)?$this->blog_data3:100;
 	if (!empty($this->$pic_field)){
-		$arr=explode(',',$this->$pic_field);
+		$arr=$pic_arr;
 		$pic_init=$arr[0];
 		$flag=false;
 		$empty=false;//if auto file ! exist set to true 
-		$pic_arr=explode(',',$this->$pic_field); 
 		$maxh=$maxw=$maxAspect=0; $minAspect=1;
 		foreach($pic_arr as $key=>$image){
 			if (!is_file(Cfg_loc::Root_dir.Cfg::Upload_dir.$image)){ 
@@ -2489,52 +3064,60 @@ function auto_slide($data,$type){
 				$flag=true;
 				}
 			list($width,$height)=$this->get_size($image,Cfg_loc::Root_dir.Cfg::Upload_dir);
-			$ratio=$width/$height;
+               $ratio=$width/$height;
 			$minAspect=min($ratio,$minAspect); 
 			$maxAspect=max($ratio,$maxAspect);
 			if ($pic_init===$image)$init_ratio=$ratio;
 			} 
 		}//end !empty($this->$pic_field)
 	if (!empty($this->$pic_field)){// rechecking after unsetting... currently unsetting removed...
-     $this->image_resize_msg='Auto Slideshow'; 
-		if ($this->edit&&$type!=='page'){
-        list($border_width,$border_height)=$this->border_calc($this->$border_field);//img
-        list($post_pad_width,$post_mar_width)=$this->pad_mar_calc($this->$style_field,$this->column_total_width[$this->column_level]); //around post
-        $shadowcalc=$this->calc_border_shadow($this->$border_field); 
-        $maxwidth_adjust_shadow_calc=100-$shadowcalc/3;//300 ~ min image width in px conv to %
-        list($pad_width,$mar_width)=$this->pad_mar_calc($this->$border_field,$this->column_total_width[$this->column_level]); 
-        ($this->edit)&&print('<p id="return_'.$this->blog_id.'">&nbsp;</p>');
-        $bp_arr=$this->page_break_arr;
-        $maxwidth=0;//intitialize width of maximumun maintain width in maintain_width mode
-        if ($type==='col'&&$this->column_primary)$max_pic_size=800;
-        else {//columns slide show is not used presently..  page or blog/post only
-          $column_level= ($type!=='col')?$this->column_level:$this->col_level-1; 
-          if ($this->column_use_grid_array[$column_level]==='use_grid'){ 
-             $max_pic_size=$this->grid_width_chosen_arr['max'.$bp_arr[0]]*$wpercent/100;//likely starter
-             foreach($this->page_break_arr as $bp){
-               $max_pic_size=max($max_pic_size,$this->grid_width_chosen_arr[$bp]*$wpercent/100);//relative percent and size can be bigger with smaller break pt calculation
-               } 
-             }//end if rwd enabled
-				else{//rwd not enabled 
-					$max_pic_size=$this->current_net_width*$wpercent/100; 
-					$maxwidth=$max_pic_size;
-					}
-				}//not primary column
-			$best_guess=($max_pic_size>1000)?700:(($max_pic_size>500)?500:$max_pic_size);//best guess used for when viewport not set like first intitial page
-        $gtype=($this->column_use_grid_array[$this->column_level]==='use_grid')?'rwd':'no_rwd';
-        //grid post percent arr  used to determine the percentage width available when grid system is used under the relevant break point given the current width... from this relevant pic width is calculated..
-        //$maxwidth=//could be limited by page_width so we will add that here..
-        $grid_post_percent_arr=($this->column_use_grid_array[$this->column_level]==='use_grid')?$this->grid_width_chosen_arr:'';//array becomes size of pic plugging in viewport
-        (!is_dir(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir))&&mkdir(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir,0755,1);
-        file_put_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'auto_slide_'.$this->passclass_ext.$data,$best_guess.'@@'. $gtype.'@@'.serialize($grid_post_percent_arr).'@@'.$maxwidth);
-        }//not page slide show... and edit mode...
+          $this->image_resize_msg='Auto Slideshow'; 
+          if ($this->edit&&$type!=='page'){
+               list($border_width,$border_height)=$this->border_calc($this->$border_field);//img
+               list($post_pad_width,$post_mar_width)=$this->pad_mar_calc($this->$style_field,$this->column_total_width[$this->column_level]); //around post
+               $shadowcalc=$this->calc_border_shadow($this->$border_field); 
+               $maxwidth_adjust_shadow_calc=100-$shadowcalc/3;//300 ~ min image width in px conv to %
+               list($pad_width,$mar_width)=$this->pad_mar_calc($this->$border_field,$this->column_total_width[$this->column_level]); 
+               ($this->edit)&&print('<p id="return_'.$this->blog_id.'">&nbsp;</p>');
+               $bp_arr=$this->page_break_arr;
+               $maxwidth=300;//intitialize width of maximumun maintain width in maintain_width mode
+               if ($type==='col'&&$this->column_primary)$max_pic_size=800;
+               else {// this is blog/post only ie //columns slide show is not used presently
+                    ## the following is overly complicated editpage determination of initial image download as fallback ... this annotation borrowd from build image as the two are similar
+          ##if the $this->viewport_current_width is not determined for webmode on the initial downloaded page derieved from cookies to get viewport width, the fallback determined in this editpage determined best guess will be retrieved from flat file..
+          #the system itself keeps track of post current width on full size screen widths: ie this->current-width..  
+          ## Now we start some overly complicated editpage only  determination for initial image size which will be used if the $this->viewport_current_width is not avail. We trying to download the smallest image that does the job. Javascript will resize to larger image as necessry from  samesize/larger cache size of the image.
+          ##in general the system keeps track of post width utiliized within the max size of the primary column except when flex box is as the width determinant then it will be more approx.
+          ##Initial size determined from maxsize desktop and in webpage mode actual viewport width determined from cookie if populated 
+          ##if the rwd system is involved we will bring in max chose##rwd value.
+          ## if break point...
+                    $column_level= ($type!=='col')?$this->column_level:$this->col_level-1; 
+                    if ($this->column_use_grid_array[$column_level]==='use_grid'){ 
+                         $max_pic_size=$this->grid_width_chosen_arr['max'.$bp_arr[0]]*$wpercent/100;//likely starter
+                         foreach($this->page_break_arr as $bp){
+                              $max_pic_size=max($max_pic_size,$this->grid_width_chosen_arr[$bp]*$wpercent/100);//relative percent and size can be bigger with smaller break pt calculation
+                              } 
+                         }//end if rwd enabled
+                    else{//rwd not enabled 
+                         $max_pic_size=$this->current_net_width*$wpercent/100; 
+                         $maxwidth=$max_pic_size;  
+                         }
+                    }//not primary column
+               $best_guess=($max_pic_size>1000)?700:(($max_pic_size>500)?500:$max_pic_size);//best guess used for when viewport not set like first intitial page
+               $gtype=($this->column_use_grid_array[$this->column_level]==='use_grid')?'rwd':'no_rwd';
+               //grid post percent arr  used to determine the percentage width available when grid system is used under the relevant break point given the current width... from this relevant pic width is calculated..
+               //$maxwidth=//could be limited by page_width so we will add that here..
+               $grid_post_percent_arr=($this->column_use_grid_array[$this->column_level]==='use_grid')?$this->grid_width_chosen_arr:'';//array becomes size of pic plugging in viewport
+               (!is_dir(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir))&&mkdir(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir,0755,1);
+               file_put_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'auto_slide_'.$this->passclass_ext.$data,$best_guess.'@@'. $gtype.'@@'.serialize($grid_post_percent_arr).'@@'.$maxwidth); 
+               }//not page slide show... and edit mode...
 		else if ($type==='page'){//edit && non-edit
 			$shadowcalc=0;
 			if (!empty($this->viewport_current_width)&&$this->viewport_current_width>200){
 				$image_width=$this->viewport_current_width;
 				}
 			else $image_width=600;//best_guess will be javascript resized if smaller
-			}
+			}  
 		if ($type!=='page'){//whether editmode or not.
 			$pic_info_arr=explode('@@',file_get_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'auto_slide_'.$this->passclass_ext.$data));
 			list($best_guess,$gtype,$grid_width_chosen_arr,$maxwidth)=$pic_info_arr;
@@ -2555,30 +3138,34 @@ function auto_slide($data,$type){
 				$image_width=$best_guess; 
 				}
 			}//end if type not = page 
-		$image_size=check_data::key_up($this->page_cache_arr,$image_width,'val',$this->max_width_limit);//image size used from image directory 
+		$image_size=check_data::key_up($this->page_cache_arr,$image_width,'val',$this->max_width_limit); //image size used from image directory 
 		$respond_data=' data-wid="'.$image_size.'" '; 
 		$image_width_dir=Cfg::Response_dir_prefix.$image_size.'/';
 		$this->image_resize_msg=''; 
 		$width_available=$image_width-$shadowcalc; 
-		list($image_max_width,$padtop)=process_data::max_width($width_available,$init_ratio,$minAspect,$maxAspect);//affects padding used in blog post slideshow with javascript fade in/out choice
+		list($image_max_width,$padtop)=process_data::max_width($width_available,$init_ratio,$minAspect,$maxAspect);//here we making size adjustments for different aspect rations for smooth height slide show..
 		$picdir=Cfg_loc::Root_dir.Cfg::Auto_slide_dir;
+          ##$maxfullwidth means upper limit only 
      if ($type==='page')$maxfullwidth=max($this->page_cache_arr);
      else {
-        $maxfullwidth=(!Cfg::Conserve_image_cachespace||(!$this->flex_grow_enabled&&!$this->flex_box_item))?$this->max_width_limit:$this->current_net_width*1.5; 
-        $limiter=$this->max_width_limit;
-        $maxfullwidth=check_data::key_up($this->page_cache_arr,$maxfullwidth,'val',$limiter);
-        }
+          $maxfullwidth=(!Cfg::Conserve_image_cachespace||(!$this->flex_grow_enabled&&!$this->flex_box_item))?$this->max_width_limit:$this->current_net_width*1.5; 
+          $limiter=$this->max_width_limit;
+          $maxfullwidth=check_data::key_up($this->page_cache_arr,$maxfullwidth,'val',$limiter);
+          }
+      
      $dir=Cfg_loc::Root_dir.Cfg::Auto_slide_dir.Cfg::Response_dir_prefix;
-		if ($this->edit){//generate images for all sizes
-        ################################ begin
-			$this->show_more('Image Quality Info','noback','','',400,'','float:left;',true);
+     
+     ## the following is editpage generation of caches and giving image Quality information for editmode.  
+		if ($this->edit){//generate image cache sizes for all sizes
+               $this->show_more('Image Quality Info','noback','','',400,'','float:left;',true);
 			$this->print_wrap('Quality info wrap');
 			$page_arr=check_data::return_pages(__METHOD__,__LINE__,__FILE__);
-			foreach (explode(',',$this->$pic_field) as $picname){
+               //auto_slide_arr tabulates max cache to be populated in order to reduce unnecessary cache population. Does so on all pages if any are cloned and resized larger...
+			foreach ($pic_arr as $picname){
 				$this->auto_slide_arr[]=array('id'=>$this->blog_id,'data'=>$data,'picname'=>$picname,'is_clone'=>$this->is_clone,'clone_local_style'=>$this->clone_local_style,'clone_local_data'=>$this->clone_local_data,'maxwidth'=>$maxfullwidth,'quality'=>$quality,'quality_option'=>$option_field_arr[$image_quality_index]); 
 				$parr=array();
 				$total=$x=0;
-          if (is_file(Cfg_loc::Root_dir.Cfg::Upload_dir.$picname)){ 
+          if (is_file(Cfg_loc::Root_dir.Cfg::Upload_dir.$picname)){ //editmode generate cache if !is_file
              foreach($this->page_cache_arr as $ext){ 
                (!is_dir($dir.$ext))&&mkdir($dir.$ext,0755,1);
                if ($ext <=$maxfullwidth){ 
@@ -2597,7 +3184,7 @@ function auto_slide($data,$type){
                   }//if less than maxfullwidth
                elseif (is_file(Cfg::Conserve_image_cachespace&&$dir.$ext.'/'.$picname)&&!Sys::Pass_class){//size cache of this image is unnecessary as maxwidth is less
                   foreach($page_arr as $page_ref){ 
-                    $file='image_info_auto_slide_'.$page_ref;//figuring out max image size necessary for imagine caching ie. theere is purpose to this!!
+                    $file='image_info_auto_slide_'.$page_ref;//figuring out max image size necessary for imagine caching ie. there is purpose to this!!
                     if (is_file(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Image_info_dir.$file)){
                        $array=unserialize(file_get_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Image_info_dir.$file)); 
                        foreach ($array as $index => $arr){
@@ -2649,56 +3236,61 @@ function auto_slide($data,$type){
 			############################### end
 			}//if edit
 		if (!$this->edit){
-        $arr=array();
-			foreach (explode(',',$this->$pic_field) as $picname){
+               $arr=array();
+			foreach ($pic_arr as $picname){
 				foreach($this->page_cache_arr as $ext){ 
-					if ($ext <= $maxfullwidth){ //echo NL.$dir.$ext.'/'.$picname . ' is curr dir';
-						if (!is_file($dir.$ext.'/'.$picname)){ 
-							//image::image_resize($picname,$ext,0,0,Cfg_loc::Root_dir.Cfg::Upload_dir, $dir.$ext,'file',NULL,$quality);
+					if ($ext <= $maxfullwidth){  
+						if (!is_file($dir.$ext.'/'.$picname)){
+                                   //image::image_resize($picname,$ext,0,0,Cfg_loc::Root_dir.Cfg::Upload_dir, $dir.$ext,'file',NULL,$quality);
 							$arr[]="Image cache generation required for webpage mode rendering of $dir $ext / $picname";
 							}
 						}
 					}//foreach
 				}//foreach
-        if (count($arr)>0){
-          $msg='The following slide images were found missing in autoslide and can be regenerated in editmode automatically by going to this page '. Sys::Self.'. If problem persists set Cfg::Conserve_image_cachespace to false in Cfg_master.class.php or if set in Cfg.class.php set to false there
-          ';
-          $msg.=implode("/n",$arr);
-          mail::alert_min($msg);
-          }
+               if (count($arr)>0){
+                    $msg='The following slide images were found missing in autoslide and can be regenerated in editmode automatically by going to this page '. Sys::Self.'. If problem persists set Cfg::Conserve_image_cachespace to false in Cfg_master.class.php or if set in Cfg.class.php set to false there
+                 ';
+                    $msg.=implode("/n",$arr);
+                    //mail::alert_min($msg);
+                    }
 			}//! edit
 		if (!is_file($picdir.$image_width_dir.$pic_init)){// 
-        if (Sys::Pass_class){
-          $pic_init=Cfg::Pass_image;
-          $alt='';
-          $fullpicdir=Cfg_loc::Root_dir;
-          }
-		  else {
-			  if(!is_file(Cfg_loc::Root_dir.Cfg::Upload_dir.$pic_init)){
+               if (Sys::Pass_class){
+                    $pic_init=Cfg::Pass_image;
+                    $alt='';
+                    $fullpicdir=Cfg_loc::Root_dir;
+                    }
+                else {
+                    if(!is_file(Cfg_loc::Root_dir.Cfg::Upload_dir.$pic_init)){
 					$msg='Missing main master Image File uploads/'.$pic_init;
 					mail::alert_min($msg);
 					return;
 					}
-          else {
+                    else {
 					image::image_resize($pic_init,$image_size,0,0,Cfg_loc::Root_dir.Cfg::Upload_dir, $picdir.$image_width_dir,'file',NULL,$quality);//happens on non editpages...
 					mail::alert_min('non edit auto_slide resize for '.$picdir.$image_width_dir);
 					}
 			  $fullpicdir=$picdir.$image_width_dir;
 			  }
 		  }
-		else $fullpicdir=$picdir.$image_width_dir; 
+		else $fullpicdir=$picdir.$image_width_dir;  
         //speed of transition
 			//Set currentPicLink to piccount -1 in order to replace init_pic immediately with javascript version
 			#displayauto
 		if ($this->edit)$this->show_more('View Slideshow','','','','full','','float:left;',true);
 		if (!$background_slide){
-        echo'<div id="auto_slide_'.$inc.'" style="text-align:center;margin-left: auto; margin-right:auto; width:100%"  class="auto_slide">
+               echo'
+<div id="auto_slide_'.$inc.'" style="text-align:center;margin-left: auto; margin-right:auto; width:100%"  class="auto_slide">
         <p id="autoImgContain'.$inc.'" class="center marginauto sliderespond" '.$respond_data.'> 
-        <img id="thePhoto'.$this->blog_id.'" class="thePhoto'.$inc.' auto_img_'.$inc.' heightauto" style="text-align: center;margin-top:'.$padtop.'%;margin-bottom:'.$padtop.'%;" src="'.$fullpicdir.$pic_init.'" alt="Auto Slide Show"></p> </div>
-        <script >
+        <img id="thePhoto'.$this->blog_id.'" class="thePhoto'.$inc.' auto_img_'.$inc.' heightauto" style="text-align: center;margin-top:'.$padtop.'%;margin-bottom:'.$padtop.'%;" src="'.$fullpicdir.$pic_init.'" alt="Auto Slide Show"></p> </div>';
+        echo "<!-- $this->pagename.js auto_slide  @ auto slide $this->dataCss-->";
+        $script='
+       
+        
+        //<!-- post auto_slide  @ auto slide $this->dataCss-->
         var myslide_'.$inc.' = Object.create(slideAuto); 
         myslide_'.$inc.'.maxWidth='.$maxwidth.';
-        //myslide_'.$inc.'.widMaxPercent='.$wpercent.';
+        myslide_'.$inc.'.widInit='.$image_size.';
         myslide_'.$inc.'.shadowcalc='.$shadowcalc.';
         myslide_'.$inc.'.currentPicLink='.($piccount-1).'; 
         myslide_'.$inc.'.pic_order = 0; 
@@ -2713,9 +3305,13 @@ function auto_slide($data,$type){
         myslide_'.$inc.'.time='.($time*1000).';
         myslide_'.$inc.'.dir=\''.Cfg_loc::Root_dir.Cfg::Auto_slide_dir.'\'; 
         myslide_'.$inc.'.slideAuto_init("'.$this->blog_data1.'");
-        </script>';
+        ';
+        $this->handle_script_edit($script,'auto_slide','script');
+		$once="
+          gen_Proc.classPass('sliderespond',gen_Proc.imageResponse);";
+		$this->handle_script_edit($once,'autoSlide_script_once','initiate_script_once');//resize $once is in javascript class.
 			}// if blog and not background slide
-		elseif ($type==='blog'){#autolist li element background slide
+		elseif ($type==='blog'){#Currently not implemented..
 			$height=$image_width/$minAspect; 
 			echo '
 				 <ul style="height:'.$height.'px" data-asp="'.$minAspect.'" data-wid="'.$image_width.'" class="limit backauto '.$type.'-slideshow-'.$field_id_val.'">';
@@ -2766,7 +3362,8 @@ function auto_slide($data,$type){
 			$this->show_close('Rearrange or Remove Slide Images');
 			if ($type==='page') {// is page
 				$this->show_more('Individually Optimize Image Positioning','','','',900,'','float:left;',true); 
-				echo '<div class="fsminfo editbackground editfont editcolor floatleft"><!--wrap slide image pos adjust-->';
+				echo '
+<div class="fsminfo editbackground editfont editcolor floatleft"><!--wrap slide image pos adjust-->';
 				$length=15;//long filenames are shortened to last 15 characters
 				printer::printx('<p class="floatleft tip">Optimize you slideshow positioning to show most important part of image on all screen orientations.  The Viewers screens may be horizontally or Vertically (mobile) oriented and images may have longer widths or heights. This slideshow covers the screen entirely so for example on 16:9 width to height desktop display of a vertically oriented will crop the centered top and bottom evenly by default  whereas the full width will appear regardless of how your horizontally positioning is set! So if the better part of the image is near the top third you would choose a 33% vertical adjustment for that image. Similarly adjust for the prime horizontal portion if not centered for situations where horizontal cropping occurs</p>');
 				printer::pclear();
@@ -2791,7 +3388,8 @@ function auto_slide($data,$type){
 						}//if post submitted and image_mod submitted
 					$current_posx=(array_key_exists($image_mod,$image_pos_data_arr)&&array_key_exists(0,$image_pos_data_arr[$image_mod]))?$image_pos_data_arr[$image_mod][0]:50;
 					$current_posy=(array_key_exists($image_mod,$image_pos_data_arr)&&array_key_exists(1,$image_pos_data_arr[$image_mod]))?$image_pos_data_arr[$image_mod][1]:50;
-					echo '<div class="fsminfo floatleft">';
+					echo '
+<div class="fsminfo floatleft">';
 					printer::printx('<p class="floatleft fs1npinfo"> <img src="'.Cfg_loc::Root_dir.Cfg::Auto_slide_dir.Cfg::Image100_dir.$image.'" height="75" alt="image rearrange"></p>');
 					printer::pclear();
 					printer::printx('<p class="floatleft editcolor editbackground editfont fs1npinfo">Adjust Image Horizontally</p>');
@@ -2824,12 +3422,14 @@ function auto_slide($data,$type){
 	if (!$this->edit)return;
 	if ($this->clone_local_style||!$this->is_clone){ 
 		$this->show_more('Configure Your Slide Show','','','',600,'','float:left;',true);
-		echo '<div class="fsminfo editbackground editfont '.$this->column_lev_color.' left floatleft"><!--Configure slide show-->';
+		echo '
+<div class="fsminfo editbackground editfont '.$this->column_lev_color.' left floatleft"><!--Configure slide show-->';
 		if ($type==='blogx'){
 			$checked1=$checked2='';
 			if($background_slide)$checked2='checked="checked"'; 
 			else $checked1='checked="checked"';
-			echo '<div class="fsminfo editbackground editfont '.$this->column_lev_color.' left floatleft">Choose Your SlideShow type. ';
+			echo '
+<div class="fsminfo editbackground editfont '.$this->column_lev_color.' left floatleft">Choose Your SlideShow type. ';
 			printer::alertx('<p class="info" title="Javascript fade in/out accomodates various image shapes"><input type="radio" value="1" name="'.$data.'_blog_tiny_data1" '.$checked1.'>Javascript Slide Show with Simple Fade In/Out-Shows full Images when using various images having different shapes</p>');
 			printer::pclear();
 			printer::alertx('<p class="info" title="Background Slider with CSS smooth Cross Fade Transition. Best if Images have same shape (aspect ration)"><input type="radio" value="background_slide" name="'.$data.'_blog_tiny_data1" '.$checked2.'>CSS slide with cross fade. Best if images have similar aspect ratio (shape).</p>'); 
@@ -2837,19 +3437,22 @@ function auto_slide($data,$type){
 			}
 		elseif ($type==='page'){ 
 			printer::pclear();
-			echo '<div class="fsminfo editbackground editfont floatleft"><!--Edit autoslide Switch time-->'; 
+			echo '
+<div class="fsminfo editbackground editfont floatleft"><!--Edit autoslide Switch time-->'; 
 			echo '<p class="'.$this->column_lev_color.' editfont ">Adjust Speed of Fade-In/Fade-out Effect:</p>';
 			 $this->mod_spacing($data.'_'.$option_field.'['.$transit_index.']',$transit,.2,1.4,.1,'secs');
 			echo '</div><!--Edit autoslide Switch time-->'; 
 			}
 		printer::pclear(); 
 		$background_graphic=(false)?'background: transparent url(../graphics/slidepattern.png) repeat;':''; 
-		echo '<div class="fsminfo editbackground editfont floatleft"><!--Edit autoslide Switch time-->'; 
+		echo '
+<div class="fsminfo editbackground editfont floatleft"><!--Edit autoslide Switch time-->'; 
 			echo '<p class="'.$this->column_lev_color.' editfont ">Customize Time between Photo Changes:</p>';
 			 $this->mod_spacing($data.'_'.$option_field.'['.$time_index.']',$time,3,14,1,'secs');
 		echo '</div><!--Edit autoslide Switch time-->';
 		printer::pclear();
-		echo'<div class="floatleft editbackground editfont fsminfo highlight" title="By Default Uploaded Slide Show Images will have a Default Quality factor with 100 being the highest and 10 the lowest. The higher the image quality the larger the filesize and the slower the download speed. Its also possble change the Default value in the Page Configuration options which will effect all uploaded images on the site that are not specifically configured for this value in the post type: image, slideshow, or gallery configurations" ><!--quality image-->Change Current Image Quality setting:';
+		echo'
+<div class="floatleft editbackground editfont fsminfo highlight" title="By Default Uploaded Slide Show Images will have a Default Quality factor with 100 being the highest and 10 the lowest. The higher the image quality the larger the filesize and the slower the download speed. Its also possble change the Default value in the Page Configuration options which will effect all uploaded images on the site that are not specifically configured for this value in the post type: image, slideshow, or gallery configurations" ><!--quality image-->Change Current Image Quality setting:';
      $this->mod_spacing($data.'_'.$option_field.'['.$image_quality_index.']',$quality,10,100,1,'%');
      printer::print_info('Images will auto reload @ new Quality setting');
      echo'</div><!--quality image-->';
@@ -2868,7 +3471,7 @@ function auto_slide($data,$type){
 	if ($type!=='page'){
      $this->edit_styles_close($data,'blog_data4','#thePhoto'.$this->blog_id,'borders,box_shadow','Style Slide Image Border',false,'',true);
      
-     $this->edit_styles_close($data,$style_field,'.'.$this->dataCss,'background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,borders,box_shadow,outlines,radius_corner','Edit Auto Slide General Post Styles',true,'',true);
+     $this->edit_styles_close($data,$style_field,'.'.$this->dataCss,'background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,margin_right,borders,box_shadow,outlines,radius_corner','Edit Auto Slide General Post Styles',true,'',true);
      }
    if ($background_slide){ 
      $total_duration=$time*$piccount; 
@@ -3076,7 +3679,8 @@ function social_icons($data,$style_list='',$global=false,$mod_msg="Edit styling"
 		 foreach ($socialdata as $choices){
 			if (!array_key_exists(2,$choices))$choices[2]=$default_icon_size;//default size value
         if (!array_key_exists(3,$choices))$choices[3]='http://www.put_your_site_here.com';// 
-        echo '<div class="fs2black editbackground editfont maxwidth400 "><!--edit prev icon choice-->';
+        echo '
+<div class="fs2black editbackground editfont maxwidth400 "><!--edit prev icon choice-->';
         //echo'<p><input type="hidden" name="'.$data.'_socialdata['.$num.'][0]" value="'.$choices[0].'"></p>';
         
         echo'<p class="'.$this->column_lev_color.' floatleft editbackground editfont editcolor">Edit: <img '.$corecolor.' src="'.Cfg_loc::Root_dir.Cfg::Social_dir.$choices[0].'/'.$choices[1].'.gif" width="'.$choices[2].'" height="'.$choices[2].'" alt="mychoice icon" ></p>';
@@ -3092,7 +3696,8 @@ function social_icons($data,$style_list='',$global=false,$mod_msg="Edit styling"
         $this->show_close('color');//<!--show more color-->p class="'.$this->column_lev_color.' editfont">Change Your Image size</p> ';
         printer::pclear(8); 
         $size=(array_key_exists(2,$choices)&&!empty($choices[2]))?$choices[2]:$default_icon_size;
-        echo '<div class="fsminfo fs1color"><!--icon size-->';
+        echo '
+<div class="fsminfo fs1color"><!--icon size-->';
         printer::alertx('<p class="editbackground editfont '.$this->column_lev_color.' rad3 floatleft">Change the size of your Social Icon: </p>');
         echo '
         <p class="'.$this->column_lev_color.'  editfont left">Currently: '.$size.$unit.'<br>';
@@ -3101,7 +3706,8 @@ function social_icons($data,$style_list='',$global=false,$mod_msg="Edit styling"
         echo '</div><!--Change Icon Size-->';
         printer::pclear(8);
         $value3=(array_key_exists(3,$choices))&&!empty($choices[3])?$choices[3]:'http://';
-        echo '<div class="fsminfo"><!--edit social url choice-->';
+        echo '
+<div class="fsminfo"><!--edit social url choice-->';
         echo '
         <p class="'.$this->column_lev_color.' editbackground editfont editcolor">Change Your Icon Url&nbsp;<br><input style="cursor:pointer;background:#'.$this->editor_background.';color:#'.$this->editor_color.';" type="text" name="'.$data.'_socialdata['.$num.'][3]" value="'.$value3.'" maxlength="150"></p>';
         echo '</div><!--edit social url choice-->';
@@ -3116,10 +3722,12 @@ function social_icons($data,$style_list='',$global=false,$mod_msg="Edit styling"
 		}//if not empty social data
 	if (!$this->is_clone){
 		$this->show_more('Add a new Social Icon','noback','','',600,'','float:left;',true);
-		echo '<div class="fs2black editbackground editfont floatleft"><!--Add new-->';
+		echo '
+<div class="fs2black editbackground editfont floatleft"><!--Add new-->';
 		echo '
 		<p class="left '.$this->column_lev_color.'  editbackground editfont editcolor">Choose Your Link Color Size and URl Here</p>';
-		echo '<div class="fsminfo editbackground editfont '.$this->column_lev_color.' " ><!--link type-->Pick a link type:';
+		echo '
+<div class="fsminfo editbackground editfont '.$this->column_lev_color.' " ><!--link type-->Pick a link type:';
 		printer::pclear(5);
 		foreach ($icon_arr as $icon){
         echo '<p class="floatleft left"><input type="radio" name="'.$data.'_socialdata['.$num.'][0]" value="'.$icon.'"><img src="'.Cfg_loc::Root_dir.Cfg::Social_dir.$icon.'/trueblue.gif" width="'.$wid_size.'" height="'.$wid_size.'" alt="dropdown choices menu '.$icon.'" > </p>';
@@ -3127,7 +3735,8 @@ function social_icons($data,$style_list='',$global=false,$mod_msg="Edit styling"
      printer::pclear();
 		echo '</div><!--link type-->';
 		printer::pclear(5);
-		echo '<div class="fsminfo editbackground editfont " ><!--link color--><br>';
+		echo '
+<div class="fsminfo editbackground editfont " ><!--link color--><br>';
 		echo '<p class="'.$this->column_lev_color.' editbackground editfont editcolor">Choose Your Color: </p>';
 		printer::pclear(5);
 		for ($i=0;$i<count($colorname_arr);$i++){
@@ -3136,7 +3745,8 @@ function social_icons($data,$style_list='',$global=false,$mod_msg="Edit styling"
      printer::pclear();
 		echo '</div><!--link color-->'; 
 		printer::pclear(8);
-		echo'<div class="fsminfo editbackground editfont floatleft"><!--choose size-->';
+		echo'
+<div class="fsminfo editbackground editfont floatleft"><!--choose size-->';
 		echo '<p class="'.$this->column_lev_color.' left">Choose Your Icon Size:<br>
 		Choose:  
 	  <select class="editcolor editbackground editfont" name="'.$data.'_socialdata['.$num.'][2]">    
@@ -3148,7 +3758,8 @@ function social_icons($data,$style_list='',$global=false,$mod_msg="Edit styling"
 	  </select> </p>';
 	  echo '</div><!--choose size-->'; 
 		printer::pclear(8);
-		echo '<div class="fsminfo editbackground editfont "><!--Add URl-->';
+		echo '
+<div class="fsminfo editbackground editfont "><!--Add URl-->';
 		echo '<p class="'.$this->column_lev_color.' editbackground editfont editcolor">Add New Icon Url&nbsp;<input style="cursor:pointer;background:#'.$this->editor_background.';color:#'.$this->editor_color.';" type="text" name="'.$data.'_socialdata['.$num.'][3]" value="http://" maxlength="100"></p>';
      $this->submit_button();
 		echo '</div><!--Add URl-->';
@@ -3159,22 +3770,26 @@ function social_icons($data,$style_list='',$global=false,$mod_msg="Edit styling"
 		printer::pclear(8);
 		$msg='Edit Your Icon Shape/Icon Core Color/Horiz-Vert/Spacing';
 		$this->show_more($msg,'noback','','',400,'','float:left;',true);//<!--shape vert spacing-->
-		echo '<div class="editbackground editfont maxwidth400 fs1color"><!--Edit Icon Shape spacing-->';
-		echo '<div class=" width300 fsminfo editbackground editfont"><!--Edit Icon Shape-->';
+		echo '
+<div class="editbackground editfont maxwidth400 fs1color"><!--Edit Icon Shape spacing-->';
+		echo '
+<div class=" width300 fsminfo editbackground editfont"><!--Edit Icon Shape-->';
 		$checked1=($this->blog_data4!=='round')?'checked="checked"':'';
 		$checked2=($this->blog_data4==='round')?'checked="checked"':'';
 		echo '<p class="'.$this->column_lev_color.' editbackground editfont editcolor">Edit Which Icon Shape to Use:</br> 
 		 <input type="radio" name="'.$data.'_blog_data4" value="square" '.$checked1.'>Square </br>
       <input type="radio" name="'.$data.'_blog_data4" value="round" '.$checked2.'>Round</p>'; 
 		echo '</div><!--Edit Icon Shape-->';
-		echo '<div class="fsminfo editbackground editfont"><!--Edit Icon Vert Horiz-->';
+		echo '
+<div class="fsminfo editbackground editfont"><!--Edit Icon Vert Horiz-->';
 		$checked1=($this->blog_data2!=='vertical')?'checked="checked"':'';
 		$checked2=($this->blog_data2==='vertical')?'checked="checked"':'';
 		echo '<p class="'.$this->column_lev_color.' editbackground editfont editcolor">Select Horizontal or Vertical Display for Your Icon Grouping:</br> 
 		<input type="radio" name="'.$data.'_blog_data2" value="horizontal" '.$checked1.'>Horizontal</br> 
 		<input type="radio" name="'.$data.'_blog_data2" value="vertical" '.$checked2.'>Vertical</p>';
 		echo '</div><!--Edit Icon Vert Horiz-->';
-		echo '<div class="fsminfo editbackground editfont"><!--Edit Icon Center color-->';
+		echo '
+<div class="fsminfo editbackground editfont"><!--Edit Icon Center color-->';
 		if (preg_match(Cfg::Preg_color,$this->blog_data5)){
 			$msg="Change the Current Icon Core Color, Use 0 to remove: #";
 			}
@@ -3187,81 +3802,47 @@ function social_icons($data,$style_list='',$global=false,$mod_msg="Edit styling"
 		$this->font_color($data.'_blog_data5_arrayed','0','blog_data5','Changing Icon Core Color');
 		printer::pclear(); 
 		echo '</div><!--Edit Icon Center Color-->';
-		echo '<div class="fsminfo editbackground editfont"><!--Edit Icon Additional Spacing-->'; 
+		echo '
+<div class="fsminfo editbackground editfont"><!--Edit Icon Additional Spacing-->'; 
 		echo '<p class="'.$this->column_lev_color.' editbackground editfont editcolor">Add Additional Space between Your Icons:</p>';
 		 $this->mod_spacing($data.'_blog_data3_arrayed',$this->blog_data3,1,100,1,'px','none');
 		echo '</div><!--Edit Icon Additional Spacing-->';
 		echo '</div><!--Edit Icon Shape spacing-->';
 		$this->show_close('shape vert spacing');//<!--shape vert spacing-->
 		printer::pclear(8);
-		$this->edit_styles_close($data,'blog_style','.'.$this->dataCss,'background,text_align,padding_top,padding_bottom,padding_left,padding_right',"Edit Social Icon styling",'','',true,true);
+		$this->edit_styles_close($data,'blog_style','.'.$this->dataCss,'background,text_align,padding_all,padding_top,padding_bottom,padding_left,padding_right',"Edit Social Icon styling",'','',true,true);
 		}
    ($this->edit&&$this->overlapbutton)&&$this->overlapbutton();
 	}//end function social icons..
-   
-#contact	
-function contact_form($data,$style_list,$global=false,$mod_msg="Edit styling",$blog=false,$pagename=''){ 
+
+#mailing_list	
+function mailing_list($data,$style_list,$global=false,$mod_msg="Edit styling",$blog=false,$pagename=''){
+	//basically beginning with same format as contact_form below
 	$this->noname='';
-	$this->noemail='';
+	$this->noemail=''; 
 	$this->nomessage='';
-	$mailsend=(isset($_GET['html'])||isset($_GET['htm']))?mail::Contact_loc_mailer:$_SERVER['PHP_SELF'];
-	$default1_array=array('Your Name:','Subject:','Your Email:','Contact','Please enter your message:','none',1,'none',1);
-	$default2_array=array(0,0,0,100);//veryold method
+	$mailsend=(isset($_GET['html'])||isset($_GET['htm']))?mail::Contact_loc_mailer:$_SERVER['PHP_SELF'];//mailsend is used in cache system that needs updating before re-activating
+	$data_arr=array('Name:','0','Email:','Mailing List Signup','Text Area Default not used','Mailing List Sign up requested from  '.request::return_full_url(),0,0,0,'Specials &amp; News','detect_robot');
 	$blog_data1=explode(',',$this->blog_data1);
-	foreach ($default1_array as $key=> $val){
+	foreach ($data_arr as $key=> $val){
 		if (!array_key_exists($key,$blog_data1)||empty($blog_data1[$key])){
 			$blog_data1[$key]=$val;
 			}
 		}
-	$blog_data6=explode(',',$this->blog_data6);
-	foreach ($default2_array as $key=> $val){
-		if (!array_key_exists($key,$blog_data6)||empty($blog_data6[$key])){
-			$blog_data6[$key]=$val;
-			}
-		}
+	$blog_tiny_data4=(preg_match(Cfg::Preg_email,$this->blog_tiny_data4))?$this->blog_tiny_data4:'bbb';	
 	$this->blog_data1=implode(',',$blog_data1);
-	$image_array=array('0','10',0,'10');
-	$blog_data4=(!empty($this->blog_data4))?explode(',',$this->blog_data4):$image_array;
-	if (count($blog_data4)<4){
-     $blog_data4=$image_array;
-     $this->blog_data4=implode(',',$image_array);
-     }
-	$image_pad_left=$blog_data4[1];
-	$image_pad_right=$blog_data4[3];
 	$this->blog_data2=preg_replace('/\s/','',$this->blog_data2);
-	$this->blog_data3=preg_replace('/\s/','',$this->blog_data3);
+	$this->blog_data3=preg_replace('/\s/','',$this->blog_data3);//use for spam words..
 	$this->blog_data2=str_replace('<br>','',$this->blog_data2);//spacing control 
 	$this->sent=false;//initialize : if true mail was sent
-	$this->textarea_contact_default=$blog_data1[4];
-	if (isset($_POST['mailsubmitted_'.$data])&&isset($_POST['email'])) $this->contact_mail_process($data,$blog_data1); 
-	$color2=(preg_match(Cfg::Preg_color,$blog_data6[0]))?'#'.$blog_data6[0]:'inherit'; //input and textarea font color
-	$back_color=(preg_match(Cfg::Preg_color,$blog_data6[1]))?$blog_data6[1]:'';
-	$contact_border=(preg_match(Cfg::Preg_color,$blog_data6[2]))?$blog_data6[2]:'inherit';
-	//input and textarea fields
-	$color='inherit';//$this->current_color;
-	$background='inherit';//$this->current_background_color;
-	$upper_maxwidth=500*$this->current_font_px/16;//upper contact form max width
-	$current_net_width=($this->current_net_width<$upper_maxwidth)?$this->current_net_width:$upper_maxwidth;
-	$current_total_width_left=$current_net_width*.60;
-	$size=process_data::input_size($current_total_width_left,$this->current_font_px,30);		$this->textarea_contact_default='';// no text in textarea on normal page!!
-	$background_color_opacity=(!empty($blog_data6[3])&&$blog_data6[3]<100&&$blog_data6[3]>0)?$blog_data6[3]:100;
-	$opacity=($background_color_opacity<100&&$background_color_opacity>0)?'@'.$background_color_opacity.'%&nbsp;Opacity ':'';
-   if (!empty(trim($back_color))){
-		if ($background_color_opacity <100) 
-			$back_color=process_data::hex2rgba($back_color,$background_color_opacity);
-		else $back_color='#'.$back_color;
-		 
-		$background_color='background-color: '.$back_color.';'; 
-		
-		}
-	else $background_color='';	
+	$noname=($this->blog_tiny_data6==='no_name_require')?true:false;
+	if (isset($_POST['mailsubmitted_'.$data])&&isset($_POST['email'])) $this->contact_mail_process($data,$blog_data1,$noname); 
 	###display render for edit and non edit
-	$show_image=false;
 	$this->edit_styles_open();
 	($this->edit)&&  
 		$this->blog_options($data,$this->blog_table); 
 	if($this->edit&&!$this->is_clone){		
-		print '<fieldset class="border1 borderdouble" style="overflow:none;border-color:#'.$this->magenta.';"><!-- Wrap Normal Display Contact-->
+		print '<fieldset class="border2 borderdouble" style="padding:10px 3px 10px 3px;overflow:hidden;border-color:#'.$this->magenta.';"><!-- Wrap Normal Display Mailing List-->
 		<legend style="background:white; color:#'.$this->magenta.';">Display Only: Use Editing Below</legend>'; 
 		}
 	else
@@ -3270,78 +3851,398 @@ function contact_form($data,$style_list,$global=false,$mod_msg="Edit styling",$b
 	$name=($this->edit)?'':'name="email[name_'.$data.']"';
 	$subject=($this->edit)?'':'name="email[subject_'.$data.']"';
 	$email=($this->edit)?'':'name="email[email_'.$data.']"';
-	$messagename=($this->edit)?'email[\'nonameproxy\']':'email[message'.$data.']" id="message'.$data; 
-	$vmsg=(!$this->sent&&isset($_POST['email']['message'.$data])&&isset($this->clean_message))?$this->clean_message:'textarea_contact_default';
+	$messagename=($this->edit)?'email[\'nonameproxy\']" id="message'.$data:'email[message'.$data.']" id="message'.$data; 
+	$vmsg=(!$this->sent&&isset($_POST['email']['message'.$data])&&isset($this->clean_message))?$this->clean_message:'';
 	$vname=(!$this->sent&&isset($_POST['email']['name_'.$data])&&isset($this->clean_name))?$this->clean_name:'';
 	$vemail=(!$this->sent&&isset($_POST['email']['name_'.$data])&&isset($this->clean_email))?$this->clean_email:''; 
 	 #this is webform normal webpage
    #view webpage mode #contact webpage mode
-	echo '<div class="contacttoptable">
-    <p class="narrow">'.$blog_data1[0].'</p> 
-	<input class="wide" type="text" '.$name.' id="name'.$data.'" maxlength="50" value="'.$vname.'"><span class="alertnotice">' . $this->noname . '</span> 
-   <p class="clear">&nbsp;</p>
-    <p class="narrow">'.$blog_data1[1].'</p>
-    <input class="wide" type="text" '.$subject.' id="subject'.$data.'" maxlength="50" value="'.$blog_data1[3].'">
-   <p class="clear">&nbsp;</p>
-    <p class="narrow">'.$blog_data1[2].'</p>
-  <input class="wide" type="text"  '.$email.' id="email'.$data.'" maxlength="50" size="50" value="'.$vemail.'" > <span class="alertnotice">' . $this->noemail . '</span>
-	<p class="clear">&nbsp;</p>
-    </div><!--contacttoptable-->';
-   printer::pclear(1); 
-   echo '<div class="contactbottomtable">'; 
-   echo '
-   <p class="form_message floatleft">'.$blog_data1[4].'<br></p>';
-   $this->textarea($vmsg,$messagename,$this->current_net_width,$this->current_font_px,'','','',true); 	
-   printer::pclear();
-   echo '</div><!-- class="contactbottomtable"-->';	
-   printer::pclear();
+	$left_prompt1= ($this->blog_tiny_data3==='prompt_before')?'<p class="narrow">'.$blog_data1[0].'</p>':'';
+	$left_prompt2= ($this->blog_tiny_data3==='prompt_before')?'<p class="narrow">'.$blog_data1[2].'</p>':'';
+	//$this->blog_tiny_data6='no_name_require';
+	//if ($this->blog_tiny_data6==='no_name_require')
+		//echo '<input type="hidden"  '.$name.' value="no name"> ';
 	echo '
-	<p class="floatleft ht20"><input type="radio" value="nhuman" name="contact_status_check"><img class="pt5" src="'.Cfg_loc::Root_dir.Cfg::Graphics_dir.'nhuman.gif" width="94" alt="status"></p>';
-	 
-	echo '
-	<p class="floatleft ht20"><input type="radio" value="yhuman" name="contact_status_check"><img class="pt5" src="'.Cfg_loc::Root_dir.Cfg::Graphics_dir.'yhuman.gif" width="94" alt="status"></p>';
+<div class="contacttoptable">'
+   .$left_prompt1.'
+	<input class="wide find" type="text" '.$name.' id="name'.$data.'" maxlength="50" value="'.$vname.'"  data-text-prompt="'.$blog_data1[0].'"><span class="alertnotice">' . $this->noname . '</span> 
+   <p class="clear" style="height:0;"></p>'
+   .$left_prompt2.'
+  <input class="wide find" type="text"  '.$email.' id="email'.$data.'" maxlength="50" size="50" value="'.$vemail.'"  data-text-prompt="'.$blog_data1[2].'"> <span class="alertnotice">' . $this->noemail . '</span>';
+	printer::pclear(); 
+	printer::alert('<input type="hidden" '.$subject.' value="'.$blog_data1[3].'">');
+	printer::alert('<input type="hidden" name="'.$messagename.'" value="Sign Me UP">');
+	printer::wmclear(1);
+	if (is_file(Cfg_loc::Root_dir.Cfg::Graphics_dir.'n'.$blog_data1[10])){ 
+		echo '
+		<div class="humanradio">
+		<input type="radio" value="nhuman" name="contact_status_check">
+		<img  src="'.Cfg_loc::Root_dir.Cfg::Graphics_dir.'n'.$blog_data1[10].'"  alt="status"> &nbsp;&nbsp; 
+		<input type="radio" value="yhuman" name="contact_status_check"><img  src="'.Cfg_loc::Root_dir.Cfg::Graphics_dir.'y'.$blog_data1[10].'" alt="status">
+		</div>';
+		}
+	else {
+		
+		($this->edit)&&printer::alert_conf('Valid Robot Image not chosen','',.5);
+		printer::alert('<input type="hidden" value="no contact status" name="contact_status_check">');
+		}
+	//if (!$this->edit)
+		echo '<input class="submit wide" type="submit" value="'.$blog_data1[9].'" name="submit">';
+	//else
+		//echo '<div class="submit wide">'.$blog_data1[9].'</div>';
+	echo '</div><!--contacttoptable-->
+	 </fieldset><!--Wrap Normal Display Mailing List-->'; 
 	 #### END of webpage FORM Begin: edit default form fields and prompts
 	 printer::pclear(10);
 	if ($this->edit&&!$this->is_clone){
-     $this->show_more('Change/Translate the Default Form Prompts Shown Above','noback','','',500); //form prompts
-     echo'<div class="fsminfo editbackground editfont '.$this->column_lev_color.' editfont left"><!--Form defaults Modify-->
-		 <div class="narrow fs1color" style="float:left; max-width:500px;"><!--narrow contact-->'; 
-		$cols=process_data::width_to_col($current_net_width,$this->current_font_px);
-		$mytext=(empty($this->blog_data5))?$this->default_blog_text:$this->blog_data5;
-		echo'<p class="info" title="Change/translate the default contact form input Prompt Text for Name Subject Email and Message Here">Change/translate the default Form Prompts and Default Fill-in for the Subject Prompt Below</p> 
-		  <p class="editfont narrow " style="background:#'.$this->editor_background.';color:#'.$this->editor_color.';">
-		  '.$blog_data1[0].' </p> 
-		 <input class="wide" style="background:#'.$this->editor_background.';color:#'.$this->editor_color.';" type="text"  name="'.$data.'_blog_data1[0]"   maxlength="50" value="'.$blog_data1[0].'"> 
-		 <p class="clear">&nbsp;</p>
-		 <p class="editfont narrow" style="background:#'.$this->editor_background.';color:#'.$this->editor_color.';">
-		  '.$blog_data1[1].' </p>
-		  <input class="wide" style="background:#'.$this->editor_background.';color:#'.$this->editor_color.';" type="text" name="'.$this->blog_table.'_'.$this->blog_order.'_blog_data1[1]"  size="'.$size.'" maxlength="50" value="'.$blog_data1[1].'">
-		<p class="clear">&nbsp;</p>
-		  <p class="editfont narrow" style="background:#'.$this->editor_background.';color:#'.$this->editor_color.';">
-		 <span class="info" title="Change the default Subject fill-in"> '.$blog_data1[1].' </span></p>
-		  <input class="wide" style="background:#'.$this->editor_background.';color:#'.$this->editor_color.';" type="text" name="'.$this->blog_table.'_'.$this->blog_order.'_blog_data1[3]" size="'.$size.'" maxlength="50" value="'.$blog_data1[3].'"> 
-		 <p class="clear">&nbsp;</p>
-		 <p class="editfont narrow" style="background:#'.$this->editor_background.';color:#'.$this->editor_color.';">  '.$blog_data1[2].'</p>
-	  <input class="wide" style="background:#'.$this->editor_background.';color:#'.$this->editor_color.';" type="text" name="'.$this->blog_table.'_'.$this->blog_order.'_blog_data1[2]" value="'.$blog_data1[2].'" size="'.$size.'" maxlength="60" >
-	  <p class="clear">&nbsp;';
-		 echo '</div><!--narrow contact-->';  
-		$msg='Change the Default Contact Message'; 
+     $this->show_more('Change/Translate Prompts &amp; Subject Message','noback','','',500); //form prompts
+     echo'
+<div class="humanradio fsminfo editbackground editfont '.$this->column_lev_color.' editfont left"><!--Form defaults Modify-->';
+	printer::print_wrap1('wrap name  option');
+		printer::print_tip('Choose whether to require a signup Name;');
+		$checked1 = ($this->blog_tiny_data6==='no_name_require')?'checked="checked"':'';
+		$checked2 = ($this->blog_tiny_data6!=='no_name_require')?'checked="checked"':'';
+		printer::alert('<input  type="radio" name="'.$this->data.'_blog_tiny_data6'.'" value="no_name_require" '.$checked1.'>No Name Requirement'); 
+		printer::alert('<input  type="radio" name="'.$this->data.'_blog_tiny_data6'.'" value="name_require" '.$checked2.'>Name Requirement'); 
+		printer::close_print_wrap1('wrap name option');
+		printer::print_wrap1('wrap prompt option');
+		printer::print_tip('Choose whether to use  Prompt directly in the input box (default) or before the input box');
+		$checked1 = ($this->blog_tiny_data3==='prompt_before')?'checked="checked"':'';
+		$checked2 = ($this->blog_tiny_data3!=='prompt_before')?'checked="checked"':'';
+		printer::alert('<input  type="radio" name="'.$this->data.'_blog_tiny_data3'.'" value="prompt_before" '.$checked1.'>Present Prompt Out of Input Box (ie. Left or Top'); 
+		printer::alert('<input  type="radio" name="'.$this->data.'_blog_tiny_data3'.'" value="prompt_inbox" '.$checked2.'>Present Initial Prompt Within Input box'); 
+		printer::close_print_wrap1('wrap prompt option');
+		printer::print_wrap1('wrap detect robot option');
+		printer::print_tip('By selecting one of the following robot/human radio button choices You can cut down on robot type contact and newsletter submits');
+		$checked1 = (strpos($blog_data1[10],'human-')===false)?'checked="checked"':'';
+		$checked2 = ($blog_data1[10]==='human-white.gif')?'checked="checked"':'';
+		$checked3 = ($blog_data1[10]==='human-light-gray.gif')?'checked="checked"':'';
+		$checked4 = ($blog_data1[10]==='human-dark-gray.gif')?'checked="checked"':'';
+		$checked5 = ($blog_data1[10]==='human-very-dark-gray.gif')?'checked="checked"':'';
+		$checked6 = ($blog_data1[10]==='human-black.gif')?'checked="checked"':'';
+		printer::alert('<input type="radio" name="'.$this->data.'_blog_data1[10]'.'" value="detect_robot_off" '.$checked1.'>Turnoff Robot Checkboxes'); 
+		printer::alert('<input type="radio" name="'.$this->data.'_blog_data1[10]'.'" value="human-white.gif" '.$checked2.'><img width="75"  src="'.Cfg_loc::Root_dir.Cfg::Graphics_dir.'yhuman-white.gif" alt="status"><img width="75"  src="'.Cfg_loc::Root_dir.Cfg::Graphics_dir.'nhuman-white.gif" alt="status"> (white)');  
+		printer::alert('<input type="radio" name="'.$this->data.'_blog_data1[10]'.'" value="human-light-gray.gif" '.$checked3.'><img width="75"  src="'.Cfg_loc::Root_dir.Cfg::Graphics_dir.'yhuman-light-gray.gif" alt="status"><img width="75"  src="'.Cfg_loc::Root_dir.Cfg::Graphics_dir.'nhuman-light-gray.gif" alt="status"> (light gray)');  
+		printer::alert('<input type="radio" name="'.$this->data.'_blog_data1[10]'.'" value="human-dark-gray.gif" '.$checked4.'><img width="75"  src="'.Cfg_loc::Root_dir.Cfg::Graphics_dir.'yhuman-dark-gray.gif" alt="status"><img width="75"  src="'.Cfg_loc::Root_dir.Cfg::Graphics_dir.'nhuman-dark-gray.gif" alt="status"> (dark gray)');  
+		printer::alert('<input type="radio" name="'.$this->data.'_blog_data1[10]'.'" value="human-very-dark-gray.gif" '.$checked5.'><img width="75"  src="'.Cfg_loc::Root_dir.Cfg::Graphics_dir.'yhuman-very-dark-gray.gif" alt="status"><img width="75" src="'.Cfg_loc::Root_dir.Cfg::Graphics_dir.'nhuman-very-dark-gray.gif" alt="status"> (very dark gray)');  
+		printer::alert('<input type="radio" name="'.$this->data.'_blog_data1[10]'.'" value="human-black.gif" '.$checked6.'><img width="75" src="'.Cfg_loc::Root_dir.Cfg::Graphics_dir.'yhuman-black.gif" alt="status"><img width="75"  src="'.Cfg_loc::Root_dir.Cfg::Graphics_dir.'nhuman-black.gif" alt="status"> (black)'); 
+		printer::close_print_wrap1('wrap detect robot option');
+		echo ' <div class="fs1color" style="float:left; max-width:500px;"><!--narrow contact-->'; 
+		printer::print_info('Change/translate the default Form Prompts and Default Fill-in for the Subject Prompt Below');
+		printer::print_wrap('name');
+		echo'<p class="tip clear tiny floatleft">Change Name Prompt<br></p> 
+		  <p class="editfont " style="background:#'.$this->editor_background.';color:#'.$this->editor_color.';">
+		<input class="wide" style="background:#'.$this->editor_background.';color:#'.$this->editor_color.';" type="text"  name="'.$data.'_blog_data1[0]"   maxlength="50" value="'.$blog_data1[0].'" > </p>';
 		
-     printer::pclear(1); 
-     echo '<div class="contactbottomtable">'; 
-     echo '	 
-		<p class="<p class="form_message floatleft">'.$blog_data1[4].'<br></p>
-		<p ><textarea class="editfont" style="background:#'.$this->editor_background.';color:#'.$this->editor_color.';font-size:18px; width:90%" name="'.$this->blog_table.'_'.$this->blog_order.'_blog_data1[4]" cols="70" rows="1" >'.$blog_data1[4].'</textarea> </p>';
-   printer::pclear();
-   echo '</div><!-- class="contactbottomtable"-->';	
+		printer::close_print_wrap('name');
+		 echo '<p class="clear">&nbsp;</p>';
+		 printer::print_wrap('subject');
+		 echo ' <p class="tip clear tiny floatleft">Change Subject Message Received:<br></p> 
+		 <input class="wide" style="background:#'.$this->editor_background.';color:#'.$this->editor_color.';" type="text" name="'.$this->blog_table.'_'.$this->blog_order.'_blog_data1[3]"  maxlength="50" value="'.$blog_data1[3].' "> ';
+		 
+		 printer::close_print_wrap('subject');
+		echo ' <p class="clear">&nbsp;</p>';
+		
+		 printer::print_wrap('Email');
+		 echo '<p class="tip clear tiny floatleft">Change Email Promt:<br></p>
+		 <p class="editfont " style="background:#'.$this->editor_background.';color:#'.$this->editor_color.';">
+		<input class="wide" style="background:#'.$this->editor_background.';color:#'.$this->editor_color.';" type="text" name="'.$this->data.'_blog_data1[2]" value="'.$blog_data1[2].'"  maxlength="60" ></p>';
+		 printer::close_print_wrap('Email');
+		echo '<p class="clear">&nbsp;</p>';
+		printer::print_wrap('Submit');
+		echo '<p class="tip clear tiny floatleft">Change Submit Button Promt:<br></p>
+		 <p class="editfont " style="background:#'.$this->editor_background.';color:#'.$this->editor_color.';">
+		<input class="wide" style="background:#'.$this->editor_background.';color:#'.$this->editor_color.';" type="text" name="'.$this->data.'_blog_data1[9]" value="'.$blog_data1[9].'"  maxlength="60" ></p>';
+		printer::close_print_wrap('Submit');
+		$this->submit_button();
+		echo '</div><!--narrow contact-->';  
 		echo'</div><!--Form defaults Modify-->';
-		$this->show_close('Change/Translate the Default Form Prompts Shown Above');//form prompts
-		echo '</fieldset><!--Wrap Normal Display Contact-->';
+		$this->show_close('Change/Translate Prompts &amp; Subject Message');//form prompts
+		
+		} 
+	else {
+		printer::wmclear();
+		echo'
+		<p><input type="hidden" name="sess_token" value="'.$this->sess->sess_token.'" ></p>
+		<p><input type="hidden" name="mailsubmitted_'.$data.'" value="TRUE" ></p>
+		<p><input type="hidden" name="sentto" value="'.Cfg::Owner.'" ></p>
+		</form> ';
+		return;
+		} 
+	###end display for edit and non edit
+   //style defaults will be overriden by editor choices
+   $this->css.='
+	.alertnotice {font-weight:800; color:#'.$this->redAlert.';}
+	 .'.$this->dataCss.' .clear{clear:both; }
+	 .'.$this->dataCss.'.webmode .humanradio input {vertical-align:bottom;}
+	 .'.$this->dataCss.'.webmode .humanradio img,.'.$this->dataCss.' .edithumanradio img {width:30%;}
+	';
+	if ($this->clone_local_style||!$this->is_clone){
+     ######### contact config
+		printer::pclear('15');
+		$this->show_more('Configure Emails and Style Input boxes');
+		printer::print_wrap('configure emails styles');
+		if(empty($this->{'blog_data2'})):
+			$msg=' Start Edit Here: Configure Email Addresses and other Mailing List Form Settings'; 
+		else:
+			$msg='Configure Mailing List Email Settings'; 
+		endif; 
+		echo '
+<div class="fs2moccasin floatleft editcolor editbackground editfont"><!--configure contact-->';
+		$this->show_more($msg,'noback','',"Initial Configuration Requires Your Email Address: Add Below:",400,'','float:left;',true);//show more config
+		echo'
+<div class="fsmblack editcolor editbackground editfont editcolor"><!--Mailing List Form Wrap-->';
+		printer::alertx('<p class="editfont fsminfo editbackground editfont '.$this->column_lev_color.'"> Emails Will Be sent to the Address(es) You Add Here Whenever a User Submits this Email Signup Form. Use commas to separate multiple emails</p>');
+		if (empty($this->blog_data2)) :
+			$this->blog_data2=(preg_match(Cfg::Preg_email,Cfg::Contact_email))?Cfg::Contact_email:Cfg::Admin_email;
+			
+		else : $class='';
+		endif;
+		printer::print_wrap('Add change meials');
+		printer::print_tip('Add/Change Mailing List Email Addresss(es)');
+		printer::pclear(3);
+     $this->textarea('blog_data2',$this->blog_table.'_'.$this->blog_order.'_blog_data2',$this->current_net_width,$this->current_font_px,'','left',90,false);
+		printer::pclear(10);
+		
+		printer::close_print_wrap('Add change meials');
+		printer::print_wrap('checkout this');
+		if ($blog_data1[6]!=='admin_add'){
+			printer::alert('<input type="checkbox" name="'.$data.'_blog_data1[6]" value="admin_add" >Check Here to Also Send Mailing List Emails to the Admin Email(s) '.str_replace(',',', ',Cfg::Admin_email)); 
+			  }
+		else
+			printer::alert('<input type="checkbox" name="'.$data.'_blog_data1[6]" value="noadminadd">Check Here to <span class="neg">DO NOT SEND </span> Mailing List Emails to the Admin Email(s) '.Cfg::Admin_email.' </span>',false,'editfont left');
+		printer::close_print_wrap('checkout this');	
+		echo'</div><!--Mailing List Form Wrap-->';
+		$this->show_close('show more config');
+		printer::print_tip('All input/textarea styles may not work in all browsers ie. background image opacity');
+		 //printer::print_tip('Recommended browser compatible viewport responsive textarea and input lengths: <br>For input boxes use width set in px units with scaling feature turned on. ');
+		$msg='<b>Input Boxes</b> Styling &amp; Width/Float Config';
+     $this->edit_styles_close($data,'blog_data7','html .'.$this->dataCss .' input.wide','width_special,width_max_special,width_min_special,width_media_unit,float,background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,margin_right,font_family,font_size,font_media_unit,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform',$msg);
+	 ###
+		printer::print_wrap('wrap promptcolor');
+		printer::print_tip('Prompts presented internal to the input box will assume styles presented in box but you can differentially add a font color here');
+		printer::alertx('<p class="left editbackground editfont editcolor">Change Font Color of Internal Box Prompt Text for input/textarea boxes with internal Prompt chosen: #<input onclick=" window.jscolor(this);" style="cursor:pointer;background:#'.$this->editor_background.';color:#'.$this->editor_color.';" type="text" name="'.$data.'_blog_tiny_data4" id="'.$this->data.'maillist" value="'.$this->blog_tiny_data4.'" size="6" maxlength="6" class="jscolor {refine:false}"><span style="font-size: 1.1em; color:#'.Cfg::Info_color.';" id="'.$data.'maillistcolorinstruct"></span></p>');
+		printer::close_print_wrap('wrap promptcolor');
+		printer::print_wrap('wrap prompt');
+		printer::print_tip('OR for Out of Box position prompts fully style the input prompts (email,subject,name) and textarea prompt when that option chosen under change/translate prompts above');
+	    $msg='<b>Style Out of Box Text Prompts</b> if that option chosen above';
+	    $this->edit_styles_close($data,'blog_data10','html div .'.$this->dataCss .' p.narrow','width_special,width_max_special,width_min_special,width_media_unit,float,background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,margin_right,font_family,font_size,font_media_unit,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform',$msg);
+		printer::close_print_wrap('wrap prompt');
+		printer::print_wrap('wrap human');
+	    printer::print_tip('Style the div containing the I am a human, I am a robot radio buttons for width float background etc.');
+	    $msg='<b>Style the container for radio human check buttons.</b> Style &amp; Width/Float Config';
+	    $this->edit_styles_close($data,'blog_data11','html .'.$this->dataCss .'.webmode .humanradio','width_special,width_max_special,width_min_special,width_media_unit,float,background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,margin_right,text_align,borders,box_shadow,outlines,radius_corner,transform',$msg);
+		printer::close_print_wrap('wrap human');
+		printer::print_wrap('wrap submit');
+		printer::print_tip('Style the Submit Button');
+	    $msg='<b>Style the submit button.</b>';
+	    $this->edit_styles_close($data,'blog_data12','html .'.$this->dataCss .' .submit.wide','width_special,width_max_special,width_min_special,width_media_unit,float,background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,margin_right,font_family,font_size,font_media_unit,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform',$msg);
+		printer::close_print_wrap('wrap submit');
+		printer::print_wrap('wrap top');
+	    printer::print_tip('Style the  contact form containing prompts &amp; input fields but not the input boxes directly');
+	    $msg='<b>Another Level of styling similar to styling whole post.</b> Style &amp; Width/Float Config';
+	    $this->edit_styles_close($data,'blog_data9','html .'.$this->dataCss .' .contacttoptable','width_special,width_max_special,width_min_special,width_media_unit,float,background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,margin_right,text_align,borders,box_shadow,outlines,radius_corner,transform',$msg);
+		printer::close_print_wrap('wrap top');
+		printer::close_print_wrap('configure emails styles');
+		$this->show_close('Configure Emails and Style Input boxes');
+    }
+	echo '</div><!--configure contact-->';
+	printer::pclear(10);
+	if ($this->blog_tiny_data3!=='prompt_before'){ 
+		$script = <<<eol
+		//  contact post internal input prompt $this->dataCss
+	var textbox = $('.$this->dataCss .wide.find');
+	textbox.each(function(){
+		var textPrompt = $(this).attr('data-text-prompt');
+		var promptColor = '#$blog_tiny_data4';
+		$(this).css('color',promptColor).val(textPrompt);
+		$(this).focus(function(){
+			var that = $(this);
+			that.removeAttr('style'); 
+			if (that.val()===textPrompt){
+				that.val(''); // Empty text box
+				}
+		}).blur(function(){ 
+			var that = $(this);
+			if (that.val()===''){
+				that.css('color',promptColor).val(textPrompt); // Refill it
+				}
+			});
+		});
+eol;
+	echo '<script>'.
+	$script.'
+	</script>';	
+	$this->handle_script_edit($script,'mailing_list','script');
+	}
+	 $this->edit_styles_close($data,'blog_style','.'.$this->dataCss,'',$mod_msg);
+   ($this->edit&&$this->overlapbutton)&&$this->overlapbutton();
+   }// end render_form
+
+   
+#contact	
+function contact_form($data,$style_list,$global=false,$mod_msg="Edit styling",$blog=false,$pagename=''){ 
+	$this->noname='';
+	$this->noemail=''; 
+	$this->nomessage='';
+	$mailsend=(isset($_GET['html'])||isset($_GET['htm']))?mail::Contact_loc_mailer:$_SERVER['PHP_SELF'];//mailsend is used in cache system that needs updating before re-activating
+	$data_arr=array('Name:','Subject:','Email:','Subject','Message:','Contact Message from '.request::return_full_url().' has been sent',1,'none',1,'Send','detect_robot_off');
+	$blog_data1=explode(',',$this->blog_data1);
+	foreach ($data_arr as $key=> $val){
+		if (!array_key_exists($key,$blog_data1)||empty($blog_data1[$key])){
+			$blog_data1[$key]=$val;
+			}
+		}
+	
+	$blog_data1=explode(',',$this->blog_data1);
+	foreach ($data_arr as $key=> $val){
+		if (!array_key_exists($key,$blog_data1)||empty($blog_data1[$key])){
+			$blog_data1[$key]=$val;
+			}
+		}
+	$blog_tiny_data4=(preg_match(Cfg::Preg_email,$this->blog_tiny_data4))?$this->blog_tiny_data4:'bbb';	
+	$this->blog_data1=implode(',',$blog_data1);
+	$this->blog_data2=preg_replace('/\s/','',$this->blog_data2);
+	$this->blog_data3=preg_replace('/\s/','',$this->blog_data3);
+	$this->blog_data2=str_replace('<br>','',$this->blog_data2);//spacing control 
+	$this->sent=false;//initialize : if true mail was sent
+	if (isset($_POST['mailsubmitted_'.$data])&&isset($_POST['email'])) $this->contact_mail_process($data,$blog_data1); 
+	
+	###display render for edit and non edit
+	$show_image=false;
+	$this->edit_styles_open();
+	($this->edit)&&  
+		$this->blog_options($data,$this->blog_table); 
+	if($this->edit&&!$this->is_clone){		
+		print '<fieldset class="border1 borderdouble p5" style="padding:10px 3px 10px 3px; overflow:hidden;border-color:#'.$this->magenta.';"><!-- Wrap Normal Display Contact-->
+		<legend style="background:white; color:#'.$this->magenta.';">Display Only: Use Editing Below</legend>'; 
+		}
+	else
+		print'<form action="'. $mailsend.'?editmode" method="post"  onsubmit="return gen_Proc.validateReturn({funct:\'validateEntered\',pass:{idVal:\'name'.$data.'\',ref:\'name\'}},{funct:\'validateEmail\',pass:{idVal:\'email'.$data.'\'}},{funct:\'validateEntered\',pass:{idVal:\'message'.$data.'\',ref:\'message\'}});">';
+	#### BEGIN NORMAL CONTACT POST  webpage FORM fields 
+	$name=($this->edit)?'':'name="email[name_'.$data.']"';
+	$subject=($this->edit)?'':'name="email[subject_'.$data.']"';
+	$email=($this->edit)?'':'name="email[email_'.$data.']"';
+	$messagename=($this->edit)?'email[\'nonameproxy\']" id="message'.$data:'email[message'.$data.']" id="message'.$data; 
+	$vmsg=(!$this->sent&&isset($_POST['email']['message'.$data])&&isset($this->clean_message))?$this->clean_message:'';
+	$vname=(!$this->sent&&isset($_POST['email']['name_'.$data])&&isset($this->clean_name))?$this->clean_name:'';
+	$vemail=(!$this->sent&&isset($_POST['email']['email_'.$data])&&isset($this->clean_email))?$this->clean_email:''; 
+	$vsubject=(!$this->sent&&isset($_POST['email']['subject_'.$data])&&isset($this->clean_email))?$this->clean_email:''; 
+	 #this is webform normal webpage
+   #view webpage mode #contact webpage mode
+	$left_prompt1= ($this->blog_tiny_data3==='prompt_before')?'<p class="narrow">'.$blog_data1[0].'</p>':'';
+	$left_prompt2= ($this->blog_tiny_data3==='prompt_before')?'<p class="narrow">'.$blog_data1[2].'</p>':'';
+	$left_prompt3= ($this->blog_tiny_data3==='prompt_before')?'<p class="narrow">'.$blog_data1[1].'</p>':'';
+	$left_prompt4= ($this->blog_tiny_data3==='prompt_before')?'<p class="form_message ">'.$blog_data1[4].'</p>':'';
+	
+	echo '
+<div class="contacttop_bot">
+<div class="contacttoptable">'
+   .$left_prompt1.'
+	<input class="wide find" type="text" '.$name.' id="name'.$data.'" maxlength="50" value="'.$vname.'"  data-text-prompt="'.$blog_data1[0].'"><span class="alertnotice">' . $this->noname . '</span> 
+   <p class="clear" style="height:0;"></p>'
+    .$left_prompt3.'
+    <input class="wide find" type="text" '.$subject.' id="subject'.$data.'" maxlength="50" value="'.$vsubject.'" data-text-prompt="'.$blog_data1[1].'">
+   <p class="clear" style="height:0;">&nbsp;</p>'
+   .$left_prompt2.'
+  <input class="wide find" type="text"  '.$email.' id="email'.$data.'" maxlength="50" size="50" value="'.$vemail.'"  data-text-prompt="'.$blog_data1[2].'"> <span class="alertnotice">' . $this->noemail . '</span>
+	<p class="clear" style="height:0;">&nbsp;</p> </div><!--contacttoptable-->';
+	printer::wmclear(1); 
+	echo '<div class="contactbottomtable">'
+	.$left_prompt4;
+	$this->textarea('',$messagename,$this->current_net_width,$this->current_font_px,'','','',true); 	
+	printer::pclear();
+	printer::wmclear(1);
+	if (is_file(Cfg_loc::Root_dir.Cfg::Graphics_dir.'n'.$blog_data1[10])){
+		echo '
+		<div class="humanradio">
+		<input type="radio" value="nhuman" name="contact_status_check">
+		<img  src="'.Cfg_loc::Root_dir.Cfg::Graphics_dir.'n'.$blog_data1[10].'"  alt="status"> &nbsp;&nbsp; 
+		<input type="radio" value="yhuman" name="contact_status_check"><img  src="'.Cfg_loc::Root_dir.Cfg::Graphics_dir.'y'.$blog_data1[10].'" alt="status">
+		</div>';
+		}
+	else {
+		$color=$blog_data1[4];
+		($this->edit)&&printer::alert_conf('Valid Robot Image not chosen',$color,.5);
+		printer::alert('<input type="hidden" value="no contact status" name="contact_status_check">');
+		}
+	echo '<input class="submit wide" type="submit" value="'.$blog_data1[9].'" name="submit">
+	</div><!--contactbottomtable-->
+	</div><!--contacttop_bot-->';
+	 #### END of webpage FORM Begin: edit default form fields and prompts
+	printer::pclear(10);
+	if ($this->edit&&!$this->is_clone){
+		echo '</fieldset><!--Wrap Normal Display Mailing List-->';
+		$this->show_more('Change/Translate Prompts &amp; Subject Message','noback','','',500); //form prompts
+		echo '
+		<div class="edithumanradio fsminfo editbackground editfont '.$this->column_lev_color.' editfont left"><!--Form defaults Modify-->';
+		printer::print_wrap1('wrap prompt option');
+		printer::print_tip('Choose whether to use  Prompt directly in the input box (default) or before the input box');
+		$checked1 = ($this->blog_tiny_data3==='prompt_before')?'checked="checked"':'';
+		$checked2 = ($this->blog_tiny_data3!=='prompt_before')?'checked="checked"':'';
+		printer::alert('<input  type="radio" name="'.$this->data.'_blog_tiny_data3'.'" value="prompt_before" '.$checked1.'>Present Prompt Out of Input Box (ie. Left or Top'); 
+		printer::alert('<input  type="radio" name="'.$this->data.'_blog_tiny_data3'.'" value="prompt_inbox" '.$checked2.'>Present Initial Prompt Within Input box'); 
+		printer::close_print_wrap1('wrap prompt option');
+		printer::print_wrap1('wrap detect robot option');
+		printer::print_tip('By selecting one of the following robot/human radio button choices You can cut down on robot type contact and newsletter submits'); 
+		$checked1 = (strpos($blog_data1[10],'human-')===false)?'checked="checked"':'';
+		$checked2 = ($blog_data1[10]==='human-white.gif')?'checked="checked"':'';
+		$checked3 = ($blog_data1[10]==='human-light-gray.gif')?'checked="checked"':'';
+		$checked4 = ($blog_data1[10]==='human-dark-gray.gif')?'checked="checked"':'';
+		$checked5 = ($blog_data1[10]==='human-very-dark-gray.gif')?'checked="checked"':'';
+		$checked6 = ($blog_data1[10]==='human-black.gif')?'checked="checked"':'';
+		printer::alert('<input type="radio" name="'.$this->data.'_blog_data1[10]'.'" value="detect_robot_off" '.$checked1.'>Turnoff Robot Checkboxes'); 
+		printer::alert('<input type="radio" name="'.$this->data.'_blog_data1[10]'.'" value="human-white.gif" '.$checked2.'><img width="75"  src="'.Cfg_loc::Root_dir.Cfg::Graphics_dir.'yhuman-white.gif" alt="status"><img width="75"  src="'.Cfg_loc::Root_dir.Cfg::Graphics_dir.'nhuman-white.gif" alt="status"> (white)');  
+		printer::alert('<input type="radio" name="'.$this->data.'_blog_data1[10]'.'" value="human-light-gray.gif" '.$checked3.'><img width="75"  src="'.Cfg_loc::Root_dir.Cfg::Graphics_dir.'yhuman-light-gray.gif" alt="status"><img width="75"  src="'.Cfg_loc::Root_dir.Cfg::Graphics_dir.'nhuman-light-gray.gif" alt="status"> (light gray)');  
+		printer::alert('<input type="radio" name="'.$this->data.'_blog_data1[10]'.'" value="human-dark-gray.gif" '.$checked4.'><img width="75"  src="'.Cfg_loc::Root_dir.Cfg::Graphics_dir.'yhuman-dark-gray.gif" alt="status"><img width="75"  src="'.Cfg_loc::Root_dir.Cfg::Graphics_dir.'nhuman-dark-gray.gif" alt="status"> (dark gray)');  
+		printer::alert('<input type="radio" name="'.$this->data.'_blog_data1[10]'.'" value="human-very-dark-gray.gif" '.$checked5.'><img width="75"  src="'.Cfg_loc::Root_dir.Cfg::Graphics_dir.'yhuman-very-dark-gray.gif" alt="status"><img width="75"  src="'.Cfg_loc::Root_dir.Cfg::Graphics_dir.'nhuman-very-dark-gray.gif" alt="status"> (very dark gray)');  
+		printer::alert('<input type="radio" name="'.$this->data.'_blog_data1[10]'.'" value="human-black.gif" '.$checked6.'><img width="75"  src="'.Cfg_loc::Root_dir.Cfg::Graphics_dir.'yhuman-black.gif" alt="status"><img width="75"  src="'.Cfg_loc::Root_dir.Cfg::Graphics_dir.'nhuman-black.gif" alt="status"> (black)'); 
+		printer::close_print_wrap1('wrap detect robot option');
+		echo ' <div class="fs1color" style="float:left; max-width:500px;"><!--narrow contact-->'; 
+		printer::print_info('Change/translate the default Form Prompts and Default Fill-in for the Subject Prompt Below');
+		printer::print_wrap('name');
+		echo'<p class="tip clear tiny floatleft">Change Name Prompt<br></p> 
+		  <p class="editfont" style="background:#'.$this->editor_background.';color:#'.$this->editor_color.';">
+		<input class="wide" style="background:#'.$this->editor_background.';color:#'.$this->editor_color.';" type="text"  name="'.$data.'_blog_data1[0]"   maxlength="50" value="'.$blog_data1[0].'" > </p>';
+		
+		printer::close_print_wrap('name');
+		 echo '<p class="clear">&nbsp;</p>';
+		 printer::print_wrap('subject');
+		 echo ' <p class="tip clear tiny floatleft">Change Subject Message Prompt:<br></p> 
+		 <input class="wide" style="background:#'.$this->editor_background.';color:#'.$this->editor_color.';" type="text" name="'.$this->blog_table.'_'.$this->blog_order.'_blog_data1[3]"  maxlength="50" value="'.$blog_data1[3].' "> ';
+		 
+		 printer::close_print_wrap('subject');
+		echo ' <p class="clear">&nbsp;</p>';
+		
+		 printer::print_wrap('Email');
+		 echo '<p class="tip clear tiny floatleft">Change Email Promt:<br></p>
+		 <p class="editfont" style="background:#'.$this->editor_background.';color:#'.$this->editor_color.';">
+		<input class="wide" style="background:#'.$this->editor_background.';color:#'.$this->editor_color.';" type="text" name="'.$this->data.'_blog_data1[2]" value="'.$blog_data1[2].'"  maxlength="60" ></p>';
+		 printer::close_print_wrap('Email');
+		echo '<p class="clear">&nbsp;</p>';
+		printer::print_wrap('Submit');
+		echo '<p class="tip clear tiny floatleft">Change Submit Button Promt:<br></p>
+		 <p class="editfont" style="background:#'.$this->editor_background.';color:#'.$this->editor_color.';">
+		<input class="wide" style="background:#'.$this->editor_background.';color:#'.$this->editor_color.';" type="text" name="'.$this->data.'_blog_data1[9]" value="'.$blog_data1[9].'"  maxlength="60" ></p>';
+		printer::close_print_wrap('Submit');
+		$this->submit_button();
+		printer::wmclear(1); 
+		echo '
+	<div class="contactbottomtable">';
+		$msg='Change the Default Contact Message'; 
+		echo '	 
+			<p class="<p class="form_message floatleft">'.$msg.'<br></p>
+			<p ><textarea class="editfont" style="background:#'.$this->editor_background.';color:#'.$this->editor_color.';font-size:18px; width:90%" name="'.$this->blog_table.'_'.$this->blog_order.'_blog_data1[4]" cols="70" rows="1" >'.$blog_data1[4].'</textarea> </p>';
+		printer::wmclear();
+		echo '</div><!-- class="contactbottomtable"-->';	
+		echo '</div><!--narrow contact-->';
+		echo'</div><!--Form defaults Modify-->';
+		$this->show_close('Change/Translate Prompts &amp; Subject Messageompts Shown Above');//form prompts
 		} 
 	else {
 		print '<p class="alertnotice">' . $this->nomessage . '</p>';
-		printer::pclear();
-		echo'<p class="pt10"><input class="emailbutton" type="submit" name="submit" value="Send Email" ></p>
+		printer::wmclear();
+		echo'
 		 <p><input type="hidden" name="sess_token" value="'.$this->sess->sess_token.'" ></p>
 		<p><input type="hidden" name="mailsubmitted_'.$data.'" value="TRUE" ></p>
 		<p><input type="hidden" name="sentto" value="'.Cfg::Owner.'" ></p>
@@ -3350,82 +4251,155 @@ function contact_form($data,$style_list,$global=false,$mod_msg="Edit styling",$b
 		} 
 	###end display for edit and non edit
    //style defaults will be overriden by editor choices
-  $this->css.='
-.'.$this->dataCss.' textarea {padding:5px 10px; width:98%;float:left;}
-.'.$this->dataCss.' .contactbottomtable {width:98%;}
-.'.$this->dataCss.' .contacttoptable,.'.$this->dataCss.' .narrow{float:left;text-align:left;}
-	.'.$this->dataCss.' input.wide {
-	padding: 3px 10px;	margin: 5px; border: 1px solid } 
-   .'.$this->dataCss.' input.emailbutton {font-weight:600;font-family:inherit; padding:3px 5px; }
+	$this->css.='
 	.alertnotice {font-weight:800; color:#'.$this->redAlert.';}
-	 .'.$this->dataCss.' input.wide {font-family:inherit; width:175px;}
-	 .'.$this->dataCss.' .clear{clear:both; } 
-   .'.$this->dataCss.' .form_message {padding:.7em 0 .15em 0; text-align: left; font-size: .9em; text-align: left; } 
-	.'.$this->dataCss.' input.wide{text-align:left;float:left;max-width:300px;}
-	 }
-		}
-	.'.$this->dataCss.' p.narrow,.'.$this->dataCss.' td.narrow label {text-align: left;float:left; width:100px; margin-top:10px }
-	
-	.'.$this->dataCss.' p.narrow label.information {color:#'.Cfg::Info_color.';}
+	 .'.$this->dataCss.' .humanradio input {vertical-align:bottom;}
+	 .'.$this->dataCss.'.webmode .humanradio img,.'.$this->dataCss.'.webmode .edithumanradio img {width:30%;}
+	 .'.$this->dataCss.' .clear{clear:both; }
 	';
 	if ($this->clone_local_style||!$this->is_clone){
      ######### contact config 
+		printer::pclear('15');
+		$this->show_more('Configure Emails and Style Input boxes');
+		printer::print_wrap('configure emails styles');
 		if(empty($this->{'blog_data2'})):
 			$msg=' Start Edit Here: Configure Email Addresses and other Contact Form Settings'; 
 		else:
 			$msg='Configure Contact Email Settings'; 
 		endif; 
-		echo '<div class="fs2moccasin floatleft editcolor editbackground editfont"><!--configure contact-->';
+		echo '
+<div class="fs2moccasin floatleft editcolor editbackground editfont"><!--configure contact-->';
 		$this->show_more($msg,'noback','',"Initial Configuration Requires Your Email Address: Add Below:",400,'','float:left;',true);//show more config
-		echo'<div class="fsmblack editcolor editbackground editfont editcolor"><!--Contact Form Wrap-->';
-		printer::alertx('<p class="editfont fsminfo editbackground editfont '.$this->column_lev_color.'"> Emails Will Be sent to the Address(es) You Add Here Whenever a User Submits this Contact Form. Use commas to separate multiple emails</p>');
+		echo'
+<div class="fsmblack editcolor editbackground editfont editcolor"><!--Contact Form Wrap-->';
+		printer::alertx('<p class="editfont fsminfo editbackground editfont '.$this->column_lev_color.'"> Emails Will Be sent to the Address(es) You Add Here Whenever a User Submits this Email Signup Form. Use commas to separate multiple emails</p>');
 		if (empty($this->blog_data2)) :
 			$this->blog_data2=(preg_match(Cfg::Preg_email,Cfg::Contact_email))?Cfg::Contact_email:Cfg::Admin_email;
-			$class='allowthis'; 
+			
 		else : $class='';
 		endif;
-		printer::alertx('<p class="editbackground editfont editcolor">Add/Change Contact Email Addresss(es)</p>');
-     $this->textarea('blog_data2',$this->blog_table.'_'.$this->blog_order.'_blog_data2',$this->current_net_width,$this->current_font_px,'','left',90,false,$class);
-		printer::pclear(); 
-		if ($blog_data1[6]!=='admin_add')
-        printer::alert('<input type="checkbox" name="'.$data.'_blog_data1[6]" value="admin_add" ><span class="information" title="Check this box to also send this contact form emails to the Administrator Email Address(s) set in the Cfg (configuration) Files. ">Check Here to Also Send Contact Emails to the Admin Email(s) '.str_replace(',',', ',Cfg::Admin_email).' </span>',false,'Os3black editfont left');
+		printer::print_wrap('Add change meials');
+		printer::print_tip('Add/Change Contact Email Addresss(es)');
+		printer::pclear(3);
+     $this->textarea('blog_data2',$this->blog_table.'_'.$this->blog_order.'_blog_data2',$this->current_net_width,$this->current_font_px,'','left',90,false);
+	
+		printer::close_print_wrap('Add change meials');
+		printer::pclear(10);
+		printer::print_wrap('wrap contact emails');
+		if ($blog_data1[6]!=='admin_add'){
+			printer::alert('<input type="checkbox" name="'.$data.'_blog_data1[6]" value="admin_add" >Check Here to Also Send Contact Emails to the Admin Email(s) '.str_replace(',',', ',Cfg::Admin_email)); 
+			  }
 		else
 			printer::alert('<input type="checkbox" name="'.$data.'_blog_data1[6]" value="noadminadd">Check Here to <span class="neg">DO NOT SEND </span> Contact Emails to the Admin Email(s) '.Cfg::Admin_email.' </span>',false,'editfont left'); 
+		
+		printer::close_print_wrap('wrap contact emails');
+                printer::pclear(10);
+		printer::print_wrap('more wrap contact emails');
 		if ($blog_data1[8]==='none'){
-			printer::alertx('<p class="editfont fsminfo editbackground editfont '.$this->column_lev_color.'" >Check Below to Deactivate All http:// Active Urls &#40;http:// website Links&#41; in the Messages you receive. Mistakenly hit Active URLs can potentially take you to a Malware Site. You can still copy the Url and manually paste into the address bar if the deactivation option is chosen.</p>');
-			printer::alert('<input type="checkbox"  name="'.$data.'_blog_data1[8]" value="1" >Check Here to Deactivate All Active Urls in the email you receive as a Safety Precaution',false,'left editfont');
-			}
-		else {
-			printer::alertx('<p class="editfont fsminfo editbackground editfont '.$this->column_lev_color.'" >Check Below to Prevent Deactivation of All Website Links &#40;URLs&#41; in The Email Message You receive. Mistakenly hit urls can potentially take you to a Malware Site. If NOT Chosen You can still copy the Url and manually paste into the address bar. 
-			<br><input type="checkbox"  name="'.$data.'_blog_data1[8]" value="none" ><span class="neg">DO NOT DEACTIVATE </span>All Active Urls</p>',false,'left editfont');
-			}
-		printer::pclear();
-		printer::alertx('<p class="left pt10 editbackground editfont editcolor"><span class="information" title="If your receiveing spam, Enter a list of comma separated keywords or Terms You would like to Designate as Spam. Emails will still be sent but SPAM will be added to the subject line">Add/Edit Spam Keywords and Terms</span></p>');
-		$this->textarea('blog_data3',$data.'_blog_data3',$this->current_net_width,$this->current_font_px);
-		printer::pclear();
-		echo'</div><!--Contact Form Wrap-->';
+                        printer::print_tip('Check Below to Deactivate All http:// Active Urls &#40;http:// website Links&#41; in the Messages you receive so they can not be. mistakenly hit.  Manually paste into the address bar if the deactivation option is chosen.');
+                        printer::alert('<input type="checkbox"  name="'.$data.'_blog_data1[8]" value="1" >Check Here to Deactivate All Active Urls in the email you receive as a Safety Precaution',false,'left editfont');
+                        }
+                else {
+                        printer::print_tip('Check Below to Prevent Deactivation of All Website Links &#40;URLs&#41; in The Email Message You receive. Mistakenly hit urls can potentially take you to a Malware Site. If NOT Chosen You can still copy the Url and manually paste into the address bar.');
+				    printer::alert('<input type="checkbox"  name="'.$data.'_blog_data1[8]" value="none" ><span class="neg">DO NOT DEACTIVATE </span>All Active Urls');
+                        }
+			
+			printer::close_print_wrap('more wrap contact emails');
+                printer::pclear(10);
+                printer::print_tip('If your receiveing spam, Enter a list of comma separated keywords or Terms You would like to Designate as Spam. Emails will still be sent but SPAM will be added to the subject line');
+                $this->textarea('blog_data3',$data.'_blog_data3',$this->current_net_width,$this->current_font_px);
+
+		printer::pclear(10);
+		echo'</div><!--Mailing List Form Wrap-->';
 		$this->show_close('show more config');
-     printer::print_tip('All input/textarea styles may not work in all browsers ie. background image opacity');
-		 printer::print_tip('Recommended browser compatible viewport responsive textarea and input lengths: <br>For input boxes use width set in px units with scaling feature turned on. <br> For textarea percentage works well.');
+		printer::print_tip('All input/textarea styles may not work in all browsers ie. background image opacity');
+		 
 		$msg='<b>Input Boxes</b> Styling &amp; Width/Float Config';
-     $this->edit_styles_close($data,'blog_data7','html .'.$this->dataCss .' input.wide','width_special,width_max_special,width_min_special,float,background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,font_family,font_size,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform',$msg);
-     $msg='<b>TextArea</b> Styling &amp; Width/Float Config';
-     $this->edit_styles_close($data,'blog_data8','html #message'.$data,'width_special,width_max_special,width_min_special,float,background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,font_family,font_size,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform',$msg);
-     $msg='<b>Top Text Prompts</b> Style &amp; Width/Float Config';
-     $this->edit_styles_close($data,'blog_data10','html .'.$this->dataCss .' .narrow','width_special,width_max_special,width_min_special,float,background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,font_family,font_size,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform',$msg);
-     $msg='<b>Bottom Message Prompt</b> Style &amp; Width/Float Config';
-     $this->edit_styles_close($data,'blog_data11','html .'.$this->dataCss .' .form_message','width_special,width_max_special,width_min_special,float,background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,font_family,font_size,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform',$msg);
-     printer::print_tip('Style the general top portion of the contact form containing prompts &amp; imput fields but not the input boxes directly');
-     $msg='<b>Form Top</b> Style &amp; Width/Float Config';
-     $this->edit_styles_close($data,'blog_data9','html .'.$this->dataCss .' .contacttoptable','width_special,width_max_special,width_min_special,float,background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,text_align,borders,box_shadow,outlines,radius_corner,transform',$msg);
-     printer::print_tip('Style the general bottom portion of the contact form containing textarea prompt and textarea.');
-     $msg='<b>Form Bottom</b> Style &amp; Width/Float Config';
-     $this->edit_styles_close($data,'blog_data12','html .'.$this->dataCss .' .contactbottomtable','width_special,width_max_special,width_min_special,float,background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,text_align,borders,box_shadow,outlines,radius_corner,transform',$msg);
+		$this->edit_styles_close($data,'blog_data7','html .'.$this->dataCss .' input.wide','width_special,width_max_special,width_min_special,width_media_unit,float,background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,margin_right,font_family,font_size,font_media_unit,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform',$msg);
+		$msg='<b>TextArea</b> Styling &amp; Width/Float Config';
+		$this->edit_styles_close($data,'blog_data8','html #message'.$data,'width_special,width_max_special,width_min_special,width_media_unit,float,background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,margin_right,font_family,font_size,font_media_unit,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform',$msg);
+		printer::print_wrap('wrap promptcolor');
+		printer::print_tip('Prompts presented internal to the input box will assume styles presented in box but you can differentially add a font color here');
+		printer::alertx('<p class="left editbackground editfont editcolor">Change Font Color of Internal Box Prompt Text for input/textarea boxes with internal Prompt chosen: #<input onclick=" window.jscolor(this);" style="cursor:pointer;background:#'.$this->editor_background.';color:#'.$this->editor_color.';" type="text" name="'.$data.'_blog_tiny_data4" id="'.$this->data.'maillist" value="'.$this->blog_tiny_data4.'" size="6" maxlength="6" class="jscolor {refine:false}"><span style="font-size: 1.1em; color:#'.Cfg::Info_color.';" id="'.$data.'maillistcolorinstruct"></span></p>');
+		printer::close_print_wrap('wrap promptcolor');
+		printer::print_wrap('wrap prompt');
+		printer::print_tip('OR for Out of Box position prompts fully style the input prompts (email,subject,name) and textarea prompt when that option chosen under change/translate prompts above');
+	    $msg='<b>Style Out of Box Text Prompts</b> if that option chosen above';
+		$this->edit_styles_close($data,'blog_data10','html div .'.$this->dataCss .' p.narrow','width_special,width_max_special,width_min_special,width_media_unit,float,background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,margin_right,font_family,font_size,font_media_unit,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform',$msg);
+		$msg='<b>Textarea Message Prompt</b> Style &amp; Width/Float Config';
+		$this->edit_styles_close($data,'blog_data11','html .'.$this->dataCss .' .form_message','width_special,width_max_special,width_min_special,width_media_unit,float,background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,margin_right,font_family,font_size,font_media_unit,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform',$msg);
+		printer::close_print_wrap('wrap prompt');
+		printer::print_wrap('outer wrap both top and botom');
+		printer::print_tip('Separate style divs for top bottom and both (which adds an extra inner layer to style post option)  may be activated for custom styling. Check here to activate or inactivate.');
+		$checked1 = ($this->blog_tiny_data5==='activate_custom_contact_styles')?'checked="checked"':'';
+		$checked2 = ($this->blog_tiny_data5!=='activate_custom_contact_styles')?'checked="checked"':'';
+		printer::alert('<input  type="radio" name="'.$this->data.'_blog_tiny_data5'.'" value="activate_custom_contact_styles" '.$checked1.'>Turn On Custom Style Layers'); 
+		printer::alert('<input  type="radio" name="'.$this->data.'_blog_tiny_data5'.'" value="deactivate_custom_styles" '.$checked2.'>Turn Off Custom Style Layers'); 
+		if ($this->blog_tiny_data5==='activate_custom_contact_styles'){
+			printer::print_wrap('wrap top');
+			printer::print_tip('Style the general top portion of the contact form containing prompts &amp; input fields but not the input boxes directly');
+			$msg='<b>Form Top</b> Style &amp; Width/Float Config';
+			$this->edit_styles_close($data,'blog_data9','html .'.$this->dataCss .' .contacttoptable','width_special,width_max_special,width_min_special,width_media_unit,float,background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,margin_right,text_align,borders,box_shadow,outlines,radius_corner,transform',$msg);
+			printer::close_print_wrap('wrap top');
+			printer::print_wrap('wrap bot');
+			printer::print_tip('Style the general bottom portion of the contact form containing textarea prompt and textarea.');
+			$msg='<b>Form Bottom</b> Style &amp; Width/Float Config';
+			$this->edit_styles_close($data,'blog_data14','html .'.$this->dataCss .' .contactbottomtable','width_special,width_max_special,width_min_special,width_media_unit,float,background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,margin_right,text_align,borders,box_shadow,outlines,radius_corner,transform',$msg);
+			printer::close_print_wrap('wrap bot');
+			printer::print_wrap('wrap both top and bot');
+			printer::print_tip('Here a separate layer of styling for covering both top and bottom portions of the contact form is provided ie . an inner layer to the whole post. ');
+			$msg='<b>Form Wrap Top and Bottom Layer</b> Style &amp; Width/Float Config';
+			$this->edit_styles_close($data,'blog_data12','html .'.$this->dataCss .' .contacttop_bot','width_special,width_max_special,width_min_special,width_media_unit,float,background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,margin_right,text_align,borders,box_shadow,outlines,radius_corner,transform',$msg);
+			printer::close_print_wrap('wrap both top and bot');
+			}//if activated
+		printer::close_print_wrap('outer wrap both top and botom');
+		printer::print_wrap('wrap human');
+	    printer::print_tip('Style the width for  the I am a human, I am a robot  images to control the size of the font.<br>');
+	    $msg='<b>Style the container for radio human check buttons.</b> Style &amp; Width/Float Config';
+	    $this->edit_styles_close($data,'blog_data11','html .'.$this->dataCss .'.webmode .humanradio','width_special,width_max_special,width_min_special,width_media_unit,float,background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,margin_right,text_align,borders,box_shadow,outlines,radius_corner,transform',$msg);
+		printer::close_print_wrap('wrap human');
+		printer::print_wrap('wrap submit');
+		printer::print_tip('Style the Submit Button');
+	    $msg='<b>Style the submit button.</b>';
+	    $this->edit_styles_close($data,'blog_data13','html .'.$this->dataCss .' .submit','width_special,width_max_special,width_min_special,width_media_unit,float,background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,margin_right,font_family,font_size,font_media_unit,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform',$msg);
+		printer::close_print_wrap('wrap submit');
+		printer::close_print_wrap('configure emails styles');
+		$this->show_close('Configure Emails and Style Input boxes');
 		}
 	echo '</div><!--configure contact-->';
 	printer::pclear(10);
 	 $this->edit_styles_close($data,'blog_style','.'.$this->dataCss,'',$mod_msg);
    ($this->edit&&$this->overlapbutton)&&$this->overlapbutton();
+   printer::pclear(10);
+	if ($this->blog_tiny_data3!=='prompt_before'){
+		$textmsg=$blog_data1[4];  
+		$script = <<<eol
+		// contact post internal input prompt $this->dataCss
+	$('.$this->dataCss #message$data').attr('data-text-prompt','$textmsg');
+	var textbox = $('.$this->dataCss .wide.find,.$this->dataCss #message$data');
+	textbox.each(function(){
+		var textPrompt = $(this).attr('data-text-prompt');
+		var promptColor = '#$blog_tiny_data4';
+		$(this).css('color',promptColor).val(textPrompt);
+		$(this).focus(function(){
+			var that = $(this);
+			that.removeAttr('style'); 
+			if (that.val()===textPrompt){
+				that.val(''); // Empty text box
+				}
+		}).blur(function(){ 
+			var that = $(this);
+			if (that.val()===''){
+				that.css('color',promptColor).val(textPrompt); // Refill it
+				}
+			});
+		});
+eol;
+	echo '<script>'.
+	$script.'
+	</script>';		
+	$this->handle_script_edit($script,'mailing_list','script');
+	}
    }// end render_form
  
 static function email_scrubber(&$value,$key,$deactivate) {
@@ -3444,40 +4418,47 @@ static function email_scrubber(&$value,$key,$deactivate) {
 	$value = str_replace(array('"', "\\r", "\\n", "%0a", "%0d"), ' ', $value);
 	(!empty($deactivate))&&$value= str_replace('http' , '(Deativated link: if trusted put http here)' ,$value);
 	$value=htmlentities(strip_tags($value));
-   // Return the value: gets here only if verybad things not found!!
 	 } // End of email_scrubber() function.
 
 
-function contact_mail_process($data,$contact_arr){ 
+function contact_mail_process($data,$contact_arr,$noname=false){  printer::vert_print($_POST);
 	$deactivate=(empty($contact_arr[8])||$contact_arr[8]==='none')?0:1;
-	
 	$iplookup=mail::iplookup();
+	$preamble=$contact_arr[5];
 	if (isset($_POST['email']['message'.$data])){ 
 		$this->post_message=htmlentities($_POST['email']['message'.$data]);
 		}  
-	if (isset($_POST['email']['name_'.$data])){ 
+	if (isset($_POST['email']['name_'.$data])&&$_POST['email']['name_'.$data]!==$contact_arr[0]){ 
 	  $this->post_name=htmlentities($_POST['email']['name_'.$data]); 
-		} 
-	if (isset($_POST['email_'.$data])){
+		}
+	else {
+		$this->post_name='';
+		$_POST['email']['name_'.$data]='';
+		}
+	if (isset($_POST['email']['email_'.$data])){
 		$this->post_email=htmlentities($_POST['email']['email_'.$data]); 
 		}
-	
+	else $_POST['email']['email_'.$data]='';
 	$this->scrubbed=$_POST['email'];
-	array_walk($this->scrubbed,array('self','email_scrubber'),$deactivate); //scrubbed is array sent hrou scrubber                                   
+	array_walk($this->scrubbed,array('self','email_scrubber'),$deactivate); //scrubbed is array sent to scrubber                                   
 	//echo $this->scrubbed['message'.$data].' is scrubbed message';
 	if (!preg_match(Cfg::Preg_email,$this->scrubbed['email_'.$data])){
 		$this->scrubbed['email_'.$data]='';
 		}
 	  // Minimal form validation:
-	if (!empty($this->scrubbed['name_'.$data]) && !empty($this->scrubbed['subject_'.$data]) && !empty($this->scrubbed['message'.$data]) && !empty($this->scrubbed['email_'.$data]) ) {
+	if (!empty($this->scrubbed['name_'.$data]||$noname) && !empty($this->scrubbed['subject_'.$data]) && !empty($this->scrubbed['message'.$data]) && !empty($this->scrubbed['email_'.$data]) ) {
 		  // Create the body:
 		$this->clean_email=$clean_email=$this->scrubbed['email_'.$data];
 		$this->clean_name=$clean_name=$this->scrubbed['name_'.$data];
 		$this->clean_subject=$this->subject=$clean_subject=$this->scrubbed['subject_'.$data];
 		$this->clean_message=$clean_message=$this->scrubbed['message'.$data];
-		$body = "Do Not Reply Directly with this email".NL."Reply to: $clean_email".NL." Subject: $clean_subject".NL." From: $clean_email".NL.$iplookup.NL."$clean_name has sent you a message!: ".NL.NL .$clean_message.NL;
+		$body = "Do Not Reply Directly with this email".NL.$preamble."<br>Reply to: $clean_email".NL." Subject: $clean_subject".NL." From: $clean_email".NL.$iplookup.NL."$clean_name has sent you a message: ".NL.NL .$clean_message.NL;
 		$this->body =NL. wordwrap($body, Cfg::Wordwrap);
 	  // Send the email:
+		if (Sys::Loc){
+			printer::alert($this->body);
+			return;
+			}
         $sendvar='sent to for each: ';
 			if(empty($this->blog_data2)){
 				$msg='CONFIGURE YOUR CONTACT INFO ON EDITPAGE ADD EMAIL ADDRESSES';
@@ -3514,13 +4495,13 @@ function contact_mail_process($data,$contact_arr){
 				$usr->get('ip'). " is address".NL.
 				' emailed to owner/admin: '.Cfg::Owner.' using: '.$mailstring .NL
 				. $this->body; 
-				if(!isset($_POST['contact_status_check'])||(isset($_POST['contact_status_check'])&&$_POST['contact_status_check']!=='yhuman')){
+				if(!isset($_POST['contact_status_check'])||(isset($_POST['contact_status_check'])&&$_POST['contact_status_check']!=='yhuman'&&$_POST['contact_status_check']!=='no contact status')){
 					printer::alertx('<p style="background:red;color:white">Seriously, Choose Your Status!</p>');
 					
 					$this->sent=false;
 					}
-				elseif (isset($_POST['contact_message_check'])&&$_POST['contact_message_check']!='Enter message Here'){
-					$this->sent=true; //giveem sent message without sending 
+				elseif (isset($_POST['contact_message_check'])&&$_POST['contact_message_check']!=''){
+					$this->sent=true; //give sent message without sending 
 					}
 				else { 
 					foreach ($newtomail as $var){ 
@@ -3530,7 +4511,7 @@ function contact_mail_process($data,$contact_arr){
 				if ($this->sent){
 					//$name=str_replace(' ','%20',$_POST['name_'.$data]);
 					$name=htmlentities($this->post_name);//don't use full scrubbed name as giveaway
-					printer::alertx('<p style="background:#'.Cfg::Pos_color.';color:white;">Thankyou '.$name. ' your message has been sent</p>'); 
+					printer::alertx('<p style="background:#'.Cfg::Pos_color.';color:white;">Thankyou your message has been sent</p>'); 
 					}
 				}//end if sys::web  
 			else {// local 
@@ -3561,7 +4542,7 @@ function contact_mail_process($data,$contact_arr){
 		}//end else scrubbed is not empty	  
   }//end function contact_mail 
  
-function contact_mail_send($email){ mail($email, 'hello', 'body');
+function contact_mail_send($email){
 	$headers = 'MIME-Version: 1.0' . "\r\n";
 	$headers .= 'Content-type: text/html; charset=iso-8859-1' . "\r\n";
 	//$headers.="From: ".Cfg::Mail_from . "\r\n";
@@ -3627,14 +4608,16 @@ function video_post($data){
      $embed=$blog_data4;
      $this->videotype='iframe';
      if (!$this->edit)
-        echo '<div class="videoWrapper">'.$embed.'</div>'; 
+        echo '
+<div class="videoWrapper">'.$embed.'</div>'; 
      }
    elseif(is_file(Cfg_loc::Root_dir.Cfg::Vid_dir.$blog_data4)){
      $picfield='blog_tiny_data1';
      $this->videotype='video_upload';
      $image=(is_file(Cfg_loc::Root_dir.Cfg::Vid_image_dir.$this->$picfield))?Cfg_loc::Root_dir.Cfg::Vid_image_dir.$this->$picfield:''; #pic in  vid in Cfg::Vid_fir
      $video=video_master::instance();
-      echo '<div class="video_resize">';
+      echo '
+<div class="video_resize">';
       $video->render_video($blog_data4,$image,800,1.2,Cfg_loc::Root_dir.Cfg::Vid_dir,$this->blog_data5);//blog info currently used for flv autoplay
       echo '</div>';
        
@@ -3648,10 +4631,12 @@ function video_post($data){
 	if (!$this->edit)return;
 	$preg_match=''; 
 	if (!$this->is_clone||$this->clone_local_data){
-		echo '<div class="fsminfo editbackground editfont '.$this->column_lev_color.' floatleft"><!--Choose video Display--><p class="floatleft">Choose Video iframe/object embed (ie from youtube.com or Vimeo.com) or direct video upload. Other types of iframes may also be displayed by using the first method. Video should autoadjust to the full post width using either method </p> ';
+		echo '
+<div class="fsminfo editbackground editfont '.$this->column_lev_color.' floatleft"><!--Choose video Display--><p class="floatleft">Choose Video iframe/object embed (ie from youtube.com or Vimeo.com) or direct video upload. Other types of iframes may also be displayed by using the first method. Video should autoadjust to the full post width using either method </p> ';
 		printer::pclear();
      printer::print_notice('Current Video Type is '.$this->videotype);
-		echo '<div class="fsminfo editbackground editfont floatleft left '.$this->column_lev_color.'"><!--Iframe Embed Code-->Place <b>Video/Other Embed code Here,</b> ie from Vimeo or Youtube or other type of iframe or object code. This method has widest support for all video types on all devices, ie. preferred method<br>Enter Video Iframe, Object (Embed code)<br><br><b> Or Previously Uploaded video</b> filename here (without dir path)..';
+		echo '
+<div class="fsminfo editbackground editfont floatleft left '.$this->column_lev_color.'"><!--Iframe Embed Code-->Place <b>Video/Other Embed code Here,</b> ie from Vimeo or Youtube or other type of iframe or object code. This method has widest support for all video types on all devices, ie. preferred method<br>Enter Video Iframe, Object (Embed code)<br><br><b> Or Previously Uploaded video</b> filename here (without dir path)..';
 		$this->textarea('blog_data4',$data.'_blog_data4');
 		printer::pclear();
 		echo '</div><!--Iframe Embed Code-->'; 
@@ -3659,7 +4644,8 @@ function video_post($data){
 		$vidfield='blog_data4';
      $prefix=($this->clone_local_data)?'p':'';
      $masterpost=($this->clone_local_data)?$this->master_post_data_table:$this->master_post_table;
-		echo '<div class="fsminfo editbackground editfont floatleft left '.$this->column_lev_color.'"><!--Upload File-->Or Upload New Video File. Takes mp4, ogg, webm, m4v';
+		echo '
+<div class="fsminfo editbackground editfont floatleft left '.$this->column_lev_color.'"><!--Upload File-->Or Upload New Video File. Takes mp4, ogg, webm, m4v';
 		echo'<p class="editcolor editbackground editfont underline"> <a href="add_page_vid.php?masterpost='.$masterpost.'&amp;www='.$this->current_net_width.'&amp;ttt='.$this->blog_table.'&amp;fff='.$vidfield.'&amp;id='.$prefix.$this->blog_id.'&amp;id_ref=blog_id&amp;pgtbn='.$this->pagename.'&amp;postreturn='.Sys::Self.'&amp;css='.Cfg_loc::Root_dir.Cfg::Style_dir.$this->pagename.'&amp;sess_override&amp;sess_token='.$this->sess->sess_token.'">Upload a Video File</a></p>';
 		echo '</div><!--Upload File-->';
 			printer::pclear(); 
@@ -3667,13 +4653,14 @@ function video_post($data){
      
      //$video=video_master::instance(); 
      printer::pclear(); 
-     echo '<div class="editbackground editfont fs1color floatleft"><!--border video edit-->';
+     echo '
+<div class="editbackground editfont fs1color floatleft"><!--border video edit-->';
      $this->edit_vid($data);
      printer::pclear();
      echo '</div><!--border video edit-->';
 		printer::pclear(); 
 		}//if ! clone || clone local
-	$style_list='background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,text_align,borders,box_shadow,outlines,radius_corner'; #do not display edit styling for padding top and bottom
+	$style_list='background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,margin_right,text_align,borders,box_shadow,outlines,radius_corner'; #do not display edit styling for padding top and bottom
 	$global_field=($this->blog_global_style==='global')?',.'.$this->col_dataCss.' > .'.$this->blog_type:'';
 	$globalmsg=($this->blog_global_style==='global')?' Global Style':'';
 	$this->edit_styles_close($data,'blog_style','.'.$this->dataCss.'.post.'.$this->blog_type.$global_field, $style_list ,'Style Video'.$globalmsg,'','',true);
@@ -3699,7 +4686,8 @@ $datapic=$data.'_'.$picfield;
 	$field=(empty($field))?$data:$field;#this accomodates the blog which is not the $data as with normal pages 
    $vidname=($this->videotype==='vid_upload')?trim($this->blog_data4):false;
 	printer::pclear(); 
-	echo'<div class="editbackground editfont floatleft"><!--Video Loader-->';
+	echo'
+<div class="editbackground editfont floatleft"><!--Video Loader-->';
   printer::alertx('<p class="editcolor editbackground editfont">Change starter Still Image to Previously Uploaded image:<input style="cursor:pointer;background:#'.$this->editor_background.';color:#'.$this->editor_color.';" name="'.$datapic.'" value="'.$this->blog_tiny_data1.'" size="40"></p>');
    printer::pclear(10);
    $prefix=($this->clone_local_data)?'p':'';
@@ -3718,7 +4706,7 @@ function background_video($element){//not in use as mobile compatibility is poor
 	$ele_arr=explode(',',$this->$element); 
 	$styleindexes=explode(',',Cfg::Style_functions);
 	foreach($styleindexes as $key =>$index){
-		if (!empty($index)) ${$index.'_index'}=$key;
+		${$index.'_index'}=$key;
 		}
 	$count=count($styleindexes);
 	for ($i=0; $i<$count; $i++){
@@ -3726,7 +4714,7 @@ function background_video($element){//not in use as mobile compatibility is poor
 		}
 	$backindexes=explode(',',Cfg::Background_styles);
 	foreach($backindexes as $key =>$index){
-		if (!empty($index)) ${$index.'_index'}=$key;
+		${$index.'_index'}=$key;
 		}
 	if (array_key_exists($background_index,$ele_arr)&&strlen($ele_arr[$background_index])>30){ 
 		$background_array=explode('@@',$ele_arr[$background_index]); 
@@ -3762,7 +4750,8 @@ function background_video($element){//not in use as mobile compatibility is poor
 			$image=''; 
 			$id='';//'id="back_vid_'.$num."';
 			$video=video_master::instance();
-			echo '<div '.$id.' class="video-back-container" data-rwd="'.$this->rwd_post.'" data-type="'.$element.'" data-vid-ratio ="'.$ratio.'"><div>';
+			echo '
+<div '.$id.' class="video-back-container" data-rwd="'.$this->rwd_post.'" data-type="'.$element.'" data-vid-ratio ="'.$ratio.'"><div>';
 			$video->render_video($vidname,$image,$width,$ratio,$viddir,$autoplay,$loop,$mute,$cc,$controls);//blog info currently used for flv autoplay 
 			################# 
 			echo '</div></div>';
@@ -3776,16 +4765,19 @@ function nav_menu($data,$dir_menu_id,$text) {//blog_data6 available
 	$datainc='_'.$this->blog_id;
 	$this->navobj->current_color=$this->column_lev_color;
 	static $inc=0;  $inc++;
-	if (empty($dir_menu_id)){ 
+	if (empty($dir_menu_id)){ //BYPassed go directly to Nav Edit
 		if ($this->edit){
 			$dir_menu_id=$this->process_add_new_page();
-			$this->edit_styles_open();
+			//$this->edit_styles_open();
 			$this->delete_option();
-			$q="select distinct dir_menu_id from $this->directory_table";
+			}
+		if (false){//BYPassed go directly to Nav Edit
+		$q="select distinct dir_menu_id from $this->directory_table";
 			$r=$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
 			if ($this->mysqlinst->affected_rows()){
 				$opts=array();
 				printer::pclear();
+				 
 				$this->show_more('Create Menu', ' ','','',800);
 				printer::print_wrap('create menu');
 				printer::printx('<p class="fsminfo editbackground editfont rad5 maxwidth800 floatleft left maroonshadow infoback info "> Create and Use as Many Menus as you want on a Page whether independent or Common To Other Pages. The Table below assists in finding the best approach to your navigation menu needs:</p>');	
@@ -3829,7 +4821,8 @@ function nav_menu($data,$dir_menu_id,$text) {//blog_data6 available
 				printer::pclear();
 				$this->show_more('Choose a Menu Already Created to Add Here', ' ','','',800); //menu created
 				while (list($dir_menu_id)=$this->mysqlinst->fetch_row($r)){
-					echo '<div class="fsminfo editcolor floatleft pb10 editbackground editfont"><!--choose menu-->';
+					echo '
+<div class="fsminfo editcolor floatleft pb10 editbackground editfont"><!--choose menu-->';
 					printer::alert('<input type="radio" value="'.$dir_menu_id.'" name="'.$data.'_blog_data1_arrayed">Choose Menu Id: '.$dir_menu_id);
 					
 					$this->navobj->render_menu($dir_menu_id,'utility_horiz',false);
@@ -3860,7 +4853,8 @@ function nav_menu($data,$dir_menu_id,$text) {//blog_data6 available
              printer::pclear(5);
 					printer::print_tip('This Table Lists the Created Pages and a Default Title Which is alterable Later as necessary. Note: Titles may Be Changed Without Affecting Different Titles to the same Page in a Different Menu');
 					printer::horiz_print($print_arr,'','','','',false);
-					echo '<div class="fsminfo editbackground editfont floatleft left '.$this->column_lev_color.'">Choose your Page Reference to begin your new menu<br>'; 
+					echo '
+<div class="fsminfo editbackground editfont floatleft left '.$this->column_lev_color.'">Choose your Page Reference to begin your new menu<br>'; 
 					echo'<p> <select class="editcolor editbackground editfont" name="menu_start_new['.$this->blog_id.']">';    
 					echo '<option value="" selected="selected">none</option>';
 					for ($i=0;$i<count($page_arr);$i++){
@@ -3897,7 +4891,7 @@ function nav_menu($data,$dir_menu_id,$text) {//blog_data6 available
 	$count=$this->mysqlinst->count_field($this->directory_table,'dir_menu_id','',false,"where dir_menu_id='$dir_menu_id' AND dir_sub_menu_order=0 "); 
 	($this->edit)&&$this->edit_styles_open();
 	($this->edit)&&  
-	$this->blog_options($data,$this->blog_table);
+		$this->blog_options($data,$this->blog_table);
 	#navparams
 	#navopts #menuopts #menuparamas
    $nav_name_ref='blog_data5'; 
@@ -3909,9 +4903,7 @@ function nav_menu($data,$dir_menu_id,$text) {//blog_data6 available
 	  (!array_key_exists($x,$nav_params))&&$nav_params[$x]=0;# 
 	  }
   foreach($nav_opts as $key =>$index){
-		if (!empty($index)) {
-			${$index.'_index'}=$key; 
-			}
+		${$index.'_index'}=$key;
 		}
    $this->{$this->data.'_'.$nav_name_ref}=$nav_params; 
 	$min_viewport=100;
@@ -3924,18 +4916,19 @@ function nav_menu($data,$dir_menu_id,$text) {//blog_data6 available
 	if ($count>0){
 		($this->edit)&&printer::printx('<p class="editbackground editfont fsminfo editbackground editfont floatleft left '.$this->column_lev_color.'">Menu Id: '.$dir_menu_id.'</p>');
 		printer::pclear();
-          echo <<<eol
+          echo "<!--$this->pagename.js script @ doubleTap click show menu $this->dataCss-->
+          ";
+          $this->script.= <<<eol
 	
-   <script>
-   \$( function(){
-     \$( '.$this->dataCss .nav_gen li:has(ul)' ).doubleTapToGo();//selects li elements with submenus
-    
-      \$('.$this->dataCss .nav_gen li.show_icon .aShow').click(function(){
-          gen_Proc.toggleClass('#$this->dataCss .ulTop','menuRespond','menuRespond2','transitionEase',500);gen_Proc.toggleHasClass('#$this->dataCss .ulTop','#$this->dataCss','menuRespond','iconOpen');
+     //<!--post navigation script click show menu @ doubleTap $this->dataCss-->
+     jQuery( '.$this->dataCss .nav_gen li:has(ul)' ).doubleTapToGo();//selects li elements with submenus
+     jQuery('.$this->dataCss .nav_gen li.show_icon .aShow').click(function(){
+          gen_Proc.toggleClass('#$this->dataCss .ulTop','menuRespond','menuRespond2','transitionEase',500);
+          gen_Proc.toggleHasClass('#$this->dataCss .ulTop','menuRespond','iconOpen');
           });
-      });
-   </script>
 eol;
+	
+		$this->handle_script_edit("jQuery('#$this->dataCss .ulTop').removeClass(' menuRespond menuRespond2');",'nav resize','onresizescript');
 		#navobj choices
 		$this->navobj->nav_animate=$nav_animate;
 		$this->navobj->respond_menu_dimension=$respond_menu_dimension;
@@ -3966,7 +4959,7 @@ eol;
 	$icon_position_choice=(empty($nav_params[$nav_icon_position_index])||!is_numeric($nav_params[$nav_icon_position_index])||$nav_params[$nav_icon_position_index]>100)?0:$nav_params[$nav_icon_position_index];
    
 	 $this->show_text_style=true; //temp turn on text-align display
-	$this->edit_styles_close($data,'blog_style','.'.$this->dataCss,'background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,text_align,borders,box_shadow,outlines,radius_corner,transform','Edit Overall Post Styling','','Edit Overall Post Styling generally for @ <h7>non menu icon</h7> widths. Use Detailed Link Styling for Link Text Styling',true,true ); 
+	$this->edit_styles_close($data,'blog_style','.'.$this->dataCss,'background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,margin_right,font_family,font_size,font_media_unit,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform','Edit Overall Post Styling','','Edit Overall Post Styling generally for @ <h7>non menu icon</h7> widths. Use Detailed Link Styling for Link Text Styling',true,true ); 
 	$this->show_text_style=false; //turn off text-align display
 	 $this->{$nav_name_ref.'_arrayed'}=$this->{$data.'_'.$nav_name_ref.'_arrayed'} =$nav_params;
 	$this->background_img_px=(is_numeric($nav_params[$nav_link_width_index])&&$nav_params[$nav_link_width_index]>30)?$nav_params[$nav_link_width_index]:200; 
@@ -3976,7 +4969,7 @@ eol;
    $nav_sub_link_width=(is_numeric($nav_params[$nav_sub_link_width_index])&&$nav_params[$nav_sub_link_width_index]>44&&$nav_params[$nav_sub_link_width_index]<321)?'width:'.$nav_params[$nav_sub_link_width_index].'px;':'';
    if (Sys::Quietmode||(!$this->clone_local_style&&$this->is_clone))return;//#  PROCEEd FOr NORMAL  PROCEEd FOr NORMAL
 		 ############### End Nav Options ###############
-		$this->show_more('Style/Customize <b>@ Non Menu-Icon Width</b>', '','','',500,'','float:left',true);
+		$this->show_more('Style/Customize <b>@ Non Menu-Icon Width</b>', 'buffer_style_menu_nonicon_'.$this->blog_id,'','',500,'','float:left',true);
 		$this->print_wrap('detail link');	
 		printer::pspace(10);
      printer::print_tip('Style Menu Links, sub links, Sub Menu Hover Panel etc. <b>@ non menui-icon widths</b>');
@@ -3985,9 +4978,9 @@ eol;
    printer::print_wrap('Style individual Links');
    printer::print_tip('Here you can style both the LI A and the parent LI element which affects individual links.');
    printer::print_info('Recomended to use LI A then for special needs use LI');
-   $style_list='width_special,width_max_special,width_min_special,background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,font_family,font_size,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform';
+   $style_list='width_special,width_max_special,width_min_special,width_media_unit,background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,margin_right,font_family,font_size,font_media_unit,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform';
    $this->edit_styles_close($data,'blog_data4','.'.$this->dataCss.' .nav_gen ul.top-level:NOT(.menuRespond2) li a',$style_list,'Style General Menu Link LI A','','Styles You Make Here will affect All Links. Default widths set to auto. This is best on horizontal menus to conserve space using minimuim widths. However for uniform button effect widths can be used. Use Nav General Post styling to set the collective nav link alignment center or left. For additional Hover and Active Link effects Style Options Below these<br>To Enlarge Background Area for Images and Background Color Use Padding Spacing<br>To Enlarge Spacing between Background styled links use margin spacing');
-   $style_list='width_special,width_max_special,width_min_special,background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,borders,box_shadow,outlines,radius_corner,transform';
+   $style_list='width_special,width_max_special,width_min_special,width_media_unit,background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,margin_right,borders,box_shadow,outlines,radius_corner,transform';
    printer::pclear(5);
    $this->edit_styles_close($data,'blog_data3','.'.$this->dataCss.' .nav_gen ul.top-level:NOT(.menuRespond2) li',$style_list,'Additionally Tweak the General Menu Link LI Element','','');
    printer::close_print_wrap('Style individual Links');
@@ -3997,13 +4990,13 @@ eol;
    printer::print_wrap('Style individual Links');
    printer::print_tip('Here you can style both the Sub-Link LI A and the parent LI element which affects individual links.');
    printer::print_info('Recomended to use LI A then for special needs use LI');
-   $style_list='width_special,width_max_special,width_min_special,background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,font_family,font_size,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform';
+   $style_list='width_special,width_max_special,width_min_special,width_media_unit,background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,margin_right,font_family,font_size,font_media_unit,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform';
    $this->edit_styles_close($data,'blog_data2','.'.$this->dataCss.' .nav_gen ul.top-level:NOT(.menuRespond2) ul li a',$style_list,'Style Sub Menu Link LI A','','');
    printer::pclear(5);
    $this->edit_styles_close($data,'blog_tiny_data6','.'.$this->dataCss.' .nav_gen ul.top-level:NOT(.menuRespond2) ul li',$style_list,'Additionally Tweak the Sub Menu Link LI Element','','');
    printer::close_print_wrap('Style individual Sub Links');
    $this->show_close('Style individual Sub Links');
-   $style_list='background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,font_family,font_size,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform';
+   $style_list='background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,margin_right,font_family,font_size,font_media_unit,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform';
    $this->show_more('Style Hover Links for Main and Sub Menus');
    printer::print_wrap('Style Hover Links');
    printer::print_tip('Here you can style both the LI A and the parent LI element which affects individual links.');
@@ -4017,11 +5010,12 @@ eol;
    printer::close_print_wrap('Style Hover Links');
    $this->show_close('Style Hover Links'); 
    printer::pclear(5);
-   $this->edit_styles_close($data,'blog_tiny_data5','.'.$this->dataCss.' .nav_gen ul.top-level:NOT(.menuRespond2) li.active a','background,font_family,font_size,font_weight,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform','Style the Active Link','','An Active Link is the Particluar Link to the Current Page and its optionaly styled here');  
+   $this->edit_styles_close($data,'blog_tiny_data5','.'.$this->dataCss.' .nav_gen ul.top-level:NOT(.menuRespond2) li.active a','background,font_family,font_size,font_media_unit,font_weight,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform','Style the Active Link','','An Active Link is the Particluar Link to the Current Page and its optionaly styled here');  
    printer::pclear(5);
-     $this->edit_styles_close($data,'blog_data7','.'.$this->dataCss.':NOT(.iconOpen) .nav_gen ul:hover ul,.'.$this->dataCss.':NOT(.iconOpen) .nav_gen ul ul','width_special,width_max_special,width_min_special,background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,borders,box_shadow,outlines,radius_corner,transform','Style background for the Sub Menu Hover Panel @ <h7> non menu icon</h7> widths','','If you have optionally made sub menus that can be styled the dropdown Panel which contains the dropdown menu links'); 
+     $this->edit_styles_close($data,'blog_data7','.'.$this->dataCss.':NOT(.iconOpen) .nav_gen ul:hover ul,.'.$this->dataCss.':NOT(.iconOpen) .nav_gen ul ul','width_special,width_max_special,width_min_special,width_media_unit,background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,margin_right,borders,box_shadow,outlines,radius_corner,transform','Style background for the Sub Menu Hover Panel @ <h7> non menu icon</h7> widths','','If you have optionally made sub menus that can be styled the dropdown Panel which contains the dropdown menu links'); 
 		##############  horiz or vert
-	echo '<div class="fsminfo editbackground editfont '.$this->column_lev_color.' floatleft"><!--Respond Vertical-->';
+	echo '
+<div class="fsminfo editbackground editfont '.$this->column_lev_color.' floatleft"><!--Respond Vertical-->';
      echo '<p class="highlight left">Choose whether Horizontal Menus Will Appear without row sharing ie. Vertically <b>@ NON Menu Icon widths</b> or share Row Space as Space Permits centered or floated left</p>';
      $checked1=($nav_link_vertical_choice==='Vertical Only')?'checked="checked"':'';
      $checked2=($nav_link_vertical_choice==='Float Left')?'checked="checked"':'';
@@ -4045,7 +5039,8 @@ eol;
      ##############  horiz or vert    
      //$pass_nav_class=($this->blog_tiny_data3==='nav_display')?'+display':'+hover';
      printer::pspace(10);
-     echo '<div class="fsminfo"><!--submenu hover-->';
+     echo '
+<div class="fsminfo"><!--submenu hover-->';
      $checked1=($nav_params[$nav_sub_display_index]!=='nav_display')?'checked="checked"':''; 
      $checked2=($nav_params[$nav_sub_display_index]==='nav_display')?'checked="checked"':'';#full width option
      printer::alertx('<p class="information floatleft" title="Choose to display submenus when hovered Over "><input type="radio" value="1" '.$checked1.' name="'.$data.'_'.$nav_name_ref.'['.$nav_sub_display_index.']">Hover Submenus </p>');
@@ -4075,7 +5070,8 @@ eol;
      $this->show_close('Style info');
      echo '</div><!--submenu hover-->';
      printer::pclear(10);
-     echo '<div class="fsminfo editbackground editfont '.$this->column_lev_color.' floatleft"><!--Link Height-->';
+     echo '
+<div class="fsminfo editbackground editfont '.$this->column_lev_color.' floatleft"><!--Link Height-->';
      printer::print_tip('Optionally set a Uniform Height for all the Menu Links @non menu-icon widths. Normally Links have automatic Height Depending on The Number of Rows of Link TEXT and padding. Set a specific Height here',.7);
      $nav_link_heightl=$this->spacing($data.'_'.$nav_name_ref.'_arrayed',$nav_link_height_index,'height','Choose Main Link height','Normally heights are set to auto; Optionally choose a specific height for Nav Main Links Here.','','','','','.'.$this->dataCss.' .nav_gen UL.top-level>LI>A');  
 	 $this->show_more('Style info','','info tiny italic');
@@ -4086,7 +5082,8 @@ eol;
      printer::close_print_wrap1('more inifo');
      $this->show_close('More info');
      echo '</div><!--Link Height-->'; 
-     printer::pclear();	echo '<div class="fsminfo editbackground editfont '.$this->column_lev_color.' floatleft"><!--Link Height-->';
+     printer::pclear();	echo '
+<div class="fsminfo editbackground editfont '.$this->column_lev_color.' floatleft"><!--Link Height-->';
      printer::print_tip('Optionally set a Uniform Height for all the SUB Menu Links @non menu-icon widths.  Normally Links have automatic Height Depending on The Number of Rows of Link TEXT and padding. Set a specific Height here',.7);
      $nav_sub_link_heightl=$this->spacing($data.'_'.$nav_name_ref.'_arrayed',$nav_sub_link_height_index,'height','Choose SUB Link height','Normally heights are set to auto; Optionally choose a specific height for Nav SUB Links Here.','','','','','.'.$this->dataCss.' .nav_gen UL UL>LI>A');  
 	 $this->show_more('Style info','','info tiny italic');
@@ -4118,7 +5115,8 @@ eol;
      printer::pclear(5); 
      $checked1=($nav_params[$nav_repeat_submenu_index]!=='repeat')?'checked="checked"':''; 
      $checked2=($nav_params[$nav_repeat_submenu_index]==='repeat')?'checked="checked"':'';#full 
-     echo '<div class="fsminfo"><!--repeat menu wrap-->';
+     echo '
+<div class="fsminfo"><!--repeat menu wrap-->';
      printer::print_tip('A main link with a submenu can be repeated in the submenu by adding it manually by choosing the add/edit links menu or by choosing the Repeat Main Menu Links here');
      printer::alertx('<p class="information" title="When Submenu links are Being Used Do Not Repeat the main menu link at the top of list of submenu links "><input type="radio" value="1" '.$checked1.' name="'.$data.'_'.$nav_name_ref.'_arrayed['.$nav_repeat_submenu_index.']">Do Not Repeat Main Link to Submenu</p>');
 	printer::pclear();
@@ -4136,8 +5134,8 @@ eol;
      printer::pclear();	
      $this->submit_button();
      printer::close_print_wrap('detail link');
-     $this->show_close('Detailed Link Area');//<!--End Show More Edit Nav-->'; 
-     $this->show_more('Style/Customize <b>@ Menu Icon</b> Width','','','',600);
+     $this->show_close('Style/Customize <b>@Non Menu Icon</b> Width','buffer_style_menu_nonicon_'.$this->blog_id);//<!--End Style/Customize <b>@Non Menu Icon</b> Width-->'; 
+     $this->show_more('Style/Customize <b>@ Menu Icon</b> Width','buffer_style_menu_icon_'.$this->blog_id,'','',600);
      printer::print_wrap('rwd menu icon');
      printer::print_wrap('outer absolute relative menu icon');
      printer::print_tip('Customize  positioning of menu icon/open menu icon &amp; menu');
@@ -4154,6 +5152,7 @@ eol;
 		 	<option value="left">left position </option>
 		 	<option value="right">right position </option>
 	  </select></p>';
+	  printer::pclear();
      $this->show_more('Style info','','info italic smaller');
      printer::print_wrap1('techinfo');
      printer::print_info('Current setting Css: #'.$this->dataCss.':not(.iconOpen) .show_icon{'.$nav_icon_horiz_pos.':0;}');
@@ -4176,7 +5175,7 @@ eol;
      printer::print_wrap('menuicon pos width3');
      $msg='3. Relative or Absolute Positioning of the menu icon is now done in the Navigation Main Post settings available for each post type under the positioning option. Set to Absolute or Relative. Then choose left or right/top or bottom and value. Negative values are also available. To enable positioning icon choice Choose @media screen max-width px in the positioning option <br><br>Note: when Absolute is used Positive values for top which space the icon lower (and menu iteself when open) will be relative from the top of the body if a parent column relative is previously not set'; 
      printer::print_tip($msg);
-     $msg='Select Menu Icon display View Port Width </b>(also under the Style/Enable/Customize @ Menu Icon Width heading &amp; down below.)<br>
+     $msg='<b>Select Menu Icon display View Port Width </b>(also under the Style/Enable/Customize @ Menu Icon Width heading &amp; down below.)<br>
      Should match the Positioning option @media screen max-width choesen in step 3.'; 
      printer::print_tip($msg);
      printer::close_print_wrap('menuicon pos width3');
@@ -4185,7 +5184,7 @@ eol;
      printer::print_tip($msg);
      $this->show_more('Tweak left/right/top Positioning of full menu when icon opened'); 
      printer::print_wrap('horiz verts'); 
-     printer::alert('Optionally tweak right or left position value of opened and absolute positioned navigation menus at widths the icon both appears and is clicked open. <h7>Left value will override right value if both chosen</h7>');
+     printer::alert('Optionally tweak right or left position value of opened and absolute positioned navigation menus at widths the icon both appears and is clicked open.  <b>Left value will override right value if both chosen</b> ');
       $final_open_icon_position_left=$this->spacing($data.'_'.$nav_name_ref,$nav_open_icon_left_index,'return','Choose left positioning value','Use Left Horiz Position of absolute positioned opened sub menu','','','','','','','Check none or left:0 or enter left value as needed',array('zero'=>'left:0;','none'=>'none'));
      $clp=(!empty($final_open_icon_position_left))?$final_open_icon_position_left:'none';
      printer::alert('Current position left: '.$clp); 
@@ -4284,7 +5283,7 @@ eol;
      $this->show_close('Absolute or Relative Positioning of menu icon');
      printer::close_print_wrap('outer absolute relative menu icon');
      printer::print_wrap('responsivmenustyle');
-     $style_list='width_special,width_max_special,width_min_special,background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,font_family,font_size,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform';
+     $style_list='width_special,width_max_special,width_min_special,width_media_unit,background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,margin_right,font_family,font_size,font_media_unit,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform';
      $this->show_more('Style individual Links @ icon width');
      printer::print_wrap('Style individual Links');
      printer::print_tip('@ menu icon widths you can style either/both the LI A and the parent LI element which affects individual links.');
@@ -4301,9 +5300,9 @@ eol;
      $this->edit_styles_close($data,'blog_data11','.'.$this->dataCss.' .ulTop.menuRespond2 ul li',$style_list,"Style (LI) Opened Nav Sub Menu Links Differently when Responsive Menu Icon is opened",'','',true,true ); 
      printer::close_print_wrap('Style individual Sub Links');
      $this->show_close('Style individual Sub Links @ icon width');
-     $this->edit_styles_close($data,'blog_data8','.'.$this->dataCss.' .ulTop.menuRespond2','width_special,width_max_special,width_min_special,background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,text_align,borders,box_shadow,outlines,radius_corner,transform',"Style opened Nav Link Background Area including Borders/etc. when Responsive Menu Icon is opened",'','',true,true );
+     $this->edit_styles_close($data,'blog_data8','.'.$this->dataCss.' .ulTop.menuRespond2','width_special,width_max_special,width_min_special,width_media_unit,background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,margin_right,text_align,borders,box_shadow,outlines,radius_corner,transform',"Style opened Nav Link Background Area including Borders/etc. when Responsive Menu Icon is opened",'','',true,true );
      $style_list='background,font_family,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform';
-     $this->show_more('Style Hover Links for @ <h7>Menu icon</h7> width');
+     $this->show_more('Style Hover Links for @Menu icon width');
      printer::print_wrap('Style Hover Links');
      printer::print_tip('Here you can style both the Hover effect for LI A and the parent LI element which affects individual links @media menu-icon widths.');
      printer::print_info('Recomended to use LI A then for special needs use LI');
@@ -4311,12 +5310,13 @@ eol;
      $this->edit_styles_close($data,'blog_tiny_data9','.'.$this->dataCss.' .nav_gen .ulTop.menuRespond2 li:NOT(.show_icon):hover','background,font_family,font_weight,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform','Style LI: Hover Link','','When You Hover Over a Link with the cursor it wil change according to Any Styles set Here' );
      printer::close_print_wrap('Style Hover Links');
      $this->show_close('Style Hover Links for @ Menu icon width');
-   $this->edit_styles_close($data,'blog_data12','.'.$this->dataCss.' .nav_gen .ulTop.menuRespond2:hover ul,.'.$this->dataCss.' .nav_gen .ulTop.menuRespond2 ul','width_special,width_max_special,width_min_special,background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,borders,box_shadow,outlines,radius_corner,transform','Style the Sub Menu Hover Panel @ <h7>menu icon</h7> widths','','If you have optionally made sub menus that can be styled the background dropdown Panel which contains the dropdown menu links'); 
+   $this->edit_styles_close($data,'blog_data12','.'.$this->dataCss.' .nav_gen .ulTop.menuRespond2:hover ul,.'.$this->dataCss.' .nav_gen .ulTop.menuRespond2 ul','width_special,width_max_special,width_min_special,width_media_unit,background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,margin_right,borders,box_shadow,outlines,radius_corner,transform','Style the Sub Menu Hover Panel @ <h7>menu icon</h7> widths','','If you have optionally made sub menus that can be styled the background dropdown Panel which contains the dropdown menu links'); 
      printer::close_print_wrap('responsivmenustyle');
      printer::pclear(5);
-     echo '<div class="fsminfo editbackground editfont '.$this->column_lev_color.' floatleft"><!--Menu Icon RWD Width-->';
+     echo '
+<div class="fsminfo editbackground editfont '.$this->column_lev_color.' floatleft"><!--Menu Icon RWD Width-->';
      printer::alertx('<p class="highlight left" title="Select a Responsive viewport width size under which the menu will be represent by a menu icon. Full Menu will appear when icon is clicked"><b>Select Menu Icon display View Port Width</b>.<br></p>');
-     printer::alertx('<p class="tip">By default Menu Icon appear at viewport widths under 769px. Use none to prevent menu icon appearing at any width!</p>');
+     printer::alertx('<p class="tip">By default Menu Icon appear at viewport widths under 769px and main post settings for position is set at absolute @ maxwidth 768 to match. Use none to prevent menu icon appearing at any width or adjust width and change the maxwidth for aboslute to match.  Change position to static to allow natural menu positon at al width.!</p>');
      $this->mod_spacing($data.'_'.$nav_name_ref.'_arrayed['.$nav_icon_media_width_index.']',$respond_menu_dimension,$min_viewport,$max_viewport,1,'px','none');
      $checked1=($respond_menu_dimension==='icon full on')?'checked="checked"':'';
      $checked2=($respond_menu_dimension==='icon full on')?'':'checked="checked"';
@@ -4330,7 +5330,8 @@ eol;
      $this->show_close('Style info');
      echo '</div><!--Menu Icon RWD Width-->';
      printer::pclear();
-     echo '<div class="fsminfo"><!--openicon submenu hover-->';
+     echo '
+<div class="fsminfo"><!--openicon submenu hover-->';
      $checked1=($nav_params[$nav_openicon_sub_display_index]==='hoverit')?'checked="checked"':''; 
      $checked2=($nav_params[$nav_openicon_sub_display_index]!=='hoverit')?'checked="checked"':'';#full width option
      printer::print_tip('By default open icon menus will display submenus. You can change that here');
@@ -4379,7 +5380,8 @@ eol;
      $this->show_close('Style info');
      printer::pclear(); 
      printer::close_print_wrap('menu link width');
-     echo '<div class="fsminfo editbackground editfont '.$this->column_lev_color.' floatleft"><!--Icon Width-->'; 
+     echo '
+<div class="fsminfo editbackground editfont '.$this->column_lev_color.' floatleft"><!--Icon Width-->'; 
      echo '<p class="highlight left" title="Select a icon width for the Responsize menu icon">Change Default Width of the Icon (1unit=16px)</p>';
      $this->mod_spacing($data.'_'.$nav_name_ref.'_arrayed['.$nav_icon_width_index.'][0]',$icon_width,.3,10,.1,'unit');
      printer::print_tip('Nav Icon bar Width and Height will scale proportionately to width. Width may be activated with scaling (responsive to viewport width) if enabled here.');
@@ -4394,7 +5396,8 @@ eol;
      printer::pclear();
      echo '</div><!-- Icon Width-->';
      printer::pclear(5);
-     echo '<div class="fsminfo" ><!--link color--><br>'; 
+     echo '
+<div class="fsminfo" ><!--link color--><br>'; 
       printer::alertx('<p class="left editbackground editfont editcolor">Change the Menu Icon Color: #<input onclick=" window.jscolor(this);" style="cursor:pointer;background:#'.$this->editor_background.';color:#'.$this->editor_color.';" type="text" name="'.$data.'_'.$nav_name_ref.'['.$nav_icon_color_index.']." id="'.$this->blog_table.'_'.$this->blog_order.'iconcolor" value="'.$nav_icon_color.'" size="6" maxlength="6" class="jscolor {refine:false}"><span style="font-size: 1.1em; color:#'.Cfg::Info_color.';" id="'.$this->blog_table.'_'.$this->blog_order.'iconcolorinstruct"></span></p>');
       $this->show_more('Style info','','info italic smaller');
      printer::print_wrap1('techinfo');
@@ -4407,12 +5410,14 @@ eol;
      printer::pclear();
      echo '</div><!--link color-->';
      printer::pclear(5);
-     echo '<div class="fsminfo editbackground editfont '.$this->column_lev_color.' floatleft"><!--Icon Float-->';
+     echo '
+<div class="fsminfo editbackground editfont '.$this->column_lev_color.' floatleft"><!--Icon Float-->';
      printer::print_tip('<span style="font-weight:700; color:orange;">Custom Positioning of Menu Icon Position Info </span><br> On viewer screen widths less than that set above for the -Responsive View Port Width Minimum for Menu Icon Respresentation- it will appear in its static position by default. However, by using the post options above for positioning you can position it using absolute relative or fixed positioning instead and set a left or right and top or bottom px or % placement for the menu icon wherever you want. <em> The RWD max-width value for positioning and for menu-icon appearance should be synced</em>');
      echo '</div><!-- Icon Float-->';
      printer::pclear(5);
      ###############
-     echo '<div class="fsminfo editbackground editfont '.$this->column_lev_color.' floatleft"><!--nav animate-->';
+     echo '
+<div class="fsminfo editbackground editfont '.$this->column_lev_color.' floatleft"><!--nav animate-->';
      echo '<p class="info left">Click Menu Icon Nav Animate</p>';
      $checked1=($nav_animate==='fadeInRight')?'checked="checked"':'';
      $checked2=($nav_animate==='fadeInLeft')?'checked="checked"':'';
@@ -4468,7 +5473,8 @@ eol;
      $this->show_close('Style info');
      echo '</div><!-- nav animate-->';
      ######
-     echo '<div class="fsminfo editbackground editfont '.$this->column_lev_color.' floatleft"><!--Respond Vertical-->';
+     echo '
+<div class="fsminfo editbackground editfont '.$this->column_lev_color.' floatleft"><!--Respond Vertical-->';
      echo '<p class="highlight left">Choose whether Horizontal Menus Will Appear without row sharing ie. Vertically when <b>Menu Icon is clicked</b> or share Row Space as Space Permits centered or floated left</p>';
      $checked1=($icon_vertical_choice==='Center Float')?'checked="checked"':'';
      $checked2=($icon_vertical_choice==='Float Left')?'checked="checked"':'';
@@ -4490,7 +5496,7 @@ eol;
      printer::pclear(5);
      $this->submit_button(); 
      printer::close_print_wrap('rwd menu icon');
-     $this->show_close('Style/Customize <b>@ NON Menu-Icon Width</b>'); 
+     $this->show_close('Style/Customize @ Menu-Icon Width','buffer_style_menu_icon_'.$this->blog_id); 
      echo'<p class="button'.$this->column_lev_color.' '.$this->column_lev_color.' editbackground editfont editcolor floatleft underline shadowoff"> <a class="linkcolorinherit" href="navigation_edit_page.php?table_ref='.$this->pagename.'&amp;data='.$data.'&amp;style='.'ID-'.$dir_menu_id.'-'.$datainc.'&amp;menuid='.$dir_menu_id.'&amp;postreturn='.Sys::Self.'&amp;pgtbn='.$this->pagename.'&amp;css='.$this->roots.Cfg::Style_dir.$this->pagename.'">GoTo Add &amp; Edit Links for this Menu</a></p>';
 		printer::pclear();
    $pb=(!is_numeric($this->{$data.'_blog_data4_arrayed'}[$this->padding_bottom_index]))?0:$this->{$data.'_blog_data4_arrayed'}[$this->padding_bottom_index];
@@ -4498,14 +5504,14 @@ eol;
 	$ptot=$pb+$pt;
 	$bp_arr=$this->page_break_arr;
 	#blog_tiny_data3 display or horiz handled in the # maindiv specific for nav
-	$this->navcss.='
+	$this->css.='
      '.$nav_submenu_display.$nav_openicon_submenu_display.'
      ';
 	$max=count($bp_arr);
    #navcss 
-   $respond_menu_dimension=($respond_menu_dimension==='icon full on')?5000:$respond_menu_dimension;//always show
+   $respond_menu_dimension=($respond_menu_dimension==='icon full on')?10000:$respond_menu_dimension;//always show
    if ($nav_animate==='fadeInLeft'||$nav_animate==='fadeInRight'){
-     $this->navcss.='
+     $this->css.='
    .'.$this->dataCss.' .nav_gen UL.top-level.menuRespond{
 	animation-duration: 1s;
 	-webkit-animation-duration: 1s;
@@ -4521,7 +5527,7 @@ eol;
    ';
      }
    if ($nav_animate==='fadeInLeft'){
-     $this->navcss.='
+     $this->css.='
    .'.$this->dataCss.' .nav_gen UL.top-level.menuRespond{
    -webkit-animation-name: fadeInLeft;
 	animation-name: fadeInLeft;
@@ -4529,7 +5535,7 @@ eol;
    ';
      }
    if ($nav_animate==='fadeInRight'){
-     $this->navcss.='
+     $this->css.='
    .'.$this->dataCss.' .nav_gen UL.top-level.menuRespond{
    -webkit-animation-name: fadeInRight;
 	animation-name: fadeInRight;
@@ -4537,7 +5543,7 @@ eol;
    ';
      }
    
-   $this->navcss.= '
+   $this->css.= '
 .bar1, .bar2, .bar3 {
   width: 1em;
   height: .1em;
@@ -4548,6 +5554,9 @@ eol;
    }
 .'.$this->dataCss.' .show_icon{
    font-size: '.($icon_width*16).'px;
+   }
+.'.$this->dataCss.' .menuRespond .show_icon {
+   font-size: '.($icon_width*12).'px;
    }
 .'.$this->dataCss.' .ulTop.menuRespond2 li.show_icon{
    border:none; padding:0; margin:0; box-shadow:none;background:none;
@@ -4572,7 +5581,7 @@ eol;
   '.$nav_link_vertical_choice.'
      }
  @media screen and (max-width:'.$respond_menu_dimension.'px) {
- .'.$this->dataCss.' .nav_gen ul.top-level li,{display: none;}
+ .'.$this->dataCss.' .nav_gen ul.top-level li{display: none;}
   .'.$this->dataCss.' .nav_gen ul.top-level li.show_icon{
   position:absolute;
   top:0;
@@ -4587,7 +5596,7 @@ eol;
    }
 @media screen and (max-width:'.$respond_menu_dimension.'px) {
  .'.$this->dataCss.' .nav_gen{display:block;}
- .'.$this->dataCss.' {padding:0px}
+ div.'.$this->dataCss.' {padding:0px; margin:0px;}
 .'.$this->dataCss.' ul.top-level {
 max-height:0; 
 overflow:hidden;
@@ -4598,7 +5607,7 @@ overflow:hidden;
 	}
    
  
-.'.$this->dataCss.' ul.top-level.transitionEase li:NOT("show_icon"){
+.'.$this->dataCss.' ul.top-level.transitionEase li:NOT(.show_icon){
      opacity:0;'.$icon_vertical_choice.'
 }
 .'.$this->dataCss.' ul.top-level.transitionEase {
@@ -4630,33 +5639,125 @@ function text_render($data,$pagename='',$style_list='',$columns=20,$style_open=t
 	$display_editor=($this->blog_options[$this->blog_editor_use_index]==='use_editor')?'enableTiny ':'divTextArea';
 	$rowlength=($cols<3)?3:process_data::row_length($this->blog_text,$cols); 
 	$this->edit_styles_open();
-   ($this->edit)&&  
+     ($this->edit)&&  
 			$this->blog_options($data,$this->blog_table);
 	 if (!empty($this->blog_text)){
 		if (!$this->edit){
 			echo process_data::clean_break($this->blog_text);
+               printer::pclear();
 			 return;
 			}
 		elseif($this->is_clone&&!$this->clone_local_data)echo process_data::clean_break($this->blog_text);
-		} 
+          printer::pclear();
+		}
+     $this->blog_text=process_data::edit_text_image($this->blog_text);
 	if ($this->edit&&(!$this->is_clone||$this->clone_local_data)){ 
 		$print=($this->blog_options[$this->blog_editor_use_index]==='use_editor')?'':
-		'<div class="'.$this->column_lev_color.' floatleft cursor smallest editbackground editfont shadowoff rad3 button'.$this->column_lev_color.'" onclick="edit_Proc.enableTiny(this,\''.$data.'_blog_text\',\'divTextArea\');">Use TinyMce</div>';
+		'
+<div class="use_tiny '.$this->column_lev_color.' floatleft cursor smallest editbackground editfont shadowoff rad3 button'.$this->column_lev_color.'"  onclick="edit_Proc.enableTiny(this,\''.$data.'_blog_text_arrayed\',\'divTextArea\');">Use TinyMce</div>';
 		echo $print;
-		printer::pclear(7); 
-		$this->blog_text=(strlen($this->blog_text)<2)?'<br>Enter text here':$this->blog_text;
-		echo'<div id="'.$data.'_blog_text" class="'.$display_editor.' 
-   min100 cursor" >'.process_data::clean_break($this->blog_text).'</div>';// show initial non text area non editor text !
-		$blog_text=($this->blog_options[$this->blog_editor_use_index]==='use_editor')?process_data::textarea_validate($this->blog_text):process_data::textarea_validate(process_data::remove_html_break($this->blog_text));
+          $this->initiate_jsexpressedit();
+		printer::pclear(7);  
+          $this->blog_text=($this->edit&&strlen($this->blog_text)<3)?'<br>Enter text here: '.$this->blog_text:$this->blog_text;
+		echo'
+<div id="'.$data.'_blog_text_arrayed" data-upload="fileUpload_'.$this->blog_id.'" class="'.$display_editor.' 
+   min100 cursor" >'.process_data::edit_clean_break($this->blog_text).'</div>';// show initial non text area non editor text !'
+		$blog_text=process_data::textarea_validate(process_data::remove_html_break($this->blog_text));
 		echo ' 
 		 <textarea style="background:inherit;text-shadow:inherit; display: none; width:100%" id="'.$data.'_blog_text_textarea"  class="scrollit '.$this->dataCss.'" name="'.$data.'_blog_text" rows="'.$rowlength.'" cols="'.$cols.'" onkeyup="gen_Proc.autoGrowFieldScroll(this);">' .$blog_text.'</textarea>';
-		}//if edit
+           		}//if edit
 		#ok here if marked as global the results of these styles choices will directly style this blog type but also the parent column.text.. as shown...
 	$type=$this->blog_type;
 	$global_field=($this->blog_global_style==='global')?',.'.$this->col_dataCss.' > .'.$type.',.'.$this->col_dataCss.' >fieldset>.'.$type:'';
 	$globalmsg=($this->blog_global_style==='global')?' Global Style':'';
-	$this->edit_styles_close($data,'blog_style','.'.$this->dataCss.'.post.'.$type.$global_field, $style_list ,$this->styler_blog_instructions. 'Post#'.$this->blog_order_mod.' Col#'.$this->column_order_array[$this->column_level].$globalmsg,''); 
-   ($this->edit&&$this->overlapbutton)&&$this->overlapbutton();
+	printer::pclear();
+    $this->edit_styles_close($data,'blog_style','.'.$this->dataCss.'.post.'.$type.$global_field, $style_list ,$this->styler_blog_instructions. 'Post#'.$this->blog_order_mod.' Col#'.$this->column_order_array[$this->column_level].$globalmsg,'');
+    if ($this->edit&&!$this->is_clone||$this->clone_local_style){
+          $this->show_more('Style Special Classes for Text Post Content','buffer_textxtraSet_'.$this->blog_id); 
+          $this->print_wrap('special styles',true);
+          if(is_file(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'css_data_sheet_'.$this->pagename.$this->passclass_ext)){
+               $this->render_view_css=unserialize(file_get_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'css_data_sheet_'.$this->pagename.$this->passclass_ext)); 
+               $this->show_more('Page Level Tag and Class Styles','','highlight tiny editbackground editfont floatleft');
+               printer::array_print($this->render_view_css); 
+               $this->show_close('View Current Tag and Class Styles');
+               }
+	    else $this->render_view_css='';
+		$this->show_more('Flex Container and hr tag styling');
+	     printer::print_wrap('flex hr');
+		$msg='Optionally set up this post as a  Flex Container to enable flex-item settings for individual elements created in this postt';
+		printer::print_tip($msg);
+		$checked1=($this->blog_tiny_data12==='enableflexcon')?' checked="checked"':'';
+		$checked2=($this->blog_tiny_data12!=='enableflexcon')?' checked="checked"':'';
+		printer::alert('<input type="radio" name="'.$data.'_blog_tiny_data12" value="enableflexcon" '.$checked1.'>Enable Flex container configure and hr styling for this text post');
+		printer::alert('<input type="radio" name="'.$data.'_blog_tiny_data12" value="disableflexcon" '.$checked2.'>Disable Flex container configure and hr styling for this text post');
+		if ($this->blog_tiny_data12==='enableflexcon'){
+			$this->edit_styles_close($data,'blog_tiny_data2','.'.$this->dataCss.'.post.text.webmode','flex_container_width','Set Up Flex Container Width in Text Post','noback',$msg,false,false,false);
+			$msg='Set style HR tags.  HR can be placed anywhere in text and the styles you set here will be expressed. HR are theme breaks, typically bordered lines with spacing. HR Styles may changed in individual column Settings';
+			$this->edit_styles_close($data,'blog_tiny_data1','.'.$this->dataCss.' hr','width_special,width_max_special,width_min_special,width_media_unit,background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,borders,box_shadow,outlines,radius_corner','Set HR Tags','noback',$msg,false,false,false);
+			}
+			$tag_styles='width_special,width_max_special,width_min_special,width_media_unit,flex_container_width,flex_item_width,float,vertical,animate_class,fade_this,display_media,position_class,height_special,height_max_special,height_min_special,background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,margin_right,font_color,text_shadow,font_family,font_size,font_media_unit,font_weight,text_align,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner';
+			 
+		printer::close_print_wrap('flex hr');
+		$this->show_close('Flex Container and hr tag styling');
+			
+	    $msg='Styles for  custom classes to style specific divs p spans';
+	    $this->show_more('Enable/Disable Special Classes');
+	    printer::print_wrap('class act');
+	    printer::print_tip('To minimize server time in EditMode text post class styles must be enabled by choosing the number of different special classes need available for styling. Add more as needed.  In edit mode Each class style adds .015 seconds to server load time, None in webmode');
+	    $arr=array('Choose to Activate Class Styling','1 class','3 classes','6 classes','9 classes','12 classes','15 classes','15 classes and 5 tinytext classes');
+	    $valarr=array(0,1,3,6,9,12,15,20);
+	    $value=(!empty($this->blog_tiny_data4)&&in_array($this->blog_tiny_data4,$valarr))?$this->blog_tiny_data4:$valarr[0];
+	    $key=array_keys($valarr,$value)[0];  
+	    $classvalue=$arr[$key];
+	    forms::form_dropdown($valarr,$arr,'','',$data.'_blog_tiny_data4',$classvalue,false,'maroon whitebackground left');
+	     printer::close_print_wrap('class act');
+	    $this->show_close('Enable/Disable Special Classes'); 
+	    if ($value > 0){
+		  $this->edit_styles_close($data,'blog_data1','.'.$this->dataCss.'.post.'.$type.' .post1',$tag_styles,'Set Class post1 Styles','noback',$msg,false,false,false); 
+		   }
+		if ($value > 2){
+		   $this->edit_styles_close($data,'blog_data2','.'.$this->dataCss.'.post.'.$type.'  .post2',$tag_styles,'Set Class post2 Styles','noback',$msg,false,false,false); 
+		   $this->edit_styles_close($data,'blog_data3','.'.$this->dataCss.'.post.'.$type.'  .post3',$tag_styles,'Set Class post3 Styles','noback',$msg,false,false,false); 
+		   }
+	    if ($value > 4){
+		  $this->edit_styles_close($data,'blog_data4','.'.$this->dataCss.'.post.'.$type.' .post4',$tag_styles,'Set Class post4 Styles','noback',$msg,false,false,false); 
+		  $this->edit_styles_close($data,'blog_data5','.'.$this->dataCss.'.post.'.$type.' .post5',$tag_styles,'Set Class post5 Styles','noback',$msg,false,false,false); 
+		  $this->edit_styles_close($data,'blog_data6','.'.$this->dataCss.'.post.'.$type.' .post6',$tag_styles,'Set Class post6 Styles','noback',$msg,false,false,false); 
+		  }
+	    if ($value > 7){
+		  $this->edit_styles_close($data,'blog_data7','.'.$this->dataCss.'.post.'.$type.' .post7',$tag_styles,'Set Class post7 Styles','noback',$msg,false,false,false); 
+		  $this->edit_styles_close($data,'blog_data8','.'.$this->dataCss.'.post.'.$type.' .post8',$tag_styles,'Set Class post8 Styles','noback',$msg,false,false,false); 
+		  $this->edit_styles_close($data,'blog_data9','.'.$this->dataCss.'.post.'.$type.' .post9',$tag_styles,'Set Class post9 Styles','noback',$msg,false,false,false);  
+		  }
+	    if ($value > 10){
+		  $this->edit_styles_close($data,'blog_data10','.'.$this->dataCss.'.post.'.$type.' .post10',$tag_styles,'Set Class post10 Styles','noback',$msg,false,false,false); 
+		  $this->edit_styles_close($data,'blog_data11','.'.$this->dataCss.'.post.'.$type.' .post11',$tag_styles,'Set Class post11 Styles','noback',$msg,false,false,false); 
+		  $this->edit_styles_close($data,'blog_data12','.'.$this->dataCss.'.post.'.$type.' .post12',$tag_styles,'Set Class post12 Styles','noback',$msg,false,false,false); 
+		  }
+	    if ($value > 13){
+		  $this->edit_styles_close($data,'blog_data13','.'.$this->dataCss.'.post.'.$type.' .post13',$tag_styles,'Set Class post13 Styles','noback',$msg,false,false,false); 
+		  $this->edit_styles_close($data,'blog_data14','.'.$this->dataCss.'.post.'.$type.' .post14',$tag_styles,'Set Class post14 Styles','noback',$msg,false,false,false); 
+		  $this->edit_styles_close($data,'blog_data15','.'.$this->dataCss.'.post.'.$type.' .post15',$tag_styles,'Set Class post15 Styles','noback',$msg,false,false,false);
+		  }
+	    if ($value > 16){
+		  printer::print_tip('the folowing choices provide display and animation options for styling elements with limited styling choices. ie. Uses db tinytext data field. ');
+		  //$tag_styles='animate_class,fade_this,display_media';
+		  $msg='Tinypost Style Choices for limted styling. Hold 255 bytes';
+		  $this->edit_styles_close($data,'blog_tiny_data5','.'.$this->dataCss.'.post.'.$type.' .tinypost1',$tag_styles,'Set class tinypost1 Styles','nospecial',$msg,false,false,false); 
+		  $this->edit_styles_close($data,'blog_tiny_data6','.'.$this->dataCss.'.post.'.$type.' .tinypost2',$tag_styles,'Set class tinypost2 Styles','nospecial',$msg,false,false,false); 
+		  $this->edit_styles_close($data,'blog_tiny_data7','.'.$this->dataCss.'.post.'.$type.' .tinypost3',$tag_styles,'Set class tinypost3 Styles','nospecial',$msg,false,false,false); 
+		  $this->edit_styles_close($data,'blog_tiny_data8','.'.$this->dataCss.'.post.'.$type.' .tinypost4',$tag_styles,'Set class tinypost4 Styles','nospecial',$msg,false,false,false); 
+		  $this->edit_styles_close($data,'blog_tiny_data9','.'.$this->dataCss.'.post.'.$type.' .tinypost5',$tag_styles,'Set class tinypost5 Styles','nospecial',$msg,false,false,false);  
+		   }
+		$this->submit_button();
+          printer::close_print_wrap('special styles');
+          $this->show_close('Style Special Classes','buffer_textxtraSet_'.$this->blog_id);
+          }
+     if ($this->edit){
+               ($this->overlapbutton)&&$this->overlapbutton();
+     printer::alertx('<a class="floatleft cursor p10 editcolor editbackground tiny italic underline" href="#'.$this->dataCss.'" style="color:#'.$this->editor_color.'">Go pTop</a>');
+     }
+     printer::pclear();
    }//end text_render function
    
 }//end class

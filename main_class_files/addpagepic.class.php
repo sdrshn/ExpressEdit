@@ -1,8 +1,8 @@
 <?php
-#ExpressEdit 2.0.4
+#ExpressEdit 3.01
 /*
 ExpressEdit is an integrated Theme Creation CMS
-	Copyright (c) 2018  Brian Hayes expressedit.org  
+	Copyright (c) 2018   expressedit.org  
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

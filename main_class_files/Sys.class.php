@@ -1,8 +1,8 @@
 <?php
-#ExpressEdit 2.0.4
+#ExpressEdit 3.01
 /*
 ExpressEdit is an integrated Theme Creation CMS
-	Copyright (c) 2018  Brian Hayes expressedit.org  
+	Copyright (c) 2018   expressedit.org  
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,28 +30,24 @@ $common_dir=(is_dir('./'.Cfg::Common_dir))?'./'.Cfg::Common_dir:((defined('PATHI
 if ($common_dir=='unknown'&&$edit)exit('Misconfiguration or missing/invalid path for '.Cfg::Common_dir.'  not found in Sys.php will affect file generation of common files and configs. Best to leave single copy around in public_html or User home dir which will serve multiple websites as needed.'); 
 $loc=false;
 $web=true; 
-$localarr=explode(',',Cfg::Local_site);
-$home_site=trim(Cfg::Site,'/').'/';
-foreach ($localarr as $checkloc){  
-     if (strpos($_SERVER['DOCUMENT_ROOT'],$checkloc)!==false){//  local development system 
-          $web=0;
-          $loc=true;
-          $home_site=trim($checkloc,'/').'/';
-          break;
-          }
-     }
+
+$bypass=false;
+if (!empty(Cfg::Local_document_root)){  
+	$localarr=explode(',',Cfg::Local_document_root);
+	foreach ($localarr as $srvarr){
+		$web=0;
+		$loc=true;
+		if (strpos(ONE_UP,$srvarr)===0){//  local development system
+			$bypass=true;
+			}
+		}
+	}
 if ($edit) ini_set('memory_limit',Cfg::Memory_limit);//set in Cfg_master.class.php 
 if ($edit) ini_set('max_execution_time',Cfg::Max_execution_time);//" 
 if ($edit) ini_set('session.gc_maxlifetime', 10800);
 if ($edit) ini_set('session.gc_probability', 1);
 if ($edit) ini_set('session.gc_divisor', 100);  
-$bypass=false;
-$localarr=explode(',',Cfg::Local_server);     
-foreach ($localarr as $srvarr){  
-     if (strpos(ONE_UP,$srvarr)!==false){//  local development system
-          $bypass=true;
-          }
-     }
+
 #  ****** Initialize Sessions  *************
 #sessions are used for back-up access, creating restricted pages, page user stats  and creating persistant info access when logged in as admin/Owner
 //turn off  ob_start if default config has on
@@ -75,7 +71,7 @@ if (isset($_REQUEST['session_destroy'])){
      session_destroy();  
      }
 $sess=session::instance(); 
-$sess->referrer();   
+$sess->referrer();
 $sess_auto=array('nobuffer','advanced','advancedoff','quietmode','error_no_exit','count','custom','clearoff','onsubmitoff','printoff','cssoff','norefresh','styleoff','mysql','server','tables','request','debug','session','gallery_info','methods','query','bufferoutput','includes','constants');//These are used as Sys::Constants
 $sess_arr=array('secsubmitoff','defined','showlist');//these not used as Sys::constants
 $allon_arr=array('norefresh','mysql','server','tables','request','debug','session','gallery_info','methods','query','includes'); //these will respond to ?allon request and turn on for debug info  and individually with with ?val  on and ?valoff  off..
@@ -88,7 +84,7 @@ foreach($combine as  $val){
 	if(($logged_in)&&in_array($val,$allon_arr)) $$val=session::session_batch_create($val,$allon_arr);
 	else $$val=session::session_batch_create($val);
 	}
-$pass_web=array('viewdb','deltatime','info');//Sys session vars that provide info  on non edit pages also
+$pass_web=array('viewdb','deltatime','info','deltatimepost');//Sys session vars that provide info  on non edit pages also
 foreach($pass_web as  $val){
 	$$val=0;
 	$$val=session::session_batch_create($val,$allon_arr);//logged in not necessary
@@ -101,8 +97,9 @@ foreach ($sess_auto as $auto){
 	unset($GLOBALS[$uppervar]);// globals are defined, unset and YET are still available to defins Sys::Const
 	}
 $post_token=(isset($_SESSION[Cfg::Owner.'sess_token'])&&isset($_POST['sess_token'])&&$_POST['sess_token']===$_SESSION[Cfg::Owner.'sess_token'])?true:false;
-$get_token=(isset($_SESSION[Cfg::Owner.'sess_token'])&&isset($_GET[Cfg::Owner.'sess_token'])&&$_GET[Cfg::Owner.'sess_token']===$_SESSION[Cfg::Owner.'sess_token'])?true:false;
-(!isset($_GET[Cfg::Owner.'sess_override']))&&$sess->create_token(); //If not recreated with AJAX request create new Session token
+$get_token=(isset($_SESSION[Cfg::Owner.'sess_token'])&&isset($_GET['sess_token'])&&$_GET['sess_token']===$_SESSION[Cfg::Owner.'sess_token'])?true:false;
+//(!isset($_GET[Cfg::Owner.'sess_override']))&&
+$sess->create_token();  
 $onload=(empty($onload))?'':$onload;
 if (isset($_SERVER['MYSQL_HOME'])&&!empty($_SERVER['MYSQL_HOME'])) 
 	$mysqlserver=$_SERVER['MYSQL_HOME'];
@@ -145,14 +142,14 @@ $http_host=$_SERVER['HTTP_HOST'];//uRL REQUESSTED PUBLIC
 //Globals are defined by Cfg::Constants, Admin::Constants and the varibles defined above, then unset, then used to define Sys::Const;
 //these are not sessions
 //get_token,post_token,
-$globs_2b='bypass,edit,get_token,post_token,returnpass,pass_class,home_site,common_dir,http_host,docs,self,logged_in,check_restricted,mysqlserver,testsite,loc,web,uploads_path,gall_vid_path,gall_pic_path,gall_pic_path2,gall_pic_path3,dbname';//these globals are not made into sessions and most become Sys::constants
+$globs_2b='bypass,edit,get_token,post_token,returnpass,pass_class,common_dir,http_host,docs,self,logged_in,check_restricted,mysqlserver,testsite,loc,web,uploads_path,gall_vid_path,gall_pic_path,gall_pic_path2,gall_pic_path3,dbname';//these globals are not made into sessions and most become Sys::constants
 $glob_arr=explode(',',$globs_2b);//transient global array
 foreach($glob_arr as $glob){ 
 	$value=$$glob;
 	$uppervar=strtoupper($glob);
 	define($uppervar,$value); // globals are defined, unset yet are still available to defins Sys::Const
 	unset($GLOBALS[$uppervar]);// globals are defined, unset and YET are still available to defins Sys::Const
-	} 
+	} 	
 define ('NL',$nl);// used as global for printing  line break
 class Sys {
      const Bypass=BYPASS;
@@ -167,7 +164,6 @@ class Sys {
 	const Viewdb=VIEWDB;
 	const Clearoff=CLEAROFF;
 	const Custom=CUSTOM;
-	//const Get_token=GET_TOKEN;
 	const Get_token=GET_TOKEN;
 	const Error_no_exit=ERROR_NO_EXIT;
 	const Post_token=POST_TOKEN;//for checking sess_token security between sender and reciever during post
@@ -177,20 +173,20 @@ class Sys {
 	const Logged_in=LOGGED_IN;//boolean whether logged in
 	const Debug=DEBUG; //reports progress of rendering methods...
 	const Check_restricted=CHECK_RESTRICTED;//Boolean LOGIN required to view user information on display pages! 
-	const Hello='hello world';//echo'd in a hello.php to test for functionality of Sys constants for troubleshooting..
-     const Nobuffer=NOBUFFER;//Boolean for no editpage ajax buffer
+	const Nobuffer=NOBUFFER;//Boolean for no editpage ajax buffer
 	const Bufferoutput=BUFFEROUTPUT;//Boolean ALL CONTENT GET OUTPUTTED TO bufferoutput.txt
 	const Mysqlserver=MYSQLSERVER; // IF SELF IS TESTSITE BOOLEAN
 	const Testsite=TESTSITE; // IF SELF IS TESTSITE BOOLEAN 
 	const Web=WEB;   // live site BOOLEAN
 	const Includes=INCLUDES;   // is  BOOLEAN
 	const Loc=LOC;   // is local site  BOOLEAN
-	const Home_site=HOME_SITE; // url address web or local 
+	//const Home_site=HOME_SITE; // url address web or local 
 	const Uploads_path=UPLOADS_PATH;
 	const Gall_vid_path=GALL_VID_PATH;
 	const Gall_pic_path=GALL_PIC_PATH;
 	const Gall_pic_path2=GALL_PIC_PATH2;
 	const Gall_pic_path3=GALL_PIC_PATH3;
+	const Deltatimepost=DELTATIMEPOST;
 	const Deltatime=DELTATIME;
 	const Dbname=DBNAME;
 	const Tables=TABLES;
@@ -241,7 +237,7 @@ static function error_info($lineno,$file="",$method="") {
      
 }//end class Sys
  
-$deltatime=time::instance(); $deltatime->delta_log('initial Sys delta'); 
+$deltatime=time::instance(); (Sys::Deltatime)&&$deltatime->delta_log('Server Start: '); 
 if ($showlist)echo <<<eol
 <div class="editbackground editcolor left">Debugging information can be displayed through the use of requests. <br>  
 ?showlist prints out this list <br>  ']); 
@@ -264,7 +260,8 @@ the following requests provide the following information and persist for the cur
 ?session_destroy    kill all sessions<br>
 ?includes   returns included files   unless script error: if error use ?debug and ?methods  <br>  
 ?query    returns request query called by global_master header for every page! <br>  
-?deltatime    time rendering <br> 
+?deltatime    time rendering <br>
+?deltatimepost concise list of post time rendering
 ?request    gives \$_POST and \$_GET  printout <br>  
 ?bufferoutput  buffers entire page and echo's at end...<br>
 ?mysql output of mysql queries,etc.
@@ -273,15 +270,13 @@ individual requests may be turned off by appending off to the request  ie  ?quer
 eol;
 #define instances and vars for utility scripts not used directly  in the main global master class b 
 $mailinst=mail::instance();
-$nav_page='navigation_'.Cfg::Owner;
-$navobj=navigate::instance();//see line above
+$navobj=navigate::instance();//for local scripts   class version will be called.
 new errors();
 $mysqlinst = mysql::instance();
 $message=array(); 
 $success=array();
 if ($debug) echo NL.'exiting sys.php';
 if ($debug)echo NL.'deltatime end of Sys is '.$deltatime->delta();
-	$deltatime=time::instance(); $deltatime->delta_log('exiting Sys delta'); 
 if ($debug)echo NL. __LINE__ .' is line and file is '. __FILE__; 
 #*********   End Session initialize ***
 #control sessions:

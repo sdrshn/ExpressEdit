@@ -1,13 +1,16 @@
 <?php
-#ExpressEdit 2.0.4
+#ExpressEdit 3.01
 class process_data extends Singleton{
 private static $instance=false; //store instance 
  
 static function spam_scrubber($value,$strict=false,$trim=true,$real_escape=true) {if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-	$block=array('?','head');// by default <script> allowed
+	$block=array('?','head');// 
 	#for checkbox's repopulate keys....
      ($strict==='convert')&&$value=self::html_entity($value); //convert database
-	($strict==='strict')&&$value=strip_tags($value); //feedback
+	if ($strict==='strict'){
+           $value=str_replace(array('script','iframe','object','embed'),'striptag',$value);
+           $value=strip_tags($value); //feedback
+          }
      foreach($block as $var){
 		$var=('?')?'\?':$var;
 	     $pattern='/^<\s*('.$var.')/';
@@ -29,13 +32,11 @@ static function spam_scrubber($value,$strict=false,$trim=true,$real_escape=true)
 	# database is stored with breaks <br >
 	#these are replaced with remove_html_break
 
-static function un_scrub($value){
-	return stripslashes(str_replace(array(' &amp; ',' &amp;','&amp; ','&amp;'),'&',$value));
-	}
 	
 static function implode_retain_vals($value,$oldvalue,$glue=',',$second_glue='',$third_glue=''){
 	#psuedo implode the keys, make sure 0 is placed in for any missing key that wasn't posted
 	$implode='';
+     $value=str_replace(',',$second_glue,$value);//if ',' ie if commas used in submission ie. tiny bps.. in page_options
 	$value=(is_array($value))?$value:explode($glue,$value); 
 	$oldvalue=(is_array($oldvalue))?$value:explode($glue,$oldvalue); 
 	$max_key1 = max(array_keys($value)); // these lines are to preserve the imploded order
@@ -50,7 +51,7 @@ static function implode_retain_vals($value,$oldvalue,$glue=',',$second_glue='',$
 			}	
 		elseif (array_key_exists($i,$value)&&is_array($value[$i])){  
 			if (empty($second_glue)){
-				mail::alert('going to deep with current recursion in process_data');
+				mail::alert('going too deep with current recursion in process_data');
 				return;
 				}
 			$oldvalue[$i]=(array_key_exists($i,$oldvalue))?$oldvalue[$i]:'';
@@ -62,7 +63,7 @@ static function implode_retain_vals($value,$oldvalue,$glue=',',$second_glue='',$
 		}
 	$value=rtrim($implode,',');	
 	$value=rtrim($value,'@@');
-	$value=self::spam_scrubber($value);
+	$value=self::spam_scrubber($value,true);
 	return $value;
 	}
 	
@@ -78,6 +79,7 @@ static function implode_retain_keys($value,$glue=',',$old_glue=','){
 				$glue=$old_glue;
 				}
 			else {
+               
 			 	 if (array_key_exists($i,$value)){
 					$implode.=$value[$i].$glue;
 					}
@@ -89,7 +91,15 @@ static function implode_retain_keys($value,$glue=',',$old_glue=','){
 		}
 	return $value;
 	}
-     
+
+static function pre_spam_scrubber($value){//for tinymce tendency to add erroneious lines
+     $value  = str_replace(array("\r\n","\n","\r"),"", $value);
+     $pattern='/data-id-track=\"[0-9]*\"/'; 
+     $value=preg_replace($pattern,'',$value);  
+	$value= self::spam_scrubber($value);
+     return $value; 
+     }
+	
 static function clean_sort($value){//used in navigation
 	$value=str_replace('&nbsp;',' ',$value);
 	$value=str_replace('&amp;','&',$value);
@@ -111,11 +121,19 @@ static function restore_sort($value){
 
 static function cleanup ($value){//used during editpages submitted for updating database values
 	if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__); #run for processor
+     if (Cfg::Iframe_submit){
+          $value=str_replace('&lt;iframe','<iframe',$value);
+          $value=str_replace('&gt;&lt;/iframe&gt;','></iframe>',$value);
+          }
+     if (Cfg::Script_submit){
+          $value=str_replace('&lt;script&gt;','<script>',$value);
+          $value=str_replace('&lt;/script&gt;','</script>',$value);
+          }
 	$pattern='/<h(1|2|3|4|5|6)\ >/';
 	$value=preg_replace($pattern,'<h$1>',$value);//if inserted htag mce puts space in it
 	$pattern='/<\\\\h(1|2|3|4|5|6)\ >/';
 	$value=preg_replace($pattern,'<\/h$1>',$value);
-	$value = str_replace(array('<br >',' <br>','<br / >','<br/>','<br  >','<br />',"\r\n","\n","\r"),'<br>', $value);//problem in tinymce unknown
+	$value = str_replace(array('<br >',' <br>','<br / >','<br/>','<br  >','<br />',"\r\n","\n","\r"),'<br>', $value);//problem in tinymce '<span class="block"><!--Temp br sub--></span>'
 	$value =mb_convert_encoding($value,'HTML-ENTITIES');
 	$value = str_replace(array("'",'â€™'),'&rsquo;', $value); #had used other quotes from mac 
 	$value = str_replace("&lt;a","<a", $value); //convert back
@@ -128,8 +146,8 @@ static function cleanup ($value){//used during editpages submitted for updating 
 	//$pattern='/([^\ ])&[^#]/'; //means everything but a space or a number
 	//$value =preg_replace($pattern,'$1 &',$value);
 	$value=str_replace('& amp;','&amp;',$value);
-	$value=str_replace('& lt;','&lt;',$value); 
-	$value=str_replace('& gt;','&gt;',$value);
+	//$value=str_replace('& lt;','&lt;',$value); 
+	//$value=str_replace('& gt;','&gt;',$value);
 	$value=str_replace ('& nbsp;','&nbsp;',$value);
 	//$value=str_replace ('& #8217;','&rsquo;',$value);
 	//$value=str_replace ('& #169;','&#169;',$value);
@@ -162,51 +180,75 @@ static function import_cleanup ($value){//used during editpages submitted for up
 	$value = str_replace("& ","&amp; ", $value); //convert back
 	return $value;
 	}
-     
-static function clean_break($value){ 
+static function clean_break($value){ //for webpage mode
+      (!Sys::Edit)&&$value=str_replace('../'.Cfg::Tiny_orig_sz_dir,Cfg::Tiny_orig_sz_dir,$value);
+     (!Sys::Edit)&&$value=str_replace('../'.Cfg::Tiny_resize_dir,Cfg::Tiny_resize_dir,$value);
 	$value =mb_convert_encoding($value,'UTF-8');
 	$value =mb_convert_encoding($value,'HTML-ENTITIES');
-	$patterns = "/<br >|< br>|<br \/>|<br\/>|<br  >|<br \/>|<br >/i";
-     $replacements = "<br>";
-	$value = preg_replace($patterns, $replacements, $value);  
+	$patterns = '/<span class="block" ?><!--Temp br sub--><\/span>|<br >|< br>|<br \/>|<br\/>|<br  >|<br \/>|<br >/i';
+     $replacements = '<br>';
+	$value = preg_replace($patterns, $replacements, $value);
+     $value=str_replace('&rsquo;',"'",$value);
 	return $value;                        
 	}
+       
+static function edit_text_image($value) { //editmode editing for textarea mode of editing
+     if (!Sys::Edit)return; 
+     if (strpos($value,Cfg::Tiny_resize_dir)!==false){ 
+          if (strpos($value,'../'.Cfg::Tiny_resize_dir)===false){
+               $value=str_replace(Cfg::Tiny_resize_dir,'../'.Cfg::Tiny_resize_dir,$value);
+               }
+          }
+     if (strpos($value,Cfg::Tiny_orig_sz_dir)!==false){ 
+          if (strpos($value,'../'.Cfg::Tiny_orig_sz_dir)===false){
+               $value=str_replace(Cfg::Tiny_orig_sz_dir,'../'.Cfg::Tiny_orig_sz_dir,$value);
+               }
+          }
+     return $value;
+     }
      
-static function convert_line_break($value) { // for  javascript text box applications
+static function remove_html_break($value) { //editmode editing for textarea mode of editing
+     $value=self::clean_break($value);
+	$patterns = '/<span class="block" ?><!--Temp br sub--><\/span>|<br>\r\n|<br>\r|<br>\n|<br>|\r\n|\n|\r/i';
+     $replacements = "<br>";                         
+	$value = preg_replace($patterns, $replacements, $value);
+	$value=self::remove_characters($value);// replaces all breaks include nl2br treated with "\n"
+	 //$value  = str_replace("&#169;" , "(CR)", $value );  
+     return $value;
+	}
+static function textarea_validate($value){# still used 
+	$value =mb_convert_encoding($value,'HTML-ENTITIES');
+     $value = str_replace('<a','&lt;a', $value); //prevent textarea clicking events..
+     $value = str_replace('</a>','&lt;/a&gt;', $value);
+     //$value = str_replace('<span','&lt;span', $value);
+     //$value = str_replace('</span','&lt;/span', $value);
+     return  $value;
+     }       
+static function convert_line_break($value) {// for navigation links.
 	$patterns = "/\r\n|\n|\r/i";
      $replacements = "<br>";                         
 	//$value = preg_replace($patterns, $replacements, self::clean_break($value)); 
 	return $value;
 	}
      
-static function remove_line_break($value) { // for  javascript text box applications
+static function remove_line_break($value) { // for navigation  applications
 	$value=self::clean_break($value);  
-	$patterns = "/<br>/i";
+	$patterns = "/<br>|<p> <\/p>/i";
      $replacements = "\n";                         
 	$value = preg_replace($patterns, $replacements, $value); 
 	return $value;
 	}
-     
-static function remove_html_break($value) {  //normal transaction used for editpages_obj to populate edit data...
-	$value=self::clean_break($value);
-	$patterns = "/<br>\r\n|<br>\r|<br>\n|<br>|\r\n|\n|\r/i";
-     $replacements = "\n";                         
-	$value = preg_replace($patterns, $replacements, $value);
-	$value=self::remove_characters($value);// replaces all breaks include nl2br treated with "\n"
-	 //$value  = str_replace("&#169;" , "(CR)", $value );  
-     return $value;
-	}	
-	
-static function textarea_validate($value){# still used 
+ 
+static function edit_clean_break($value){ //for editMode viewing and editing in tinymce     
+	$value =mb_convert_encoding($value,'UTF-8');
 	$value =mb_convert_encoding($value,'HTML-ENTITIES');
-     $value = str_replace('<a','&lt;a', $value); 
-     $value = str_replace('</a>','&lt;/a&gt;', $value);
-     $value = str_replace('<span','&lt;span', $value);
-     $value = str_replace('</span','&lt;/span', $value);
-     return  $value;
-     } // End	
-	
- static function remove_characters($value){//this takes place in editpages_obj to populate the data so affects only the editpages display so it doesn't display the breaks..
+	$patterns = '/<br >|< br>|<br\/>|<br  >|<br \/>|<br >|<br>/i';
+     $replacements = '<br>';
+	$value = preg_replace($patterns, $replacements, $value);  
+	return $value;                        
+	}  
+		
+ static function remove_characters($value){//this takes place in navigation to populate the data so affects only the editpages display so it doesn't display the breaks..
 	#not currently used...
 	$value  = str_replace(array('<br>','<br >','<br>'),"\r\n" , $value);
 	if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);   
@@ -217,14 +259,15 @@ static function textarea_validate($value){# still used
 	return  $value;
 	}
     
-static function replace_break($value){//not used currently
-	$value  = str_replace(array('<br>', '<br/ >','< br>','<br >','<br>'), "\n", $value);   #this acts to disoplay only on editmode where it appears in textbox and will behave  for the normal line break:  line breaks won't show up with echo of line stream!!
-	return  $value;
+
+static function un_scrub($value){
+	return stripslashes(str_replace(array(' &amp; ',' &amp;','&amp; ','&amp;'),'&',$value));
 	}
-    
-static function  html_entity($value){
+     
+static function  html_entity($value){//used for importing
 	$pattern='/<(.*)>/Us';
 	preg_match_all($pattern,$value,$matches);
+     //whitelist array:
 	$arr=explode(',','a,abbr,address,area,article,aside,audio,b,base,bdi,bdo,blockquote,body,br,br/,br /,button,canvas,caption,cite,code,col,colgroup,data,datalist,dd,del,details,dfn,dialog,div,dl,dt,em,embed,fieldset,figcaption,figure,footer,form,h1,h2,h3,h4,h5,h6,head,header,hgroup,hr,html,i,img,input,ins,kbd,keygen,label,legend,li,link,main,map,mark,menu,menuitem,meta,meter,nav,noscript,ol, optgroup,option,output,p,param,pre,progress,q,rb,rp,rt,rtc,ruby,s,samp,section,select,small,source,span,strong,style,sub,summary,sup,table,tbody,td,template,textarea,tfoot,th,thead,time,title,tr,track,u,ul,var,video,wbr');
 	foreach ($matches[1] as $match){ 
 		$flag=true;
@@ -307,11 +350,11 @@ static function clean_filename($value,$length=30,$replacement='_'){
 	While ($value[0]=='.'||$value[0]=='_'){ 
 		$value=substr_replace($value,'',0,1);
 		}  
-	return substr(self::spam_scrubber(preg_replace('/[^a-zA-Z0-9_.]/', $replacement,str_replace(' ',$replacement,strtolower($value)))),0,$length);
+	return substr(self::spam_scrubber(preg_replace('/[^a-zA-Z0-9_.]/', $replacement,str_replace(' ',$replacement,strtolower($value))),true),0,$length);
 	}
      
 static function clean_title($value,$length=125){ 
-	$value=substr(self::spam_scrubber($value),0,$length); 
+	$value=substr(self::spam_scrubber($value,true),0,$length); 
 	return $value;
 	}
 	
@@ -323,7 +366,7 @@ static function copy_new_image($file,$dir){
 	$ext=$path_parts['extension'];
 	$ext_arr=explode(',',Cfg::Valid_pic_ext);
 	if (!in_array(strtolower($ext),$ext_arr))return false; 
-	if (!is_file($dir.$file))return Cfg::Pass_image;
+	if (!is_file($dir.$file))return $file;//return Cfg::Pass_image; retain name for importing
 	$ext='.'.$ext;  
 	$filename=$path_parts['filename'];
 	$x=1;
@@ -703,12 +746,14 @@ static function hex2rgba($color, $opacity = false) {
           }
 	}
 	
-static function log_to_file($text){
-     if (!is_file(Cfg_loc::Root_dir.Cfg::Backup_dir.Cfg::Logfile_dir.Cfg::Log_file)){
-          file_put_contents(Cfg_loc::Root_dir.Cfg::Backup_dir.Cfg::Logfile_dir.Cfg::Log_file,date("dMY-H-i-s").NL. $text);
+static function log_to_file($text,$file=Cfg::Log_file){
+     $text = (is_array($text)) ? implode(',',$text) : $text;
+     if (!is_dir(Cfg_loc::Root_dir.Cfg::Backup_dir.Cfg::Logfile_dir))mkdir(Cfg_loc::Root_dir.Cfg::Backup_dir.Cfg::Logfile_dir,0755,1);
+     if (!is_file(Cfg_loc::Root_dir.Cfg::Backup_dir.Cfg::Logfile_dir.$file)){
+          file_put_contents(Cfg_loc::Root_dir.Cfg::Backup_dir.Cfg::Logfile_dir.$file,date("dMY-H-i-s").NL. $text);
           return;
           }
-     if (!($fp = fopen(Cfg_loc::Root_dir.Cfg::Backup_dir.Cfg::Logfile_dir.Cfg::Log_file, 'a'))) {
+     if (!($fp = fopen(Cfg_loc::Root_dir.Cfg::Backup_dir.Cfg::Logfile_dir.$file, 'a'))) {
           $my_message.='Cannot open log file '.$filename .' Message: '.date("dMY-H-i-s").NL.$text ;
           $addresses=explode(',',Cfg::Admin_email);
           foreach ($addresses as $address){
@@ -726,7 +771,36 @@ static function session_cleanup(){
 	   $mygroup=file_get_contents('sessionbatch');
 	   echo $mygroup;
 	   }
-        
+
+static function webmode_email($msg,$file){//for checking sending email from webmode
+     if (!is_dir(Cfg_loc::Root_dir.Cfg::Backup_dir.Cfg::Logfile_dir))
+          mkdir(Cfg_loc::Root_dir.Cfg::Backup_dir.Cfg::Logfile_dir,0755,1);
+     if (!is_file(Cfg_loc::Root_dir.Cfg::Backup_dir.Cfg::Logfile_dir.$file)){
+          file_put_contents(Cfg_loc::Root_dir.Cfg::Backup_dir.Cfg::Logfile_dir.$file,date("dMY"));
+          if (Sys::Loc)
+               process_data::log_to_file('Check logs for Multiple messages '.$msg,'Webmode Alert MSG');
+          else {
+               mail::alert('Check logs for Multiple messages '.$msg,'Editmode Alert MSG');
+               process_data::log_to_file($msg);
+               }
+          return false;
+          }
+     $data=file_get_contents(Cfg_loc::Root_dir.Cfg::Backup_dir.Cfg::Logfile_dir.$file);
+     $date=date("dMY");
+     if ($date===$data){
+          process_data::log_to_file('Repeating Error Server/Webmode problem '.$msg);
+          return true;
+          }
+     if (Sys::Loc)
+          process_data::log_to_file('Check logs for Multiple messages '.$msg,'Webmode Alert MSG');
+     else
+          mail::alert('Check logs for Multiple messages '.$msg,'Webmode Alert MSG');
+          
+     file_put_contents(Cfg_loc::Root_dir.Cfg::Backup_dir.Cfg::Logfile_dir.$file,date("dMY"));
+     return false;
+     }
+          
+     
 static function readfile($filename){ 
 	if (!$handle = fopen($filename, "r"))return;
 	$contents = fread($handle, filesize($filename));
@@ -734,13 +808,15 @@ static function readfile($filename){
 	return $contents;
 	}
      
-static function write_to_file($filename,$text,$overwrite=false,$adddate=false,$dir=''){ 
+static function write_to_file($filename,$text,$overwrite=false,$adddate=false,$dir=''){
+     $text = (is_array($text)) ? implode(',',$text) : $text;
 	($adddate)&&$text=NL.date("dMY-H-i-s").NL.$text;
 	if (!is_file($filename)||$overwrite){
 		if (!empty($dir)&&!is_dir($dir))mkdir($dir,0755,1);
 		if (!$fp = fopen($filename, "w")) {//save memory
                $my_message.='Cannot open log file '.$filename .' Message: '.$text ;
                $addresses=explode(',',Cfg::Admin_email);
+			mail::alert($my_message);
                foreach ($addresses as $address){
                     mail($address, ' File Open Problem', $my_message, "From: ".Cfg::Mail_from);
                     }
@@ -755,6 +831,7 @@ static function write_to_file($filename,$text,$overwrite=false,$adddate=false,$d
 	if (!($fp = fopen($filename, 'a'))) {
                $my_message.='Cannot open log file '.$filename .' Message: '.$text ;
                $addresses=explode(',',Cfg::Admin_email);
+			mail::alert($my_message);
                foreach ($addresses as $address){
 				mail($address, ' File Open Problem', $my_message, "From: ".Cfg::Mail_from);
                     }

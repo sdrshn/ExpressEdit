@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.4
+#ExpressEdit 3.01
 class users extends server {
 	private static $instance=false; //store instance
 	protected $OS='unk';

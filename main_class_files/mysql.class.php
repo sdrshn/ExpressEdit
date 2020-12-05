@@ -79,6 +79,10 @@ public function query($q,$method='',$line='',$file='',$affected=false){if (Sys::
                $_SESSION[Cfg::Owner.'QUERY_select'][]=array('Query'=>$q,'Method'=>$method,'Line'=>$line,'File'=>$file);
                }
           }
+	 else if (isset($_REQUEST['alloff'])){
+		  unset($_SESSION[Cfg::Owner.'QUERY_select']);
+		  unset($_SESSION[Cfg::Owner.'QUERY']);
+		  }
      //if(strpos($q,'update')!==false) print($q); else  echo 'selected';
      if (Sys::Mysql)echo $q;//  {if (strpos(strtolower($q),'delete'))echo NL.'q: '.$q.' *** '.$method.$line.$file;  }
      $r=$this->link->query($q);//if (strpos(strtolower($q),'update'))echo NL.'q: '.$q.' *** '.$method.$line.$file;  

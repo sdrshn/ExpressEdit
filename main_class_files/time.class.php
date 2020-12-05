@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.4
+#ExpressEdit 3.01
 	#class time modified from orginal by Arthur Coucouvitis
 	class time {
 	const Digits = 7;     
@@ -30,14 +30,21 @@ public static function instance(){ //static allows it to create an instance with
           } 
      return self::$instance; 
      }
- 
+
+	 
+
+function delta_log_post($funct){
+	$this->delta_log.="<br>\n deltatime begin post ".$funct.':'. self::delta();
+	}
+	
 function delta_log($funct){
-	$this->delta_log.="<br>\n deltatime post ".$funct.':'. self::delta();
+	$this->delta_log.="<br>\n deltatime log ".$funct.':'. self::delta();
 	}
 	
  function  return_delta_log(){ 
 	if  (isset($this->delta_log)){
-          $msg=date("dMY-H-i-s").' diff request ini: ' .$this->diff_request_ini.'  logged times: '.          $this->delta_log;
+          $msg=' server request time: ' .$this->diff_request_ini.
+		$this->delta_log;
           return $msg;
           }
      $msg="the deltalog does not exist in ".__FILE__;  

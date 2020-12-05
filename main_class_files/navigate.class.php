@@ -1,8 +1,8 @@
 <?php
-#ExpressEdit 2.0.4
+#ExpressEdit 3.01
 /*
 ExpressEdit is an integrated Theme Creation CMS
-	Copyright (c) 2018  Brian Hayes expressedit.org  
+	Copyright (c) 2018   expressedit.org  
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -169,7 +169,7 @@ function return_url($pagename,$listed='',$class='navr1 floatleft',$show_all=fals
 	if(isset($_GET['backuphtml']))return;
 	$flag=true;    
 	$return_url=check_data::check_array_strpos(Sys::Self,Cfg::Aux_scripts); #no return url for addgallerycore.php etc.
-	$appendReturnUrl='';
+	$appendReturnUrl='?info';
 	if (!empty($listed)){// this is not used anymore
 		$list=(is_array($listed))?$listed:explode(',',$listed);
 		foreach ($list as $var){

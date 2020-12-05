@@ -1,10 +1,10 @@
 <?php
-#ExpressEdit 2.0.4
+#ExpressEdit 3.01
  class upload{
      
-static function upload_file($val_type,$val_ext,$instructions,$upload_dir='../uploads'){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-      process_data::write_to_file(Cfg_loc::Root_dir.'testing','testing');
-      $upload_dir=(!empty($upload_dir))?rtrim($upload_dir,'/').'/':'';
+static function upload_file($val_type,$val_ext,$instructions,$upload_dir='../uploads'){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__); 
+     printer::print_request();
+     $upload_dir=(!empty($upload_dir))?rtrim($upload_dir,'/').'/':'';
 	$sess= session::instance(); 
 	$formcount= (isset($_POST['multi_file_upload']))?$_POST['multi_file_upload']:'';
 	if  (Sys::Debug) Sys::debug(__LINE__,__METHOD__,__FILE__);

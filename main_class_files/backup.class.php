@@ -1,8 +1,8 @@
 <?php
-#ExpressEdit 2.0.4
+#ExpressEdit 3.01
 /*
 ExpressEdit is an integrated Theme Creation CMS
-	Copyright (c) 2018  Brian Hayes expressedit.org  
+	Copyright (c) 2018   expressedit.org  
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -35,13 +35,13 @@ function __construct($return=false){
 	   }
     }
  
-function render_backup($tablename){
+function render_backup($tablename){ 
 	if (isset($_GET['iframepos']))return;// is iframe doing style/config  backup only
 	//echo 'render back return full url: '.request::return_full_url() .' tablename: '.$tablename; exit();
 	if (strpos($tablename,'_blog')){
 		mail::alert('blogged in backup render');
 		return;
-		}
+		}  
 	#set_time_limit(300);
 	if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
 	$backupdelta=new time();
@@ -84,7 +84,7 @@ function ftp_sync(){
 	}
      
 function backupdb ($dbname=Sys::Dbname,$tablename='',$restoredate='',$restorefname=''){ if (Sys::Debug)  Sys::Debug(__LINE__,__FILE__,__METHOD__); if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-	if (!check_data::check_disabled('exec'))$command='exec';
+	 if (!check_data::check_disabled('exec'))$command='exec';
 	elseif (!check_data::check_disabled('system'))$command='system';
 	else {
 		$msg='Both system and exec commands necessary for automatically making backups and restoring them are disabled by php ini directive: disable_function which is set and can only be changed in the php.ini file(s). Remove either system or exec from the disable_function directive and automatic backups may be made.  Otherwise, manually backup you database from phpMyAdmin in your control panel or use the command line! This message in file '.__file__.' on line '.__line__;
@@ -96,6 +96,7 @@ function backupdb ($dbname=Sys::Dbname,$tablename='',$restoredate='',$restorefna
 	if (isset($_POST['page_restore_view']))return;
 	if (isset($_GET['iframepos']))return;// is iframe doing style/config  backup only
      $table_backup=false;
+	//exit($dbname.' is the dbname');
 	if (!session::session_check('backed_full')){// do a full backup for first session visit
 		session::session_create('backed_full');
 		$tablename='';//set tablename to false to backup full database
@@ -110,13 +111,13 @@ function backupdb ($dbname=Sys::Dbname,$tablename='',$restoredate='',$restorefna
 	$restorefname=(empty($restorefname))?'':$restorefname;
 	$backupfile= $dbname.$tablename . date("dMY-H-i-s") . Cfg::Db_ext.'.gz';
 	$backupfileSql= $dbname.$tablename . date("dMY-H-i-s") . Cfg::Db_ext;
-		$respathbackupfile=Cfg::Backup_dir.$backupfile;    if (Sys::Debug) echo  NL. Sys::Mysqlserver.' is mysqlserver';//--ignore-table=$dbname.".Cfg::Backups_table."
+		$respathbackupfile=Cfg::Backup_dir.$backupfile;    if (Sys::Debug) echo  NL. Sys::Mysqlserver."mysqldump  -h ".Cfg::Dbhost." -u ".Cfg::Dbuser." -p".Cfg::Dbpass."  --ignore-table=$dbname.".Cfg::Backups_table." $dbname  $tableback | gzip --rsyncable > ".Cfg_loc::Root_dir.$respathbackupfile. ' is mysqldump';//--ignore-table=$dbname.".Cfg::Backups_table."
 		$command(Sys::Mysqlserver."mysqldump  -h ".Cfg::Dbhost." -u ".Cfg::Dbuser." -p".Cfg::Dbpass."  --ignore-table=$dbname.".Cfg::Backups_table." $dbname  $tableback | gzip --rsyncable > ".Cfg_loc::Root_dir.$respathbackupfile);
 		 //--ignore-table=$dbname.members --ignore-table=$dbname.login_attempting $dbname
 		$fullpathbackupfile=Cfg_loc::Root_dir.Cfg::Backup_dir.$backupfile;
 		if (file_exists($fullpathbackupfile)) {
 			$file_sizer = filesize($fullpathbackupfile);  
-			if ($file_sizer > 2000){
+			if ($file_sizer > 2000){  
 				$q='insert into '.Cfg::Backups_table." (backup_filename,backup_date,backup_time,backup_restore_time,backup_data1,token) values ('$backupfile','".date("dMY-H-i-s")."','".time()."','$restoredate','$restorefname','".mt_rand(1,mt_getrandmax())."')"; 
 				$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);
 				$count=$this->mysqlinst->count_field(Cfg::Backups_table,'backup_id','',false);
@@ -177,11 +178,10 @@ function backup_master_db(){return;if (Sys::Methods) Sys::Debug(__LINE__,__FILE_
     
  
  
-function backup_url($tablename,$dir=Cfg_loc::Root_dir){
+function backup_url($tablename,$dir=Cfg_loc::Root_dir){exit('update render cache backup url');//use for caching which not being used 
 	$fname=check_data::dir_to_file(__METHOD__,__LINE__,__FILE__,$tablename);
 	if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);if (Sys::Debug) Sys::Debug(__LINE__,__FILE__,__METHOD__); 
-	$url_prefix=Sys::Home_site;  
-	#render set as asp file and menu extension
+	//$url_prefix=Sys::Home_site;  
 	$url=$url_prefix.$fname.'.php?html&render_return'; //render_return prevents caching
 	if (!copy ($url,Cfg_loc::Root_dir.$fname.'.html')){//make copy right in root directory
 		$msg= "url: $url to folder to ".Cfg_loc::Root_dir.$fname.'.html';

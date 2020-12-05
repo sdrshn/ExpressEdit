@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.4
+#ExpressEdit 3.01
 class render_html{
      private $allow_array=array('karma','ekarasa','imagine');// array of owner names to cache...
      private $return='dbeditmode,mia,editmode,submitted,w,returnedit,render_return';

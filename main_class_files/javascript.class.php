@@ -1,4 +1,22 @@
 <?php
+#ExpressEdit 3.01
+#see top of global edit master class for system overview comment dir..
+/*
+ExpressEdit is an integrated Theme Creation CMS
+	Copyright (c) 2018  expressedit.org 
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program. If not, see <https://www.gnu.org/licenses/>.*/
 class javascript {
      protected $javascript='';
 
@@ -22,7 +40,7 @@ static function open_java() {
 	}
      
 function onload(){
-	//the following loads prior to onload
+	//however the following animationfuncts & double top load  prior to onload
      $this->javascript.= <<<EOD
 	var animationEnd = (function(el) {
           var animations = {
@@ -66,31 +84,31 @@ function onload(){
      Originally by Osvaldas Valutis, www.osvaldas.info	
      Available for use under the MIT License
      */ 
-     ;(function(\$, window, document, undefined) {
-          \$.fn.doubleTapToGo = function(action) {
+     ;(function(jQuery, window, document, undefined) {
+          jQuery.fn.doubleTapToGo = function(action) {
                if (!('ontouchstart' in window) &&
                     !navigator.msMaxTouchPoints &&
                     !navigator.userAgent.toLowerCase().match( /windows phone os 7/i )) return false;
                if (action === 'unbind') {
                     this.each(function() {
-                         \$(this).off();
-                         \$(document).off('click touchstart MSPointerDown', handleTouch);	
+                         jQuery(this).off();
+                         jQuery(document).off('click touchstart MSPointerDown', handleTouch);	
                     });
                }
           else {
                this.each(function() {
                     var curItem = false;
-                    \$(this).on('click', function(e) {
-                         var item = $(this);
+                    jQuery(this).on('click', function(e) {
+                         var item = jQuery(this);
                          if (item[0] != curItem[0]) {
                               e.preventDefault();
                               curItem = item;
                               }
                          });
-                    \$(document).on('click touchstart MSPointerDown', handleTouch); 
+                    jQuery(document).on('click touchstart MSPointerDown', handleTouch); 
                     function handleTouch(e) {
                          var resetItem = true,
-                              parents = \$(e.target).parents();
+                              parents = jQuery(e.target).parents();
                          for (var i = 0; i < parents.length; i++)
                               if (parents[i] == curItem[0])
                                    resetItem = false;
@@ -103,7 +121,7 @@ function onload(){
                };
           })(jQuery, window, document);//end Double Tap to Go
      //the following loads after document is loaded
-     \$(function(){
+     jQuery(function(){
           function is_touch_device() {//ie modernizer excerp from stack overflow
                try {  
                     document.createEvent("TouchEvent");  
@@ -112,10 +130,11 @@ function onload(){
                  return false;  
                }  
              }
-          var resizeTimer='';
+          gen_Proc.xmlCount=0;
+          var resizeTimerMain='';
           window.USER_IS_TOUCHING=false; 
-          gen_Proc.scrollAnimate();
-          gen_Proc.scrollFadeInOut();
+          if (!gen_Proc.Edit) gen_Proc.scrollAnimate();
+          if (!gen_Proc.Edit) gen_Proc.scrollFadeInOut();
           window.addEventListener('touchstart', function onFirstTouch() {//detect touch devices..David Gilbertson  
                window.USER_IS_TOUCHING = true;   
                window.removeEventListener('touchstart', onFirstTouch, false);
@@ -129,36 +148,36 @@ function onload(){
                window.TOUCHSTART=false;//end is touch
           gen_Proc.dpiRatio=window.devicePixelRatio || 1;
           gen_Proc.dpiRatio= gen_Proc.dpiRatio > .1  ? Math.min(gen_Proc.dpiRatio, 2.5) : 1; 
-          gen_Proc.classPass('prevD',gen_Proc.addEvent,'click',gen_Proc.prevDefault); 
+          gen_Proc.classPass('prevD',gen_Proc.addEvent,'click',gen_Proc.prevDefault);
+          if (gen_Proc.Edit)gen_Proc.tinyEditResponse();
+          else gen_Proc.tinyResponse();     
           gen_Proc.classPass('backauto',gen_Proc.imageResponseBack); 
-          //gen_Proc.classPass('respondHeight',gen_Proc.responseHeight);
-          gen_Proc.classPass('grid',gen_Proc.gridWidth);
-          gen_Proc.classPass('respondPS',gen_Proc.psImageResponse);   
+          gen_Proc.classPass('grid',gen_Proc.gridWidth); 
           gen_Proc.classPass('video-back-container',gen_Proc.videoResponseBack);
           gen_Proc.classPass('fadein',gen_Proc.fadeIn);
-          gen_Proc.classPass('imagerespond',gen_Proc.imageResponse);
-          gen_Proc.classPass('sliderespond',gen_Proc.slideResponse); 
+          gen_Proc.classPass('imagerespond',gen_Proc.imageResponse); 
           gen_Proc.classPass('page_options_hidefont',gen_Proc.showIt); 
-          var winMaxWidth = \$(window).width();
+          var winMaxWidth = jQuery(window).width();
           var winWid=winMaxWidth;
           document.cookie='dpiRatio='+ gen_Proc.dpiRatio || 1+"; path=/";  
           document.cookie='clientW='+winMaxWidth+"; path=/";
           document.cookie='screenW='+screen.width+','+screen.height;
-          window.addEventListener('resize', function(){ 
-               gen_Proc.displayWindowSize('displayCurrentSize');
-               clearTimeout(resizeTimer);
-               resizeTimer = setTimeout(function(){ //this limits no of resize events responding
-                    var nw=\$(window).width();
+          window.addEventListener('resize', function(){
+			gen_Proc.vpw = jQuery(window).width(),
+               gen_Proc.displayWindowSize('displayCurrentSize',gen_Proc.vpw);
+               clearTimeout(resizeTimerMain);
+               resizeTimerMain = setTimeout(function(){ //
+                    var nw=jQuery(window).width();
                     if ( winMaxWidth >150 && winMaxWidth < nw){
-     gen_Proc.classPass('backauto',gen_Proc.imageResponseBack);//background slideshow
-                         gen_Proc.classPass('respondPS',gen_Proc.psImageResponse); 
+                         gen_Proc.classPass('backauto',gen_Proc.imageResponseBack);//background slideshow
                          gen_Proc.classPass('imagerespond',gen_Proc.imageResponse);
-                         gen_Proc.classPass('sliderespond',gen_Proc.slideResponse);  
+                         gen_Proc.classPass('carouselrespond',gen_Proc.carouselResponse);
+                         gen_Proc.classPass('sliderespond',gen_Proc.imageResponse);  
                          gen_Proc.classPass('grid',gen_Proc.gridWidth); 
                          gen_Proc.classPass('video_resize',gen_Proc.videoRespond);
                          winMaxWidth=nw;
                          }//if larger resize
-                     if (winWid !== nw){ 
+                    if (winWid !== nw){ 
                          winWid = nw;
                          gen_Proc.dpiRatio=window.devicePixelRatio || 1;
                          gen_Proc.dpiRatio= gen_Proc.dpiRatio > .1  ? Math.min(gen_Proc.dpiRatio, 2.5) : 1; 
@@ -167,8 +186,9 @@ function onload(){
                          }
                     }, 500); 
                }, true); 
-          gen_Proc.displayWindowSize('displayCurrentSize');  
+          gen_Proc.displayWindowSize('displayCurrentSize',gen_Proc.vpw);  
           gen_Proc.passvar();
+          gen_Proc.destructor();
           });
 	
 EOD;
@@ -176,11 +196,11 @@ EOD;
    
 function onload_edit(){//additional onload for editmode
 $this->javascript.= <<<EOD
-\$(function () { 
+jQuery(function () { 
 	gen_Proc.classPass('divTextArea',edit_Proc.divTextArea);
 	gen_Proc.classPass('sortGall',edit_Proc.makelistSortable,edit_Proc.sendGallOrder);
 	gen_Proc.classPass('sortSlide',edit_Proc.makelistSortable,edit_Proc.sendSlideOrder);
-	gen_Proc.classPass('sortEdit',edit_Proc.makelistSortable,edit_Proc.sendEditOrder);
+     gen_Proc.classPass('sortEdit',edit_Proc.makelistSortable,edit_Proc.sendEditOrder);
 	});
 EOD;
 	}//end onload    
@@ -189,8 +209,15 @@ function  gen_Proc(){
 $this->javascript.= <<<EOD
 var gen_Proc = {
 	Override	: 0,
+     webmodeError : [],
+     webmodeImageError : [],
+     webmodeCarouselError : [],
+     webmodeImageErrorBack :  [],
+     webmodeColl  : [],
+     vpw : jQuery(window).width(),
+     url : window.location.href.split('?')[0].split('#')[0],
      zInc      : 0,
-	classPass  :  function(cname,fn){//use getalltags if mulitple classes used for element 
+	classPass  :  function(cname,fn){//use getalltags if multiple classes used for element 
 		var args = Array.prototype.splice.call(arguments, 2); 
 		var classNames = document.getElementsByClassName(cname); 
 		for (var i = 0;  i < classNames.length;  i++){ 
@@ -205,89 +232,97 @@ var gen_Proc = {
 		},//end funcPass
 	animateLockReady : function(id,delay){
 		setTimeout(function(){
-		\$('#'+id).attr('data-duration', 'finished');
+		jQuery('#'+id).attr('data-duration', 'finished');
 		},delay*1000)
 		},
 	animateFollow :  function(id,rm,add,delay,inc,display){
 		setTimeout(function(){  
-		\$('#'+id).removeClass(rm); 
-		\$('#'+id).addClass(add);
-		\$("body").css("overflow", "auto");
+		//jQuery('#'+id).removeClass(rm);//not necessary
+		jQuery('#'+id).addClass(add);
+		jQuery("body").css("overflow", "auto");
 		},delay)
 		if (display === 'displaynone'){
 			setTimeout(function(){
-				\$('#'+id).hide('1000');
+				jQuery('#'+id).hide('1000');
 				setTimeout(function(){ 
-					var \$window = \$(window);
+					var \$window = jQuery(window);
 					\$window.trigger('scroll');
-					\$('#'+id).attr('data-status', 'finished'); 
+					jQuery('#'+id).attr('data-status', 'finished'); 
 					},'1000')
 				},(delay+inc))
 			}
 		else if (display === 'visibleoff'){
 			setTimeout(function(){
-				\$('#'+id).addClass('fadeOut hidden');
+				jQuery('#'+id).addClass('fadeOut hidden');
 				setTimeout(function(){ 
-					var \$window = \$(window);
+					var \$window = jQuery(window);
 					\$window.trigger('scroll');
-					\$('#'+id).attr('data-status', 'finished');
+					jQuery('#'+id).attr('data-status', 'finished');
 					},'1000')
 				},(delay+inc))
 			}
 		else {
 			setTimeout(function(){ 
-				\$('#'+id).attr('data-status', 'finished');  
+				jQuery('#'+id).attr('data-status', 'finished');  
 				},(delay+inc))
 			}
 		},//end function
 	animateFinish :  function(id,delay,display){
 		setTimeout(function(){   
-		\$("body").css("overflow", "auto");
+		jQuery("body").css("overflow", "auto");
 		},delay)
 		if (display === 'displaynone'){
 			setTimeout(function(){
-				 \$('#'+id).hide('1000');
+				jQuery('#'+id).hide('1000');
 				setTimeout(function(){ 
-					var \$window = \$(window);
-					\$window.trigger('scroll');
-					\$('#'+id).attr('data-status', 'finished');
+					jQuery(window).trigger('scroll');
+					jQuery('#'+id).attr('data-status', 'finished');
 					},'1000')
 				},delay)
 			}
 		else if (display === 'visibleoff'){
 			setTimeout(function(){
-				 \$('#'+id).addClass('fadeOut hidden');
+				 jQuery('#'+id).addClass('fadeOut hidden');
 				setTimeout(function(){ 
-					var \$window = \$(window);
-					\$window.trigger('scroll');
-					\$('#'+id).attr('data-status', 'finished');
+					jQuery(window).trigger('scroll');
+					jQuery('#'+id).attr('data-status', 'finished');
 					},'1000')
 				},delay)
 			}
 		else {
 			setTimeout(function(){ 
-				\$('#'+id).attr('data-status', 'finished');
+				jQuery('#'+id).attr('data-status', 'finished');
 				},delay)
 			}    
 		},//end function
-	scrollAnimate :  function(){//credit: George Martsoukos  www.sitepoint.com modified
-		\$animation_elements = \$('.animated');
-		var \$window = \$(window);
-		\$window.on('scroll resize', gen_Proc.check_if_in_view); 
-		\$window.trigger('scroll');
+	scrollAnimate :  function(){//adapted from: George Martsoukos  www.sitepoint.com
+          var sizeTimerScroll='';
+          var lastScrollTop=0;
+          jQuery(window).on('scroll resize', function(){   
+               clearTimeout(sizeTimerScroll);
+               sizeTimerScroll = setTimeout( () => { //
+                    var st = jQuery(this).scrollTop();
+                    if (st > lastScrollTop)
+                         gen_Proc.check_if_in_view('down');
+                    else gen_Proc.check_if_in_view('up');
+                    lastScrollTop = st;
+                    },40);
+               });       
+		jQuery(window).trigger('scroll');
 		},
      scrollFadeInOut :  function(){// 
-		\$scroll_elements = \$('.scrollFade');
-		var \$window = \$(window);
+		\$scroll_elements = jQuery('.scrollFade');
+		var \$window = jQuery(window);
 		\$window.on('scroll resize', gen_Proc.check_fade_view); 
 		\$window.trigger('scroll');
 		},
      check_fade_view   : function () {
-          var window_height = \$(window).height();
-		var window_top_position = \$(window).scrollTop();
+          var window_height = jQuery(window).height();
+		\$scroll_elements = jQuery('.scrollFade');
+		var window_top_position = jQuery(window).scrollTop();
 		var window_bottom_position = (window_top_position + window_height);
-		\$.each(\$scroll_elements, function(i) {
-			var elem = \$(this)
+		jQuery.each(\$scroll_elements, function(i) {
+			var elem = jQuery(this)
 			var hattr=elem.attr('data-scrollchange');
                var attrArr=hattr.split('@');
                var hchange=parseInt(attrArr[0]);
@@ -303,54 +338,58 @@ var gen_Proc = {
                     }
                });
           },
-	check_if_in_view  :	function () {// modified  from: George Martsoukos  www.sitepoint.com  
-		var window_height = \$(window).height();
-		var window_top_position = \$(window).scrollTop();
+	check_if_in_view  :	function (dir) {//adapted from: George Martsoukos  www.sitepoint.com
+          var \$animation_elements = jQuery('.animated');
+		var window_height = jQuery(window).height();
+		var window_top_position = jQuery(window).scrollTop();
 		var window_bottom_position = (window_top_position + window_height);
-		\$.each(\$animation_elements, function(i) {
-			var elem = \$(this)
-			var hchange=elem.attr('data-hchange');
+		jQuery.each(\$animation_elements, function(i) {
+			var elem = jQuery(this);  
+			if (typeof(elem.attr('data-hchange'))!== 'undefined'){
+                    var hchange =elem.attr('data-hchange');}
+               else var hchange=30;
                if (hchange ==='none'){ 
                     //disregard hlock experimental
                     elem.addClass('in-view'); 
 				elem.removeClass('animated');
                     }
                else {
-                    var hchange=parseInt(hchange);
+                   hchange=parseInt(hchange);
+                    //#hlock experimental only..
                     var hlock = (parseFloat(elem.attr('data-hlock'))>0)?parseFloat(elem.attr('data-hlock')):0;
                     if (hlock===0&&!elem.hasClass("animated"))return true;
                     var element_height = elem.outerHeight(true); 
-                    var element_top_position = elem.offset().top;
+                    var element_top_position = elem.offset().top; 
                     var element_bottom_position = (element_top_position + element_height);
                     var height_change = (hchange * element_height/100); 
                     //check to see if this current container is within viewport
                     if ((element_bottom_position  >= window_top_position ) &&
                          (element_top_position +height_change <= window_bottom_position)) {
-                          elem.addClass('in-view'); 
+                         elem.addClass('in-view'); 
                          elem.removeClass('animated');
                          if (hlock===0)
-                              \$animation_elements=$(".animated");//update to remove this one
+                              \$animation_elements=jQuery(".animated");//update to remove this one
                          }
                     elem.on( 'DOMMouseScroll mousewheel', function ( event ) {
                     //stack overflow:questions/7154967/how-to-detect-scroll-direction/33334461#33334461
                     if( event.originalEvent.detail > 0 || event.originalEvent.wheelDelta < 0 ) { //alternative options for wheelData: wheelDeltaX & wheelDeltaY
                          //scroll down 
                          }
-                    else {
+                    else {//scroll up
                          if (hlock >0){
                               hlock=0;
                                elem.attr('data-hlock',0);
-                              \$("body").css("overflow", "auto"); //release scroll lock
+                              jQuery("body").css("overflow", "auto"); //release scroll lock
                               }
                          }
                     //prevent page fom scrolling 
                     });
                     if (hlock>0 && element_bottom_position +20 <= window_bottom_position && elem.attr("data-duration")==='finished') {
-                         \$animation_elements=$(".animated");//update to remove obj
-                         \$("body").css("overflow", "hidden");  
+                         \$animation_elements=jQuery(".animated");//update to remove obj
+                         jQuery("body").css("overflow", "hidden");  
                          setTimeout(function(){ 
                           elem.attr('data-hlock',0);//set to 0 so as not to hlocking
-                          \$("body").css("overflow", "auto");  
+                          jQuery("body").css("overflow", "auto");  
                           return false;
                          },hlock*1000); 
                          }
@@ -372,8 +411,16 @@ var gen_Proc = {
 			}
 		return "";
 		},
-     toggleIt  : function(ele){  
+     openIt  : function(ele){  
           document.getElementById(ele).style.display="block";
+          },
+     toggleIt  : function(ele){ 
+          obj=document.getElementById(ele);
+          if (obj.style.display !=="block") 
+               obj.style.display ="block";
+          else { 
+               obj.style.display="none";
+               }
           },
 	toggleControls  : function (video) {
 		console.log('var videoActualWidth = '+video.getBoundingClientRect().width);
@@ -436,21 +483,11 @@ var gen_Proc = {
                dataH=f.offsetHeight;
                f.setAttribute("data-height", dataH);
                }
-		//var minHeight=f.getAttribute('data-minHeight');
 		var type=f.getAttribute('data-type');
 		var rwd=f.getAttribute('data-rwd');
 		//scroll set with css in height function
-		//if (f.scrollHeight>(pwidth/initWid*dataH+25)){
-			//if (type=='image'&& !rwd)
-				//f.style.overflowY = "hidden";
-			//else f.style.overflowY = "scroll";
-			//}
-		//else f.style.overflowY = "scroll";
-		 if (type=='video'){ 
-			//video=f.getElementsByTagName("video");
-			//gen_Proc.toggleClass(video[0]);
-			} 
-		else f.style.height=((pwidth/initWid*dataH)<=dataH)?Math.max((pwidth/initWid*dataH),minHeight)+'px':dataH+'px';//changes according to current wid...
+		 if (type!='video')
+			 f.style.height=((pwidth/initWid*dataH)<=dataH)?Math.max((pwidth/initWid*dataH),minHeight)+'px':dataH+'px';//changes according to current wid...
 		},
 	psResponse  : function(img){
 		var pwidth=img.width;
@@ -464,15 +501,30 @@ var gen_Proc = {
 			var pattern=new RegExp(gen_Proc.image_response_dir_prefix+"[0-9]+\/");
 			var newWidth=gen_Proc.keyUp(pwidth,gen_Proc.image_response,gen_Proc.maxPicLimit);
 			var newSrc = oldSrc.replace(pattern,gen_Proc.image_response_dir_prefix+newWidth+'/');
-			gen_Proc.picSrc=newSrc;  
-			gen_Proc.imgSize=newWidth
-			gen_Proc.imageExists2(newSrc,function(exists){
-				if (exists) {
-					img.src=newSrc;
-					img.w=newWidth*1.25;
-					img.h=img.w/ratio;
-					}
-				});
+			img.src=newSrc;
+               img.onload = function() {
+                     if ('naturalHeight' in this) {
+                          if (this.naturalHeight + this.naturalWidth === 0) {
+                               this.onerror();
+                               return;
+                               }
+                          }
+                     else if (this.width + this.height == 0) {
+                          this.onerror(); 
+                          };
+                    
+                    img.src=newSrc;
+                    img.w=newWidth*1.25;
+                    img.h=img.w/ratio;
+                    };
+               img.onerror = function() {
+                    var id=jQuery(this).closest('.image.post').attr('id');
+                    var pattern=new RegExp(gen_Proc.image_response_dir_prefix+"[0-9]+\/");
+                    var newSrc = oldSrc.replace(pattern,gen_Proc.image_response_dir_prefix+newWidth+'/'); 
+                    if (this.src != newSrc)
+                         this.src=newSrc;
+                    gen_Proc.webmodeImageError.push('Error Gallery Image missing fn; '+newSrc+'in psImageResponse Gallery id: '+id);
+                    }
 			}
 		},
 	psImageResponse   :  function(img){ 
@@ -483,95 +535,283 @@ var gen_Proc = {
 				}//onload
 			}
 		},
-     imageResponse   :  function(f){  
+     tinyEditResponse   : function(){
+          var classes=document.querySelectorAll('.text.post');
+          var minW=parseInt(gen_Proc.tiny_cache[0]);
+          var collect = [];
+          var data_attr=[]; 
+          for (i=0;i < classes.length; i++){
+               var cls =classes[i];
+               var imgs= cls.getElementsByTagName('img'); 
+               for (ii=0;ii < imgs.length; ii++){
+                    var myimg=imgs[ii];
+                    var oldSrc=myimg.getAttribute('src');
+                    var fn = oldSrc.split('/').slice(-1)[0];
+                    var Pattern = new RegExp(gen_Proc.tiny_orig_sz_dir);
+                    //data-upwidth_tiny gives us the maximum uploaded image width..
+                    //the uploaded size is used when it is smaller than the first (smallest) of the stipulated cache sizes.  If tiny_cache sizes change so that tiny_orig_sz image is larger than a cache size that is over the Cfg::Tiny_cache_min than we need to change startup initial direcory size to tiny_cache_resize with Cfg::Tiny_cache_min subdir size setting..
+                    if(Pattern.test(oldSrc)){
+                         if (myimg.hasAttribute('data-upwidth-tiny')){
+                              var w=parseInt(myimg.getAttribute('data-upwidth-tiny'));
+                              if (w > minW){ //chng src...
+                                   var newSrc = oldSrc.replace(Pattern,gen_Proc.tiny_resize_dir+gen_Proc.tiny_cache_min+'/');
+                                   myimg.setAttribute('src',newSrc);// new src needs to be updated by submit  therefore push into data_attr list for submitting to update src..
+                                   myimg.setAttribute('data-mce-src',newSrc);//set to adjust the tinymce added attribute
+                                   var key = fn;
+                                   var obj = {};
+                                   obj[key] = myimg.getAttribute("src")  
+                                   data_attr.push(obj); //here we make list of necessary data-upwidth-tiny attribute changes
+                                   }
+                              }
+                         else {
+                              var key = fn;
+                              var obj = {};
+                              obj[key] = myimg.getAttribute("src")  //here we make list of necessary data-upwidth-tiny attribute changes
+                              data_attr.push(obj);
+                              }
+                         }
+                    var Pattern2 = new RegExp(gen_Proc.tiny_resize_dir);  
+                    if( Pattern.test(oldSrc) === false && Pattern2.test(oldSrc) === false)continue; 
+                    if (!myimg.hasAttribute('data-upwidth-tiny')){
+                         var key = fn;
+                         var obj = {};
+                         obj[key] = myimg.getAttribute("src")  
+                         data_attr.push(obj);
+                         }
+                    collect.push(fn);//automatically runs file directory sizing in edit mode if image present in text post 
+                    }  
+               }
+          //uploaded image size will be checked on server for correct date-upload_tiny value then passed back.
+          var jsonArr = collect.length ? JSON.stringify(collect) : '';
+          var jsonData= data_attr.length  ? JSON.stringify(data_attr) : '';
+          if (collect.length || data_attr.length ) {
+               jQuery.ajax({url: this.url+'?tiny_handle_edit='+jsonArr+'&widA='+jsonData,
+                    success: function(result){
+                         console.log(result);
+                         result=result.split('@x@'); 
+                         var arr= result[0].length > 5 ? JSON.parse(result[0]) : [];
+                         if (arr.length){//Update necessary data-upwidth-tiny attribute changes
+                              jQuery('.edit.post.text .use_tiny').each(function(){
+                                   jQuery(this).trigger('click');//here by triggering we enable tiny-mce in text post which causes field to submit when submit all button is clicked.. instead of an autosubmit 
+                                    jQuery(this).html('<p style="font-size:.9em;">Image data attribute added <br> Edit Page as Needed<br>and Submit Changes</p>').appendTo(jQuery(this));
+                                   });
+                              }
+                         arr.forEach(function(data){ 
+                              var data=data.split('@@');
+                              if(jQuery('.edit.post.text img[src="'+data[0]+'"]').length){
+                                   jQuery('.edit.post.text img[src="'+data[0]+'"]').attr('data-upwidth-tiny',data[1]);
+                                   }
+                              });
+                         }// success
+                    });
+               }
+          },
+     tinyResponse   : function(){
+          var classes=document.querySelectorAll('.text.post');
+          var minW=parseInt(gen_Proc.tiny_cache[0]);
+          var sendCollect=false;
+          var collect=[];
+          var message=[];
+          var msg=[]; 
+          for (i=0;i < classes.length; i++){
+               var cls =classes[i];
+               var imgs= cls.getElementsByTagName('img'); 
+               for (ii=0;ii < imgs.length; ii++){
+                    var myimg=imgs[ii]; 
+                    var oldSrc=myimg.getAttribute('src');
+                    var fn = oldSrc.split('/').slice(-1)[0];
+                    collect.push(fn); 
+                    var Pattern = new RegExp(gen_Proc.tiny_resize_dir);  
+                    if(Pattern.test(oldSrc)  === false)continue;
+                    var pwidth=Math.max(myimg.offsetWidth,myimg.clientWidth);
+                    var oldWidth =parseInt(oldSrc.split('/').reverse()[1]);
+                    if (!myimg.hasAttribute('data-upwidth-tiny')){
+                         var upWidth = 5000  ;//ie try newWidth cache size first..
+                         message.push('fn: '+fn+' in .text.post id:'+cls.id);//send mail list
+                         }
+                    else var upWidth=parseInt(myimg.getAttribute('data-upwidth-tiny'));//get upload with..
+                    var newSrc='';
+                    if ( pwidth > oldWidth && oldWidth < upWidth ){//uploads Width   upWidth is the limiting image size that will be loaded.. 
+                         var newWidth=gen_Proc.keyUp(pwidth,gen_Proc.tiny_cache,'max');
+                         //upWidth limiting width so if upWidth is smaller than newWidth than newWidth image should not exist..
+                         var pattern=new RegExp(gen_Proc.tiny_resize_dir+"[0-9]+\/");
+                         if (newWidth < upWidth && newWidth > oldWidth){ 
+                              var newSrc = oldSrc.replace(pattern,gen_Proc.tiny_resize_dir+newWidth+'/');
+                              }
+                         else if (newWidth >= upWidth && upWidth > oldWidth){ 
+                              var newSrc = oldSrc.replace(pattern,gen_Proc.tiny_orig_sz_dir);
+                              }
+                         if (newSrc.length){
+                              myimg.onload = function() {
+                                   if ('naturalHeight' in this) {
+                                        if (this.naturalHeight + this.naturalWidth === 0) {
+                                             this.onerror();
+                                             return;
+                                             }
+                                        }
+                                   else if (this.width + this.height == 0) {
+                                        this.onerror(); 
+                                        };
+                                   
+                                   }
+                              myimg.onerror = function() {  
+                                   var id=jQuery(this).closest('.text.post').attr('id');
+                                   gen_Proc.webmodeError.push('fn: '+this.src+' missing in .text post id: '+id);//this will be handled in javascript_destructor
+                                   var pattern=new RegExp(gen_Proc.tiny_resize_dir+"[0-9]+\/");
+                                   var newSrc = this.src.replace(pattern,gen_Proc.tiny_resize_dir+gen_Proc.tiny_cache_min+'/');
+                                   if (this.src != newSrc)
+                                   this.src=newSrc;
+                                   }
+                              
+                              myimg.src=newSrc; 
+                              }//if newSrc
+                         }//( pwidth > oldWidth)
+                    }
+               }
+          gen_Proc.webmodeColl=collect;
+          jsonLogAttr =  message.length ? JSON.stringify(message) : ''; 
+          if (jsonLogAttr.length){//ie images not found or upWdith not found 
+               jQuery.ajax({url: this.url+'?webmodelog_data='+jsonLogAttr+'&msg=The following webmode list of img src files missing data-upwidth-tiny attribute',
+                    success: function(result){
+                         console.log(result);
+                         }, 
+                    error: function(msg){
+                         console.log('Error:'+msg);
+                         }, 
+                    });
+               }
+          },
+     destructor : function(){//last to run not destructing  
+          setTimeout( () => {
+               if (!this.Edit){  
+                    if (this.webmodeError.length){ 
+                         var error= (this.webmodeError.length)?JSON.stringify(this.webmodeError):'';
+                         var coll= (this.webmodeColl.length)?JSON.stringify(this.webmodeColl):'';
+                         jQuery.ajax({url: this.url+'?tiny_handle_webmode='+coll+'&error='+error,
+                              success: function(result){
+                                   console.log(result);
+                                   }, 
+                              error: function(msg){
+                                   console.log('Error:'+msg);
+                                   }, 
+                              });
+                         }
+                    if (this.webmodeImageError.length){ 
+                         var error= (this.webmodeImageError.length)?JSON.stringify(this.webmodeImageError):'';
+                        jQuery.ajax({url: this.url+'?webmodelog_data='+error+'&msg=The following list of .image posts webmode img src files missing from img dir',
+                              success: function(result){
+                                   console.log(result);
+                                   }, 
+                              error: function(msg){
+                                   console.log('Error:'+msg);
+                                   }, 
+                              });
+                         }
+                    if (this.webmodeCarouselError.length){ 
+                         var error= (this.webmodeCarouselError.length)?JSON.stringify(this.webmodeCarouselError):'';
+                        jQuery.ajax({url: this.url+'?webmodelog_data='+error+'&msg=The following list of .carousel posts webmode img src files missing from img dir',
+                              success: function(result){
+                                   console.log(result);
+                                   }, 
+                              error: function(msg){
+                                   console.log('Error:'+msg);
+                                   }, 
+                              });
+                         }
+                    if (this.webmodeImageErrorBack.length){ 
+                         var error= (this.webmodeImageErrorBack.length)?JSON.stringify(this.webmodeImageErrorBack):'';
+                        jQuery.ajax({url: this.url+'?webmodelog_data='+error+'&msg=The following list of full page background slideshow images in webmode are missing from img dir',
+                              success: function(result){
+                                   console.log(result);
+                                   }, 
+                              error: function(msg){
+                                   console.log('Error:'+msg);
+                                   }, 
+                              });
+                         }
+                    } 
+               },  4000 ); 
+          },
+     imageResponse   :  function(f){console.log('imageResponse');
 		var pwidth=Math.max(f.offsetWidth,f.clientWidth);
 		var myimg = f.getElementsByTagName('img')[0]; 
 		var oldWidth=f.getAttribute('data-wid');  // will get direct
-          if (pwidth > oldWidth){ 
-               var newWidth=gen_Proc.keyUp(pwidth,gen_Proc.image_response,gen_Proc.maxPicLimit); 
-               var i=false;
+          var collect=[];
+          var sendCollect=false;
+          if (pwidth > oldWidth){
+               var newWidth=gen_Proc.keyUp(pwidth,gen_Proc.image_response,gen_Proc.maxPicLimit);  
                var pattern=new RegExp(gen_Proc.image_response_dir_prefix+"[0-9]+\/");
-               while (i===false){ 
-                    if (newWidth >= oldWidth){  
-                         oldSrc=myimg.src;  
+               if (newWidth >= oldWidth){  
+                    var oldSrc=myimg.src;  
+                    var newSrc = oldSrc.replace(pattern,gen_Proc.image_response_dir_prefix+newWidth+'/'); 
+                    myimg.src=newSrc;
+                    myimg.onload = function() {
+                          if ('naturalHeight' in this) {
+                               if (this.naturalHeight + this.naturalWidth === 0) {
+                                    this.onerror();
+                                    return;
+                                    }
+                               }
+                          else if (this.width + this.height == 0) {
+                               this.onerror(); 
+                               }; 
+                         };
+                    myimg.onerror = function() {
+                         var id=jQuery(this).closest('.image.post').attr('id');
+                         var pattern=new RegExp(gen_Proc.image_response_dir_prefix+"[0-9]+\/");
                          var newSrc = oldSrc.replace(pattern,gen_Proc.image_response_dir_prefix+newWidth+'/'); 
-                         var exists=gen_Proc.imageExists2(newSrc);
-                         if (exists) {  
-                              myimg.src=newSrc;  
-                              i=true;
-                              //myimg.style.width='100%';
-                              //myimg.style.height='auto'; 
-                              }
-                         i=true;//set to true to override the while statement. using imageExist2 instead gave false positives.  validating image change otherwise proved tricky..
-                         if (i){ 
-                              f.setAttribute("data-wid", newWidth); 
-                              }
-                         else {
-                              oldWidth=newWidth;
-                              newWidth=gen_Proc.keyDown(newWidth,gen_Proc.image_response);
-                              //obtains next lower cache value to reload if first value not present. 
-                             }
-                         if (newWidth < 10)i=true;//failure to reload break
-                         }
-                    else i=true;
-                    }//continue while
-			}
+                         if (this.src != newSrc)
+                              this.src=newSrc;
+                         gen_Proc.webmodeImageError.push('Error missing fn; '+newSrc+'in image post id: '+id);
+                         }     
+                    }
+               }
 		else { 
 			//check if kenburns and fixed height.
 			if (f.parentNode.className.indexOf("kenburns")>-1){ 
-				myimg.style.width=oldWidth+'px'; 
+				myimg.style.width=oldWidth+'px'; //set explicit
 				}
 			}
+           
 		},
-     slideResponse   :  function(f){  
-		var pwidth=Math.max(f.offsetWidth,f.clientWidth);
-		var myimgarr = f.getElementsByTagName('img'); 
-          var oldWidth=f.getAttribute('data-wid');  // will get direct 
-          if (pwidth > oldWidth){  
-               var newWidth=gen_Proc.keyUp(pwidth,gen_Proc.image_response,gen_Proc.maxPicLimit); 
-               var i=false; 
-               var pattern=new RegExp(gen_Proc.image_response_dir_prefix+"[0-9]+\/");
-               for (ii=0; ii < myimgarr.length; ii++){
-                    myimg=myimgarr[ii];
-                    while (i===false){ 
-                         if (newWidth >= oldWidth){
-                              oldSrc=myimg.src;  
-                              var newSrc = oldSrc.replace(pattern,gen_Proc.image_response_dir_prefix+newWidth+'/'); 
-                              var exists=gen_Proc.imageExists2(newSrc);
-                              if (exists) {  
-                                   myimg.src=newSrc;
-                                   i=true;
-                                   //myimg.style.width='100%';
-                                   //myimg.style.height='auto'; 
-                                   }
-                              i=true;//bypass while as XMLHttpRequest giving false pos in imageExists2 and imageExists scope of return valideation problem
-                              if (i){ 
-                                   f.setAttribute("data-wid", newWidth); 
-                                   }
-                              else {
-                                   oldWidth=newWidth;
-                                   newWidth=gen_Proc.keyDown(newWidth,gen_Proc.image_response);
-                                   //obtains next lower cache value to reload if first value not present. 
-                                  }
-                              if (newWidth < 10)i=true;//failure to reload break
-                              }
-                         else i=true;
-                         }//continue while
-                         }//for loop
+     carouselResponse   :  function(f){
+          setTimeout( () => {//
+               var pwidth=Math.max(f.offsetWidth,f.clientWidth);
+               var myimg = f; 
+               var oldWidth=f.getAttribute('data-wid');   
+               var collect=[];
+               var sendCollect=false; 
+               if (pwidth > oldWidth){ 
+                    var newWidth=gen_Proc.keyUp(pwidth,gen_Proc.image_response);  
+                    var pattern=new RegExp(gen_Proc.image_response_dir_prefix+"[0-9]+\/");
+                    if (newWidth >= oldWidth){  
+                         var oldSrc=myimg.src;  
+                         var newSrc = oldSrc.replace(pattern,gen_Proc.image_response_dir_prefix+newWidth+'/');
+                         myimg.src=newSrc;
+                         myimg.onload = function() { ;
+                               if ('naturalHeight' in this) {
+                                    if (this.naturalHeight + this.naturalWidth === 0) {
+                                         this.onerror();
+                                         return;
+                                         }
+                                    }
+                               else if (this.width + this.height == 0) {
+                                    this.onerror(); 
+                                    }; 
+                              };
+                         myimg.onerror = function() {
+                              var id=jQuery(this).closest('.carousel.post').attr('id');
+                              var pattern=new RegExp(gen_Proc.carousel_response_dir_prefix+"[0-9]+\/");
+                              var newSrc = oldSrc.replace(pattern,gen_Proc.carousel_response_dir_prefix+newWidth+'/'); 
+                              if (this.src != newSrc)
+                                   this.src=newSrc;
+                              gen_Proc.webmodeCarouselError.push('Error missing fn; '+newSrc+'in carousel post id: '+id);
+                              }     
+                         }
                     }
-          else { 
-               //check if kenburns and fixed height.
-               if (f.parentNode.className.indexOf("kenburns")>-1){ 
-                    myimg.style.width=oldWidth+'px'; 
-                    }
-               }
+               },40);
+           
 		},
-     imageExists2   :function (image_url){//https://stackoverflow.com/questions/18837735/check-if-image-exists-on-server-using-javascript#18837750
-          var http = new XMLHttpRequest();
-          http.open('HEAD', image_url, false);
-          http.send();
-          return http.status != 404;
-          },
 	gridWidth		:  function(f){
 		var pwidth=Math.max(f.offsetWidth,f.clientWidth);
 		f.style.width=pwidth+'px';
@@ -590,13 +830,21 @@ var gen_Proc = {
 			}
 		obje.style.display="block";
 		},//end showit
+     toggle_display    :  function(obje){
+		if (typeof obje === "string"){ 
+			var obje =  (obje == 'body') ? document.getElementsByTagName("body")[0] : document.getElementById(obje)
+			}
+		if(obje.style.display=="block") 
+               obje.style.display='none';
+          else obje.style.display='block';
+		},//end showit
 	toggleVisibility  :  function(elem1,elem2){  
 		if (window.TOUCHSTART){ 
-               \$(elem1).mouseenter(function(event){  
-                    if (\$(this).find('ul.sub-level').css("display")!=="block") 
-                         \$(this).find('ul.sub-level').css({'visibility':'visible','display':'block'});
+               jQuery(elem1).mouseenter(function(event){  
+                    if (jQuery(this).find('ul.sub-level').css("display")!=="block") 
+                         jQuery(this).find('ul.sub-level').css({'visibility':'visible','display':'block'});
                     else{
-                         \$(this).find('ul.sub-level').css({'visibility':'hidden','display':'none'});}
+                         jQuery(this).find('ul.sub-level').css({'visibility':'hidden','display':'none'});}
 			if (event.preventDefault) { 
 			 event.preventDefault();
 			}
@@ -622,21 +870,21 @@ var gen_Proc = {
 			event.returnValue = false; 
 			} 
 		},
-	displayWindowSize	: function(id) { 
+	displayWindowSize	: function(id,vpw) { 
 		 p=document.querySelector('#'+id + ' p#clientw');
 		 p2=document.querySelector('#'+id+'2' + ' p#clientw2');
-		if(p=== null)return;
-		myWidth = window.innerWidth;
-		//myHeight = window.innerHeight;
-		var x = {
-               w1: window.innerWidth || 1,
-               w2: document.documentElement.clientWidth || 2,
-               w3: document.documentElement.offsetWidth || 4,
-               };  
-		var wmax=Math.max(x.w1,x.w2,x.w3);
-		var JQ=\$(window).width();  
-		p2.innerHTML=p.innerHTML = 'Wid: <span class="red whitebackground">'+JQ +'</span>';
+		if(p=== null)return;  
+		p2.innerHTML=p.innerHTML = 'Wid: <span class="red whitebackground">'+vpw +'</span>';
 		 },
+      adjustLeftMargin(id,wid){
+          var ele=document.getElementById(id);
+          var offleft=this.getOffsetVal(ele).left;
+          var room =  screen.width - ( offleft + wid );
+          if ( room > 0 ) return;
+          var xtra = ( room > 20 ) ? 15 : 3;
+          var adjust= -offleft + xtra; 
+               ele.style.marginLeft=adjust+'px'; 
+          },
      show	:  function  (id,show,msgVar,width,mainconfig){//show  
 		if(document.getElementById(id+ "t").style.display=="block"){
                if (msgVar === 'noclose')return;
@@ -649,28 +897,21 @@ var gen_Proc = {
 		else{
 			gen_Proc.fullWidthOn(id,width,msgVar,mainconfig); 
 			if (msgVar=='slow')fadeTo.fadeTo_init(id+"t",.5,0,100,1.5);
-			document.getElementById(id+"t").style.display ="block";
+			document.getElementById(id+"t").style.display ="block";  
 			if (msgVar !== 'noclose')document.getElementById(id).innerHTML='<span class="redAlertbackground white">Close </span>'+show;
 			document.getElementById(id).style.borderColor='red';
 			document.getElementById(id).style.textDecoration = 'underline'; 
 			}
 		}, //end show function
-	fullWidthOn	:  function(id,width,msgVar,mainconfig){  
+     
+     fullWidthOn	:  function(id,width,msgVar,mainconfig){  
 		if (msgVar==='asis'||mainconfig==='asis')return;
 		elem=document.getElementById(id+"t");
-          //suspend dimming effect
-		//if (gen_Proc.Edit&&(mainconfig===true || msgVar==='main')){ 
-			// \$('.edit').addClass('staticdim'); 
-			// \$('.edit').removeClass('fullopacity'); 
-			//\$('#'+id).parents('.edit').addClass('fullopacity'); 
-	//\$('#'+id).addClass('fullopacity');		 
-			//} 
-		var offset=\$('#'+id).offset();
+          var offset=jQuery('#'+id).offset();
 		var leftpos=offset.left;//how far from left border
-		\$('#'+id+'t').wrap('<div class="jqwrap"></div>');
-		\$('#'+id+'t').parent().css({position:'relative'});//to enable zIndex in relative pos  
-		wmax=\$(window).width();
-		
+		jQuery('#'+id+'t').wrap('<div class="jqwrap"></div>');
+		jQuery('#'+id+'t').parent().css({position:'relative'});//to enable zIndex in relative pos  
+		wmax=jQuery(window).width();
 		if (width=="full"){
 			elem.style.maxWidth='100%'; 
 			elem.style.position="absolute";
@@ -692,7 +933,7 @@ var gen_Proc = {
 			for (i=0; i<letters; i++){
 				html += 'm';
 				} 
-			$(elem).children(":first").append('<p class="removeit" style="font-family:monospace;font-size:16px;visibility:hidden">'+html+'</p>');
+			jQuery(elem).children(":first").append('<p class="removeit" style="font-family:monospace;font-size:16px;visibility:hidden">'+html+'</p>');
 			} 
 		elem.style.position="absolute";  
 		elem.style.zIndex=(100+gen_Proc.zInc); gen_Proc.zInc++; 
@@ -707,12 +948,7 @@ var gen_Proc = {
 		},//end js function
 	fullWidthOff	: function(id,msgVar,mainconfig){
 		elem=document.getElementById(id+"t");
-		//if (gen_Proc.Edit&&(msgVar==='main'||mainconfig)){
-			//\$('.edit').removeClass('staticdim'); 
-			//\$('.edit').removeClass('fullopacity'); 
-			//\$('#'+id+'t').unwrap();
-			//}
-		$('.removeit').remove();
+		jQuery('.removeit').remove();
 		elem.style.zIndex="initial";
 		elem.style.position="initial";
 		},//end function  
@@ -722,7 +958,7 @@ var gen_Proc = {
 		   top += element.offsetTop  || 0;
 		   left += element.offsetLeft || 0;
 		   element = element.offsetParent;
-		} while(element);//from Stack Overflow
+		} while(element);
 		return {
 			top: top,
 			left: left
@@ -790,45 +1026,44 @@ var gen_Proc = {
 		else return;
 		 
 		a.classList ? a.classList.add(classN) : a.className += ' '+classN;
-		},  
-	toggleClass2   : function (ele, classN) { 
-		if (\$(ele+'.'+classN).length){  
-			\$(ele).removeClass(classN); 
+		},
+	toggleClass2   : function (ele, classN) {//include # or . & attr name
+          if (jQuery(ele+'.'+classN).length){ 
+			jQuery(ele).removeClass(classN); 
 			}
-		else { 
-			\$(ele).addClass(classN); 
+		else {  
+			jQuery(ele).addClass(classN); 
 			}
 		}, 
 	toggleClass   : function (ele, classN, classN2, replace, timeout) { 
-		if (\$(ele+'.'+classN).length){ 
-			\$(ele).addClass(replace).removeClass(classN);
+		if (jQuery(ele+'.'+classN).length){ 
+			jQuery(ele).addClass(replace).removeClass(classN);
 			setTimeout(function(){
-				//\$(ele).removeClass(replace)
-				\$(ele).removeClass(classN2)
+				jQuery(ele).removeClass(classN2)
 				},timeout);
 			}
 		else {
-               \$(ele).removeClass(replace)
-			\$(ele).addClass(classN).addClass(classN2);
+               jQuery(ele).removeClass(replace)
+			jQuery(ele).addClass(classN).addClass(classN2);
 			}
 		},
 	toggleHasClass   : function (ele, ele2, classN, classN2) { 
-          if (\$(ele+'.'+classN).length){  
-               \$(ele2).addClass(classN2) 
+          if (jQuery(ele+'.'+classN).length){  
+               jQuery(ele2).addClass(classN2) 
                }
           else {
-               \$(ele2).removeClass(classN2) 
+               jQuery(ele2).removeClass(classN2) 
                }
 		},
 	toggleTweak   : function (ele, classN, ele2, tweak, tweak2, timeout) { 
-          if (\$(ele+'.'+classN).length){      
+          if (jQuery(ele+'.'+classN).length){      
                setTimeout(function(){
-                    \$(ele2).css(tweak); 
+                    jQuery(ele2).css(tweak); 
                     },timeout);
                }
           else {
                if (tweak2 !==''){
-                    \$(ele2).css(tweak2);
+                    jQuery(ele2).css(tweak2);
                     }
                }
 		},
@@ -1161,54 +1396,55 @@ var gen_Proc = {
 			 
 			}//end for
 		},// end on check   
-	create_ajax : function (){ 
+	create_ajax : function (){
 		if (window.XMLHttpRequest) {
 		// IE 7, Mozilla, Safari, Firefox, Opera, most browsers:
-			this.ajax = new XMLHttpRequest();
+			gen_Proc['xml'+this.xmlCount] = new XMLHttpRequest();
 			} 
 		else if (window.ActiveXObject) { // Older IE browsers
 			// Create type Msxml2.XMLHTTP, if possible:
 			try {
-			    this.ajax = new ActiveXObject("Msxml2.XMLHTTP");
+			    gen_Proc['xml'+this.xmlCount] = new ActiveXObject("Msxml2.XMLHTTP");
 			    }
 			catch (e1) { // Create the older type instead:
 				try {
-					this.ajax = new ActiveXObject("Microsoft.XMLHTTP");
+					gen_Proc['xml'+this.xmlCount] = new ActiveXObject("Microsoft.XMLHTTP");
 					}
 					catch (e2) { }
 				}//catch
 			}//end else old
 		// Send an alert if the object wasn't created.
-		if (!this.ajax) {
+		if (!gen_Proc['xml'+this.xmlCount]) {
 			alert ('Some page functionality is unavailable.');
 			}
 	    
 		},//end create_ajax
-	use_ajax   : 	function (url,func,method){
+	use_ajax   : 	function (url,func,method){ 
 		console.log('url: '+url+' funct: '+func);
 		if (this.passclass&&!this.Override){ 
 			return;
 			}
-		this.create_ajax();
-		if (this.ajax) {
+          this.xmlCount++;
+		this.create_ajax(); 
+		if (gen_Proc['xml'+this.xmlCount]) {
 			this.Override=0
-			this.ajax.open(method, url+'&sess_override',true);
-			this.ajax.onreadystatechange = function(){
+			gen_Proc['xml'+this.xmlCount].open(method, url+'&sess_override',true);
+			gen_Proc['xml'+this.xmlCount].onreadystatechange = function(){
 			gen_Proc[func]();}
 			// Send the request:
-			this.ajax.send(null);
+			gen_Proc['xml'+this.xmlCount].send(null);
 			return false;
 			}
 		else {
 			return true;
 			}
 		}, //end use_ajax
-	handle_replace	:   function () { 
-		if ( (this.ajax.readyState == 4) && (this.ajax.status == 200) ) {
-			if (this.ajax.responseText.length > 20) {
+	handle_replace	:   function () { console.log('return handler');
+		if ( (gen_Proc['xml'+this.xmlCount].readyState == 4) && (gen_Proc['xml'+this.xmlCount].status == 200) ) {
+			if (gen_Proc['xml'+this.xmlCount].responseText.length > 20) {
                     console.log('OK>20');
-				console.log(this.ajax.responseText)
-				var jsonitems = JSON.parse(this.ajax.responseText); 
+				console.log(gen_Proc['xml'+this.xmlCount].responseText)
+				var jsonitems = JSON.parse(gen_Proc['xml'+this.xmlCount].responseText); 
 				//console.log( jsonitems[0]);
 				 //console.log( jsonitems[1]);
 				var key,size = 0;
@@ -1261,20 +1497,57 @@ var gen_Proc = {
 					}//end for
 				}//ajax repsonse.length
 			else {
-				if (this.ajax.responseText==='no return'){
+				if (gen_Proc['xml'+this.xmlCount].responseText==='no return'){
 					console.log( 'No Return Values Found in Database');
 					}
-				else if (this.ajax.responseText==='reBuffed'){
+				else if (gen_Proc['xml'+this.xmlCount].responseText==='reBuffed'){
 					console.log( 'reBuffed');
 					}
-				else if (this.ajax.responseText.length>0){
-					console.log( this.ajax.responseText+' sent under 20');
+				else if (gen_Proc['xml'+this.xmlCount].responseText==='updateImages'){
+					console.log('Tiny Images directories and image resizing checked');
+					}
+				else if (gen_Proc['xml'+this.xmlCount].responseText.length>0){
+					console.log(gen_Proc['xml'+this.xmlCount].responseText+' sent under 20');
 					}
 				else console.log( 'JasonReturn or mistake in handle replace');
+                    
 				}
 			 
 			}//ready state
 		},//end handle_replace
+     handle_respond	:   function () {  
+		if ( (gen_Proc['xml'+this.xmlCount].readyState == 4) && (gen_Proc['xml'+this.xmlCount].status == 200) ) {
+			if (gen_Proc['xml'+this.xmlCount].responseText.length < 5 && gen_Proc['xml'+this.xmlCount].responseText.length > 1 ) { 
+				console.log(gen_Proc['xml'+this.xmlCount].responseText)
+				var jsonitems = JSON.parse(gen_Proc['xml'+this.xmlCount].responseText); 
+				var key,size = 0;
+				for (key in jsonitems){
+					if (jsonitems.hasOwnProperty(key)) size++;
+					}
+				for (i=0; i<size; i++){ 
+                         if (jsonitems[i]=='genVal') { 
+						i++
+						gen_Proc[jsonitems[i]]=jsonitems[i+1];
+						}
+					}//end for
+				}//ajax repsonse.length
+			else {
+				if (gen_Proc['xml'+this.xmlCount].responseText==='no return'){
+					console.log( 'No Return Values Found in Database');
+					}
+				else if (gen_Proc['xml'+this.xmlCount].responseText==='reBuffed'){
+					console.log( 'reBuffed');
+					}
+				else if (gen_Proc['xml'+this.xmlCount].responseText==='updateImages'){
+					console.log('Tiny Images directories and image resizing checked');
+					}
+				else if (gen_Proc['xml'+this.xmlCount].responseText.length>0){
+					console.log(gen_Proc['xml'+this.xmlCount].responseText+' sent under 20');
+					}
+				else console.log( 'JasonReturn or mistake in handle replace');
+                    }
+			}//ready state
+		},//end handle_respond
 	handle_image	:  function () { 
 		if ( (this.ajax.readyState == 4) && (this.ajax.status == 200) ) {
 			if (this.ajax.responseText.length > 10) {
@@ -1308,7 +1581,7 @@ var gen_Proc = {
 					fadeTo.setOpacity(holderobj,100);
 					}
 				//document.getElementById('goto_'+ext).focus();
-				if (jsonitems[5] !=='undefined'){ 
+				if (typeof(jsonitems[5]) !=='undefined'){ 
 					dataobj=document.getElementById(jsonitems[5]);
 					document.body.style.backgroundImage=gen_Proc.getComputedStyle(dataobj,"background-image");
 					document.body.style.backgroundColor=gen_Proc.getComputedStyle(dataobj,"background-color");
@@ -1328,14 +1601,13 @@ var gen_Proc = {
 	alert : function(msg){
 		alert(msg)
 		},//testing aajax
-	autoGrowFieldScroll	:  function(f) {  
+	autoGrowFieldScroll	:  function(f) {
 		if (f.style.overflowY != 'scroll') f.style.overflowY = 'scroll';         
           var scrollH = f.scrollHeight;
 		if(!f.style.height|| scrollH > f.style.height.replace(/[^0-9]/g,'') ){
 			scrollit=scrollH+60;   
 			f.style.height = scrollit+'px';  
 			}
-		 
 		},//end autogrowfieldscroll function
 	videoRespond	: function(f){ 
 		var pwidth=Math.max(f.offsetWidth,f.clientWidth);
@@ -1387,61 +1659,46 @@ var gen_Proc = {
 	 
 		fadeTo.fadeTo_init(pid,500,0,100,2);
 		},
-	imageResponseBack 	:  function(f){  //background slideshow 
-		var pwidth=Math.max(f.offsetWidth,f.clientWidth); 
-		var oldWidth=f.getAttribute('data-wid');
-		var maxcheck=Number(oldWidth) + pwidth/5;//for checking size range
-		var mincheck=Number(oldWidth) - pwidth/15;
-		//double check height to width of element regardless of resizing larger smaller  or changing image
-		var aspect=f.getAttribute('data-asp');
-		if (\$(f).hasClass('limit')) f.style.height=pwidth/aspect+'px';  
-		if ( pwidth > maxcheck){ 
-			 f.setAttribute('data-wid',pwidth);//update data-wid for future pwidth check
-			var newWidth=gen_Proc.keyUp(pwidth,gen_Proc.image_response,gen_Proc.maxPicLimit);	
-			var pattern=new RegExp(gen_Proc.image_response_dir_prefix+"[0-9]+\/");
-			var imgarr = f.getElementsByTagName('span');//backauto within spans
-			for (i=0; i < imgarr.length; i++){  
-				oldUrl=imgarr[i].style.backgroundImage;   
-				var newUrl = oldUrl.replace(pattern,gen_Proc.image_response_dir_prefix+newWidth+'/');
-				//gen_Proc.picUrl=newUrl;  
-				var pattern2=/url\((.*?)\)/;
-				if (newUrl.match(pattern2)){ 
-					var newSrc=newUrl.match(pattern2)[1];  
-					re=/"/g
-					newSrc=newSrc.replace(re,''); 
-					if (gen_Proc.fileExists(newSrc)){   
-					    url='url('+newSrc+')';
-						imgarr[i].style.backgroundImage=url; //alert(url)
-						}
-					else { if (gen_Proc.Dev&&(gen_Proc.Edit||gen_Proc.Loc)) alert ('Ajax background image response creating '+gen_Proc.picSrc);
-						var pattern=new RegExp(gen_Proc.auto_slide_dir);
-						if (!newSrc.match(pattern)){
-							var url = window.location.href.split('?')[0];
-							gen_Proc.use_ajax(url+'?create_image2='+ gen_Proc.picSrc+'@@'+gen_Proc.imgSize+'&sess_token='+gen_Proc.token,'handle_replace','get'); 
-							}
-						if (gen_Proc.fileExists(newSrc)){  //after creating image try again...
-							url='url('+newSrc+')';
-							imgarr[i].style.backgroundImage=url;  
-							f.setAttribute('data-wid')=pwidth;
-							}
-						}//else
-					
-					}//if regex match
-				else alert ('nogex match')
-				}//for loop
-			} //max check  undersize
-		},//end function 
-	fileExists	:  function(file_url){ //http://stackoverflow.com/questions/18837735/check-if-image-exists-on-server-using-javascript
+	imageResponseBack    :  function(f){  //background slideshow 
+                var pwidth=Math.max(f.offsetWidth,f.clientWidth); 
+                var oldWidth=f.getAttribute('data-wid');
+                var maxcheck=Number(oldWidth) + pwidth/5;//for checking size range
+                var mincheck=Number(oldWidth) - pwidth/15;
+                //double check height to width of element regardless of resizing larger smaller  or changing image
+                var aspect=f.getAttribute('data-asp');
+                if (jQuery(f).hasClass('limit')) f.style.height=pwidth/aspect+'px';  
+                if ( pwidth > maxcheck){ 
+                        f.setAttribute('data-wid',pwidth);//update data-wid for future pwidth check
+                         var newWidth=gen_Proc.keyUp(pwidth,gen_Proc.image_response,gen_Proc.maxPicLimit);       
+                         var pattern=new RegExp(gen_Proc.image_response_dir_prefix+"[0-9]+\/");
+                         var imgarr = f.getElementsByTagName('span');//backauto within spans
+                         for (i=0; i < imgarr.length; i++){  
+                              var oldUrl=imgarr[i].style.backgroundImage;
+                              var myimg=imgarr[i];
+                              var newUrl = oldUrl.replace(pattern,gen_Proc.image_response_dir_prefix+newWidth+'/');
+                              var pattern2=/url\((.*?)\)/;
+                              if (newUrl.match(pattern2)){ 
+                                   var newSrc=newUrl.match(pattern2)[1];  
+                                   re=/"/g
+                                   newSrc=newSrc.replace(re,'');
+                                   if (gen_Proc.fileExists(newSrc)){   
+                                        url='url('+newSrc+')';
+                                        imgarr[i].style.backgroundImage=url; 
+                                        }
+                                   else { 
+                                        gen_Proc.webmodeImageErrorBack.push('Error Background Slide missing fn; '+newSrc+'in background image post id: ');
+                                        console.log(newSrc + ' Does Not Exist');
+                                        }//else
+                                   }//if regex match
+                              else if (gen_Proc.Dev&&(gen_Proc.Edit||gen_Proc.Loc)) alert('nogex match')
+                              }//for loop
+                        } //max check  undersize
+                },//end functio 
+	fileExists	:  function(file_url){ //for time delayed background slide shows..
 		var http = new XMLHttpRequest();
 		http.open('HEAD', file_url, false);
 		http.send();
 		return http.status != 404;
-		},
-	imageExists : function(url, callback){//http://stackoverflow.com/questions/14651348/checking-if-image-does-exists-using-javascript
-		var img = new Image();
-		img.src = url;
-		img.onload = function() { callback && callback(true); }; 
-		img.onerror = function() { callback && callback(false); };
 		},
 	passvar	:  function(){ 
          var w =  document.URL ;
@@ -1468,7 +1725,6 @@ var gen_Proc = {
 					}
                     }
 			}
-         
           },
 	keyDown  :	function(value,arr){  
 		var prev=0;  
@@ -1480,19 +1736,22 @@ var gen_Proc = {
 			}
 		return 0; 
 		}, 
-	keyUp  :	function(value,arr){
-		max= 'nolimit';//= (arguments[2])?arguments[2]:'nolimit'; 
-		
+	keyUp  :	function(value,arr){ 
+		var max= 'nolimit';
+          value=parseInt(value)
+          var returnMax=  arguments[2] && arguments[2] ==='max' ? arguments[2]:''; 
 		var prev=0; 
 		for (i in arr){
 			if (arr[i] >=value){
 				if (max  == 'nolimit' || arr[i] <= gen_Proc.maxPicLimit) 
-					return arr[i];
+					return parseInt(arr[i]);
 				else return prev;
 				}
 			prev=arr[i]
 			}
-		return 0;//maxval
+           
+          return parseInt(arr[arr.length-1]);
+		//return 0;  
 		}, 
 	validateEmail	:  function(data){   
 		var emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;  
@@ -1519,23 +1778,23 @@ var gen_Proc = {
 		var img = new Image();
 		img.src = mysrc;
 		img.onload = function() { 
-			\$('body').children().fadeTo(1000,0);
+			jQuery('body').children().fadeTo(1000,0);
 			setTimeout(function(){
-			\$('body').children().fadeTo(0,0);
-				\$('body').append('<div style="opacity:0;" id="coverall"><img src="'+mysrc+'" width="'+width+'" height="'+height+'"></div>'+ 
+			jQuery('body').children().fadeTo(0,0);
+				jQuery('body').append('<div style="opacity:0;" id="coverall"><img src="'+mysrc+'" width="'+width+'" height="'+height+'"></div>'+ 
 				'<script>'+
-				'\$("#coverall").click(function(){'+
-					'\$(this).fadeTo("1000",0);'+
+				'jQuery("#coverall").click(function(){'+
+					'jQuery(this).fadeTo("1000",0);'+
 					'setTimeout(function(){'+
-						'\$("body").children().show(0);'+
-						'\$("body").children().fadeTo(1000,1);'+
-						'\$("#coverall").remove();}, 1000);})'+
+						'jQuery("body").children().show(0);'+
+						'jQuery("body").children().fadeTo(1000,1);'+
+						'jQuery("#coverall").remove();}, 1000);})'+
 				'<\/script>');//append
-			\$("body").children().hide();
-			\$("#coverall").fadeTo(750,1);
+			jQuery("body").children().hide();
+			jQuery("#coverall").fadeTo(750,1);
 				
-			\$("#coverall").hover(function() {
-			\$(this).css('cursor','pointer');
+			jQuery("#coverall").hover(function() {
+			jQuery(this).css('cursor','pointer');
 			});
 				},1000);//setTimeout
 			}//end onload
@@ -1546,27 +1805,27 @@ var gen_Proc = {
 		var img = new Image();
 		img.src = mysrc;
 		img.onload = function() { 
-			\$('body').children().fadeTo(1000,0);
+			jQuery('body').children().fadeTo(1000,0);
 			setTimeout(function(){
-			\$('body').children().fadeTo(0,0);
+			jQuery('body').children().fadeTo(0,0);
 			var appenddiv='<div style="opacity:0;" id="coverall"><img src="'+mysrc+'" width="'+width+'" height="'+height+'"></div>';
-			var appendscript='\$("#coverall").click(function(){'+
-					'\$(this).fadeTo(1000,0);'+
+			var appendscript='jQuery("#coverall").click(function(){'+
+					'jQuery(this).fadeTo(1000,0);'+
 					'setTimeout(function(){'+
-						'\$("body").children().show(0);'+
-						'\$("body").children().fadeTo(1000,1);'+
-						'\$("#coverall").remove();}, 1000);}';
-			\$('body').append(appenddiv);
-			\$(function () {
-			\$('<script>')
+						'jQuery("body").children().show(0);'+
+						'jQuery("body").children().fadeTo(1000,1);'+
+						'jQuery("#coverall").remove();}, 1000);}';
+			jQuery('body').append(appenddiv);
+			jQuery(function () {
+			jQuery('<script>')
 			.text(appendscript)
 			.appendTo('body');
 			})
-			\$("body").children().hide();
-			\$("#coverall").fadeTo(750,1);
+			jQuery("body").children().hide();
+			jQuery("#coverall").fadeTo(750,1);
 				
-			\$("#coverall").hover(function() {
-			\$(this).css('cursor','pointer');
+			jQuery("#coverall").hover(function() {
+			jQuery(this).css('cursor','pointer');
 			});
 				},1000);//setTimeout
 			}//end onload
@@ -1580,13 +1839,28 @@ EOD;
 function  edit_Proc(){
 $this->javascript.= <<<EOD
 var edit_Proc = {
-	beforeSubmit	:  function () {  
+     url : window.location.href.split('?')[0].split('#')[0],
+	allowThis :  function(elem){
+          elem.className += ' allowthis';
+          },
+     beforeSubmit	:  function () {
 		var getInputs = document.getElementsByTagName("input");
 		var getSelects = document.getElementsByTagName("select");
 		var getTexts = document.getElementsByTagName("textarea");
 		var inputnum=0,selectnum=0,textnum=0,radionum=0,checknum=0;
-		
-		for(var i = 0; i < getTexts.length; i++) {
+		jQuery('.enableTiny').each(function(){
+               var inner=(this.innerHTML);
+               if (gen_Proc.scriptSubmit){  
+                         inner=inner.replace('/<script>/g','&lt;script&gt;');
+                         inner=inner.replace('/<\/script>/g','&lt;/script&gt;');
+                         }
+                    if (gen_Proc.iframeSubmit){
+                         inner=inner.replace('/<iframe/g','&lt;iframe');
+                         inner=inner.replace('/><\/iframe>/g','&gt;&lt;/iframe&gt;');
+                         this.html=inner;  
+                         } 
+               });
+		for(var i = 0; i < getTexts.length; i++) {  
 			var obj = getTexts[i];
 			if (obj.className.indexOf("llowthis")>0) {
 				//do nothing
@@ -1595,6 +1869,16 @@ var edit_Proc = {
 				if (obj.className.indexOf("mytextarea")<0) getTexts[i].disabled = true;
 				textnum++;
 				} 
+               else {
+                    if (gen_Proc.scriptSubmit){  
+                         obj.value=obj.value.replace('<script>','&lt;script&gt;');
+                         obj.value=obj.value.replace('/<\/script>/g','&lt;/script&gt;');
+                         }
+                    if (gen_Proc.iframeSubmit){
+                        obj.value=obj.value.replace('<iframe','&lt;iframe');
+                        obj.value=obj.value.replace('></iframe>','&gt;&lt;/iframe&gt;');
+                         } 
+                    }
 			}
 		for(var i = 0; i < getSelects.length; i++) { 
 			var obj = getSelects[i];
@@ -1712,15 +1996,12 @@ var edit_Proc = {
 		document.getElementById('dis_'+name).style.display='none';
 		document.getElementById('show_'+name).style.display='block';
 		var selected = obje.options[obje.selectedIndex].value;
-		 var url = window.location.href.split('?')[0];
-		 var url = url.split('#')[0];
-		gen_Proc.use_ajax(url+'?imageChoiceMaster='+selected+'@@'+bg_ref+'@@'+cid,'handle_replace','get'); 
+		gen_Proc.use_ajax(this.url+'?imageChoiceMaster='+selected+'@@'+bg_ref+'@@'+cid,'handle_replace','get'); 
 		},
 	imageSelectGallery	:  function(obje,cid,name,bg_ref){ 
 		document.getElementById(name).style.display='block';
 		var selected = obje.options[obje.selectedIndex].value; 
-		var url = window.location.href.split('?')[0];
-		gen_Proc.use_ajax(url+'?imageSelectGallery='+selected+'@@'+cid,'handle_replace','get'); 
+		gen_Proc.use_ajax(this.url+'?imageSelectGallery='+selected+'@@'+cid,'handle_replace','get'); 
 		},	
 	enableTiny	: function(mObj,mId,rClass){
 		mObj.style.background='green';
@@ -1733,10 +2014,27 @@ var edit_Proc = {
 			return;
 			}
 		else {
-			var editor = tinymce.EditorManager.createEditor(mId,tinymce.settings);
-			editor.render();
+               var editor = tinymce.EditorManager.createEditor(mId,tinymce.settings);
+			editor.render(); 
+               tinymce.activeEditor.on('drop', function(e) {
+               setTimeout(function(){
+                    jsExpressEdit.sortRespond(editor.id);//sorting or drag & drop iframe check and response
+                    }, 300);
+               });
+              
+          var selection =rObj.parentNode.querySelector('.altEdOptionShow');
+          if (selection  !== null)
+               rObj.parentNode.querySelector('.altEdOptionShow').style.display='block';
 			}
 		},
+     useAjaxSort  :  function(id,self,changeId,style,sortid) {gen_Proc.use_ajax(self+'?update_sort_quiet='+style+'@@'+changeId+'@@'+ToolMan.junkdrawer().serializeList(document.getElementById(id))+'@@'+sortid,'handle_replace','get');
+		},
+	ajaxSort  :  function(getCheck,id,self,updateId,changeId,msg) { 
+		 gen_Proc.use_ajax(self+'?'+getCheck+'='+ToolMan.junkdrawer().serializeList(document.getElementById(id))+'@@'+updateId+'@@'+changeId+'@@'+msg,'handle_replace','get');
+		},
+	sendListOrder  : function(id,self){ 
+	gen_Proc.use_ajax(self+'?update_sort_submit='+ToolMan.junkdrawer().serializeList(document.getElementById(id)),'handle_replace','get');
+	},
 	sendGallOrder	: function(item) {
 		var msg='Changes are immediate and your Gallery Order has been Updated. Refresh in editmode or submit other changes then view Webpage to see' ;
 		var junkdrawer = ToolMan.junkdrawer()
@@ -1745,7 +2043,6 @@ var edit_Proc = {
 		var id = list.getAttribute("id")
 		var bid = edit_Proc.sortDataId
 		var inc = edit_Proc.sortDataInc
-		var url = window.location.href.split('?')[0];
 		if (bid == null || inc == null){
 			alert('get Data attribute Fail. For editing try different Modern Browser for best results')
 			return
@@ -1755,18 +2052,16 @@ var edit_Proc = {
 			return
 			}
 		group.register('dragend', function() {  
-			junkdrawer.ajaxSort("gall_sort",id,url,bid,"updateGallMsg_"+ inc, msg);
+			edit_Proc.ajaxSort("gall_sort",id,edit_Proc.url,bid,"updateGallMsg_"+ inc, msg);
 			})  
 		},
 	sendSlideOrder	: function(item) {
 		var msg='Changes are immediate and your Slide Show Order has been Updated. Refresh to see' ;
-		var junkdrawer = ToolMan.junkdrawer()
 		var group = item.toolManDragGroup
 		var list = group.element.parentNode ; 
 		var id = list.getAttribute("id")
 		var bid = edit_Proc.sortDataId
 		var inc = edit_Proc.sortDataInc
-		var url = window.location.href.split('?')[0];
 		if (bid == null || inc == null){
 			alert('get Data attribute Fail. For editing try different Modern Browser for best results')
 			return
@@ -1776,35 +2071,30 @@ var edit_Proc = {
 			return
 			}
 		group.register('dragend', function() {  
-			junkdrawer.ajaxSort("auto_sort",id,url,bid,"updateMsg_"+ inc, msg);
+			edit_Proc.ajaxSort("auto_sort",id,edit_Proc.url,bid,"updateMsg_"+ inc, msg);
 			})  
 		},
 	sendEditOrder	: function(item) {
-	// Modified implementation of tool-man  dragsort related  js created by Tim Taylor Consulting <http://tool-man.org/>
+	// tool-man  dragsort related  js created by Tim Taylor Consulting <http://tool-man.org/>
 		var msg='Changes are immediate and your Editor Color Order has been Updated. Refresh page or submit other changes to View the new order' ;
-		var junkdrawer = ToolMan.junkdrawer()
 		var group = item.toolManDragGroup
 		var list = group.element.parentNode ; 
 		var id = list.getAttribute("id")
-		var bid = edit_Proc.sortDataId
-		var url = window.location.href.split('?')[0];
-		if (bid == null){
-			alert('get Data attribute Fail. For editing try different Modern Browser for best results')
-			return
-			}
+		var bid = null; //
 		if (id == null ){
 			alert('get Id Fail. For editing try different Modern Browser for best results')
 			return
 			}
 		group.register('dragend', function() {  
-			junkdrawer.ajaxSort("pageEd_sort",id,url,bid,"updatePageEdMsg",msg);
-			})  
+			edit_Proc.ajaxSort("pageEd_sort",id,edit_Proc.url,bid,"updatePageEdMsg",msg);
+			})
+         // alert ('ajaxSort getCheck&id'+ id+', self: '+    self +',bid; '+bid+ ',"altTAEditMsg" id for msg '+ msg)  ;
 		}, 
 	makelistSortable	: function(o,func) {
-		// Modified implementation of tool-man  dragsort related  js created by Tim Taylor Consulting <http://tool-man.org/>  
+		//tool-man  dragsort related  js created by Tim Taylor Consulting <http://tool-man.org/>  
 		edit_Proc.sortDataId=o.getAttribute('data-id');
 		edit_Proc.sortDataInc=o.getAttribute('data-inc')
-		dragsort.makeListSortable(o,func) 
+		dragsort.makeListSortable(o,func)//sorts out o and passes callback func with sorted list..
 		},
 	divTextArea	: function(elem){
 		gen_Proc.addEvent(elem, 'click', function(){
@@ -1813,7 +2103,8 @@ var edit_Proc = {
 			var textArea=elem.parentNode.getElementsByTagName('textarea')[0];
                 textArea.style.display = "block";
 			gen_Proc.autoGrowFieldScroll(textArea);
-			elem.style.display = "none";  
+			elem.style.display = "none";
+               //elem.parentNode.querySelector('.altEdOptionShow').style.display='block';
 			})
 		},   
 	showhide	:  function(obje,ele){   
@@ -1854,8 +2145,7 @@ var edit_Proc = {
 				 edit_Proc[funct](act,refid);
 				}
 			}
-		if    (funct==null) return collect;
-			
+		if    (funct==null) return collect; 
 		},//end getTags func
 	oncheck	:  function(idname,msg){ 
 		if (document.getElementsByName(idname).length===0){
@@ -1875,8 +2165,90 @@ var edit_Proc = {
 			//document.getElementById(id).style.backgroundColor=color;
 			//arguments[1].style.backgroundColor=color;
 			}
-		}//end displaythis 
+		}//end displaythis
 	}//end edit_Proc
+     jQuery.fn.justtext = function() {//from https://www.viralpatel.net/jquery-get-text-element-without-child-element/
+          return jQuery(this)	.clone().children().remove().end().text();
+          }
+     
+     function initnoUiSlider(inc,range1,range2,size,increment,unit,factor,unit2){ 
+if (arguments.length>7&&arguments[8]){
+     size=(window['updateinput_'+inc].value);
+     window['updateSlider_'+inc].noUiSlider.destroy();
+     }
+else document.getElementById('button-create-slide_'+inc).className += " hide";
+var diff=(range2-range1); 
+var nextincrement=0;
+var totaldiff=diff/increment; 
+if  (totaldiff >=2000 ){
+     nextincrement=increment;
+     increment=20*increment;
+     }
+else if  (totaldiff >=1000 ){
+     nextincrement=increment;
+     increment=10*increment;
+     }
+else if  (totaldiff >=400 ){
+     nextincrement=increment;
+     increment=5*increment;
+     } 
+window['updateSlider_'+inc] = document.getElementById('slider-update_'+inc);
+window['updateSliderValue_'+inc] = document.getElementById('slider-update-value_'+inc);
+window['updateinput_'+inc]=document.getElementById('slider-input_'+inc); 
+var datarange1=window['updateinput_'+inc].getAttribute('data-min');
+var datarange2=window['updateinput_'+inc].getAttribute('data-max');
+if (document.getElementById('slider-checkbox_'+inc))
+     window['updateslidercheck_'+inc]=document.getElementById('slider-checkbox_'+inc);
+
+noUiSlider.create(window['updateSlider_'+inc], {
+	range: {
+		'min': range1,
+		'max': range2
+	}, 
+	start: size, 
+	step: increment
+});
+
+var convert= unit2 !== '' && factor !=='1' ?'  &nbsp;'+(parseFloat(window['updateinput_'+inc].value*factor).toFixed(2))+unit2:'';
+window['updateSliderValue_'+inc].innerHTML=window['updateinput_'+inc].value+unit+convert;//inititial
+
+window['updateSlider_'+inc].noUiSlider.on('slide', function( values, handle ) { 
+     var num= Number.isInteger(increment) ? Number(values[handle]) : values[handle];
+      var convert= unit2 !== '' && factor !=='1' ?'  &nbsp;'+(parseFloat(num*factor).toFixed(2))+unit2:'';
+	 window['updateSliderValue_'+inc].innerHTML = num+unit+convert;
+});
+
+window['updateSlider_'+inc].noUiSlider.on('change', function( values, handle ) { 
+     var num= Number.isInteger(increment) ? Number(values[handle]) : values[handle];
+      var convert= unit2 !== '' && factor !=='1' ?'  &nbsp;'+(parseFloat(num*factor).toFixed(2))+unit2:'';
+	window['updateSliderValue_'+inc].innerHTML = num+unit+convert;
+	window['updateinput_'+inc].style.visibility='visible';
+	window['updateinput_'+inc].setAttribute('type','hidden');
+	window['updateinput_'+inc].value=num;
+     if (document.getElementById('slider-checkbox_'+inc)) 
+          window['updateslidercheck_'+inc].checked=false;
+});
+window['updateSlider_'+inc].noUiSlider.on('change', function( values, handle ) { 
+          if (nextincrement>0){ 
+               document.getElementById('button-refine-slide_'+inc).classList.remove('hide');
+               var current = values[handle];
+               window['updatenoUiSlidermin_'+inc]=Math.max(datarange1,+current-75*nextincrement);
+               window['updatenoUiSlidermax_'+inc]=Math.min(datarange2,+current+75*nextincrement);
+               window['updatenoUiSliderincrement_'+inc]=nextincrement; 
+               }
+     });
+}
+
+function updateSliderRange(inc) { 
+	window['updateSlider_'+inc].noUiSlider.updateOptions({
+		range: {
+			'min': window['updatenoUiSlidermin_'+inc],
+			'max': window['updatenoUiSlidermax_'+inc]
+		},
+          
+     step: window['updatenoUiSliderincrement_'+inc]
+	});
+} 
 EOD;
     }//end php function edit_Proc
     
@@ -2030,13 +2402,13 @@ var slideAuto =  {
 	count :  0,   
 	preload : 1, 
 	imageAdjust : 1,
-	slideAuto_init: function(l){ 
-	this.bigname_array=l.split(',');
-	this.endcount=this.bigname_array.length;
-	var self = this;
-	self.nextPhoto();//optionally javascript replace initially pic!
-	setInterval( function() { self.reinitImage(this.currentPicLink)} ,this.time);
-	}, 
+	slideAuto_init: function(l){ alert(this.imgId);
+		this.bigname_array=l.split(',');
+		this.endcount=this.bigname_array.length;
+		var self = this;
+		self.nextPhoto();//optionally javascript replace initially pic!
+		setInterval( function() { self.reinitImage(this.currentPicLink)} ,this.time);
+		}, 
 reinitImage : function(f ) {
 	this.time=this.timeout //replace in case of xhr response
 	this.flag = 0;
@@ -2069,34 +2441,28 @@ fadeImage : function() {
 moveOn : function() {    
 	if (this.opacity < this.minOpac && this.flag==1 ) alert('problem');
 	},
-nextPhoto : function() {
+nextPhoto : function(){ 
 	this.flag = 1;
 	this.delta = 2;   
 	this.opacity = this.minOpac;   
 	this.currentPicLink += 1
 	this.currentPicLink > this.endcount - 1 && (this.currentPicLink = 0);
 	this.currentPicLink == this.endcount - 1 && (this.preload = 0);
-	//this.currentPicLink < 0 && (this.currentPicLink = this.endcount - 1); 
-	var currWidth=Math.max(document.getElementById(this.divId).offsetWidth,document.getElementById(this.divId).clientWidth);
+	//this.currentPicLink < 0 && (this.currentPicLink = this.endcount - 1);
      var pN=document.getElementById(this.autoImgContain);
      var pObj=document.getElementById(this.imgId);  //buffer transition
-     currHeight=Math.max(pObj.offsetHeight,pObj.clientHeight);
-	pN.style.height=currHeight+'px';
-     currWidth=Math.max(pObj.offsetWidth,pObj.clientWidth);
+    currHeight=Math.max(pObj.offsetHeight,pObj.clientHeight);
+     pN.style.height=currHeight+'px';
+     var currWidth=Math.max(pObj.clientWidth,pObj.offsetWidth);
+     currWidth = currWidth > 10 ? currWidth : this.widInit; 
 	pN.style.width=currWidth+'px';
-     var calcDir=gen_Proc.keyUp(currWidth,gen_Proc.image_response,gen_Proc.maxPicLimit);	
+     var calcDir=gen_Proc.keyUp(currWidth,gen_Proc.image_response,gen_Proc.maxPicLimit);
 	var a = new Image();
 	a.src = this.dir + gen_Proc.image_response_dir_prefix+calcDir+'/'+ this.bigname_array[this.currentPicLink];
 	slideAuto.calcDir=calcDir; 
 	slideAuto.dir=this.dir + gen_Proc.image_response_dir_prefix+calcDir+'/'
 	slideAuto.picname=this.bigname_array[this.currentPicLink];
-	gen_Proc.imageExists2(a.src,function(exists){
-		if (!exists){
-			var url = window.location.href.split('?')[0];
-			gen_Proc.use_ajax(url+'?create_image='+ slideAuto.picname+'@@'+slideAuto.calcDir+'@@'+slideAuto.dir+'&sess_token='+gen_Proc.token,'handle_replace','get'); 
-			}
-		}) 
-	 this.preload==1 && (b.src= this.dir + gen_Proc.image_response_dir_prefix+calcDir+'/'+  this.bigname_array[this.currentPicLink]);
+	this.preload==1 && (b.src= this.dir + gen_Proc.image_response_dir_prefix+calcDir+'/'+  this.bigname_array[this.currentPicLink]);
 	var imgHeight = a.height;  
 	var imgWidth = a.width;
 	var imgRatio=a.width/a.height;

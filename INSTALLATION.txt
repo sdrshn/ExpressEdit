@@ -1,18 +1,20 @@
 ﻿Installation Guide
+check out video installation done on Bluehost.   www.expressedit.org/installation.php 
 
+or for install through cli ie. local system follow:
 tar -xvf expressEditInstall.tar.gz   decompress files/folders
 
 Relocate files/folders within the resulting expressEditInstall directory as follows:
 
 There are two ways to run this system:
 1. Using one set of class files to run multiple websites (with one set of class files placed in includes folder directly in the Server Home directory ie one level above public_html)
-2. Or using one set of class files for each website merged into the includes folder  which holds otherwise holds the local class files for each website (ie. site configs and local class files if site method customization is used) within public_html or sub-directory if used.
+2. Or using one set of class files for each website merged into the includes folder in the website home directory.  This then would hold the system class files for running the site and local website specific class files  (ie. site configs and local class files if site method customization is used) ie within public_html or sub-directory if used.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Single Site Method: Uses  the class files directly in the public html/includes folder or subdirectory: 
+Single Site Method: Uses  the class files directly in the public html/includes folder or subdirectory/includes folder: 
 merge/rename main_class_files to the includes folder already within the expressEditInstall directory which contains a few other 'local' files.
 Then move the includes dir:
-Relocation Sample:
-/home/youracc/public_html/includes  or  /var/www/includes (containing merged main class files and the Cfg.class.php and also a site_master, navigate_loc,gallery_loc,expandgallery_loc class files for adding custom changes if ever needed + 2 other files.)
+Relocation Example to where includes goes:
+/home/youracc/public_html/includes  or  /var/www/includes (containing merged main class files and the Cfg.class.php and also a site_master, navigate_loc,gallery_loc,expandgallery_loc class files for adding custom changes if ever needed)
 
 or if sub-directory is used:
 /public_html/sub-directory-name/includes
@@ -22,18 +24,17 @@ ie public_html/common_dir  or  /var/www/common_dir
 
 or if sub-directory is used:
 /public_html/sub-directory-name/common_dir
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 For running multiple sites rename main_class_files folder to includes and place in server home directory above the public dir. ie /home/youracc/public_html
 Also place the common_dir in this same server home folder. 
 
 So you end up with something like this:
-/home/youracc/includes  or    /var/includes  (containing the main class files)
+/home/youracc/includes  or    /var/includes for local system (containing the main class files)
 /home/youracc/common_dir    or  /var/common_dir/
  
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 For All installations:
 
 Move the install_file_gen.php file to your site home directory:
@@ -41,23 +42,91 @@ ie. /home/youracc/public_html/install_file_gen.php  or /var/www/install_file_gen
 if you are using a subdirectory/subdomain then it becomes:   
 /home/youracc/public_html/mysubdomain/install_file_gen.php 
 
-Install yourDatabase.sql database starter to mysql with appropriate name.
-
-Inside of the public_html/includes folder is the Cfg.class.php which you need to configure with your database name,  database password, and database host ie 'localhost', and specify an editpages directory name that is not easy to guess as an extra layer of security to prevent unwanted logins. Specify email address for success/error messages and any other configuration you may wish to change the default.
-
-If your using subdomains or subdirectories  
- be sure to specify the subdomain name in Cfg.class.php ie.:
- Owner_dir='sub-domain-name';
-
-Backups of the full database are made everytime the editsite is submitted. To view and restore backups a second database is used with identical fields to the main database. To site this up you give it an appropriate name in the Cfg.class.php const Db_view field. Any backup file will then populate this db to be viewed. This requires an initial install of this second database for subsequent automatic backup. You can use one backup database for multiple sites on same database or make independent backup databases depending on your needs. Copy yourdatabase with or without data using this new database name and it gets overridden for viewing chosen backup files during the backup process. 
-
-Lastly navigate to your site url adding the filename install_file_gen.php to the url which should generate the necessary files.
-Then you'll be prompted to set up login credentials and click the link to go to your editor and begin to add your content!!
-
-Delete the install_file_gen.php  file when installation completed.
-
-Contact me if any installations problems  etc.  info@expressedit.org
+before running installation setup mysql database
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+INSTALLATION OF DATABASE:  checkout video on expressedit.org/installation.php for installqation on bluehost  or for manual installation ie local system checkout cli commands below.
  
+Creating and installing databases, user, and permissions using online host servers is generally done through the control panel separate from phpmyadmin. Creating the database often automatically appends a prefix to the database name which will be reflected in your the Cfg.class.php file in your includes directory along with prefix to username, and a secondary database used for backups.
+Method 1 for hosted sites: Use Database manager to:
+Create database name.
+Create backup database name.  //see below for information on backupdatabase name used to view  backup copies for re-installation.
+
+Create user name and grant all permissions to your database name and backup database name.
+
+      ~~~~~~~~~~~~~~~~~~
+Alternate method for database creation on local systems:
+
+
+mysql example for local systems which permit database creation from cli:
+mysql -hlocalhost -uroot -p ;
+
+then from mysql> prompt:
+
+create database prefix_thai_rest;
+CREATE USER 'prefix_myusername@localhost' IDENTIFIED BY 'mypass';
+GRANT ALL  ON  prefix_thai_rest.*  TO 'prefix_myusername'@'localhost' identified by 'mypass';
+
+#will grant all permissions to all tables (prefix_thai_rest.*) on prefix_thai_rest database
+
+exit;
+mysql -hlocalhost -uroot -p  prefix_thai_rest  <  yourDatabase.sql
+#import all tables and data from yourDatabase.sql into prefix_thai_rest
+#Also Create and Import tables into your backup database..
+ ~~~~~~~~~~~~~~~~~~~
+On local systems installation can also be done directly using phpmyadmin
+      
+See installation video on expressedit.com for installation demo of files demo and database using phpmyadmin
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Finish the config and  installation of files:
+~~~~~~~~~
+Inside of the public_html/includes folder is the Cfg.class.php which you need to configure with your database credentials and a few other configs   ie:
+
+const Dbhost='localhost';//typical setting matching settings used when setting up database
+
+const Dbname='prefix_yourdbnamehere'; //put in your database name changing the prefix to the one required by your host server if needed.
+
+const Dbuser = 'prefix_myusername';//enter your database user name changing prefix to the host server prefix if required
+
+const Dbpass= 'mypass';  //latest mysqli requirement: specific at least 1 of each: uppercase, special characters  numeric    
+
+const PrimeEditDir = 'eddirnameXZf/'; // Edit login is made directly to the edit directory the name of which is specified here. Specify an editpages directory name that is not easy to guess as an extra layer of security to prevent unwanted logins. 
+
+ 
+Encrypt_pass='$%*)^RTtCVrr12';//change Encryp_pass  used to encrypt your login to editpages password this is used in secure_login
+Owner   = 'yourname';//optional reference to site used in messages
+
+~~~~~~~~~~~~~~~~~
+emails are  configured directly when creating  mailing list and contact form posts..
+however 
+ 
+Specify email addresses for:  
+const Admin_email='sample@hotmail.com,sample@yahoo.com';//error & success reporting   comma separate emails
+const Contact_email='sample@hotmail.com';// Comment, feedback list of comma separated emails. 
+const Mail_from='site@site.com';//optionally put a return mail from address.
+~~~~~~~~~~~~~~~~~~      
+
+const View_db='backupDb';//set up database that backups can be imported to for viewing ie a copy of Dbname except used for backup restoration.
+To view and restore backups a second database is used with identical fields to the main database.
+Backups of the full database are made everytime the editmode is submitted saving the last 100 copies depending on the Cfg_master.class.php file configuration. You can change to more or less copies as needed. 
+Give it an appropriate name in the Cfg.class.php const Db_view field. Any chosen backup file will then populate this db to be viewed and chosen for reinstall in case of user errors.
+
+You can use one backup database for multiple sites on same database or make independent backup databases depending on your needs. Copy yourdatabase with or without data using this new database name and it gets overridden for viewing chosen backup files during the backup process.
+
+~~~~~~~~~~~~~~~~~~~
+
+Lastly, to now run the installation file to generate needed file directories, etc.  navigate to your site home  add  /install_file_gen.php.
+Then you'll be prompted to set up login credentials on non local systems and click the link to go to your editor and begin to add your content!!
+
+Delete or move the install_file_gen.php  file when installation completed.
+
+Note: Most javascript from open source projects are minimized versions if provided unless has been modified for compatibility purposes here.
+
+
+ 
+Contact me if any installations problems  etc.  info@expressedit.org
 
 
 

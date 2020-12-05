@@ -1,8 +1,8 @@
 <?php
-#ExpressEdit 2.0.4
+#ExpressEdit 3.01
 /*
 ExpressEdit is an integrated Theme Creation CMS
-	Copyright (c) 2018  Brian Hayes expressedit.org  
+	Copyright (c) 2018   expressedit.org  
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -93,8 +93,8 @@ function menu_add_item($dir_menu_id,$dir_menu_order,$dir_sub_menu_order,$sub,$ti
      $page_arr=array();
      $print_arr=array(); 
 	$link=($sub)?'SUB-MENU': 'MAIN MENU';
-	show_more('Add NEW '.$link.' links Here', 'Add <span class="  italic">NEW '.$link.'</span> links Here','blackbackground white fs2white floatleft');
-     printer::print_wrap('add menu link');
+	show_more('Add NEW '.$link.' links Here', 'Add <span class="  italic">NEW '.$link.'</span> links Here','editbackground white fs2white floatleft');
+echo '<div class="navbackground fsm2redAlert">';
 	echo '<fieldset class="fs5navy"><!--Add Link--><legend>Add '.$link.'</legend>';
 	printer::alertx('<p class="fsminfo editfont editcolor editbackground">Note: This is To Add a New Page Already Created But Not Yet in This Menu. Otherwise Visit the Link at the Top of Any Regular Page To Create A New Page</p>');
 	if ($sub) 
@@ -121,9 +121,9 @@ function menu_add_item($dir_menu_id,$dir_menu_order,$dir_sub_menu_order,$sub,$ti
 	if(count($page_arr)<1) 
 		printer::alert('You Have no New Pages Created. New Pages are Pages that have been created but not yet Added to  any Menu. You May Create a New Page From the  New Page Link at the top of every Navigation Menu on the EditPages',1.2,'navy');
 	printer::pclear(9); 
-	show_more('Other Options', 'Close Other Options','white fs2white blackbackground floatleft','Link to External Site, Link to Internal PDF or HTML Page, Upload Internal Page'); 
+	show_more('Other Options', 'Close Other Options','white fs2white editbackground floatleft','Link to External Site, Link to Internal PDF or HTML Page, Upload Internal Page'); 
      printer::print_wrap('other ops','info',false,'nativeback editcolor editfont');
-	show_more('Add Navigation Menu Link to an External Website', '','white fs1info blackbackground','This Link Will Take Your Website Viewer Off Your Own Site');
+	show_more('Add Navigation Menu Link to an External Website', '','white fs1info editbackground','This Link Will Take Your Website Viewer Off Your Own Site');
      printer::print_wrap('External website add link','info',false,'nativeback editcolor editfont');
 	printer::print_info('Generally Links to Other Sites are made in Your Text.  However You May Wish to Create a Formal Menu Link To a Related Company or Personal Site of Your Own,Etc!','','navy');
 	printer::alertx('<p class="opacitybackground black floatleft">Enter the url address of the External Link. http:// will be appended automatically if you do not include it ie www.mysite.com<input type="text" name="add_external_link_url['.$dir_menu_id.'_x_'.$dir_menu_order.'_x_'.$dir_sub_menu_order.']" value="" size="60" maxlength="100"></p>');
@@ -148,7 +148,7 @@ function menu_add_item($dir_menu_id,$dir_menu_order,$dir_sub_menu_order,$sub,$ti
 	echo '</div><!--close show_more Other Options-->';  
 	 echo '</div><!--close show_more Add Link-->';
      submit();
-     printer::close_print_wrap('add menu link');
+	echo '</div><!--class="navbackground fsm2redAlert"-->';
 	printer::pclear();
      submit();
 	}
@@ -181,7 +181,7 @@ function show_more($msg_open,$msg_close='close',$class='',$title='',$border=fals
 	if (strpos($msg_close,'<span')!==false){ 
 		$msg_open=$msg_close;
 		}
-	$class=(!empty($class))?$class:'blackbackground white floatleft cursor buttonekblue';
+	$class=(!empty($class))?$class:'editbackground white floatleft cursor buttonekblue';
 	//$border=($border)?' fs2'.$this->column_lev_color:'';
     echo '<p class="cursor underline fs1info rad5 '.$class.'" title="'.$title.'" onclick="gen_Proc.show(\'show'.$show_more.'\',\''.$msg_open_mod.'\',\'\');" id="show'.$show_more.'">'.$msg_open.'</p>';
     printer::pclear(1);
@@ -259,12 +259,12 @@ echo'
 <script language="JavaScript" type="text/javascript" src="'.Cfg_loc::Root_dir.'scripts/tool-man/coordinates.js"></script>
 <script language="JavaScript" type="text/javascript" src="'.Cfg_loc::Root_dir.'scripts/tool-man/drag.js"></script>
 <script language="JavaScript" type="text/javascript" src="'.Cfg_loc::Root_dir.'scripts/tool-man/dragsort.js"></script>
-<script    src="../scripts/gen_Proceditscripts.js"></script>
 <script  src="../scripts/gen_Procscripts.js?19188?28088"></script>
+<script    src="../scripts/gen_Proceditscripts.js"></script>
 <link href="../styling/gen_edit.css" rel="stylesheet" type="text/css" >
 <link href="'.Cfg_loc::Root_dir.Cfg::Style_dir.'gen_page.css" rel="stylesheet" type="text/css" > 
 <link href="'.$css.'.css" rel="stylesheet" type="text/css" > 
-<link href="'.$css.'edit.css" rel="stylesheet" type="text/css" >
+<link href="'.$css.'pageedit.css" rel="stylesheet" type="text/css" >
 <link  href="'.Cfg_loc::Root_dir.Cfg::Style_dir.'utility.css"  rel="stylesheet" type="text/css" >
 <link rel="stylesheet" type="text/css" href="'.Cfg_loc::Root_dir.'scripts/tool-man/common.css">
 <link rel="stylesheet" type="text/css" href="'.Cfg_loc::Root_dir.'scripts/tool-man/lists.css">
@@ -294,6 +294,7 @@ echo'
 	//-->
 </script>
 <script type="text/javascript" >
+gen_Proc.tiny_cache=[];//set init not used in nav_edit..
 function checkpdffiles(f){ 
     f = f.elements;
     if(/.*\.(pdf)$/.test(f["upload"].value.toLowerCase())){ 
@@ -311,10 +312,14 @@ function gotoid(id){
     </script>
 <style type="text/css" >
 body, div, textarea, p {background:#accecd;color:black}
-.editbackground {background:black;}
+.editbackground {background:#687867;}
+.navbackground {background:#accecd;}
 .editcolor {color:white;}
 .nativeback {background:#accecd;}
+.nav_gen{padding:12px;}
 input {color:black;}
+div .black, ul .black, div textarea, div li, textarea.black, div input {color:#333;}
+html div input {background-color:#c5c8c5;}
 #containbackto {float:left;width:100px;}
 .backto { position:absolute; top: 0px; left: 0px; background:#fff; filter:alpha(opacity=50);opacity:.5; 
   width:100%; height:100%; padding:   .5rem 0 .5rem 0;
@@ -334,11 +339,12 @@ box-shadow: 1px 1px 5px -4px #0a2268;
 <body>
 <div style="max-width:1000px;margin:0 auto;padding-top:10px;">';
 (isset($_POST['pagepdfsubmitted']))&&process_pdf();
-$url=$postreturn.'?#'.$data; 
+$url=$postreturn.'?#'.$data;
+echo'<div id="topoutmenu" title="Page Top"  onclick="window.scrollTo(0,0);return false;">&#9650;</div></div><!--close topmenu-->';
 echo '<p class="navbackto"><a href="'.$url.'">Back to '.$page_title.'</a></p>';
 printer::pclear(5);
  show_more('GoTo Edit Link Directory');
-printer::print_redwrap('goto wrap');
+echo '<div class="navbackground fsm2redAlert">';
 printer::print_info('Go To Edit Links');
 $q="select dir_menu_order,dir_sub_menu_order,dir_title,dir_ref from ".Cfg::Directory_dir." where dir_menu_id='$dir_menu_id'  order by dir_menu_order asc,dir_sub_menu_order asc";
 $r=$mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true); 
@@ -355,9 +361,9 @@ while (list($dir_menu_order,$dir_sub_menu_order,$dir_title,$dir_ref)=$mysqlinst-
      }
      printer::pclear();
 
-printer::close_print_wrap('goto wrap');
+echo '</div><!-- class="navbackground"-->';
 echo '</div><!--show close choose goto menu-->'; 
-submit();  
+ 
 $q2="select distinct dir_menu_id from $directory_table where dir_menu_id !='$dir_menu_id'";
 $r2=$mysqlinst->query($q2,__METHOD__,__LINE__,__FILE__,false);
 if ($mysqlinst->affected_rows()){
@@ -368,8 +374,8 @@ if ($mysqlinst->affected_rows()){
      printer::printx('<p class="fsminfo editcolor editbackground floatleft">Change to Different Menu. Allows you to preserve all styles and Configurations for current Menu while changing Links Only !!</p>'); 
      printer::pclear(3);
           while (list($ndir_menu_id)=$mysqlinst->fetch_row($r2)){
-          echo '<div class="fs1color floatleft pb10 editbackground"><!--choose menu-->';
-          printer::alertx('<p class="pos"><input type="radio" value="'.$ndir_menu_id.'"  name="'.$data.'_blog_data1_arrayed">Use Menu Id: '.$ndir_menu_id.' Instead </p>');
+          echo '<div class="fs1gray  pb10 editbackground"><!--choose menu-->';
+          printer::alertx('<p class=""><input type="radio" value="'.$ndir_menu_id.'"  name="'.$data.'_blog_data1_arrayed">Use Menu Id: '.$ndir_menu_id.' Instead </p>');
           $navobj->no_icon=true;
           $navobj->render_menu($ndir_menu_id,'utility_horiz',false);
           echo '</div><!--end choose menu-->';
@@ -381,9 +387,9 @@ if ($mysqlinst->affected_rows()){
      printer::pclear(10);
      echo '</div><!--lightgreenbackground choose dif menu-->';
      echo '</div><!--show close choose diff menu-->';
-     }//affected rows
+     }//affected rows 
 printer::pclear();	
-show_more('Select Entire Menus to Delete', ' ','floatleft white blackbackground fsmoldlace rad5 smaller','',800); //menu created
+show_more('Select Entire Menus to Delete', ' ','floatleft white editbackground fsmoldlace rad5 smaller','',800); //menu created
 echo '<div class="editbackground editcolor"><!--lightredAlertbackground choose dif menu-->';
 printer::printx('<form  enctype="multipart/form-data" action="'.$postreturn.'" method="post" onSubmit="return edit_Proc.beforeSubmit()" >');
 printer::pclear();
@@ -421,32 +427,39 @@ if ($count>0){
 	printer::pclear(7);
 	if ($count>1){
 		printer::pclear();
+		 
+		
 		echo '
-		<div  style=" text-align:left; width:1000px; float:left;   border:3px solid '.Cfg::RedAlert_color.';  padding: 10px 30px 60px 30px;" ><!--Sorting-->
+		<div style=" text-align:left;  display:inline-block; margin-bottom:30px; border:3px solid white;  padding: 20px 60px" ><!--Sorting-->';
+		printer::print_tip('Caution: Updating main or sub menus will submit only menu link order change');
+		echo'
 		<p>Drag Link To ReOrder Main Menu List. </p>
 		<ul id="sort1" class="boxes">';//#sort
 		echo sort_box($dir_menu_id,'mainmenu',1); 
 		echo '</ul>';
 		printer::pclear(10);
-		echo '<p><button class="button cursor" type="button" onclick="ToolMan._junkdrawer.sendListOrder(\'sort1\',\''.Sys::Self.'\');">Update Main Menu ReOrder</button></p>';
+		echo '<p><button class="button cursor" type="button" onclick="edit_Proc.sendListOrder(\'sort1\',\''.Sys::Self.'\');">Update Main Menu ReOrder</button></p>';
 		echo '</div><!--Sorting-->';
+		
+		 
 		printer::pclear(10);
 		}
 	echo '
 	 <div class="white editfont"  style=" width:700px; float:left;   border:3px solid '.Cfg::RedAlert_color.';  padding: 10px 30px 60px 30px;">
 	<form  enctype="multipart/form-data" action="'.$postreturn.'" method="post" onSubmit="return edit_Proc.beforeSubmit()" >';
-	printer::alertx('<p class="info blackbackground floatleft fsminfo left " title="Each Menu has its id and this post will use Menu ID#'.$dir_menu_id.'">Editing Menu Id'.$dir_menu_id.' </p>');
+	
+	printer::alertx('><p class="info editbackground floatleft fsminfo left " title="Each Menu has its id and this post will use Menu ID#'.$dir_menu_id.'">Editing Menu Id'.$dir_menu_id.' </p>');
 	printer::pclear(5);
-
+	
      printer::pclear();
      $count2=$mysqlinst->count_field(Cfg::Directory_dir,'dir_filename','',false,"where dir_filename='index'"); 
      if ($count>0&&$count2 <1)printer::printx('<p class="fsminfo neg floatleft whitebackground"><!--No Opening/Home-->No Opening/Home page has been Selected.  Select Your Home/Opening Page:</p>'); 
      echo '<div class=""><!--change home page-->';
-     show_more('Select Opening/home page','Close Change Your Opening Page','fs2white blackbackground white floatleft');
+     show_more('Select Opening/home page','Close Change Your Opening Page','fs2white editbackground white floatleft');
      printer::print_wrap('select','info',false,'nativeback editcolor editfont');
      $q="select dir_external,dir_internal,dir_filename,dir_title,dir_menu_order from ".Cfg::Directory_dir." where dir_menu_id='$dir_menu_id' AND dir_sub_menu_order=0 order by dir_menu_order asc";
      $r=$mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);
-     printer::alertx('<p class="info floatleft blackbackground fs1info" title="When your web address is typed in it first goes to the Opening Page.  You may also change Your home page and old home page titles below">Choices Available: </p>');
+     printer::alertx('<p class="info floatleft editbackground fs1info" title="When your web address is typed in it first goes to the Opening Page.  You may also change Your home page and old home page titles below">Choices Available: </p>');
      while ($rows=$mysqlinst->fetch_assoc($r,__LINE__)){
           $dir_filename=$rows['dir_filename'];
           $dir_title=process_data::remove_line_break($rows['dir_title']);
@@ -459,7 +472,9 @@ if ($count>0){
      printer::close_print_wrap('select');
      echo '</div><!--show_more home page-->';
      echo '</div><!--end change home page-->';
-     printer::pclear(10);
+     printer::pclear(5);
+	submit();
+     printer::pclear(5);
      if ($count>0&&$count2 <1)printer::printx('</div><!--No Opening/Home-->');
      $q="select $dir_fields from $directory_table where dir_menu_id='$dir_menu_id' AND dir_sub_menu_order=0 order by dir_menu_order asc";
      $r=$mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);
@@ -472,17 +487,16 @@ if ($count>0){
                }
           ($mainlink===1)&& menu_add_item($dir_menu_id,($dir_menu_order-.5),0,false,false);
            printer::pspace(15);
-          submit();
           echo '<fieldset id="main_'.$dir_title.'"class="border7 borderridge pos"><!--Surround While Link fields--><legend></legend>';
           printer::pclear(4);
-          printer::alertx('<p class="blackbackground info inline fsminfo" title="This refers to the visible Title Name of  your Menu Link: ie '.$dir_title.' for this page.">Change the Title of The <b>Main Menu Link</b> Having the Title: </p>');
+          printer::alertx('<p class="editbackground info inline fsminfo" title="This refers to the visible Title Name of  your Menu Link: ie '.$dir_title.' for this page.">Change the Title of The <b>Main Menu Link</b> Having the Title: </p>');
           printer::pclear();
          
           printer::alertx('<textarea class="black large"  style="width:90%;" name="dir_title_'.$dir_menu_id.'_'.intval($dir_menu_order).'_'.intval($dir_sub_menu_order).'" rows="3" cols="50" onkeyup="gen_Proc.autoGrowFieldScroll(this)">' . process_data::remove_characters($dir_title).'</textarea>');
           printer::pclear(2);
           printer::printx('<p class="left whtebackground black fsminfo floatleft"> Or  Upload a Link Image instead of using the Text Title. Note: Use Exact Size Image. Will not be resized. &nbsp;<a href="add_page_pic.php?wwwexpand=0&amp;www=0&amp;ttt='.intval($dir_menu_order).'&amp;fff='.intval($dir_sub_menu_order).'&amp;id='.$dir_menu_id.'&amp;id_ref=blog_id&amp;postreturn='.request::return_full_url().'&amp;css='.$css. '&amp;sess_override&amp;"><u>Upload Here</u></a></p>');
           printer::pclear();
-          show_more('Info','close Tech Info','blackbackground info small fs2info floatleft','click for mysql directory tech info');
+          show_more('Info','close Tech Info','editbackground info small fs2info floatleft','click for mysql directory tech info');
           printer::print_wrap('info','info',false,'nativeback editcolor editfont floatleft');
           printer::alertx('
           <strong> <em>Info For Developers</em></strong><br>
@@ -501,7 +515,7 @@ if ($count>0){
           elseif ($dir_internal)printer::alertx('<p class="information" title="Change Your Internal URL (Make  sure  you have uploaded a file and have the correct filename entered. Valid filetypes are (.html and .pdf ).
           (without the http://) here">Change Your Internal Menu Link address to an uploaded PDF or HTML PAGE ONLY<input type="text" value="'.$dir_filename.'" size="60" maxlength="60" name="dir_filename_'.$dir_menu_id.'_'.intval($dir_menu_order).'_'.intval($dir_sub_menu_order).'"></p>');
           elseif ($dir_filename!=='index'){
-               show_more('Advanced Option Filename', 'close advanced option filename','blackbackground fs2white whitecolor floatleft');
+               show_more('Advanced Option Filename', 'close advanced option filename','editbackground fs2white whitecolor floatleft');
                printer::print_wrap('Advanced Option Filename');
                printer::print_warn('Caution: Filenames only appear in the url address bar and generally go unnoticed.  However, Changing  the URL FILENAME  of the page will effect your search engine maximization, and render links that people have stored to your page useless');
                printer::pclear();
@@ -512,7 +526,7 @@ if ($count>0){
                printer::pclear(2);
                }//  ! index #1
           if ($dir_is_gall){
-               printer::alert('<a href="'.$dir_filename.$ext.'">Click Here To Add and Delete Galleries that are Under the link:&nbsp;<span class="pos"> '.$dir_title.'</span></a>');
+               printer::alert('<a href="'.$dir_filename.$ext.'">Click Here To Add and Delete Galleries that are Under the link:&nbsp;<span class=""> '.$dir_title.'</span></a>');
                echo '</fieldset><!--close fieldset for Link-->';
                printer::pspace(40);
                continue;
@@ -524,16 +538,18 @@ if ($count>0){
                printer::print_warn('YOU CANNOT DELETE THE OPENING/HOME PAGE. CHOOSE A NEW OPENING/HOME PAGE ABOVE FIRST',1);
                }
           else {
-               printer::alertx('<p class="blackbackground  whitecolor floatleft fs2white"><input type="checkbox" name="nav_delete[]"   value= "'.$dir_menu_id.'_'.$dir_menu_order.'_'.$dir_sub_menu_order.'">Delete this Main Menu Link '. $msg.'</p>');
+               printer::alertx('<p class="editbackground  whitecolor floatleft fs2white"><input type="checkbox" name="nav_delete[]"   value= "'.$dir_menu_id.'_'.$dir_menu_order.'_'.$dir_sub_menu_order.'">Delete this Main Menu Link '. $msg.'</p>');
                } // not index page
           printer::pclear(2);
           if ($count2 > 0){
                echo '<fieldset class="borderridge black border6 "><!--submenu border--> <legend class="black">Begin Sub Menu Link(s)</legend>'; 
-               printer::alertx ('<p class="marginauto pt10 center inline fsminfo blackbackground info"> Edit the Dropdown Sub-Menu Links under the Menu link '.$dir_title.' </p>');
+               printer::alertx ('<p class="marginauto pt10 center inline fsminfo editbackground info"> Edit the Dropdown Sub-Menu Links under the Menu link '.$dir_title.' </p>');
                if ($count2>1){
                     printer::pclear();
-                    echo '<div  style=" color:black; text-align:left;    border:3px solid '.Cfg::RedAlert_color.';  padding: 10px 30px 30px 30px;" ><!--Sorting-->
-                         <p>Drag Link To ReOrder This Sub Menu List</p>
+                    echo '<div  style=" color:black; text-align:left;    border:3px solid '.Cfg::RedAlert_color.';  padding: 10px 30px 30px 30px;" ><!--Sorting-->';
+				printer::print_tip('Caution: Updating main or sub menus will submit only menu link order change');
+                    echo
+				'<p>Drag Link To ReOrder This Sub Menu List</p>
                          <ul id="subsort_'.intval($dir_menu_order).'" class="boxes">';
                          echo sort_box($dir_menu_id,'submenu',$dir_menu_order);
                     echo '</ul>';
@@ -557,12 +573,12 @@ if ($count>0){
                    ($submenunum<2)&&menu_add_item($dir_menu_id,intval($dir_menu_order_sub),(intval($dir_sub_menu_order_sub)-.5),true,$dir_title);//add link beginning of submenu!  
                     echo '<fieldset id="sub_'.$dir_title_sub.'" class="fsmwhite"><legend>Edit Sub Link</legend>';
                     printer::pclear(4);
-                    printer::alertx('<p class="inline fsminfo blackbackground info" title="Sub Menu Links are links that show (dropdown) when you hover over the main Links that are always visible.  The visible name is used as the title for this page">Change the Title of The <b>Sub-Menu</b> Link#'.$submenunum.':</p>');
+                    printer::alertx('<p class="inline fsminfo editbackground info" title="Sub Menu Links are links that show (dropdown) when you hover over the main Links that are always visible.  The visible name is used as the title for this page">Change the Title of The <b>Sub-Menu</b> Link#'.$submenunum.':</p>');
                     printer::pclear();
                     printer::alertx('<textarea class="black larger"  style="width:90%;" name="dir_title_'.$dir_menu_id.'_'.intval($dir_menu_order_sub).'_'.intval($dir_sub_menu_order_sub).'" rows="3" cols="50"  
                     onkeyup="gen_Proc.autoGrowFieldScroll(this)">' . process_data::remove_characters($dir_title_sub).'</textarea>'); 
                     printer::pclear(2);
-                    show_more('Info','close Tech Info','blackbackground fs2info small floatleft info');
+                    show_more('Info','close Tech Info','editbackground fs2info small floatleft info');
                     printer::print_wrap('info','info',false,'nativeback editcolor editfont floatleft');
                     printer::alert('<strong> <em>Info For Developers</em></strong><br>
                     <strong> Navigation Title </strong>  <br>
@@ -579,7 +595,7 @@ if ($count>0){
                     printer::pclear(2);
                     if ($dir_external_sub)printer::alertx('<p class="information" title="Change Your External URL (Be sure to include the http://  for external site  reference) or link to an uploaded PDF file ie myfile.pdf  (without the http://) here">Change Your external URL address or "Sub-Link" address to an uploaded PDF<input type="text" value="'.$dir_filename_sub.'" name="dir_filename_'.$dir_menu_id.'_'.intval($dir_menu_order_sub).'_'.intval($dir_sub_menu_order_sub).'"></p>');
                     elseif ($dir_filename_sub!=='index'){
-                         show_more('Advanced Option: Filename', 'close advanced option filename','blackbackground fs2white whitecolor floatleft');
+                         show_more('Advanced Option: Filename', 'close advanced option filename','editbackground fs2white whitecolor floatleft');
                          printer::print_wrap('wrap filename','info',false,'nativeback editcolor editfont');
                          printer::print_warn('Caution: Filenames only appear in the url address bar and generally go unnoticed.  However, Changing  the URL FILENAME  of the page will effect your search engine maximization, and render links that people have stored to your page useless');
                          printer::pclear();
@@ -588,7 +604,7 @@ if ($count>0){
                          echo '</div><!--close show_more filename-->';
                          }//  ! index #1
                     else { 
-                         show_more('Advanced Option: Filename', 'close advanced option filename','blackbackground whitecolor floatleft');
+                         show_more('Advanced Option: Filename', 'close advanced option filename','editbackground whitecolor floatleft');
                          printer::alert('This is Your Current Opening/home page. Please note  there is no option to change the opening/Home page link filename which is index (.php) You must first select a new Home page as all Home page filenames must be index (.php)');
                          echo '</div><!--close show_more filename !index-->'; 
                          }//        else ! index #2

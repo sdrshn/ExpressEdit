@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.4
+#ExpressEdit 3.01
 #based on Larry Ullman php5 & 6 writings
     
 class secure_login {
@@ -284,7 +284,7 @@ function registration($regmsg=''){//retrieves registration information and passe
 <form action="" method="post" name="login_form">
 <p>$regmsg</p>
  <p>  Username: <input type="text" name="user" autofocus ><br>
-    Your Email: <input type="text" name="email" ><br>
+    Your Email: <input type="text" name="email" >(Not Required)<br>
    <input type="hidden" name="registration" value="true"><br>
    Password: <input type="password" name="password" id="password"><br>
    Repeat password:  <input type="password" name="password2" id="password2">
@@ -329,26 +329,16 @@ function submitenter(myform, password,user,e){
 	return true;
 	}
 var ax = false;
-     if (window.XMLHttpRequest) {
-          ax = new XMLHttpRequest();
-          try {
-               ax = new ActiveXObject("Msxml2.XMLHTTP");
-               }
-          catch (e1) {
-               try {
-                         ax = new ActiveXObject("Microsoft.XMLHTTP");
-                    }
-               catch (e2){
-                     }
-               }
+if (window.XMLHttpRequest) {
+	ax = new XMLHttpRequest();
+	}
 function initForm(form, password,user) {
-          var u=document.URL; var x=u.split("?");
-          ax.open("get",x[0]+'?genuserinfo=' + user.value);
-          ax.onreadystatechange = function(){hashform(form,password);}
-          ax.send(null);
-          return false;
-          }
-     }
+	var u=document.URL; var x=u.split("?");
+	ax.open("get",x[0]+'?genuserinfo=' + user.value);
+	ax.onreadystatechange = function(){hashform(form,password);}
+	ax.send(null);
+	return false;
+	} 
 function hashform(form,password){
 	if ( (ax.readyState == 4) && (ax.status == 200) ) {
 		if (ax.responseText.length > 10) {

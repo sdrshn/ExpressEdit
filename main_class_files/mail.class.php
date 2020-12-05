@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.4
+#ExpressEdit 3.01
 #testchange 336333
 class mail {
 	private static $instance=false; //store instance 
@@ -80,6 +80,7 @@ function mailwebmaster($succmessage, $errmessage, $vars='',$echo=true){if (Sys::
 	if (!empty($succmessage[0])&& !empty($errmessage[0])){
 		$subject='Success and Error in '. Sys::Self.' @'.$storeinst->tablename;  
 		$new_message=array_merge($succmessage, $errmessage);
+          process_data::log_to_file($errmessage);
 		}
 	else if(!empty($succmessage[0])){
 		$subject='updated site on '. Sys::Self.'  '.Sys::Dbname.' @'.$storeinst->tablename;  
@@ -136,7 +137,7 @@ function mailwebmaster($succmessage, $errmessage, $vars='',$echo=true){if (Sys::
 		}
     else $my_message.="\n Defined Vars  is false. Set mail::Defined_vars to true for all Vars Info";
 	
-	if (Sys::Web||self::Localmailsend){//if live ek
+	if (Sys::Web||self::Localmailsend){//
 		if (self::Mailsend===true) {
 			$addresses=explode(',',Cfg::Admin_email);
 			foreach ($addresses as $address){
@@ -146,29 +147,10 @@ function mailwebmaster($succmessage, $errmessage, $vars='',$echo=true){if (Sys::
 				}
 			} 
 		}//if server ekarsac
-		 
-	if (!is_dir(Sys::Home_pub.Cfg::Backup_dir.Cfg::Logfile_dir))mkdir(Cfg_loc::Root_dir.Cfg::Backup_dir.Cfg::Logfile_dir);  
-	    (!is_file(Cfg_loc::Root_dir.Cfg::Backup_dir.Cfg::Logfile_dir.Cfg::Log_file))&&file_put_contents(Cfg_loc::Root_dir.Cfg::Backup_dir.Cfg::Logfile_dir.Cfg::Log_file,''); 
-		(!is_file(Cfg_loc::Root_dir.Cfg::Backup_dir.Cfg::Logfile_dir.Cfg::Last_log))&&file_put_contents(Cfg_loc::Root_dir.Cfg::Backup_dir.Cfg::Logfile_dir.Cfg::Last_log,'');  
-		
-	$log_send_dir=Sys::Home_pub.Cfg::Backup_dir.Cfg::Logfile_dir;
-	$log_send= $log_send_dir.Cfg::Log_file;
-	$lastLogFile=$log_send_dir.Cfg::Last_log;
-	try {
-		$fp = new WriteToFile($log_send, 'a');// uses file
-		$fp->write($my_message);
-		$fp->close();  
-		file_put_contents($lastLogFile,$my_message); 
-		} 
-	catch (FileException $fe) {
-		if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-		$my_message= " The process could not be completed. Debugging information:" . NL. $fe->__tostring() . NL . $fe->get_details() .NL;
-		if (!Sys::Web) return;
-		$addresses=explode(',',Cfg::Admin_email);
-		foreach ($addresses as $address){
-			mail($address, 'Log File Problem', $my_message, "From: ".Cfg::Mail_from);
-			}
-		} 
+	
+     (!empty($errmessage[0]))&&process_data::log_to_file($errmessage);
+     (!empty($succmessage[0]))&&process_data::log_to_file($succmessage,Cfg::Success_file);	 
+	
 	}//function mail
 
 function mail_attachment($filename, $full_path, $mailto, $from_mail, $from_name, $replyto, $subject, $message) {
@@ -237,43 +219,7 @@ static function email_scrubber($value) {if (Sys::Methods) Sys::Debug(__LINE__,__
 	   return trim($value);  //
    
 	  } // End of email_scrubber() function.
-/*
- static function mail_send($email,$subject,$message,$from=''){
-	 	if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);if (Sys::Debug) echo 'made it to mail:mail_send';
-     if (Sys::Loc){
-	   echo NL.$subject;
-	   echo NL.$message;
-	  return;
-	   }
-    
-	$headers  =(!empty($from))?"From: $from\r\n": "From: ".Cfg::Mail_from."\r\n"; 
-    $headers .= "Content-type: text/html\r\n";
-    if (Sys::Debug)echo "headers is $headers";
-    //options to send to cc+bcc 
-    //$headers .= "Cc: [email]maa@p-i-s.cXom[/email]"; 
-    //$headers .= "Bcc: [email]email@maaking.cXom[/email]"; 
-     
-     $message =nl2br(wordwrap($message, 100));
-     $body = <<<EOF
-    <html> 
-    <body style="background: #d0d195"> 
-    <table width="700" border="0" align="center" style="padding-top: 30px; padding-bottom:30px; background-color: #e7e9c0">
-    <tr><td>
-    <table width="90%" border="0" align="center" style="background-color: #fff">
-    <tr><td>
-    <table width="90%" border="0" align="center"  style="background-color: #fff; padding-bottom: 30px;">
-    <tr><td>
-     $message
-	 </td></tr></table>
-    </td></tr></table>
-    </td></tr></table>
-     </body> 
-    </html> 
-EOF;
-if(Sys::Debug)echo "mail is $email subject is $subject body is $body and header is $headers";
-  if (!mail($email, $subject, $body, $headers)) {if (Sys::Debug)echo 'Mail send error';}
-  }
-  */
+
 static function error($msg,$subject='Mail error called:'){
 	$msg='  **  url: '.request::return_full_url().NL.$subject.' '. $msg;
 	process_data::log_to_file($subject.NL.$msg.NL);
@@ -310,7 +256,7 @@ static function alert($msg,$subject='mail::alert'){
 	process_data::write_to_file('error_last_log',$subject.NL.$msg.NL);
 	if (Sys::Loc){
 		printer::alert($subject.NL.$msg.NL);
-		print_r(debug_backtrace());
+		//print_r(debug_backtrace());
 		#debug_print_backtrace();
 		}
 	else {
@@ -343,19 +289,19 @@ static function alert2($msg,$subject='mail::alert'){
 		}
     } 
 
-static function success($msg,$subject='Successful Update: '){
+static function success($msg,$subject='Successful Update: ',$quiet=false){
 	$storeinst=store::instance();
 	$subject= self::country_subject()." ".$subject; 
 	$msg='  **  url: '.request::return_full_url().NL.self::user_full_lookup().NL. $msg;
-		process_data::log_to_file($subject.NL.$msg.NL); 
+		process_data::log_to_file($subject.NL.$msg.NL,Cfg::Success_file); 
 		if (Sys::Loc){
-		printer::alert_pos($msg,1); 
-		}
+               if ($quiet===false)printer::alert_pos($msg,1); 
+               }
 	else { 
 		$addresses=explode(',',Cfg::Admin_email);
 		foreach ($addresses as $address){
 			if (!mail($address,$subject, $msg, "From: ".Cfg::Mail_from)){
-				echo 'mail send error in success with '. $address;
+				if ($quiet===false)echo 'mail send error in success with '. $address;
 				}
 			}
 		}
@@ -363,9 +309,10 @@ static function success($msg,$subject='Successful Update: '){
 static function mininfo($msg,$subject='Update Info: '){ 
 	$subject= self::country_subject()." ".$subject; 
 	if (Sys::Loc){
-		process_data::write_to_file('mail',$msg,false,true); 
+		process_data::log_to_file($msg); 
 		}
 	else { 
+		process_data::log_to_file($msg);
 		$msg=$msg.NL. Self::user_full_lookup();
           $addresses=explode(',',Cfg::Admin_email);
 		foreach ($addresses as $address){

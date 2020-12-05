@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.4
+#ExpressEdit 3.01
 
 Class errors {
      
@@ -25,7 +25,7 @@ function __construct() {if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD_
 		$data= ob_get_contents();
 		ob_end_clean();
 		}
-	else $message.= "If necessary Enable debug backtrace by setting Cfg::Debug_backtrace to true in Config file";
+	else $message.= "To view full error messaging set Cfg::Error_exit to false and Cfg::Debug_backtrace to true in Config file: changing in Cfg.class.php if used there will override settings in Cfg_master.class.php";
 	if (Sys::Loc){  
 		echo $message.$data;
 		if ($exit){

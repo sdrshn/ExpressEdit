@@ -1,11 +1,12 @@
 <?php
-#ExpressEdit 2.0.4
+#ExpressEdit 3.01
 class file_generator extends file_generate{
 protected static $count_it=0;
 protected $file=false;
 protected $style=false;
 protected $blog_temp='';
 protected $up_size='1800';
+
 function __construct($return=false){  
 
 	 if(!$return===false)return;
@@ -30,18 +31,17 @@ function __construct($return=false){
 
 #?backupall is gotten in editpages and then used backup html batch which in turns backup all urls and filegenerator....!
 
-static function file_generate($style,$file,$cache=false){
+static function file_generate($style,$file,$cache=false,$loc_overwrite_class_files=false){
      set_time_limit(20);
 	 echo  "Generating ".__METHOD__." for current Database";
-		
 	 $_SESSION[Cfg::Owner.'filegen']=1;
 	 $galltable='';
 	 $nongall='';
 	 $backupinst=backup::instance();
 	 $mysqlinst = mysql::instance();
-	 ($file===true) && self::file_folder_generate(); 
+	 ($file===true) && self::file_folder_generate($loc_overwrite_class_files); 
 	 ($file===true) && self::editMaster_generate();  
-      ($file===true) && self::class_local_gen();
+      //($file===true) && self::class_local_gen(); using files included in includes directory
       ($file===true) && self::config_gen_edit();
 	 $pagetables=check_data::return_pages(__METHOD__,__LINE__,__FILE__,""); #set to   remove expand,highslide, and data tables
 	 $table_assoc=check_data::dir_to_file(__METHOD__,__LINE__,__FILE__,'',true);
@@ -53,7 +53,7 @@ static function file_generate($style,$file,$cache=false){
 		($cache==true) && $backupinst->backup_url($pagename);
 		($style===true) && file_generate::iframe_backup($filepagename.'.php');
 		($file===true) &&  file_generate::pageEdit_generate($pagename);//to generate editpages table reorder.php 
-		($file===true) &&  file_generate::page_generate($pagename);// this will create gallery master file
+		($file===true) &&  file_generate::page_generate($pagename);// 
 		} 
 	     $galltables=check_data::return_gallery_info(__METHOD__,__LINE__,__FILE__); #set to   remove expand,highslide, and data tables
           foreach ($galltables as $array){

@@ -25,17 +25,9 @@ if (!function_exists('stream_resolve_include_path')) {
 	}
 if (is_file('./includes/Cfg_loc.class.php'))
      include_once ('./includes/Cfg_loc.class.php');
-if (!is_file('./includes/Cfg_loc.class.php')){
-     define('xinstall',true);
-     if (is_file('./config_file_gen.php'))
-          include './config_file_gen.php';
-     else {
-          trigger_error('Error trying to regenerate from config_file_gen.php for system repair. Run in normal webpage mode not editmode if you recieve this message.');
-     exit();
-          }
-     exit('Try Rerunning this page.');
+	 
+else exit('Missing Cfg_loc.class.php file in includes directory.'); 
      
-     }
 if (!isset($_SERVER['SCRIPT_FILENAME'])||empty($_SERVER['SCRIPT_FILENAME'])){
 	trigger_error( 'System error in '.__FILE__.' reading: $_SERVER[\'SCRIPT_FILENAME\']');
      exit();

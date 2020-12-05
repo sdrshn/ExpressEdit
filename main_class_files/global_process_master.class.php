@@ -1,9 +1,9 @@
 <?php
-#ExpressEdit 2.0.4
+#ExpressEdit 3.01
 #see top of global edit master class for system overview comment dir..
 /*
 ExpressEdit is an integrated Theme Creation CMS
-	Copyright (c) 2018  Brian Hayes expressedit.org  
+	Copyright (c) 2018   expressedit.org  
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -324,8 +324,8 @@ function page_adjust_break_points(){
 function color_reset(){
      $this->show_more('Reset Colors');
 	printer::print_wrap('color reset');
-	printer::printx('<p class="editbackground editcolor small"><input type="radio" value="reset" name="force_color_reset">Reset to default the column-level colors and any tweaked value on this Page Only</p>');
-	printer::printx('<p class="editbackground editcolor small"><input type="radio" value="reset_all" name="force_color_reset">Reset to default the column-level colors and any tweaked value on all the Pages in this Website</p>');
+	printer::printx('<p class="editbackground editcolor small"><input type="radio" value="reset" name="force_color_reset">Reset any adjusted column level colors removing tweaked values on this Page Only</p>');
+	printer::printx('<p class="editbackground editcolor small"><input type="radio" value="reset_all" name="force_color_reset">Reset any adjusted column level colors removing tweaked values on all the Pages in this Website</p>');
 	
      printer::print_tip('Here you can reset to default the dark/light editor background and misc text colors.');
 	 printer::printx('<p class="editbackground editcolor small"><input type="radio" value="reset_back" name="reset_editor_background_colors">Reset dark/light editor background and misc. colors on this page</p>');
@@ -373,11 +373,8 @@ function page_cache_update(){
 		$this->message[]='Mistake in image cache update Changing sizes';
 		return;
 		}
-	$new_cache_arr=$this->generate_cache($new_cache,true); 
-	if ($new_cache_arr[$count-1] < 1000){
-		$this->message[]='Your Largest cache image directory size must be at least 1000 (px)';
-		return;
-		}
+     $this->page_cache=$new_cache;
+	$new_cache_arr=$this->generate_cache('page_cache',true); 
 	$new_cache=implode(',',$new_cache_arr);
 	if ($new_cache===$old_cache)return;
 	$q="update $this->master_page_table set page_cache='$new_cache'"; 
@@ -474,13 +471,13 @@ function page_cache_update(){
 		}
 	} 
 
-function java_page_iframe_all(){  
+function java_page_iframe_all(){ //using java_page_iframe_all for spacing out timewise to prevent server trigger blockage.. 
 	if (!$this->edit||!isset($_POST['page_iframe_all']))return; 
 	store::setVar('backup_clone_refresh_cancel',true);//this can be set on any class 
 	$this->iframe_update_msg='Wait For Loading to Finish. Allowing for all pages to update styles, flat files etc. with each page generating an iframe. This will take awhile to finish loading at top of this page.';
 	file_generate::javascript_render_backup_all(); 
 	}
-function page_iframe_all(){ return;
+function page_iframe_all(){ return;//using java_page_iframe_all for spacing out timewise to prevent server trigger blockage..
 	if (!$this->edit||!isset($_POST['page_iframe_all']))return;
 	store::setVar('backup_clone_refresh_cancel',true);//this can be set on any class 
 	$this->iframe_update_msg='Wait For Loading to Finish. Allowing for all pages to update styles, flat files etc. with each page generating an iframe. This will take awhile to finish loading at top of this page.';
@@ -684,7 +681,7 @@ function import_page(){if (Sys::Quietmode||Sys::Pass_class)return;
 	if (isset($_SESSION[Cfg::Owner.'dbname'])){  
 		$db=$_SESSION[Cfg::Owner.'dbname'];
 		$token= $this->sess->sess_token; 
-		echo '<div class="inline floatleft"><!-- float buttons-->';
+		echo '<div class="floatbutton"><!-- float buttons-->';
 		$this->show_more('View/Choose Theme Pages','asis','neg editbackground editfont smallest button'.$this->column_lev_color,'',500 ); 
 		printer::alertx('<p class="fsminfo editbackground editfont editcolor floatleft">Db: '.$db.'<br><br>Click  Page Link to View<br>OR<br>use Copy radio button for Page Import </p>');
 		printer::pclear();
@@ -708,7 +705,7 @@ function import_page(){if (Sys::Quietmode||Sys::Pass_class)return;
 		echo '</div><!-- float buttons--><!--full nav editbackground editfont-->'; 
 		}//db activated
 	 
-	$msg_choose_db=(isset($_SESSION[Cfg::Owner.'dbname']))?'Choose Different Theme Db':'Importing Theme Page';
+	$msg_choose_db=(isset($_SESSION[Cfg::Owner.'dbname']))?'Choose Different Theme Db':'Importing Theme';
      $this->display_themes($msg_choose_db);
      $this->mysqlinst->dbconnect();
 	
@@ -763,7 +760,7 @@ function add_new_page($batch_create=false){ if (Sys::Quietmode) return; if (Sys:
 				}//end while
 			}//affected rows
 		}//end delete page
-	echo '<div class="inline floatleft"><!-- float buttons-->';
+	echo '<div class="floatbutton"><!-- float buttons-->';
 	$this->show_more('Add/Del Pages','asis',$this->column_lev_color.'  smallest editpages editbackground editfont button'.$this->column_lev_color,'','full' );
 	$this->print_wrap('add delete page','info',false,'editbackground editcolor editfont floatleft');
 	
@@ -881,7 +878,7 @@ function delete_col($col_id,$clone=false){
 	}
 	
 function process_col(){   
-     $q="select col_table, col_id from $this->master_col_table where col_table_base='$this->pagename'";  
+     $q="select col_table, col_id from $this->master_col_table where col_table_base='$this->pagename'"; 
      $r=$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
      if ($this->mysqlinst->affected_rows()){
           while (list($col_table,$col_id)=$this->mysqlinst->fetch_row($r,__LINE__)){
@@ -901,11 +898,11 @@ function process_col(){
                     $this->process_col_flexcopy($col_id);
                }
           }
-     $q="select col_table, css_id from $this->master_col_css_table where col_table_base='$this->pagename'";  
+     $q="select col_table, css_id from $this->master_col_css_table where col_clone_target_base='$this->pagename'";  
      $r=$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
      if ($this->mysqlinst->affected_rows()){
           while (list($col_table,$css_id)=$this->mysqlinst->fetch_row($r,__LINE__)){ 
-               $where2=" and col_table_base='$this->pagename'";
+               $where2=" and col_clone_target_base='$this->pagename'";
                $this->process_col_data($col_table,$css_id,$this->master_col_css_table,Cfg::Col_fields,$where2,'clone_');
                }
           }
@@ -931,10 +928,9 @@ function process_col_data($tablename,$col_id,$dbtable=Cfg::Columns_table,$fields
 			$update.=" {$field_array[$x]}='${$field_array[$x]}',";  
 			}
 		}
-	
 	if ($update=== 'SET ')return; 
 	$update.="col_time='".time()."',token='".mt_rand(1,mt_getrandmax())."',col_update='".date("dMY-H-i-s")."'";//substr_replace($update,'',-1); 
-	$q="UPDATE $dbtable $update WhErE col_table='$tablename' $where2";   
+	$q="UPDATE $dbtable $update WhErE col_table='$tablename' $where2"; 
 	$r=$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);  
 	$vars=(mail::Defined_vars)?get_defined_vars():'defined vars set off';
 	$vars=print_r($vars,true); 
@@ -994,8 +990,8 @@ function process_blog($tablename,$col_id){
 			$this->process_post_configcopy($blog_id); 
 		(isset($_POST['post_rwdcopy'][$blog_id]))&&
 			$this->process_post_rwdcopy($blog_id); 
-		(isset($_POST['post_widthmodeexport'][$blog_id]))&& 
-			$this->process_post_widthmodeexport($blog_id);
+		(isset($_POST['post_altwidthexport'][$blog_id]))&& 
+			$this->process_post_altwidthexport($blog_id);
 		(isset($_POST['post_rwdexport'][$blog_id]))&& 
 			$this->process_post_rwdexport($blog_id);
 		(isset($_POST['post_heightexport'][$blog_id]))&& 
@@ -1012,8 +1008,8 @@ function process_blog($tablename,$col_id){
 			$this->process_col_flexitemexport($blog_id); 
 		(isset($_POST['post_flexcopy'][$blog_id]))&& 
 			$this->process_post_flexcopy($blog_id); 
-		(isset($_POST['col_widthmodeexport'][$blog_id]))&& 
-			$this->process_col_widthmodeexport($blog_id);
+		(isset($_POST['col_altwidthexport'][$blog_id]))&& 
+			$this->process_col_altwidthexport($blog_id);
 		(isset($_POST['col_floatexport'][$blog_id]))&& 
 			$this->process_col_floatexport($blog_id);
 		(isset($_POST['post_configexportdump'][$blog_id]))&& 
@@ -1112,8 +1108,6 @@ function process_post_configcopy($blog_id){
           $this->message[]='Post IDs Are FOUND AT THE TOP OF Each Post ie. The Number having the ID: P1, P2, etc. FORMAT. BE SURE TO INCLUDE THE P PREFIX ';
           return;
           }
-    
-     
      $base_value='blog_id,blog_clone_table,blog_col,blog_order,blog_type,blog_table,blog_table_base,blog_date,blog_status,blog_unstatus,blog_clone_target,blog_target_table_base,blog_temp';
      switch ($this->blog_type){
           case  'text':
@@ -1143,6 +1137,9 @@ function process_post_configcopy($blog_id){
           case 'auto_slide':
           $data_val=$base_value.',blog_data1';
           break;
+          case 'carousel':
+          $data_val=$base_value.',blog_data1';
+          break;
           case 'video':
           $data_val=$base_value.',blog_data1,blog_data2,blog_data3,blog_data4,blog_tiny_data1';
           break;
@@ -1170,20 +1167,20 @@ function process_post_configcopy($blog_id){
      
      $this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
      if ($this->mysqlinst->affected_rows()){
-             $this->success[]="Post p$blog_id was updated using styles and configs from Post p$parent_id";
-             }
+          $this->success[]="Post p$blog_id was updated using styles and configs from Post p$parent_id";
+          }
      else $this->message[]="Mismatch updating Post p$blog_id with Post p$parent_id"; 
      }
 	   
 function process_col_configexport($col_id){
      $parent_id=$_POST['col_configexport'][$col_id]; 
-	$fields='col_options,col_grid_clone,col_gridspace_right,col_gridspace_left,col_grid_width,col_tcol_num,col_style,col_style2,col_grp_bor_style,col_comment_style,col_comment_date_style,col_comment_view_style,col_date_style,col_width,col_hr';
+	$fields='col_options,col_flex_box,col_grid_clone,col_gridspace_right,col_gridspace_left,col_grid_width,col_tcol_num,col_style,col_style2,col_grp_bor_style,col_comment_style,col_comment_date_style,col_comment_view_style,col_date_style,col_width,col_hr';
 	$field_arr=explode(',',$fields); 	
-	$q="update $this->master_col_table t, $this->master_col_table r, $this->master_post_table  pt, $this->master_post_table  pr  SET ";
+	$q="update $this->master_col_table t, $this->master_col_table r, $this->master_post_table  pt, $this->master_post_table  pr  SET pt.blog_width_mode=pr.blog_width_mode, ";
 	foreach($field_arr as $field){
 		$q.="t.$field=r.$field,";
 		}
-	$q="$q t.token='".mt_rand(1,mt_getrandmax()). "',t.col_update='".date("dMY-H-i-s")."',t.col_time='".time()."' where  r.col_id=$col_id and pt.blog_data1=t.col_id and pr.blog_data1= r.col_id and pt.blog_col=pr.blog_col";
+	$q="$q t.token='".mt_rand(1,mt_getrandmax()). "',t.col_update='".date("dMY-H-i-s")."',t.col_time='".time()."' where  r.col_id=$col_id and pt.blog_data1=t.col_id and pr.blog_data1= r.col_id and pt.blog_col=pr.blog_col and pr.blog_type='nested_column' and pt.blog_type='nested_column'";
 	$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
 	if ($this->mysqlinst->affected_rows()){
 		$this->success[]="col p$col_id configs  and styles were exported to the same col types in this column";
@@ -1257,11 +1254,11 @@ function process_col_flexcopy($blog_id){
      else $this->message[]="Problem updating flex settings to Post p$col_id from Post p$parent_id"; 
      }
      
-function process_import($port){
+function process_import($port){  
 	$page_opts='';
 	switch ($port){
 		case 'page_style' :
-			$fields='page_style';
+			$fields='page_style,page_style2,page_style3';
 			break;
 		case 'page_editor_color' :
 			$fields='page_dark_editor_value,page_light_editor_value,page_dark_editor_order,page_light_editor_order';
@@ -1281,7 +1278,7 @@ function process_import($port){
 		default :
 			return;
 		}
-	$parent_ref=$_POST[$port.'_import'][$this->pagename]; echo $port.' is port';  echo $parent_ref .' is pr';
+	$parent_ref=$_POST[$port.'_import'][$this->pagename]; 
 	$value=''; 
 	$q="update $this->master_page_table c, $this->master_page_table p SET ";
 	foreach (explode(',',$fields) as $field){
@@ -1321,7 +1318,7 @@ function process_import($port){
 function process_export($port){
 	$page_opts='';
 	switch ($port){
-		case 'page_style' :
+		case 'page_style,page_style2,page_style3' :
 			$fields='page_style';
 			break;
 		case 'page_editor_color' :
@@ -1404,15 +1401,33 @@ function process_col_rwdexport($col_id){
 		}
 	}
 
-function process_col_widthexport($col_id){ 
-	$q="update $this->master_col_table t, $this->master_col_table r, $this->master_post_table pt, $this->master_post_table pr SET t.col_width=r.col_width, t.token='".mt_rand(1,mt_getrandmax()). "',t.col_update='".date("dMY-H-i-s")."',t.col_time='".time()."' where  t.col_primary!=1 and r.col_primary!=1 and r.col_id=$col_id and pt.blog_data1=t.col_id and pr.blog_data1=r.col_id and pt.blog_col=pr.blog_col"; // bt.blog_col and br.blog_col refer to the parent col ids being a match...
-     $this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
+function process_col_widthexport($col_id){
+	//here since blog_width_mode is used instead of creating col_width_mode to save a field.. we need to update this value  if changed and then passed as export in one operation.   So we need to update it first since the export operation here actually occurs before the normal updating of the blog_width_mode field...  so we do it here first..  blog_field to say this a nested column is held in the parent of this column...
+	$q="select blog_id,blog_table,blog_order,blog_width_mode from $this->master_post_table where blog_type='nested_column' and blog_data1='$col_id'";
+	$r=$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
+	if ($this->mysqlinst->affected_rows()){
+		list($id,$table,$order,$blogmode)=$this->mysqlinst->fetch_row($r,__LINE__);   
+		if (isset($_POST[$table.'_'.$order.'_blog_width_mode'])){
+			$newmode=process_data::implode_retain_vals($_POST[$table.'_'.$order.'_blog_width_mode'],$blogmode,',','@@');
+			$q="update $this->master_post_table set blog_width_mode='$newmode' where blog_id=$id";
+			$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);
+			}
+		}
+	
+	$q="update $this->master_col_table t, $this->master_col_table r, $this->master_post_table pt, $this->master_post_table pr SET pt.blog_width_mode=pr.blog_width_mode,t.col_width=r.col_width, t.token='".mt_rand(1,mt_getrandmax()). "',t.col_update='".date("dMY-H-i-s")."',t.col_time='".time()."' where  t.col_primary!=1 and r.col_primary!=1 and r.col_id=$col_id and pt.blog_data1=t.col_id and pr.blog_data1=r.col_id and pr.blog_type='nested_column' and pt.blog_type='nested_column' and pt.blog_col=pr.blog_col"; // bt.blog_col and br.blog_col refer to the parent col ids being a match...
+	 $this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
+	
+	
 	if ($this->mysqlinst->affected_rows()){
 		$this->success[]="col p$col_id width value setting  was exported to Nested column col types directly in the parent column";
 		}
 	else $this->message[]="No cols were affected for RWD Grid settings update using $q in col id P$col_id";
+	
+	$q="select blog_width_mode from $this->master_post_table where blog_data1='$col_id'"; 
+	$r=$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);  
+							list($val)=$this->mysqlinst->fetch_row($r,__LINE__); 
 	if (isset($_POST['col_post_widthexport'])){
-		$q="update $this->master_col_table r, $this->master_post_table pt, $this->master_post_table pr SET pt.blog_width=r.col_width, pt.token='".mt_rand(1,mt_getrandmax()). "',pt.blog_update='".date("dMY-H-i-s")."',pt.blog_time='".time()."' where r.col_id=$col_id and pr.blog_data1=r.col_id and pt.blog_col=pr.blog_col"; // bt.blog_col and br.blog_col refer to the parent col ids being a match... 
+		$q="update $this->master_col_table r, $this->master_post_table pt, $this->master_post_table pr SET pt.blog_width_mode=pr.blog_width_mode,pt.blog_width=r.col_width, pt.token='".mt_rand(1,mt_getrandmax()). "',pt.blog_update='".date("dMY-H-i-s")."',pt.blog_time='".time()."' where r.col_id=$col_id and pr.blog_data1=r.col_id and pr.blog_type='nested_column' and pt.blog_col=pr.blog_col"; // bt.blog_col and br.blog_col refer to the parent col ids being a match... 
 		$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
 		if ($this->mysqlinst->affected_rows()){
 		$this->success[]="col p$col_id width value setting was also exported to all direct Post types in the parent column";
@@ -1431,14 +1446,14 @@ function process_col_floatexport($blog_id){
 	else $this->message[]="No cols were affected for Alternative-RWD settings update using $q "; 
 	}
      
-function process_col_widthmodeexport($blog_id){
-     $include_nested=(isset($_POST['col_post_widthmodeexport']))?'':"and t.blog_type='nested_column'";
+function process_col_altwidthexport($blog_id){
+     $include_nested=(isset($_POST['col_post_altwidthexport'][$blog_id]))?'':"and t.blog_type='nested_column'";
 	$q="update $this->master_post_table t, $this->master_post_table r  SET t.blog_width_mode=r.blog_width_mode, t.token='".mt_rand(1,mt_getrandmax()). "',t.blog_update='".date("dMY-H-i-s")."',t.blog_time='".time()."' where  r.blog_id=$blog_id and r.blog_type='nested_column'  and t.blog_col=r.blog_col $include_nested";  
 	$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
 	if ($this->mysqlinst->affected_rows()){
 		$this->success[]="col Alternative-RWD settings were exported to nested column col types in same parent column";
 		}
-	else $this->message[]="No cols were affected for Alternative-RWD settings update using $q "; 
+	else $this->message[]="No cols were affected for Alternative-RWD settings update using $q ";
 	}
      
 function process_post_configexportdump($blog_id){//inter database
@@ -1525,13 +1540,16 @@ function process_post_configexport($blog_id){
           case 'auto_slide':
           $data_val=$base_value.',blog_data1';
           break;
+          case 'carousel':
+          $data_val=$base_value.',blog_data1';
+          break;
           case 'video':
           $data_val=$base_value.',blog_data1,blog_data2,blog_data3,blog_data4,blog_tiny_data1';
           break;
           default:
           $data_val=$base_value;
           }
-     if (!isset($_POST['post_allconfigcopy'][$blog_id])){ 
+     if (!isset($_POST['post_allconfigexport'][$blog_id])){ 
 		$fields2=',blog_width,blog_,blog_gridspace_right,blog_gridspace_left,blog_grid_width,blog_float';
 		$data_val.=$fields2; 
 		} 
@@ -1573,9 +1591,9 @@ function process_post_rwdexport($blog_id){
 		else $this->message[]="No Posts were affected for RWD Grid settings update using $q in post id P$blog_id";
 		}
 	}
-function process_post_widthmodeexport($blog_id){
-	$include_nested=(isset($_POST['post_col_widthmodeexport']))?'':"t.blog_type!='nested_column' and";
-	$msg_nested=(isset($_POST['post_col_widthmodeexport']))?' including nested column posts':'';
+function process_post_altwidthexport($blog_id){
+	$include_nested=(isset($_POST['post_col_altwidthexport']))?'':"t.blog_type!='nested_column' and";
+	$msg_nested=(isset($_POST['post_col_altwidthexport']))?' including nested column posts':'';
 	$q="update $this->master_post_table t, $this->master_post_table r SET t.blog_width_mode=r.blog_width_mode,
 		 t.token='".mt_rand(1,mt_getrandmax()). "',t.blog_update='".date("dMY-H-i-s")."',t.blog_time='".time()."' where $include_nested  r.blog_id=$blog_id and t.blog_table=r.blog_table";
 	$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
@@ -1649,8 +1667,9 @@ function process_col_flexitemexport($blog_id){ //will affect same field as proce
 	 }
      
 function process_post_widthexport($blog_id){
-	$q="update $this->master_post_table t, $this->master_post_table r SET t.blog_width=r.blog_width,
-	 t.token='".mt_rand(1,mt_getrandmax()). "',t.blog_update='".date("dMY-H-i-s")."',t.blog_time='".time()."' where  r.blog_id=$blog_id and t.blog_table=r.blog_table";
+	
+	$q="update $this->master_post_table t, $this->master_post_table r SET t.blog_width_mode=r.blog_width_mode,t.blog_width=r.blog_width,
+	 t.token='".mt_rand(1,mt_getrandmax()). "',t.blog_update='".date("dMY-H-i-s")."',t.blog_time='".time()."' where  r.blog_id=$blog_id and t.blog_table=r.blog_table and t.blog_type !='nested_column'";
 	$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
 	if ($this->mysqlinst->affected_rows()){
 		$this->success[]="Post p$blog_id width setting was exported to post types in the parent column";
@@ -1658,8 +1677,17 @@ function process_post_widthexport($blog_id){
 	else $this->message[]="No Posts were affected for width update using using post id P$blog_id";
 	if(isset($_POST['post_col_widthexport'][$blog_id])){
 		#note the above query also updated the blog width of the nested column pointer record but nested column value is actually set in col_width so will subsequently be copied here in second query.  
-		$q="update $this->master_col_table t, $this->master_post_table s, $this->master_post_table r SET t.col_width=r.blog_width,
-	 t.token='".mt_rand(1,mt_getrandmax()). "',t.col_update='".date("dMY-H-i-s")."',t.col_time='".time()."' where r.blog_type='nested_column' and r.blog_data1=t.col_id and s.blog_id=$blog_id and s.blog_table=r.blog_table";
+		$q="update $this->master_col_table tab, $this->master_post_table s, $this->master_post_table r SET tab.col_width=s.blog_width,
+	 tab.token='".mt_rand(1,mt_getrandmax()). "',tab.col_update='".date("dMY-H-i-s")."',tab.col_time='".time()."' where r.blog_type='nested_column' and r.blog_data1=tab.col_id and s.blog_id=$blog_id and s.blog_table=r.blog_table";
+	
+		$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
+		if ($this->mysqlinst->affected_rows()){
+			$this->success[]="Post p$blog_id width setting was exported to nested col types in the parent column";
+			}
+		else $this->message[]="$q  No Posts were affected for width update to include nested columns using using post id P$blog_id";
+		$q="update $this->master_post_table t, $this->master_post_table r SET t.blog_width_mode=r.blog_width_mode,
+		 t.token='".mt_rand(1,mt_getrandmax()). "',t.blog_update='".date("dMY-H-i-s")."',t.blog_time='".time()."' where t.blog_type='nested_column' and  r.blog_id=$blog_id and t.blog_table=r.blog_table";
+	 
 		$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
 		if ($this->mysqlinst->affected_rows()){
 			$this->success[]="Post p$blog_id width setting was exported to nested col types in the parent column";
@@ -1705,14 +1733,14 @@ function process_col_configcopy($col_id){
 		$this->message[]='col IDs Are FOUND AT THE TOP OF Each col ie. The Number having the ID: C1, C2, etc. FORMAT. BE SURE TO INCLUDE THE C PREFIX ';
 		return;
 		}
-	$fields='col_options,col_status,col_grid_width,col_grid_clone,col_gridspace_right,col_gridspace_left,col_primary,col_clone_target,col_clone_target_base,col_style,col_style2,col_grp_bor_style,col_comment_style,col_comment_date_style,col_comment_view_style,col_date_style,col_width';	
+	$fields='col_options,col_flex_box,col_status,col_grid_width,col_grid_clone,col_gridspace_right,col_gridspace_left,col_primary,col_clone_target,col_clone_target_base,col_style,col_style2,col_grp_bor_style,col_comment_style,col_comment_date_style,col_comment_view_style,col_date_style,col_width';	
 	$field_arr=explode(',',$fields);
 	$parent_id=str_replace(array('c','C'),'',$parent_id);	
-	$q="update $this->master_col_table t, $this->master_col_table r SET ";
+	$q="update $this->master_col_table t, $this->master_col_table r, $this->master_post_table  pt, $this->master_post_table  pr SET pt.blog_width_mode=pr.blog_width_mode,";
 	foreach($field_arr as $field){
 		$q.="t.$field=r.$field,";
 		}
-	$q="$q t.token='".mt_rand(1,mt_getrandmax()). "',t.col_update='".date("dMY-H-i-s")."',t.col_time='".time()."' where  t.col_id=$col_id and r.col_id=$parent_id"; 
+	$q="$q t.token='".mt_rand(1,mt_getrandmax()). "',t.col_update='".date("dMY-H-i-s")."',t.col_time='".time()."' where  t.col_id=$col_id and r.col_id=$parent_id  and pr.blog_data1= r.col_id and pt.blog_data1=t.col_id and pr.blog_type='nested_column' and pt.blog_type='nested_column'"; 
 	$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
 	if ($this->mysqlinst->affected_rows()){
 		$this->success[]="col c$col_id was updated using styles and configs from col c$parent_id";
@@ -1726,20 +1754,19 @@ function process_blog_border($data,$tablename,$blog_order){
 		$q="update $this->master_post_table set blog_time=".time().",token='".mt_rand(1,mt_getrandmax()). "', blog_border_start=0  where blog_table='$tablename' AND blog_order=$blog_order";  
 		$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);
 		}
-	 if (isset($_POST['blog_border_stop_remove'][$data])){ // echo NL. $data.'am here  breaking bud';
+	 if (isset($_POST['blog_border_stop_remove'][$data])){  
 		$q="update $this->master_post_table  set blog_time=".time().",token='".mt_rand(1,mt_getrandmax()). "', blog_border_stop=0 where blog_table='$tablename' AND blog_order=$blog_order";  
 		$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);
 		}
 	}
 
-function blog_option_choices($type,$blog_id=''){
+function blog_option_choices($type,$blog_id=''){ 
     $blog_fields_arr=array('comment_options'=>array('blog_comment','blog_comment_display'),
                            'date_options'=>array('blog_date_on','blog_date_format'),
                            'vertical_alignment_non_flexmode'=>array('blog_vert_pos'),
-                           'display_options'=>array('blog_display_max','blog_display_min'),
                            'animation_options'=>array('blog_animation'),
                            'opacity_option'=>array('blog_opacity'), 
-                           'alt_width_unit_em_rem_etc_options'=>array('blog_width_opt','blog_min_width_opt','blog_max_width_opt'),
+                           'alt_width_unit_em_rem_etc_options'=>array('blog_width_alt_opt','blog_min_width_alt_opt','blog_max_width_alt_opt'),
                            'height_options'=>array('blog_height_opt','blog_min_height_opt','blog_max_height_opt','blog_height_media'),
                            'position_options'=>array('blog_position','blog_pos_vert_val','blog_pos_horiz_val'),
                            'overflow_options'=>array('blog_overflowx','blog_overflowy'));
@@ -2124,6 +2151,162 @@ function delete_nav_menu(){
 	else $this->message[]="No delete Menu Ids Affected";
 	}//del nav menu
 	
+function restore_backup(){if (Sys::Quietmode) return;  if (Sys::Pass_class)return;
+	echo '<div class="floatbutton"><!-- float buttons-->';
+	echo '<p class="smallest  editbackground editfont buttoneditcolor click" title="View and restore saved backedup databases Here" onclick="gen_Proc.toggleClass2(\'#display_backups\',\'hide\');gen_Proc.use_ajax(\''.Sys::Self.'?display_backups\',\'handle_replace\',\'get\');" >Backup List</p>';
+	printer::pclear();
+	echo '<div id="display_backups" class="hide">'; 
+	$this->submit_button('Submit Backup choice');
+	echo'</div>'; 
+	echo '</div><!--float buttons-->';
+	}
+
+     function display_themes($msg){if (Sys::Quietmode) return;  if (Sys::Pass_class)return;
+	echo '<div class="floatbutton"><!-- float buttons-->';
+	echo '<p class="'.$this->column_lev_color.' smallest  editbackground editfont buttoneditcolor click" title="View and restore saved backedup databases Here" onclick="gen_Proc.toggleClass2(\'#theme_choice\',\'hide\');gen_Proc.use_ajax(\''.Sys::Self.'?theme_choice\',\'handle_replace\',\'get\');" >'.$msg.'</p>';
+	printer::pclear();
+	echo '<div id="theme_choice" class="hide">'; 
+	$this->submit_button('Submit Theme choice');
+	echo'</div>'; 
+	echo '</div><!--float buttons-->';
+	}
+
+#pageimport
+function page_import_export_options(){
+     $page_configs='Rem Units, RWD bps, Image Cache Sizes, Default Primary Column Width, Editor Colors, Special Class Styles';
+	echo '<div class="floatbutton"><!-- float buttons-->';
+     $this->show_more('Export/Import','noback',$this->column_lev_color.' smallest editbackground editfont button'.$this->column_lev_color,'Import  Page options from another page or export chosen option of this page to all other pages',600);
+	$this->print_wrap('import page options',true);
+     printer::print_tip('Import/Export Page Level options here');
+	echo '<div class="fsmcolor Os3darkslategray editbackground editfont floatleft" ><!--import page defaults-->Import the Page Level Settings ie('.$page_configs.')  from Another Page (Will Not Import Page Slide show). ';  
+	printer::pclear(1);
+	$included_arr=array();
+	$q="select distinct page_ref, page_title, page_filename from $this->master_page_table";  
+	$r = $this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
+	while (list($page_ref,$title,$filename) = $this->mysqlinst->fetch_row($r,__LINE__)){
+		$included_arr[]=array($page_ref,$title);
+		}
+	echo'<p> <select class="editcolor editbackground editfont"  name="page_opts_import['.$this->page_ref.']">';       
+     echo '<option  value="none" selected="selected">Choose Page for full Page level opts/styles</option>';
+     for ($i=0;$i<count($included_arr);$i++){
+          echo '<option  value="'.$included_arr[$i][0].'">ref:'.$included_arr[$i][0].' &nbsp;&nbsp;&nbsp;title: '.$included_arr[$i][1].'</option>';
+          }
+     echo'	
+     </select></p>';
+     echo '</div><!--import page defaults-->';
+     printer::pclear(); 
+     echo '<div class="fsmcolor Os3darkslategray editbackground editfont left "><!--export-->Export All Page Settings ('.$page_configs.') from this Page to all other Pages';
+     printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="page_opts_export['.$this->page_ref.']"  type="checkbox" value="'.$this->page_ref.'">Export These Page Level Settings to other Pages</p>'); 
+     echo '</div><!--export-->';
+     printer::pclear();
+     echo '<div class="fsmcolor Os3darkslategray editbackground editfont left "><!--import-->Import Page Width from another page. ';
+     echo'<p> <select class="editcolor editbackground editfont"  name="page_width_import['.$this->page_ref.']">';       
+     echo '<option  value="none" selected="selected">Choose Page for Import of Page Width </option>';
+     for ($i=0;$i<count($included_arr);$i++){
+          echo '<option  value="'.$included_arr[$i][0].'">ref:'.$included_arr[$i][0].' &nbsp;&nbsp;&nbsp;title: '.$included_arr[$i][1].'</option>';
+          }
+     echo'	
+     </select></p>';
+     echo '</div>'; 
+     echo '<div class="fsmcolor Os3darkslategray editbackground editfont left "><!--export-->Export Page Width settings from this Page to all other Pages';
+     printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="page_width_export['.$this->page_ref.']"  type="checkbox" value="'.$this->page_ref.'">Export this Page Width to other Pages</p>'); 
+     echo '</div><!--export-->'; 
+     echo '<div class="fsmcolor Os3darkslategray editbackground editfont left "><!--import-->Import RWD Grid Break Points from another page. ';
+     echo'<p> <select class="editcolor editbackground editfont"  name="page_rwd_import['.$this->page_ref.']">';       
+     echo '<option  value="none" selected="selected">Choose Page for Import of RWD break point settings </option>';
+     for ($i=0;$i<count($included_arr);$i++){
+          echo '<option  value="'.$included_arr[$i][0].'">ref:'.$included_arr[$i][0].' &nbsp;&nbsp;&nbsp;title: '.$included_arr[$i][1].'</option>';
+          }
+     echo'	
+     </select></p>';
+     echo '</div>'; 
+     echo '<div class="fsmcolor Os3darkslategray editbackground editfont left "><!--export-->Export RWD Grid Break Points settings from this Page to all other Pages';
+     printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="page_rwd_export['.$this->page_ref.']"  type="checkbox" value="'.$this->page_ref.'">Export this Page RWD Grid Break Points to other Pages</p>'); 
+     echo '</div><!--export-->'; 
+     echo '<div class="fsmcolor Os3darkslategray editbackground editfont left "><!--export-->';
+     printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="page_grid_unit_export['.$this->page_ref.']"  type="checkbox" value="'.$this->page_ref.'">Export Number of Units in Grid from this Page to all other Pages</p>'); 
+     echo '</div><!--export-->'; 
+     echo '<div class="fsmcolor Os3darkslategray editbackground editfont left "><!--import-->Import HTag and Class Special Styles from another page. ';
+     echo'<p> <select class="editcolor editbackground editfont"  name="page_special_class_import['.$this->page_ref.']">';       
+     echo '<option  value="none" selected="selected">Choose Page for Import of HTag and Class Special Styles settings </option>';
+     for ($i=0;$i<count($included_arr);$i++){
+          echo '<option  value="'.$included_arr[$i][0].'">ref:'.$included_arr[$i][0].' &nbsp;&nbsp;&nbsp;title: '.$included_arr[$i][1].'</option>';
+          }
+     echo'	
+     </select></p>';
+     echo '</div>'; 
+     echo '<div class="fsmcolor Os3darkslategray editbackground editfont left "><!--export-->Export RWD Grid Unit setting from this Page to all other Pages';
+     printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="page_option['.$this->page_grid_units_index.']"  type="checkbox" value="'.$this->page_ref.'">Export this Page  RWD Grid Break Points to other Pages</p>'); 
+     echo '</div><!--export-->'; 
+     echo '<div class="fsmcolor Os3darkslategray editbackground editfont left "><!--export-->Export HTag and Class Special Styles from this Page to all other Pages';
+     printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="page_special_class_export['.$this->page_ref.']"  type="checkbox" value="'.$this->page_ref.'">Export this Page HTag and Class Special Styles to other Pages</p>'); 
+     echo '</div><!--export-->'; 
+     ######################################################
+     echo '<div class="fsmcolor Os3darkslategray editbackground editfont left "><!--import-->Import Editor Colors from another page. ';
+     echo'<p> <select class="editcolor editbackground editfont"  name="page_editor_color_import['.$this->page_ref.']">';       
+     echo '<option  value="none" selected="selected">Choose Page for Import of Editor Colors settings </option>';
+     for ($i=0;$i<count($included_arr);$i++){
+          echo '<option  value="'.$included_arr[$i][0].'">ref:'.$included_arr[$i][0].' &nbsp;&nbsp;&nbsp;title: '.$included_arr[$i][1].'</option>';
+          }
+     echo'	
+     </select></p>';
+     printer::pclear();
+     echo '</div>'; 
+     printer::pclear();
+     echo '<div class="fsmcolor Os3darkslategray editbackground editfont left "><!--export-->Export Editor Colors from this Page to all other Pages';
+     printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="page_editor_color_export['.$this->page_ref.']"  type="checkbox" value="'.$this->page_ref.'">Export this Page  Editor Colors to other Pages</p>');
+     printer::pclear();
+     echo '</div><!--export-->';
+     printer::pclear();
+     #######################################
+     echo '<div class="fsmcolor Os3darkslategray editbackground editfont left "><!--import-->Import Default Page styles from another page. ';
+     echo'<p> <select class="editcolor editbackground editfont"  name="page_style_import['.$this->page_ref.']">';       
+     echo '<option  value="none" selected="selected">Choose Page for Import of Default Page Style settings </option>';
+     for ($i=0;$i<count($included_arr);$i++){
+          echo '<option  value="'.$included_arr[$i][0].'">ref:'.$included_arr[$i][0].' &nbsp;&nbsp;&nbsp;title: '.$included_arr[$i][1].'</option>';
+          }
+     echo'	
+     </select></p>';
+     echo '</div>'; 
+     echo '<div class="fsmcolor Os3darkslategray editbackground editfont left "><!--export-->Export Default Page styles from this Page to all other Pages';
+     printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="page_style_export['.$this->page_ref.']"  type="checkbox" value="'.$this->page_ref.'">Export this Page  Default Page Styles to other Pages</p>'); 
+     echo '</div><!--export-->';
+     ################################################
+     echo '<div class="fsmcolor Os3darkslategray editbackground editfont left "><!--import-->Import Image Cache Sizes from another page. ';
+     echo'<p> <select class="editcolor editbackground editfont"  name="page_cache_import['.$this->page_ref.']">';       
+     echo '<option  value="none" selected="selected">Choose Page for Import of Image Cache Sizes </option>';
+     for ($i=0;$i<count($included_arr);$i++){
+          echo '<option  value="'.$included_arr[$i][0].'">ref:'.$included_arr[$i][0].' &nbsp;&nbsp;&nbsp;title: '.$included_arr[$i][1].'</option>';
+          }
+     echo'	
+     </select></p>';
+     echo '</div>'; 
+     echo '<div class="fsmcolor Os3darkslategray editbackground editfont left "><!--export-->Export Image Cache Sizes from this Page to all other Pages';
+     printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="page_cache_export['.$this->page_ref.']"  type="checkbox" value="'.$this->page_ref.'">Export this Page Image Cache Sizes to other Pages</p>'); 
+     echo '</div><!--export-->';
+     echo '<div class="fsmcolor Os3darkslategray editbackground editfont left "><!--export-->Export Image Quality Setting from this Page to all other Pages';
+     printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="page_image_quality_export['.$this->page_ref.']"  type="checkbox" value="'.$this->page_ref.'">Export this Page Export Image Quality to other Pages</p>'); 
+     echo '</div><!--export-->';
+     echo '<div class="fsmcolor Os3darkslategray editbackground editfont left "><!--export-->Export the number of Backup Db copies from this Page to all other Pages';
+     printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="page_dbbackups_export['.$this->page_ref.']"  type="checkbox" value="'.$this->page_ref.'">Export this Page Export the number of stored Backup Dbs to other Pages</p>'); 
+     echo '</div><!--export-->';
+	printer::close_print_wrap('import page options');
+	$this->submit_button();
+	printer::pclear(5);
+	$this->show_close('Import Page Options');
+	echo '</div><!-- float buttons-->';
+     }//end page import export
+     
+          
+function display_nav(){if (Sys::Quietmode) return;  if (Sys::Pass_class)return;
+	echo '<div class="floatbutton"><!-- float buttons-->';
+	echo '<p class="'.$this->column_lev_color.' smallest  editbackground editfont buttoneditcolor click"  onclick="gen_Proc.toggleClass2(\'#display_fullnav\',\'hide\');gen_Proc.use_ajax(\''.Sys::Self.'?display_fullnav&amp;sortby\',\'handle_replace\',\'get\');" >Full Nav</p>';
+	echo '<div id="display_fullnav" class="hide small width100 left floatleft fsminfo editbackground editfont editcolor"></div>';  
+	echo '</div><!--float buttons-->';
+	}
+     
+
+
 function check_delete_col(){
 	if(!isset($_POST['deletecolumn']))return; 
 	$q="select col_table,col_id,col_status from $this->master_col_table where col_table_base='$this->pagename'";
@@ -2159,7 +2342,7 @@ function process_new_blog_table(){ //creates new primary ppCol and also orders c
 		else continue;
 	$values=''; 
 	foreach ($this->col_field_arr_all as $field) {
-		$$field=0;
+		$$field=0;//initialize
 		}
 	$col_primary=1;
 	$col_table_base=$this->pagename;
@@ -2201,7 +2384,7 @@ function primary_order_update($update=true){
 	
 function process_blog_input($data,$tablename,$blog_order){
 	if (Sys::Methods){Sys::Debug(__LINE__,__FILE__,__METHOD__);}
-	if (!isset($_POST['blog_input'][$data]))return;// echo NL. $data.'am here  breaking bud';
+	if (!isset($_POST['blog_input'][$data]))return;
 	$key=key($_POST['blog_input'][$data]);
 	$val=$_POST['blog_input'][$data][$key];
 	$q="update $this->master_post_table  set blog_time=".time().",token='".mt_rand(1,mt_getrandmax()). "', $key='$val' where blog_table='$tablename' AND blog_order=$blog_order";   
@@ -2352,12 +2535,12 @@ function create_blog($tablename,$switch,$blog_order,$insert_amt,$blog_unclone=''
 		$col_id="0";
 		}
 	switch ($switch) {
-          case $this->blog_drop_array[11]:  #copy clone post
+          case $this->blog_drop_array[13]:  #copy clone post
                $blog_data2='post_choice';
                $blog_type='choose_post'; 
                $blog_pub=1;   
                break;
-          case $this->blog_drop_array[12]: #copy clone column
+          case $this->blog_drop_array[14]: #copy clone column
                $blog_data2='column_choice';
                $blog_type='nested_column';
                $blog_pub=1;
@@ -2429,19 +2612,43 @@ function create_blog($tablename,$switch,$blog_order,$insert_amt,$blog_unclone=''
           case $this->blog_drop_array[6]:#new contact Form
                $blog_text='contact';
                $blog_type='contact';
-               $blog_style='';//'0,20,20';
+			$blog_data1='Name:,0,Email:,,,,,,,,detect_robot_off';
+			$blog_data7 =',0,,,,10,,,,,,,,,,,,,,0@@@@@@@@@@@@@@420@@290,FFFFFF@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@no-repeat,,,,,,,,,,left,,,,,turnon@@@@50@@@@@@550@@100,,,,,,,,,,,,,,,,5';
+			$blog_data8=',,,,,14,,,,,,,,,,,,,,@@@@100,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@no-repeat,,,,,,,,,,left no previous,,,,,,,,,,,,,,,,,,,,,5';
+			 $blog_data10=',,,,,15,,,,,,,left,,,,,,,70,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@no-repeat,,,,,,,,,,left';
+    $blog_data11=',,,,,24,,,,,,,left,,,,,,,@@@@30,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@no-repeat';
+    $blog_data12=',,,,,,,,,,,,,,,,,,,,19FF46@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@no-repeat';
+    $blog_data13=',,,,,25,,,,,,,,,,,,,,,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@no-repeat';
+
+               $blog_style = ',35,0,21,0,0,0,0,0,Arial=> Helvetica=> sans-serif;,0,0,0,0,0,0,normal,0,0,0,0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@no-repeat,,,,@@@@@@@@@@inset,,@@@@outset';
+			
+			$blog_options=',,,,,,,,,,,,,,,,,750';
+			 break;
+          case $this->blog_drop_array[7]:#new email_list_signup
+               $blog_text='mailing_list';
+               $blog_type='mailing_list';
+			$blog_data1=' Name:,,*Email:,,,,,,,Subscribe,detect_robot_off';
+			$blog_data7=',,,10,,,7,,,,15,,,,,,,,,@@@@100,FFFFFF@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@no-repeat,,,,,,1@@C5C5C5@@@@top bottom left right,,,,,,,,,,,,,,,,,,,,,,,,,0,0';
+			$blog_data10=',,,,,10,,,,,16@@@@@@@@@@@@@@2000@@1010@@72,,,,,,,,,,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@no-repeat,,,,,,,,,,left no previous';
+               $blog_data11=',,,,,24,,,,,,,left,,,,,,,@@@@30';
+			$blog_data12=',,,,,,,,,,,,,,,,,,,,19FF46@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@no-repeat';
+			$blog_tiny_data3='prompt_inbox';
+			$blog_tiny_data5='deactivate_custom_styles';
+			$blog_tiny_data6='no_name_require';
+			$blog_style=',0,0,0,0,0,0,0,0,Arial=> Helvetica=> sans-serif;,0,0,0,0,0,0,normal,0,0,0,0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@no-repeat,,,,@@@@@@@@@@inset,,@@@@outset';
+			$blog_options=',,,,,,,,,,,,,,,,,600';
                break;
-          case $this->blog_drop_array[7]:#new social array
+          case $this->blog_drop_array[8]:#new social array
                $blog_text='social_icons'; 
                $blog_type='social_icons';
                $blog_style='0,0,0';
                break;
-          case $this->blog_drop_array[8]:#slideshow
+          case $this->blog_drop_array[9]:#slideshow
                $blog_text='auto_slideshow'; 
                $blog_type='auto_slide';
                $blog_style='0,0,0'; 
                break;
-          case $this->blog_drop_array[9]:#gall 
+          case $this->blog_drop_array[10]:#gall 
                $blog_text='gallery'; 
                $blog_type='gallery';
                $blog_style='0,0,0';
@@ -2451,18 +2658,27 @@ function create_blog($tablename,$switch,$blog_order,$insert_amt,$blog_unclone=''
                $blog_data5=',0,0,0,0,0,0,0,0,0,0,0,left';
                $blog_data6=',20,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@no-repeat';
                break;
-          case $this->blog_drop_array[10]:#new navigation 
+          case $this->blog_drop_array[11]:#carousel
+               $blog_text='carousel'; 
+               $blog_type='carousel';
+               $blog_style='0,0,0';
+               $blog_data3=',,,FF5656,,8,4';
+               $blog_data2=',2100,7,5,,8,4,,,,,,,,,,,1800,6,3,,,,,,,,,,,,,,1500,5,3,,,,,,,,,,,,,,1200,4,2,,centerModeon,,,unslickoff,,,,,,,,,800,3,3,,,autoplayoff,fadeoff,,,,,,,,,arrowsoff,620,2,1,dotsoff,,autoplayon,fadeoff,,,,,,,,,arrowsoff,500,1,,dotsoff,,autoplayon,fadeon,unslickoff';
+               $blog_data4=',,,0@@@@3,0,,';
+               $blog_style='0,40';
+               break;
+          case $this->blog_drop_array[12]:#new navigation 
                $blog_text='new_nav';
                $blog_type='navigation_menu'; 
                $blog_style='';//'0,20,20';
                $blog_options=',,,,,,,,,,,,,,absolute@@768@@@@right@@40.0@@top@@15.0@@30,,,,,,,0,20,0@@@@1.5';
                $blog_data2 =',0,0,20,0,0,0,0,0,0,0,0,left,0,0,0,0,0,0,0,0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@no-repeat';
 $blog_data3 ='';
-$blog_data4 =',10,10,10,10,0,0,0,0,0,20@@@@@@@@@@@@@@2000@@810@@70,500,left,0,0,0,0,0,0,0,@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@no-repeat,0,0,0,0,0,0@@555@@0@@No Border,,a:0:{}';
+$blog_data4 =',10,10,10,10,0,0,0,0,0,20@@@@@@@@@@@@@@@@@@100,500,left,0,0,0,0,0,0,0,@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@no-repeat,0,0,0,0,0,0@@555@@0@@No Border';
 $blog_data5 =',0,0,0,768,0,2.30,0,0,0,0,0,force,0,0,zero,0,zero,right,160@@@@none@@none,0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@no-repeat,none';
 $blog_data6 =',0,0,0,0,0,0,0,0,0,0,0,0,604679,0,0,0,0,0,0,FAFCFF@@vertical@@F4F6F9@@ffffff@@ffffff@@ffffff@@ffffff@@fafcff@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@no-repeat,,,,@@@@0@@6@@0@@inset';
-$blog_data7 =',,,,,26,20,26,,,,,,,,,,,,,DCDFDF@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@no-repeat,,,,,,';
-$blog_data8 =',0,,,,36,,,,,,,,,,,,,,,FFFfff@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@no-repeat,,,,,,2@@D6DBDD@@@@bottom,,a:1:{i:0;a:1:{i:1;s:11:"right:10px;";}}';
+$blog_data7 =',,,,,26,20,7,,,,,,,,,,,,,ffffff@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@no-repeat,,,,,,';
+$blog_data8 =',0,,,,36,,,,,,,,,,,,,,,FFFfff@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@no-repeat,,,,,,2@@D6DBDD@@@@bottom';
 $blog_data9 =',5,5,10,,6,6,,,,12,,left,,,,,,,,@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@no-repeat';
 $blog_data12 =',,,,,,,,,,,,,,,,,,,,0@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@no-repeat';
 $blog_tiny_data1 ='0,0,0,0,950,white,4.00,100,Over,0,nomanage,1,,fadeInRight,,5';
@@ -2995,7 +3211,7 @@ function choose_column($child_id,$nested){
 							}//end intra
 						}
 					else {   //interpage
-						
+						$parent_page=$row['col_table_base'];
 						if (empty($row['col_primary'])){//parent nested
 							//remove old record for nested column
 							//count records to determine whether there is already a clone beginning with this column on this page which 
@@ -3053,7 +3269,9 @@ function choose_column($child_id,$nested){
 							$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);
 							$this->move_col($parent_id,'move',$row['col_table_base']);
 							$this->success[]="Your Column Id: C$parent_id has been moved";
-							}
+							$this->success[]="Iframe generated to update $parent_page page";
+							file_generate::render_backup_iframe($parent_page,10,10,'hidden','px','px');
+							 }
 						}//end interpage
 					}
 				#chooseclone
@@ -3461,7 +3679,7 @@ function back_image_copy($field_val){
 		}
 	$style_array=explode(',',$field_val);
 	$count=count($style_array);
-	if ($count  < $background_index)
+	if ($count  < $background_index || !array_key_exists($background_index,$style_array))
 		return $field_val; 
 	$background=$style_array[$background_index];
 	$dbbackground_array=explode('@@',$background);
@@ -3812,7 +4030,26 @@ function process_add_new_page(){
 			$msg='Both the URL and Web Page Reference Need to be Provided for external Urls';
 			$this->message[]=($msg);
 			}
-		}	 
+		}
+	 else {
+		  $this->mysqlinst->count_field($this->directory_table,'dir_menu_id','',false,'');
+		  $dir_menu_id=$this->mysqlinst->field_inc;
+		  $dir_menu_order=1;
+		  $dir_sub_menu_order=0;
+		  $dir_ref=$this->page_ref;
+		  $q="select page_filename,page_title from $this->master_page_table where page_ref='$dir_ref'";
+		  $r=$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);
+		  list($dir_filename,$dir_title)=$this->mysqlinst->fetch_row($r,__LINE__);
+			  
+		  $q="insert into $this->directory_table (dir_menu_id,dir_menu_order,dir_sub_menu_order,dir_filename,dir_title,dir_ref,dir_menu_style, dir_gall_table,dir_blog_table,dir_menu_type,dir_gall_type,dir_menu_opts,dir_hide_sub_menu,dir_external,dir_internal,dir_is_gall,dir_temp,dir_temp2,dir_update,dir_time,token) values
+			  ($dir_menu_id,$dir_menu_order,$dir_sub_menu_order,'$dir_filename','$dir_title','$dir_ref','','','','','','','','','',0,0,0,'".date("dMY-H-i-s")."','".time()."','".mt_rand(1,mt_getrandmax())."')";    
+		  $this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);
+		  $q="update $this->master_post_table set blog_data1='$dir_menu_id' where blog_id=$this->blog_id";  
+		  $this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);
+		  $msg="New Menu Id: $dir_menu_id has been created with page ref: $dir_ref and title: $dir_title";
+		  $this->success[]=$msg;
+		  }
+	 return $dir_menu_id;
 	}
 
 function page_grid_unit_export(){
@@ -3835,15 +4072,10 @@ function page_grid_unit_export(){
           }
      }
 function updater($type,$set,$where,$msg=''){
+	if($this->is_clone&&!$this->clone_local_style)return;
      if ($type==='typeenv'){
           if ($this->is_column){
-               if($this->is_clone&&!$this->local_clone_style){
-                   $msg="Clone updating attempt with $set  and this id $this->col_id";
-                    printer::alert_neg($msg);
-                    $this->message[]=$msg;
-                    return;
-                    }
-               elseif($this->is_clone){
+			if($this->is_clone){
                     $type='colcss';
                     }
                else {
@@ -3851,12 +4083,7 @@ function updater($type,$set,$where,$msg=''){
                     }
                }
           elseif ($this->is_blog){
-               if ($this->is_clone&&!$this->local_clone_style){
-                    $msg="Clone updating attempt with $set  and this id $this->blog_id";
-                    printer::alert_neg($msg);
-                    $this->message[]=$msg;
-                    }
-               elseif($this->is_clone){
+               if($this->is_clone){
                     $type='postcss';
                     }
                else {
@@ -3866,13 +4093,7 @@ function updater($type,$set,$where,$msg=''){
           } 
       if ($where==='idenv'){
           if ($this->is_column){
-               if($this->is_clone&&!$this->local_clone_style){
-                   $msg="Clone updating attempt with $set  and this id $this->col_id";
-                    printer::alert_neg($msg);
-                    $this->message[]=$msg;
-                    return;
-                    }
-               elseif($this->is_clone){
+			if($this->is_clone){
                     $where="where col_id='c$this->col_id'";
                     }
                else {
@@ -3881,13 +4102,7 @@ function updater($type,$set,$where,$msg=''){
                
                }
           elseif ($this->is_blog){
-               if ($this->is_clone&&!$this->local_clone_style){
-                    $msg="Clone updating attempt with $set  and this id $this->blog_id";
-                    printer::alert_neg($msg);
-                    $this->message[]=$msg;
-                    
-                    }
-               elseif($this->is_clone){
+			if($this->is_clone){
                     $type='postcss';
                     $where="where blog_id='b$this->blog_id'";
                     }
@@ -3985,7 +4200,7 @@ function process_uploads($type){
                $validext=Cfg::Valid_pic_ext;
                $config=(int)Cfg::Pic_upload_max;//see Cfg_master.class.php 
                $mime=Cfg::Valid_pic_mime;
-               $dir=(isset($_POST['pic_folder_type'])&&$_POST['pic_folder_type']==='uploads')?Cfg_loc::Root_dir.Cfg::Upload_dir:Cfg_loc::Root_dir;
+               $dir=(isset($_POST['pic_folder_type'])&&$_POST['pic_folder_type']!=='home')?Cfg_loc::Root_dir.$_POST['pic_folder_type']:Cfg_loc::Root_dir;
                break;
           case  'vid' :
                $config=(int)Cfg::Vid_upload_max;//see Cfg_master.class.php 
@@ -4004,7 +4219,7 @@ function process_uploads($type){
      $instructions.= ' Only the filetypes '.$validext.' will work';
 list ($uploadverification,$fiupl)=upload::upload_file($mime,$validext,$instructions,$dir);
      if ($uploadverification='true')   
-          $this->success[]='Success. Check to see if your '.$type.' file has been uploaded to your site '.$dir;
+          $this->success[]='Success. Check to see if your '.$type.'file with new name: '.$fiupl.' has been uploaded to your site '.$dir;
      else {
           $this->message[]='Upload verification of '.$type.' file failed to load to home directory'; 
 		}
@@ -4070,9 +4285,8 @@ function db_backup_restore(){//const View_db='viewbackupdb';
 		 $flag=true;
 		 }
 	 elseif (is_file(Sys::Home_pub.Cfg::Backup_dir.$fname)){ 
-		 $cmd1='gunzip  '.Sys::Home_pub.Cfg::Backup_dir.$fname.';';
+		 $cmd1='gunzip  -k '.Sys::Home_pub.Cfg::Backup_dir.$fname.';';
 	 	 $flag=true;
-		 
 		 }
 		 
 	 if ($flag){
@@ -4082,6 +4296,7 @@ function db_backup_restore(){//const View_db='viewbackupdb';
 		 $cmd2=Sys::Mysqlserver.'mysql  -h'.$host.' -u'.$user.' -p'.$pass.' '. $dbname.'  < '.$fullpathfile.';';
 		//$this->success[]="Now viewing database $dbname with  with pushed $fullpathfile";  
 		 $command($cmd1. $cmd2);
+		 //echo NL.$cmd1.NL.$cmd2;
            $this->update_db($dbname);
 		 if(isset($_GET['page_restore_dbopt'])){
                #first make backup copy of present db
@@ -4129,7 +4344,7 @@ function update_gall_list($no,$big){
 		} 
 	}
 
-function update_editor_color_list($no){ 
+function update_editor_color_list($no,$holder){ 
      $collect='';
      $img_arr=array();
 	$sort_arr=explode('|',$no);
@@ -4205,8 +4420,130 @@ function iframe_list_gen($pages){
 		}
 	return $frames;	
 	}
+function gen_display_options($data,$closer){//ajax option parser for quick reference
+	$arr=explode('@@',$data);
+	//'.$type.'@@'.$id
+	$id=$arr[1];
+	switch($arr[0]){
+		case 'page' :
+			$table=$this->master_page_table;
+			$ref='page_id';
+               $field='page_options,page_width,page_width';//no mode
+               $indexes=Cfg::Page_options;
+               $order=Cfg::Page_options_order;
+               $dbfields='page_id,'.Cfg::Page_fields;
+               $check_style=array();
+			break;
+		case 'col':
+			$table=$this->master_col_table;
+               $field='col_options,col_width,col_width';//no mode
+			$ref='col_id';
+               $indexes=Cfg::Column_options;
+               $order=Cfg::Column_options_order;
+               $dbfields='col_id,'.Cfg::Col_fields;
+               $check_style=array();
+			$table2=$this->master_post_table;
+			$field2="blog_float,blog_width_mode";
+			break;
+		case 'blog':
+			$table=$this->master_post_table;
+			$ref='blog_id';
+               $indexes=Cfg::Blog_options;
+               $field='blog_options,blog_width,blog_width_mode';
+               $order=Cfg::Blog_options_order;
+               $dbfields='blog_id,'.Cfg::Post_fields;
+               $check_style=array();
+			break;
+		default: return $data;
+		}
+     $order_array=explode(',',$order);
+	
+	if ($arr[0]==='col'){//we also retrieve specific blog data where column float is under blog_float field to save xtra col field
+		 $q="select $field2 from $table2 where blog_data1='$id' and blog_type='nested_column'"; 
+		  $r=$this->mysqlinst->query($q);
+		  if ($this->mysqlinst->affected_rows()){
+			 list($cfloat,$col_width_mode)=$this->mysqlinst->fetch_row($r);
+			 }
+		  else $cfloat=$col_width_mode='';
+		  }
+	 $col_float=($arr[0]==='col')?$cfloat:'';
+	 $q="select $field from $table where $ref='$id'";
+	 $r=$this->mysqlinst->query($q);
+	 if ($this->mysqlinst->affected_rows()){
+		list($options,$width,$mode)=$this->mysqlinst->fetch_row($r);
+		}
+	else return "No option values found";
+	$option_array=explode(',',$options);
+	$indexes=explode(',',$indexes);
+	foreach($indexes as $key =>$index){ 
+		if (!empty($index)) {
+			${$index.'_index'}=$key; 
+			}
+		}
+	 
+	 $toggle='<p class="smallest editbackground editcolor cursor underline italic" onclick="gen_Proc.toggleIt(\''.$closer.'_2\');">Close/Open Parsed Styling</p>';
+	 $idn=' id="'.$closer.'_2"';
+	 $return=printer::alertx($toggle.'<div'.$idn.' style="display:block;" class="Os3darkslategray fd2brightgreen editbackground editcolor"><!--Open Options Parse-->',1);
+	 ($arr[0]==='col')&&$return.=printer::alertx( NL."column float value: $col_float",1);
+	 ($arr[0]==='col')&&$return.=printer::alertx( NL."column width mode: $col_width_mode" .NL. "col width: $width",1);
+	  ($arr[0]==='blog')&&$return.=printer::alertx( NL."blog width mode: $mode" .NL. "blog width: $width",1);
+	 foreach ($order_array  as $index){
+		$i=${$index.'_index'};
+		if (array_key_exists($i,$option_array)&&strpos($index,'width')!==false&&strpos($indexes[$i],'media')===false){
+               $this->my_temp_array=$option_array;
+               $returnval=$this->spacing('my_temp_array',$i,'display_style','','','','',false,'',false,0,'',array('none'=>'use no value','auto'=>'set auto','zero'=>'set explicit 0'));
+               $return.=printer::alertx( NL."{$indexes[$i]} value: $returnval",1);
+               }
+          elseif (!empty($indexes[$i])&&strpos($indexes[$i],'width')!==false&&strpos($indexes[$i],'media')===false) $return.=printer::alertx( NL."{$indexes[$i]} value: 0 ",1);
+          elseif (array_key_exists($i,$option_array)&&!empty($indexes[$i])){
+               $value=str_replace('@@','@ ',$option_array[$i]);
+               $return.=printer::alertx( NL."{$indexes[$i]} value: $value",1);
+               }
+		elseif (!empty($indexes[$i])) $return.=printer::alertx( NL."{$indexes[$i]} value: 0 ",1);
+          }
+     $indexes=explode(',',Cfg::Style_functions);
+	foreach($indexes as $key =>$index){ 
+		if (!empty($index)) {
+			${$index.'_index'}=$key; 
+			}
+		}
+	 $count=count($indexes);
+     $collect=array();
+     $q="select $dbfields from $table where $ref='$id'";
+	$r=$this->mysqlinst->query($q);
+	$row=$this->mysqlinst->fetch_assoc($r);
+	$field_arr=explode(',',$dbfields);	
+     
+     
+	$type=$arr[0];
+	$more=<<<eol
+     
+     <p class="underline cursor small bold pt10 pb10" onclick="gen_Proc.toggleIt('displaymoreofthis_$id');">Show Db fields and all style Groupings:</p>
+     <div id="displaymoreofthis_$id" class="smallest" style="display:none;font-size:10px!important;">
+     Showing All Values for $type Style and Config Db Fields:
+eol;
+     $styles='';
+	foreach ($field_arr as $field){
+          if ($field==='blog_text')continue;
+          if (strpos($field,'style')!==false||strpos($field,'class')!==false||in_array($field,$check_style)){
+               $styles.="<br><br> Field: $field :: Parse Style Values: <br>
+               ".$this->gen_display_styles($arr[0].'@@'.$id.'@@'.$field,Cfg::Style_functions_order);
+               }
+          else {
+               $value=str_replace('@@','@ ',$row[$field]);
+               $value=str_replace(',',', ',$value);
+               $more.="<br><br>
+               $field: $value";
+               }
+          }
+      
+	 $return.=$more.' View Parsed Styles for '.$type.' 
+     '.$styles.'
+     </div><!--close style options--></div><!--close options-->';
+     return $return;
+	}// function option display
 
-function gen_display_styles($data){//ajax style parser for quick reference
+function gen_display_styles($data,$stylelist,$closer=''){//ajax style parser for quick reference
 	$arr=explode('@@',$data);
 	//'.$type.'@@'.$id.'@@'.$field
 	$field=$arr[2];
@@ -4226,61 +4563,73 @@ function gen_display_styles($data){//ajax style parser for quick reference
 			break;
 		default: return $data;
 		}
-	$q="select $field from $table where $ref='$id'";
+	$q="select $field from $table where $ref='$id'";  
 	$r=$this->mysqlinst->query($q);
 	if ($this->mysqlinst->affected_rows()){
 		list($styles)=$this->mysqlinst->fetch_row($r);
 		}
-	else return "No Styles found";
+	else return "No Styles found for $q";
 	$style_array=explode(',',$styles);
+     $list=(empty($stylelist))?Cfg::Style_functions:$stylelist;
+     $listarr=explode(',',$list);
 	$indexes=explode(',',Cfg::Style_functions);
 	foreach($indexes as $key =>$index){ 
 		if (!empty($index)) {
 			${$index.'_index'}=$key; 
 			}
 		}
-	
-	$return=printer::alertx('<div class="Os3darkslategray fd2brightgreen editbackground editcolor editfont">',1);
-     for ($i=0; $i < count($indexes); $i++){
-		if (array_key_exists($i,$style_array)&&strpos($indexes[$i],'width')!==false&&strpos($indexes[$i],'media')===false){
-               $this->my_temp_array=$style_array;
-               $returnval=$this->spacing('my_temp_array',$i,'display_style','','','','',false,'',false,0,'',array('none'=>'use no value','auto'=>'set auto','zero'=>'set explicit 0'));
-               $return.=printer::alertx( NL."{$indexes[$i]} value: $returnval",1);
-               }
-          elseif (!empty($indexes[$i])&&strpos($indexes[$i],'width')!==false&&strpos($indexes[$i],'media')===false) $return.=printer::alertx( NL."{$indexes[$i]} value: 0 ",1);     
-          }
-	for ($i=0; $i < count($indexes); $i++){
+	 $toggle=(!empty($closer))?'<p class="smallest editbackground editcolor cursor underline italic" onclick="gen_Proc.toggleIt(\''.$closer.'_2\');">Close/Open Parsed Styling</p>':'';
+	 $id=(!empty($closer))?' id="'.$closer.'_2"':'';
+	 $return=printer::alertx($toggle.'<div'.$id.' style="display:block;" class="Os3darkslategray fd2brightgreen editbackground editcolor"><!--Open Style Parse-->',1);
+    
+	 for ($i=0; $i < count($indexes); $i++){ 
+		  if (!in_array($indexes[$i],$listarr)&&strpos($indexes[$i],'media_max_width')===false&&strpos($indexes[$i],'media_min_width')===false)continue;
+		  if (array_key_exists($i,$style_array)&&strpos($indexes[$i],'width_media_unit')!==false){
+			  $return.=printer::alertx( NL."{$indexes[$i]} value: ".$style_array[$i],1);
+			   }
+		  else if (array_key_exists($i,$style_array)&&(strpos($indexes[$i],'width')!==false||(strpos($indexes[$i],'media')!==false&&strpos($indexes[$i],'font')===false))){ 
+			  $this->my_temp_array=$style_array;
+			  $returnval=$this->spacing('my_temp_array',$i,'display_style','','','','',false,'',false,0,'',array('none'=>'use no value','auto'=>'set auto','zero'=>'set explicit 0'));
+			  $return.=printer::alertx( NL."{$indexes[$i]} value: $returnval",1);
+			  }
+		  elseif (!empty($indexes[$i])&&(strpos($indexes[$i],'width')!==false||(strpos($indexes[$i],'media'))!==false&&strpos($indexes[$i],'font')===false))
+			  $return.=printer::alertx( NL."{$indexes[$i]} value: 0 ",1);     
+		  }
+	 $return.=printer::alert(NL.'Empty Style Fields Not Shown:',1,.7);
+	 for ($i=0; $i < count($indexes); $i++){
+          if (!in_array($indexes[$i],$listarr))continue;
 		if ($indexes[$i]==='background')continue;
 		if ($indexes[$i]==='custom_style')continue;
-		if (strpos($indexes[$i],'width')!==false&&strpos($indexes[$i],'media')===false)continue;
+		if (strpos($indexes[$i],'width')!==false||(strpos($indexes[$i],'media_max_width')!==false||strpos($indexes[$i],'media_min_width')!==false))continue;
           if (array_key_exists($i,$style_array)&&(strpos($indexes[$i],'padding')!==false||strpos($indexes[$i],'margin')!==false)){
-               $this->my_temp_array=$style_array;
-               $returnval=$this->spacing('my_temp_array',$i,'display_style','','','','',false,'',false,0,'',array('none'=>'use no value','auto'=>'set auto','zero'=>'set explicit 0'));
-               $return.=printer::alertx( NL."{$indexes[$i]} value: $returnval",1);
-               }
-          elseif(array_key_exists($i,$style_array)&&$indexes[$i]==='font_size'){
-               $this->my_temp_array=$style_array;
-               $returnval=$this->font_size('my_temp_array',$i,'return_val');
-               $return.=printer::alertx( NL."{$indexes[$i]} value: $returnval",1);
-               }
-		elseif (array_key_exists($i,$style_array)&&!empty($indexes[$i]))$return.=printer::alertx( NL."{$indexes[$i]} value: {$style_array[$i]}",1);
-		elseif (!empty($indexes[$i])) $return.=printer::alertx( NL."{$indexes[$i]} value: 0 ",1);
-		}
+			   $this->my_temp_array=$style_array;
+			   $returnval=$this->spacing('my_temp_array',$i,'display_style','','','','',false,'',false,0,'',array('none'=>'use no value','auto'=>'set auto','zero'=>'set explicit 0'));
+			   if (!empty($returnval))$return.=printer::alertx( NL."{$indexes[$i]} value: $returnval",1);
+			   }
+		  elseif(array_key_exists($i,$style_array)&&$indexes[$i]==='font_size'){
+			  $this->my_temp_array=$style_array;
+			  $returnval=$this->font_size('my_temp_array',$i,'return_val');
+			  if (!empty($returnval))$return.=printer::alertx( NL."{$indexes[$i]} value: $returnval",1);
+			  }
+		  elseif (array_key_exists($i,$style_array)&&!empty($indexes[$i]))
+			  (!empty($style_array[$i]))&&$return.=printer::alertx( NL."{$indexes[$i]} value: {$style_array[$i]}",1);
+		  //elseif (!empty($indexes[$i]))
+			  //(!empty($indexes[$i]))&&$return.=printer::alertx( NL."{$indexes[$i]} value: 0 ",1);
+		  }
 	#####################################################################
-	if(!array_key_exists($custom_style_index,$style_array)){
-		$return.='<br><br>Custom Css Advanced Style:0 <br>'; 
-		}
-	else {
-		$custom_style=$style_array[$custom_style_index];
-		if (!empty($custom_style)&&$this->isSerialized($custom_style)){ 
-		
+	 //$return.='<br><br>Custom Css Advanced Style:0 <br>';  //if !array_key_exists
+	  
+	 if(array_key_exists($custom_style_index,$style_array)){
+		   $custom_style=$style_array[$custom_style_index];
+		  if (!empty($custom_style)&&$this->isSerialized($custom_style)){ 
+		  
 			$media_added_style_arr=unserialize($custom_style);//for correct storage in style field value..
 			$count=count($media_added_style_arr);
 			}
 		else {
 			$count=0;
 			$media_added_style_arr=array();
-               $return.='<br><br>Custom Css Advanced Style:0 <br>'; 
+               //$return.='<br><br>Custom Css Advanced Style:0 <br>'; 
                }
 		foreach ($media_added_style_arr as $index => $array){//$array[1]=str_replace('<br>',"\n",str_replace('=>',',',$array[1]));
 			$class_suffix=(array_key_exists($index,$media_added_style_arr)&&array_key_exists(0,$media_added_style_arr[$index])&&strlen($array[0])>1&&!is_numeric($array[0]))?str_replace('=>',',',$array[0]):'';
@@ -4314,22 +4663,19 @@ function gen_display_styles($data){//ajax style parser for quick reference
 				} 
 			}//end foreach css
 		}
-		
-		
-		
 	###################################
 	$return.='<br><br>Background Styles:';
 	$background_styles=explode(',',Cfg::Background_styles);
 	if(!array_key_exists($background_index,$style_array)){
-		printer::alertx('Background: value: 0 ',1);
+		$return.=printer::alertx('</div><!--No Background Style-->',1);
 		return $return;
 		}
 		
 	$background_value_array=explode('@@',$style_array[$background_index]);
 	
 	for ($i=0; $i<count($background_styles); $i++){ 
-		if (array_key_exists($i,$background_value_array))$return.=printer::alertx(NL."{$background_styles[$i]} value: {$background_value_array[$i]}",1);
-		else$return.=printer::alertx(NL."{$background_styles[$i]} value: 0",1);
+		if (array_key_exists($i,$background_value_array)&&!empty($background_value_array[$i]))$return.=printer::alertx(NL."{$background_styles[$i]} value: {$background_value_array[$i]}",1);
+		//else$return.=printer::alertx(NL."{$background_styles[$i]} value: 0",1);
 		}
  	foreach($background_styles as $key =>$index){
 		if (!empty($index)) {
@@ -4339,8 +4685,8 @@ function gen_display_styles($data){//ajax style parser for quick reference
 		}
 		
 	$return.=printer::alertx(NL.NL.
-	'<img src="'.Cfg_loc::Root_dir.Cfg::Background_image_dir.$background_value_array[$background_image_index].'"  width="75">',1);
-	$return.=printer::alertx($background_value_array[$background_image_index].'</div>',1);
+	'<img style="width:50px;" src="'.Cfg_loc::Root_dir.Cfg::Background_image_dir.$background_value_array[$background_image_index].'"  width="50">',1);
+	$return.=printer::alertx($background_value_array[$background_image_index].'</div><!--Close Style Parse-->',1);
 	return $return;
 	}// function style display
 #ajax
@@ -4357,6 +4703,7 @@ function gen_check_clones($id){
 		}
 	else return "No Pages Have Clones of This column ";
 	}
+     
 function get_time_ago( $time )
 {
     $time_difference = time() - $time;
@@ -4382,13 +4729,32 @@ function get_time_ago( $time )
     }
 }
 
-function display_fullnav(){
-	$q="select distinct page_ref, page_title, page_filename from $this->master_page_table  order by page_ref ASC"; 
+function display_fullnav($sort=''){
+	 if ($sort==='pageref'){
+		  $order='page_ref';
+		  $sortagain='pagetitle';
+		  $titleref1='page_ref';
+		  $titleref2='title';
+		  $msg='Page Title';
+		  $ret='Page Ref  :  Page Title';
+		  }
+	 else {
+		  $ret='Page Title  :  Page Ref';
+		  $order='page_title';
+		  $titleref1='title';
+		  $titleref2='page_ref';
+		  $sortagain='pageref';
+		  $msg='Page Ref';
+		  }
+	 $q="select distinct page_ref, page_title, page_filename from $this->master_page_table  order by $order ASC";
 	$r = $this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
-	$return='';
+	$return='<p class="'.$this->column_lev_color.' smallest  editbackground editfont underline click"  onclick="gen_Proc.use_ajax(\''.Sys::Self.'?display_fullnav&amp;sortby='.$sortagain.'\',\'handle_replace\',\'get\');" >Sort By '.$msg.' Instead</p><br>';
+	
+	$return.=$ret;
 	while (list($page_ref,$title,$filename) = $this->mysqlinst->fetch_row($r,__LINE__)){
-		if (trim($filename)==='')continue; 
-		$return.= '<p class="editbackground  editfont"><a style="color:inherit;"  href="'.$filename.$this->ext.'">'.$title.': &nbsp;&nbsp;<span class="smaller info" title="Page Ref:'. $page_ref.' filename: '.$filename.$this->ext.'">'.$page_ref.'</a></p>'; 
+		if (trim($filename)==='')continue;
+		$return.= '<p class="editbackground  editfont"><a style="color:inherit;"  href="'.$filename.$this->ext.'">'.$$titleref1.': &nbsp;&nbsp;<span class="smaller info" '. $$titleref2.' filename: '.$filename.$this->ext.'">'.$page_ref.'</a></p>';
+		
 		}
 	return $return;
 	}
@@ -4481,7 +4847,7 @@ function theme_choice(){
 	else {
 		$msg="Cleaning of potentially harmful scripts has been disabled. Ensure Theme Database is from a Trusted Source.";
 		$return.= '<div title="Import choices to Add a theme page. Added theme pages Will Not Automatically replace you current theme" class="editbackground editfont '.$this->column_lev_color.' fs2'.$this->column_lev_color.' rad5 left highlight">Choose your database to view pages and/or choose to import new theme page to your website <!--Import choices-->'; 
-		$return.='<p class="left clear editbackground editfont '.$this->column_lev_color.' rs1redAlert smaller rad5 left highlight" title="Choose This option only if you trust the theme source and require special javascript content." ><input type="checkbox" class="cancel_clean_import" name="cancel_clean_import" value="1" onchange="gen_Proc.on_check_event(\'cancel_clean_import\',\''.$msg.'\');">Disable Cleaning Import of User Scripts</p>';
+		$return.='<p class="left clear editbackground editfont '.$this->column_lev_color.' rs1redAlert smaller rad5 left highlight" title="Choose This option only if you trust the theme source and require special javascript content." ><input type="checkbox" class="cancel_clean_import" name="cancel_clean_import" value="1" onchange="gen_Proc.on_check_event(\'cancel_clean_import\',\''.$msg.'\');">Disable Cleaning Import of User Scripts/Iframes/Etc.</p>';
           foreach ($themedbs as $db){
                $return.='<p class="left editbackground editcolor"><input type="radio" name="add_theme_db" value="'.$db.'">Choose: '.$db.'</p>';
                }
@@ -4495,7 +4861,7 @@ function display_backups(){
 	$q='select backup_filename,backup_date,backup_time,backup_restore_time,backup_data1 from '.Cfg::Backups_table.' order by backup_time desc';
 	$r=$this->mysqlinst->query($q); 
 	$color='EBFCEE';
-	$return='<div  class="Os3darkslategray fsminfo black editbackground  editfont small left"><p class="neu">Leave backgup choices  open if checking box otherwise may not submit</p><span class="warn">Selecting a restore file will negate any current edits you have made</span><br><br><span class="tip">First Restore File is Present State of Website</span><br><br><div style="padding-left:10px;padding-bottom:10px;color:black; background:#'.$color.'"><input type="radio" name="page_restore_view" value="">None<br></div>';
+	$return='<div  class="Os3darkslategray fsminfo black editbackground  editfont small left"><p class="tip">Choose Previous Database file to view and/or Restore</p><br><span class="tip">First Restore File is Present State of Website</span><br><br><div style="padding-left:10px;padding-bottom:10px;color:black; background:#'.$color.'"><input type="radio" name="page_restore_view" value="">None<br></div>';
 	$color='EBFCEE';
 	if ($this->mysqlinst->affected_rows()){
 		while (list($fname,$date,$time,$restoredate,$restorefname) = $this->mysqlinst->fetch_row($r,__LINE__)){
@@ -4575,16 +4941,169 @@ function get_check_clone($col_id){
                }//if affected
 		}//foreach
      return $return;
-	} 
+	}
+     
+function tiny_resize($params){//not currently used
+     $params=explode('@@',$params);
+     $new_width=$params[3];
+     $storage_path =Cfg_loc::Root_dir.$params[1];
+     $final_path=Cfg_loc::Root_dir.$params[2];
+     $filename=$params[0];
+     $src=Cfg_loc::Root_dir.$params[1].$params[0];
+     list($width,$height)=$this->get_size($params[0],Cfg_loc::Root_dir.$params[1]);
+     if (!is_numeric($new_width ))
+          return '<span class="neg">Non Numeric Width Encountered:</span>'. $new_width;
+     if ($new_width > $width)
+          return '<span style="background:gold;color:black;">Limit of Max uploaded width of '.$width.'px used</span>'; 
+     $msg=image::image_resize($filename,$new_width,0,0,$storage_path, $final_path,'file_noreturn',NULL,'95' ); 
+     if (empty($msg))
+          return '<span class="pos whitebackground">Updated:</span> '. $new_width.'px';
+     else return $msg;
+     }
+function return_filesize($params){
+     $params=explode('@@',$params);
+     $src=Cfg_loc::Root_dir.$params[1].$params[0];
+     list($width,$height)=$this->get_size($params[0],Cfg_loc::Root_dir.$params[1]);
+     return $width;
+     }
+function tiny_handle_dir($params,$msg=''){
+     if (!$this->edit)
+          $multiple=process_data::webmode_email('Dir Files in Webmode Activated page: '.$this->pagename.'  '.$msg,'image_dir_cache_mail_logger_'.$this->pagename);
+     else $multiple=false;
+          
+     if (!$this->isJson($params)&&!empty($params)){
+          process_data::log_to_file('tiny_handle_dir !isjson '.$msg.' '.$params);
+          return "tiny_handle_dir !isJason $msg: $params";
+          }
+     if ($multiple)return 'webmode multiple calls to image_dir_cache populate in tiny_handle_dir funct page: '.$this->pagename; //we dont want multiple repeats of image file creation if there is a mistake not taking care of the problem the first time around
+     $fns= (strlen($params)>4) ? json_decode($params) :array();
+     if (count($fns)>0){   
+          $tiny_cache_array=explode(',',file_get_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'tiny_cache.dat'));//removed pagename from filename as should as version dumped in same edit page load...
+          if (!is_dir(Cfg_loc::Root_dir.Cfg::Tiny_orig_sz_dir))mkdir(Cfg_loc::Root_dir.Cfg::Tiny_orig_sz_dir,0755,1);
+          $origin_path=Cfg_loc::Root_dir.Cfg::Tiny_orig_sz_dir;
+          $storage_path=Cfg_loc::Root_dir.Cfg::Tiny_upload_dir;
+          if (count($tiny_cache_array)<2 && empty($tiny_cache_array[0])){
+               $msg.= 'problem with tiny cache array no sizes found in xmlrequest on line: '.__line__.' in file: '.__file__;
+               mail::alert($msg);
+               return $msg;
+               } 
+          foreach ($fns as $fn){
+                if (!is_file($storage_path.$fn)){
+                    $msg.= '  Uploads dir file not found for '.$storage_path.$fn. ' on line: '.__line__.' in file: '.__file__;
+                    mail::alert($msg); 
+                    }
+          list($up_width,$up_height)=process_data::get_size($fn,$storage_path); 
+               foreach ($tiny_cache_array as $sizedir){
+                    if ($sizedir > $up_width){//we will not copy bigger than original size..  and we will make sure then copy is in tiny_original_size dir otherwise not necessary..
+                         if (!is_file($origin_path.$fn)||filesize($origin_path.$fn)!==filesize($storage_path.$fn)){
+                              copy($storage_path.$fn,$origin_path.$fn);
+                              }
+                         break;
+                         } 
+                    if (!is_dir(Cfg_loc::Root_dir.Cfg::Tiny_resize_dir.$sizedir))mkdir(Cfg_loc::Root_dir.Cfg::Tiny_resize_dir.$sizedir,0755,1);
+                    if (!file_exists(Cfg_loc::Root_dir.Cfg::Tiny_resize_dir.$sizedir.'/'.$fn))  
+                        $msg.=image::image_resize($fn,$sizedir,0,0,$storage_path, Cfg_loc::Root_dir.Cfg::Tiny_resize_dir.$sizedir.'/','file_noreturn',NULL,'95' );
+                    }
+               }
+          }
+     return $msg;
+     }  
 
+function handle_log($params,$msg){
+     if(!$this->edit){
+          process_data::webmode_email('Handle Log in Webmode Activated page: '.$this->pagename.'  '.$msg,'handle_log mail_logger_'.$this->pagename);
+          }
+     $mode=($this->edit)?' editmode':' webmode';
+     $msg=date("dMY-H-i-s").$mode.' in '. $this->pagename. ' '.$msg;
+     $msg=(is_string($msg))?$msg : '';
+      if (!$this->isJson($params)){
+          process_data::log_to_file('handle log !isjson '.$msg.' '.$params);
+          return "handle log !isJason: $params";
+          }
+     $fns=json_decode($params);
+     foreach ($fns as $file){
+          $msg.="\n".$file;
+          }
+     process_data::log_to_file($msg);
+     return implode(',',$fns);
+     }
 
-	
-function ajax_check(){
+     
+function tiny_handle_width($params){  
+     $attrs= (strlen($params)>4) ? json_decode($params,true) :array();
+     if(count($attrs)>0){
+          $collect=array();
+          foreach ($attrs as $arr){
+               $fn=key($arr);
+               if (file_exists(Cfg_loc::Root_dir.Cfg::Tiny_upload_dir.$fn)){
+                    list($up_width,$up_height)=process_data::get_size($fn,Cfg_loc::Root_dir.Cfg::Tiny_upload_dir);
+                    $src=$arr[$fn];   
+                    $collect[]=$src.'@@'.$up_width;
+                    }
+               }
+          if (count($collect)>0){
+               return json_encode($collect);
+               }
+          }
+     return '';
+     }
+     
+function ajax_check(){ 
 	(Sys::Deltatime)&&$this->deltatime->delta_log(__line__.' @ '.__method__.'  '); 
 	if ($this->edit&&isset($_GET['display_anchor'])){   
 		$json_arr=array();    
 		$json_arr[]='display_anchor'; 
 		$json_arr[]=$this->gen_display_anchor();
+		echo json_encode($json_arr); 
+		exit(); 
+		}
+     if ($this->edit&&isset($_GET['tiny_handle_edit'])){   
+		$json_arr=array();
+          $params=$_GET['tiny_handle_edit'];
+		$return2=$this->tiny_handle_dir($params,'editmode');
+          $p2 = (isset($_GET['widA']))? $_GET['widA'] : '';
+          $return=$this->tiny_handle_width($p2);
+          $return=$return.'@x@'.$return2;
+          echo $return;
+          exit(); 
+		}
+     if (isset($_GET['webmodelog_data'])){   
+		$json_arr=array();
+          $params=$_GET['webmodelog_data'];
+          $msg=$_GET['msg'];
+          $return=$this->handle_log($params,$msg); 
+          echo $return;
+          exit(); 
+		}
+     if (isset($_GET['tiny_handle_webmode'])){  
+		$json_arr=array();
+          $params=$_GET['tiny_handle_webmode'];
+          $p2 = (isset($_GET['error']))? $_GET['error'] : '';
+		$return=(!empty($params))?$this->tiny_handle_dir($params,'webmode'):''; 
+          $return2=(!empty($p2))?$this->handle_log($p2,'The tiny mce following list of webmode img src files missing from img dir'):''; 
+          echo $return."\n".$return2;
+          exit(); 
+		} 
+     if ($this->edit&&isset($_GET['return_filesize'])){  
+		$json_arr=array();
+          $params=$_GET['return_filesize'];
+		$json_arr[]=$_GET['id'];
+		$json_arr[]=$this->return_filesize($params);
+		echo json_encode($json_arr); 
+		exit(); 
+		}
+     if ($this->edit&&isset($_GET['return_data_filesize'])){  
+		$json_arr=array();
+          $params=$_GET['return_data_filesize']; 
+		$val=$this->return_filesize($params);
+		echo $val; 
+		exit(); 
+		}
+     if ($this->edit&&isset($_GET['tiny_resize'])){   
+		$json_arr=array();
+          $params=$_GET['tiny_resize'];
+		$json_arr[]=$_GET['id']; 
+		$json_arr[]=$this->tiny_resize($params);
 		echo json_encode($json_arr); 
 		exit(); 
 		}
@@ -4605,9 +5124,10 @@ function ajax_check(){
 		exit(); 
 		}
 	if ($this->edit&&isset($_GET['display_fullnav'])){   
-		$json_arr=array();    
+		$json_arr=array();
+		$type=$_GET['sortby'];
 		$json_arr[]='display_fullnav'; 
-		$json_arr[]=mb_convert_encoding($this->display_fullnav(),'HTML-ENTITIES');
+		$json_arr[]=mb_convert_encoding($this->display_fullnav($type),'HTML-ENTITIES');
 		echo json_encode($json_arr); 
 		exit(); 
 		}
@@ -4637,7 +5157,14 @@ function ajax_check(){
 	if ($this->edit&&isset($_GET['display_styles'],$_GET['display_id'])){   
 		$json_arr=array();    
 		$json_arr[]=$_GET['display_id']; 
-		$json_arr[]=$this->gen_display_styles($_GET['display_styles']);
+		$json_arr[]=$this->gen_display_styles($_GET['display_styles'],$_GET['style_list'],$_GET['display_id']);
+		echo json_encode($json_arr); 
+		exit(); 
+		}
+	if ($this->edit&&isset($_GET['display_options'],$_GET['display_id'])){   
+		$json_arr=array();    
+		$json_arr[]=$_GET['display_id']; 
+		$json_arr[]=$this->gen_display_options($_GET['display_options'],$_GET['display_id']);
 		echo json_encode($json_arr); 
 		exit(); 
 		}
@@ -4794,7 +5321,13 @@ function ajax_check(){
 		exit();
 		}
 	}
-
+#jsExpressEdit
+function initiate_jsexpressedit( ){ 
+     $pid=$this->data.'_blog_text_arrayed';
+     echo '<div id="editorHtml_'.$this->blog_id.'" class="altEditorHtml"></div>
+    <div  class="altEdOptionShow" style="display:none;" onclick="gen_Proc.adjustLeftMargin(\'editorHtml_'.$this->blog_id.'\');jsExpressEdit.parseTextarea(\''.$pid.'\',\''.$this->blog_id.'\');">';//
+     echo '<p class="altEdActivateButton">Parse<br>Editor</p></div>';
+     }
 
 }//end class     
 ?>

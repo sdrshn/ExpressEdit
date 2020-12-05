@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.4
+#ExpressEdit 3.01
 class redirect {
 function page_referrer_redirect($msg,$succ='', $redirect='', $display=false,$refresh=false){ if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
      $message=array($msg);    
@@ -39,7 +39,9 @@ function page_referrer_redirect($msg,$succ='', $redirect='', $display=false,$ref
      }//end function post referrer redirect
      
 static function home_redirect(){
-	$url='http://'.Cfg::Site;
+	if (Sys::Web)
+		$url='http://'.Sys::Http_host;
+	else $url=Sys::Http_host.'/'.dirname(Sys::Self);
 	header("Location: $url");
 	exit();
 	}

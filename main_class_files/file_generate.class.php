@@ -2,8 +2,7 @@
 class file_generate {
 /*
 ExpressEdit is an integrated Theme Creation CMS
-	Copyright (c) 2018  Brian Hayes expressedit.org  
-
+	Copyright (c) 2018   expressedit.org
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -17,46 +16,44 @@ ExpressEdit is an integrated Theme Creation CMS
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.*/	
  
-static function file_folder_generate(){ #this will generate all folders and some general files for all folders such as default.html and robots.txt
+static function file_folder_generate($loc_overwrite){ #this will generate all folders and some general files for all folders such as default.html and robots.txt
 	$files_copy=Cfg::Default_image.','.Cfg::Pass_image.','.Cfg::Background_image_dir.Cfg::Default_image.','.Cfg::Small_thumb_dir.Cfg::Default_image.','.Cfg::Large_image_dir.Cfg::Default_image.','.Cfg::Master_thumb_dir.Cfg::Default_image.','.Cfg::Upload_dir.Cfg::Default_image.','.Cfg::Page_images_expand_dir.Cfg::Default_image.','.Cfg::Page_images_dir.Cfg::Default_image.','.
 Cfg::Background_image_dir.Cfg::Pass_image.','.Cfg::Small_thumb_dir.Cfg::Pass_image.','.Cfg::Large_image_dir.Cfg::Pass_image.','.Cfg::Master_thumb_dir.Cfg::Pass_image.','.Cfg::Upload_dir.Cfg::Pass_image.','.Cfg::Upload_dir.Cfg::Default_image
-.','.Cfg::Page_images_expand_dir.Cfg::Pass_image.','.Cfg::Page_images_dir.Cfg::Pass_image.',refresh_button.png,'.Cfg::Style_dir.'utility.css,fonts.css,OmFabicon.ico,apple-touch-icon-precomposed.png,resize_image.php,blank.gif,php.ini,400.shtml,401.shtml,403.shtml,404.shtml,500.shtml,501.shtml,mailsend.php,photonav_prev2.gif,photonav_next2.gif,sha512.js,fonts.html,plus.jpg,minus.jpg,navimage_prev.gif,navimage_next.gif,default.jpg,default_vid.jpg,next_gallery.gif,prev_gallery.gif'; 
+.','.Cfg::Page_images_expand_dir.Cfg::Pass_image.','.Cfg::Page_images_dir.Cfg::Pass_image.',refresh_button.png,'.Cfg::Style_dir.'utility.css,fonts.css,OmFabicon.ico,apple-touch-icon-precomposed.png,resize_image.php,blank.gif,php.ini,400.shtml,401.shtml,403.shtml,404.shtml,500.shtml,501.shtml,mailsend.php,sha512.js,default.jpg,default_vid.jpg,next_gallery.gif,prev_gallery.gif,karma.ico'; 
   	#full_copy copies entire directory
 	if (Sys::Debug)echo NL. "Generating ".__METHOD__." for current Database";
 	#here we are simply creating empty folders.
-	$folder_array=array(Cfg::Vid_background_dir,Cfg::Data_dir,Cfg::Data_dir.Cfg::Image_info_dir,Cfg::Data_dir.Cfg::Gall_info_dir,Cfg::Data_dir.Cfg::Page_info_dir,Cfg::Image_noresize_dir,Cfg::Vid_image_dir,Cfg::Data_dir,Cfg::Auto_slide_dir,Cfg::Contact_dir,Cfg::Watermark_dir,Cfg::Background_image_dir,Cfg::Page_images_dir,Cfg::Page_images_expand_dir,Cfg::Backup_dir,Cfg::Backup_dir.Cfg::Logfile_dir,Cfg::Backup_ext_folder,Cfg::PrimeEditDir,Cfg::PrimeEditDir.Cfg::Include_dir,Cfg::Display_dir.Cfg::Include_dir,Cfg::PrimeEditDir.Cfg::Style_dir,Cfg::Upload_dir,Cfg::Include_dir,Cfg::Small_thumb_dir,Cfg::Large_image_dir,Cfg::Master_thumb_dir);
+	$folder_array=array(Cfg::Tiny_orig_sz_dir,Cfg::Tiny_upload_dir,Cfg::Tiny_resize_dir,Cfg::Vid_background_dir,Cfg::Data_dir,Cfg::Data_dir.Cfg::Image_info_dir,Cfg::Data_dir.Cfg::Gall_info_dir,Cfg::Data_dir.Cfg::Page_info_dir,Cfg::Image_noresize_dir,Cfg::Vid_image_dir,Cfg::Data_dir,Cfg::Auto_slide_dir,Cfg::Contact_dir,Cfg::Watermark_dir,Cfg::Background_image_dir,Cfg::Page_images_dir,Cfg::Page_images_expand_dir,Cfg::Backup_dir,Cfg::Backup_dir.Cfg::Logfile_dir,Cfg::Backup_ext_folder,Cfg::PrimeEditDir,Cfg::PrimeEditDir.Cfg::Include_dir,Cfg::Display_dir.Cfg::Include_dir,Cfg::PrimeEditDir.Cfg::Style_dir,Cfg::Upload_dir,Cfg::Include_dir,Cfg::Small_thumb_dir,Cfg::Large_image_dir,Cfg::Master_thumb_dir);
 	//********Use  edit pages  $folder_array_foreign_tesite instead for foreign and testsite
 	(!is_dir(Sys::Home_pub.Cfg::Theme_dir))&&mkdir(Sys::Home_pub.Cfg::Theme_dir,0755,1);
-	 
 	foreach($folder_array as $folder){#if not exist folder create folder only
-		 echo NL.$folder. ' is being generated';
-		 
+		echo NL.$folder. ' is being generated';
 		file_generate::generate_folder(Sys::Home_pub.$folder);
 		self::generate_folder(Sys::Home_pub.Cfg::Theme_dir.$folder);
 		} 
-	 
 	$response_folders=explode(',',Cfg::Image_response);
 	foreach ($response_folders as $val){
 		$dir=Cfg_loc::Root_dir.Cfg::Page_images_dir.'imagedir'.$val;
 		 if (!is_dir($dir))mkdir( $dir,0755,1);
 		 } 
 	if (Sys::Common_dir !== Sys::Home_pub){
-		self::full_copy(Sys::Common_dir.Cfg::Theme_dir,Sys::Home_pub.Cfg::Theme_dir);
-		self::full_copy(Sys::Common_dir.Cfg::Style_dir,Sys::Home_pub.Cfg::Style_dir); 
-	   	self::full_copy(Sys::Common_dir.Cfg::Menu_icon_dir,Sys::Home_pub.Cfg::Menu_icon_dir);
-		self::full_copy(Sys::Common_dir.Cfg::Graphics_dir,Sys::Home_pub.Cfg::Graphics_dir); 
-		self::full_copy(Sys::Common_dir.Cfg::Script_dir,Sys::Home_pub.Cfg::Script_dir);
-		self::full_copy(Sys::Common_dir.Cfg::Script_dir,Sys::Home_pub.Cfg::Theme_dir.Cfg::Script_dir);
-		self::full_copy(Sys::Common_dir.Cfg::Font_dir,Sys::Home_pub.Cfg::Font_dir);
-		self::full_copy(Sys::Common_dir.Cfg::Font_dir,Sys::Home_pub.Cfg::Theme_dir.Cfg::Font_dir);
-		self::full_copy(Sys::Common_dir.Cfg::Social_dir,Sys::Home_pub.Cfg::Social_dir); 
-		self::full_copy(Sys::Common_dir.Cfg::Social_dir,Sys::Home_pub.Cfg::Theme_dir.Cfg::Social_dir);
-		self::full_copy(Sys::Common_dir.Cfg::Display_dir,Sys::Home_pub.Cfg::Display_dir);
-		self::full_copy(Sys::Common_dir.Cfg::Watermark_dir,Sys::Home_pub.Cfg::Watermark_dir);
-		self::full_copy(Sys::Common_dir.Cfg::Playbutton_dir,Sys::Home_pub.Cfg::Playbutton_dir);
-		self::full_copy(Sys::Common_dir.Cfg::Vid_dir,Sys::Home_pub.Cfg::Vid_dir); #copy video contents to each website root dir
-		self::full_copy(Sys::Common_dir.Cfg::Include_dir,Sys::Home_pub.Cfg::Include_dir); #local class.php will not be overwritten depending on Cfg::Override_page_class setting
-		self::full_copy(Sys::Common_dir.Cfg::Vid_dir,Sys::Home_pub.Cfg::Theme_dir.Cfg::Vid_dir); #copy video contents to each website root dir   
+		self::full_copy(Sys::Common_dir.Cfg::Theme_dir,Sys::Home_pub.Cfg::Theme_dir,$loc_overwrite);
+		self::full_copy(Sys::Common_dir.Cfg::Style_dir,Sys::Home_pub.Cfg::Style_dir,$loc_overwrite); 
+		self::full_copy(Sys::Common_dir.Cfg::Style_dir,Sys::Home_pub.Cfg::Theme_dir.Cfg::Style_dir,$loc_overwrite); 
+	   	self::full_copy(Sys::Common_dir.Cfg::Menu_icon_dir,Sys::Home_pub.Cfg::Menu_icon_dir,$loc_overwrite);
+		self::full_copy(Sys::Common_dir.Cfg::Graphics_dir,Sys::Home_pub.Cfg::Graphics_dir,$loc_overwrite); 
+		self::full_copy(Sys::Common_dir.Cfg::Script_dir,Sys::Home_pub.Cfg::Script_dir,$loc_overwrite);
+		self::full_copy(Sys::Common_dir.Cfg::Script_dir,Sys::Home_pub.Cfg::Theme_dir.Cfg::Script_dir,$loc_overwrite);
+		self::full_copy(Sys::Common_dir.Cfg::Font_dir,Sys::Home_pub.Cfg::Font_dir,$loc_overwrite);
+		self::full_copy(Sys::Common_dir.Cfg::Font_dir,Sys::Home_pub.Cfg::Theme_dir.Cfg::Font_dir,$loc_overwrite);
+		self::full_copy(Sys::Common_dir.Cfg::Social_dir,Sys::Home_pub.Cfg::Social_dir,$loc_overwrite); 
+		self::full_copy(Sys::Common_dir.Cfg::Social_dir,Sys::Home_pub.Cfg::Theme_dir.Cfg::Social_dir,$loc_overwrite);
+		self::full_copy(Sys::Common_dir.Cfg::Display_dir,Sys::Home_pub.Cfg::Display_dir,$loc_overwrite);
+		self::full_copy(Sys::Common_dir.Cfg::Watermark_dir,Sys::Home_pub.Cfg::Watermark_dir,$loc_overwrite);
+		self::full_copy(Sys::Common_dir.Cfg::Playbutton_dir,Sys::Home_pub.Cfg::Playbutton_dir,$loc_overwrite);
+		self::full_copy(Sys::Common_dir.Cfg::Vid_dir,Sys::Home_pub.Cfg::Vid_dir,$loc_overwrite); #copy video contents to each website root dir
+		self::full_copy(Sys::Common_dir.Cfg::Include_dir,Sys::Home_pub.Cfg::Include_dir,$loc_overwrite);  
+		self::full_copy(Sys::Common_dir.Cfg::Vid_dir,Sys::Home_pub.Cfg::Theme_dir.Cfg::Vid_dir,$loc_overwrite); #copy video contents to each website root dir
 		}
      #Here we are copying a list of files from the Common_dir to Current Directory root
      self::gen_copy_files(Sys::Common_dir,Sys::Home_pub,$files_copy);
@@ -64,13 +61,14 @@ Cfg::Background_image_dir.Cfg::Pass_image.','.Cfg::Small_thumb_dir.Cfg::Pass_ima
           file_put_contents(Sys::Home_pub.Cfg::Backup_dir.Cfg::Logfile_dir.Cfg::Log_file
           ,'In the beginning');
           }
+	
      $default_html='<!DOCTYPE html>
 <html lang="en"> 
 <head>
  <title>Website of '.Cfg::Owner.'</title>
  <link rel="SHORTCUT ICON" href="OmFabicon.ico"> <link rel="apple-touch-icon" href="OmFabicon.ico" type="image-x-icon"></head>
 <frameset rows="100%,*">
-<frame name="top" src="http://'.Cfg::Site.'" noresize frameborder=0 >
+<frame name="top" src="http://'.Sys::Http_host.'" noresize frameborder=0 >
 <noframes> 
 </noframes>
 </frameset>
@@ -79,28 +77,13 @@ Cfg::Background_image_dir.Cfg::Pass_image.','.Cfg::Small_thumb_dir.Cfg::Pass_ima
 	$robots=
 'User-Agent: *   
 Disallow: /';
-
-     $hello_world='
-<?php
-#ExpressEdit 2.0.4
-echo "hello world";
-?>';
-
-     $sys_hello='<?php
-#ExpressEdit 2.0.4
-include \'./includes/Cfg_loc.class.php\';
-include'. Cfg_loc::Root_dir.'\'includes/path_include.class.php\';
-echo Sys::Hello;
-echo Cfg::Hello;
-';
-     $include_hello='<?php
-#ExpressEdit 2.0.4
-include ("hello.php");
-';
+     
      $access_deny='deny from all'; 
 	self::directory_put	($default_html,'default.html',Sys::Home_pub);//puts in all directories...
 	file_put_contents(Sys::Home_pub.Cfg::Session_save_path.'.htaccess',$access_deny);//puts
 	file_put_contents(Sys::Home_pub.Cfg::Upload_dir.'.htaccess',$access_deny);
+	file_put_contents(Sys::Home_pub.Cfg::Tiny_upload_dir.'.htaccess',$access_deny);
+	printer::alert_pos('End Files Copy');
      }//end function
 	
 	
@@ -108,7 +91,7 @@ static function gen_copy_files($sourcedir,$finaldir,$filelist){#copy specified f
 	if (Sys::Debug)echo NL. "Generating ".__METHOD__." for database";
 	$filelist=(is_array($filelist))?$filelist:explode(',',$filelist);
 	foreach($filelist as $file){//printer::alert_neg($file. ' is file copied'.NL);
-		if (Cfg::Override||(strpos($finaldir.$file,'.php')!==false||!is_file($finaldir.$file))){//if exists do not overcopy
+		if (Cfg::Overwrite||(strpos($finaldir.$file,'.php')!==false||!is_file($finaldir.$file))){//if exists do not overcopy
 			if (!copy($sourcedir.$file,$finaldir.$file))
 			printer::alert_neg(NL."Error Copying  $sourcedir$file to $finaldir$file ");
 			else echo NL. '<p> Successfully Copied ' . "$sourcedir$file  to $finaldir$file</p>";
@@ -118,10 +101,14 @@ static function gen_copy_files($sourcedir,$finaldir,$filelist){#copy specified f
 	}
 	
 static function generate_folder($folder){#creates empty folder  exit('folder is '.$folder);
-	if (Sys::Debug)echo NL. "Generating ".__METHOD__." : $folder";
+	if (Sys::Debug)echo NL. "Generating ".__METHOD__." : $folder"; 
 	if(!is_dir($folder)){
 		echo NL. "gen folder making dir: $folder";
-		if(!mkdir($folder,0755,true))printer::alert_neg('Error Creating '.$folder);
+		if (!check_data::check_filename($folder)){
+			printer::alert_neg('bad folder name with '.$folder);
+			return;
+			}
+		if(!mkdir($folder,0755,1))printer::alert_neg('Error Creating '.$folder);
 		}
 	echo NL.'directory '.$folder.' exists';
 	}
@@ -147,8 +134,8 @@ $exclude=explode(',',$exclusion);
 		}
 	 if ($directory_handle = opendir($dir)) {  
 	   while (($file_handle = readdir($directory_handle))!== false) {  
-		  if(substr($file_handle,0,1) == '.') continue; 
-		  if (is_dir($dir. $file_handle)&&(!in_array($file_handle, $block))) { 
+		  if(substr($file_handle,0,1) == '.') continue;
+		  if (is_dir($dir.$file_handle)&&(!in_array($file_handle, $block))) { 
 			self::directory_put($content,$filename,$dir.$file_handle,$exclusion);
 			} 
 		}// end while
@@ -157,7 +144,7 @@ $exclude=explode(',',$exclusion);
  
 
 
-static function full_copy( $source, $target ) {echo NL. "entered full copy  $source is fc source and $target is target";#copies entire directory 
+static function full_copy( $source, $target,$loc_overwrite ) {echo NL. "entered full copy  $source is fc source and $target is target";#copies entire directory 
 	//exit('full copy needs to be checked out');
 	 static $c=0;
 	if ( !is_dir( $source ) ) {
@@ -177,17 +164,23 @@ static function full_copy( $source, $target ) {echo NL. "entered full copy  $sou
 
 			$Entry = $source . '/' . $entry; 
 			 if ( is_dir( $Entry ) ) {
-				self::full_copy( $Entry, $target.$entry );
+				self::full_copy( $Entry, $target.$entry,$loc_overwrite );
 				continue;
 				}
 			 echo  NL . "$c source is $source$entry and target is $target$entry";
 			$c++;
-               if (Cfg::Override_page_class&&str_pos($target.$entry,'class.php')!==false)continue;//do not override local custom classes..
-			if (Cfg::Override||strpos($target.$entry,'.php')!==false||!is_file($target.$entry)){
+               if (!$loc_overwrite&&strpos($target.$entry,'class.php')!==false){
+				echo NL. "bypassing loc_overwriting copy of $entry ";
+				
+				continue;//do not override local custom classes..
+				}
+			if (Cfg::Overwrite||!is_file($target.$entry)){//||strpos($target.$entry,'.php')!==false
+				echo NL. "copied $entry";
                     if (!copy( $Entry, $target.$entry)){
 					printer::alert_neg("Error in copy  $Entry to $target/$entry" );
 					}
 				}
+			else echo NL. "skipped copy of $entry is file and not php?";
 			}
 		}
 	} 
@@ -221,7 +214,7 @@ static function expand_file($gall_ref,$gall_table){
 	$new_file=Cfg_loc::Root_dir.$file; 
      $ex_file=<<<eol
 <?php
-#ExpressEdit 2.0.4
+#ExpressEdit 3.01
 include './includes/Cfg_loc.class.php';
 include Cfg_loc::Root_dir.'includes/path_include.class.php'; 
 \$expand=expandgallery_loc::instance();
@@ -279,10 +272,10 @@ static function create_new_page($newpage_ref,$newtitle,$starterpage,$ext){
 	}//end create new page
 	
 static function create_new_page_class($newpage_ref){
-     if (Cfg::Override_page_class||!is_file(Cfg_loc::Root_dir.Cfg::Include_dir.$newpage_ref.'.class.php')){
+     if (strpos(Sys::Self,'install_file')!==false||Cfg::Overwrite_page_class||!is_file(Cfg_loc::Root_dir.Cfg::Include_dir.$newpage_ref.'.class.php')){
           $newpage=<<<EOL
 <?php
-#ExpressEdit 2.0.4
+#ExpressEdit 3.01
 class $newpage_ref extends site_master {
      protected \$pagename='$newpage_ref'; 
       // It is recommended to  add   customized page specific functions here which will override the same function name in the main engine:  global_master.class.php   or global_edit_master.class.php
@@ -324,7 +317,7 @@ static function pageEdit_generate($pagename){#generates page edit for page table
 	$filename=check_data::dir_to_file(__METHOD__,__LINE__,__FILE__,$pagename);
 $pageedit=<<<eol
 <?php
-#ExpressEdit 2.0.4
+#ExpressEdit 3.01
 include '../includes/path_include.class.php';
 new Sys();
 if (!is_file('../includes/$pagename.class.php'))file_generate::create_new_page_class('$pagename');
@@ -340,7 +333,7 @@ static function page_generate($pagename,$path='../'){if (Sys::Methods) Sys::Debu
      $filename=check_data::dir_to_file(__METHOD__,__LINE__,__FILE__,$pagename);
      $page=<<<eol
 <?php
-#ExpressEdit 2.0.4
+#ExpressEdit 3.01
 include './includes/path_include.class.php';
 new Sys();
 \$render= new render_html('$pagename');
@@ -356,7 +349,7 @@ eol;
 static function config_gen_init(){
 	$config=<<<eol
 <?php
-#ExpressEdit 2.0.4
+#ExpressEdit 3.01
 class Cfg_loc  {
 	const Root_dir='';
 	}
@@ -368,7 +361,7 @@ eol;
 static function config_gen_edit(){ 
      $configedit=<<<eol
 <?php
-#ExpressEdit 2.0.4
+#ExpressEdit 3.01
 class Cfg_loc {
 	const Root_dir='../';
     }
@@ -379,23 +372,13 @@ eol;
      
      }//end function config
     
-static function class_local_gen(){
-	$class_list=array('navigation_loc','site_master','expandgallery_loc','gallery_loc');
-	foreach ($class_list as $class){
-		$file=$class.'.class.php';
-		$file_inc=Cfg_loc::Root_dir.Cfg::Include_dir.$file;
-		if (Cfg::Override_page_class||!is_file(Cfg_loc::Root_dir.Cfg::Include_dir.$class.'.class.php')){
-			copy(Sys::Common_dir.$file,$file_inc);
-			}
-		}
-	}
 	
 static function editMaster_generate(){#generate editpage URL response files ie addgallerypiccore.php
      if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
      if (Sys::Debug)echo NL. "Generating ".__METHOD__." for Current Database";
      $addgalleryedit=<<<eol
 <?php
-#ExpressEdit 2.0.4
+#ExpressEdit 3.01
 include '../includes/path_include.class.php'; 
 new Sys();
 new addgallerypiccore();
@@ -403,7 +386,7 @@ new addgallerypiccore();
 eol;
 $navigation_edit=<<<eol
 <?php
-#ExpressEdit 2.0.4
+#ExpressEdit 3.01
 include '../includes/path_include.class.php';
 new Sys();
 \$load=new fullloader();
@@ -412,7 +395,7 @@ new Sys();
 eol;
     $add_page_vid=<<<eol
 <?php
-#ExpressEdit 2.0.4
+#ExpressEdit 3.01
 include '../includes/path_include.class.php'; 
 new Sys();
 new add_page_vid_core(); 
@@ -421,7 +404,7 @@ eol;
       
      $add_page_pic=<<<eol
 <?php
-#ExpressEdit 2.0.4
+#ExpressEdit 3.01
 include '../includes/path_include.class.php'; 
 new Sys();
 new add_page_pic_core(); 
@@ -436,26 +419,7 @@ eol;
      file_put_contents(Cfg_loc::Root_dir.$editDir.'navigation_edit_page.php',$navigation_edit);
 	}
  
-static function iframe_backup($fileurl,$width=300,$height=500){  
-	if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-	 if (true){
-	    $vis='visible';
-	    }
-	else {
-	   $vis='hidden';
-	   $height=1;
-	   }
-	if (Sys::Debug||Sys::Deltatime)$backupiframe=new time(); 
-	# $url_prefix='http://'.$pass.$site;
-	$editDir=Cfg::PrimeEditDir;
-	$url=Sys::Home_site.$editDir.$fileurl;
-     self::render_backup_iframe($url,$width,$height,$vis);
-	if (Sys::Debug||Sys::Deltatime){
-          $delta=$backupiframe->delta();
-          echo NL. "time to render iframe page is $delta seconds";
-          }
-	}
- 
+
 static function iframe_backup_all($loc=''){
 	$pages=check_data::return_page_filenames(__METHOD__,__LINE__,__FILE__);
 	foreach ($pages as $page){ 
@@ -464,6 +428,7 @@ static function iframe_backup_all($loc=''){
 	}
 #this method prevents some systems Server errors by spacing out iframe request by using javascript interval delay to generate iframes
 static function javascript_render_backup_all($time=3000){
+     if (Sys::Loc)$time=50;//basically no delay
      $bottom=(isset($_POST['iframe_bottom']))?'&#bottom':'';
      $pages=check_data::return_page_filenames(__METHOD__,__LINE__,__FILE__);
      $page_arr=array(); 

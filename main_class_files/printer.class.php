@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.4
+#ExpressEdit 3.01
 class printer {
 
 static function return_array($array){
@@ -17,12 +17,12 @@ static   function print_request($return=false) {
 	if ($return) ob_start(); 
 	echo '<div id="requested" >'.NL.'Posted Data: ';
 	if (isset($_POST)){
-		printer::vert_print($_POST);
+		printer::vert_print($_POST,true);
 		}
 	if (isset($_GET)){ 
 		if (isset($_GET)){
 			echo NL.' $_Get data: '.
-			printer::vert_print($_GET);
+			printer::vert_print($_GET,true);
 			}//if $-GET
 		}
 	echo '</div>'; 
@@ -274,19 +274,21 @@ static function horiz_show_array($array,$array_keys,$nototal,$unit,$show_count,$
      echo '</tr>';    
      } 
 
-static function vert_show_array($array, $level, $sub ){
+static function vert_show_array($array, $level, $sub, $convert ){
 	static $x=0;
 	$class=(Sys::Edit)?'editbackground editcolor editfont':'whitebackground black';
      if (is_array($array) == 1){          // check if input is an array
-          foreach($array as $key_val => $value) {$x++;  
+          foreach($array as $key_val => $value) {$x++;
+              
                $offset = "";
                if (is_array($value) == 1){   // array is multidimensional
                     echo "<tr>"; 
                     $offset = self::v_do_offset($level);
                     echo $offset . "<td class=\"$class\">" . $key_val . "</td>";// *$x* 
-                    self::vert_show_array($value, $level+1, 1);
+                    self::vert_show_array($value, $level+1, 1 ,$convert);
                     }
                else{                   
+                    $value= ($convert) ? htmlspecialchars($value) : $value;
                     if ($sub != 1){          // first entry for subarray
                          echo '<tr class="nosub">';
                          $offset = self::v_do_offset($level);
@@ -311,12 +313,12 @@ static function v_do_offset($level){
     return $offset;
      }
      
-static function vert_print($array){
+static function vert_print($array,$convert=false){
 	if (count($array)==0)return;
 	$class=(Sys::Edit)?'editbackground editfont info fsminfo':'whitebackground neu fsminfo';
 	echo '<div class="'.$class.'"><!--print vert-->';
      echo "<table style=\"border:2px;\">\n";
-     self::vert_show_array($array, 1, 0);
+     self::vert_show_array($array, 1, 0, $convert);
      echo "</table>\n";
 	echo '</div><!--print vert-->';
      }
@@ -362,7 +364,8 @@ static function alert_span_pos($msg,$size=.9,$return=false){if(Sys::Printoff||Sy
 static function alert_conf($msg,$color='000',$size='1',$font='Tahoma, Geneva, sans-serif'){if(Sys::Printoff||Sys::Quietmode)return;	
 	echo "\n";
 	(empty($size))&&$size=1;
-	$msg= '<p class="clear editbackground editfont" style="color:#'.$color.'; font-size:'.($size*16).'px; font-family:'.$font.';">'.$msg.'</p>';
+	$style=(preg_match(Cfg::Preg_color,$color))?'style="color:#'.$color.';font-size:'.($size*16).'px; font-family:'.$font.';"':'style="font-size:'.($size*16).'px; font-family:'.$font.';"';  
+	$msg= '<p class="clear floatleft editcolor" '.$style.'>'.$msg.'</p>';
      echo $msg; 
 	self::pclear();
      }
@@ -414,6 +417,29 @@ static function print_tip($msg,$size='.9'){
 	$msgA= '<p class="tip floatleft clear editfont" style="font-size:'.($size*16).'px;">'.$msg.'</p>';
 	echo $msgA; echo '<!--print_tip-->';
 	self::pclear();
+	}    
+static function print_tipdark($msg,$size='.9'){
+	if(Sys::Printoff||Sys::Quietmode)return;
+	echo "\n";
+	$msgA= '<p style="padding:14px;background:#aaa" class="rad5 white floatleft left smaller clear editfont" style="font-size:'.($size*16).'px;">'.$msg.'</p>';
+	echo $msgA; echo '<!--print_tip-->';
+	self::pclear();
+	}
+         
+static function print_header($msg,$size='1.1'){
+	if(Sys::Printoff||Sys::Quietmode)return;
+	echo "\n";
+	$msgA= '<p class="bold tip floatleft clear editfont" style="font-size:'.($size*16).'px;">'.$msg.'</p>';
+	echo $msgA; echo '<!--print_tip-->';
+	self::pclear();
+	}
+         
+static function print_warnlight($msg,$size='.9'){
+	if(Sys::Printoff||Sys::Quietmode)return;
+	echo "\n";
+	$msgA= '<p class="warnlight floatleft clear editfont" style="font-size:'.($size*16).'px;">'.$msg.'</p>';
+	echo $msgA; echo '<!--print_warnlight-->';
+	self::pclear();
 	}
      
 static function print_tip2($msg,$size='.9'){
@@ -435,7 +461,7 @@ static function print_caution($msg,$size='1'){
 static function print_warn($msg,$size='.9',$return=false){
 	if(Sys::Printoff||Sys::Quietmode||empty($msg))return;
 	echo "\n";
-	$msg= '<p class="editfont fsminfo floatleft clear lightestmaroonbackground orange " style="font-size:'.($size*16).'px;">'.$msg.'</p>';
+	$msg= '<p class="editfont fsminfo floatleft warn clear" style="font-size:'.($size*16).'px;">'.$msg.'</p>';
 	echo $msg;
 	self::pclear();
 	}
@@ -509,7 +535,7 @@ static function print_spacer(){
 static function print_wrap($msg,$color='info',$main=false,$class='editbackground editcolor editfont'){
 	if(Sys::Printoff||Sys::Quietmode)return;
 	echo "\n";
-	$border1= ($main===true)?'bs2'.$color:'fsminfo';
+	$border1= ($main===true)?'bs2'.$color:'fsm2'.$color;
 	$class2=($main===true)?'fsm2'.$color:'';
 	$class1=$border1.' floatleft clear '.$class;
 	$msg= '<div class="'.$class1.'"><!--print_wrap-->
@@ -586,15 +612,23 @@ static function spanclear($height=0,$return=false){if(Sys::Printoff||Sys::Quietm
 	echo $msg;
 	}
 
-static function pclear($height='none',$return=false){if(Sys::Clearoff)return;
+static function pclear($height='',$return=false){if(!Sys::Edit || Sys::Clearoff)return;
 	static $x=0; $x++; //if ($x==11||$x==4||$x==9)return;
 	echo "\n";  if(Sys::Printoff||Sys::Quietmode)return;//&& print ' pclear '.$x. ' height:'.$height; 
-	$height=($height==='none')?'height:0px;':'height:'.$height.'px;';  
-	$msg='<p style="clear:both;display:block; '.$height.'"></p><!--pclear-->';
+	$msg = (empty($height))? '<p class="pclear"></p>':'<p style="clear:both;display:block; height:'.$height.'px"></p>';
 	if($return)return $msg;
 	echo $msg;
 	}
 
+     
+static function wmclear($height='',$return=false){
+	static $x=0; $x++; //if ($x==11||$x==4||$x==9)return;
+	echo "\n";  if(Sys::Printoff||Sys::Quietmode)return;//&& print ' pclear '.$x. ' height:'.$height; 
+	$msg = (empty($height))? '<p class="wmclear"></p>':'<p style="clear:both;display:block; height:'.$height.'px"></p>';
+	if($return)return $msg;
+	echo $msg;
+	}
+     
 static function pclearme($height='none',$return=false){ 
 	static $x=0; $x++; //if ($x==11||$x==4||$x==9)return;
 	echo "\n";  if(Sys::Printoff||Sys::Quietmode)return;//&& print ' pclear '.$x. ' height:'.$height; 

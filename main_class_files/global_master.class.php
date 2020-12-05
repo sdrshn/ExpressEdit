@@ -1,9 +1,9 @@
 <?php
-#ExpressEdit 2.0.4
+#ExpressEdit 3.01
 #see top of global edit master class for system overview comment dir..
 /*
  *ExpressEdit is an integrated Theme Creation CMS
-	Copyright (c) 2018  Brian Hayes expressedit.org  
+	Copyright (c) 2018   expressedit.org  
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,16 +15,17 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.*/
+    see <https://www.gnu.org/licenses */
 class global_master extends global_edit_master{
      protected $dataCss='';//initialize
      protected $pelement='';//sets a default used to carry current css selector 
      protected $flexfail=true;// if true and edimode init flex is off  see #flexfail affects editmode flex on or off
      protected $express=array();//update messages express after body call.
 	protected static $colinc=0;
+	protected $default_rem=16;//default in px
 	protected $show_text_style=false;//set default
-	protected $comment='Comment';//used to refer to comment or feedback 
+	protected $comment='Comment';//used to refer to comment or feedback
+     protected $page_image_quality=95;//initialize used in tiny uploads
 	protected $directory_table=Cfg::Directory_dir;
 	protected $master_col_table=Cfg::Columns_table;
 	protected $master_page_table=Cfg::Master_page_table;//this can be subbed out for displaying backup pages
@@ -32,21 +33,26 @@ class global_master extends global_edit_master{
 	protected $master_post_table=Cfg::Master_post_table;//this can be subbed out for displaying backup pages
 	protected $master_gall_table=Cfg::Master_gall_table;//this can be subbed out for displaying backup pages
 	protected $master_col_css_table=Cfg::Master_col_css_table;//this can be subbed out for displaying backup pages
-	protected $master_post_data_table=Cfg::Master_post_data_table; 
+	protected $master_post_data_table=Cfg::Master_post_data_table;
+     protected $key='';//initiate
 	protected $comment_table='comments';
 	protected $login_forum=false; //set to true to  provide security for a forum pages  ie forum_master.class.php
 	protected $locked_pages=false;//set to true in site_master.class.php to provide security for whole site or specify for a particlar page ie about_master.class.php
 	protected $meta_data=true;// 
 	protected $blog_date_on=0;  
-	protected $edit_font_size=Cfg::Edit_font_size;
-	protected $edit_font_family=Cfg::Edit_font_family;
-	protected $header_style='styling/animate.css,styling/slippry.css,styling/photoswipe.css,styling/photoswipe-skin.css';
-	protected $header_edit_style='nouislider.css';
-	protected $header_script='jquery.min.js,hammer.js';
-	protected $header_script_webmode='prefixfree.js';//webmode only
-	protected $header_script_function='onload,gen_Proc,autoShow,fadeTo';  //outscript for normal page
-	protected $header_edit_script_function='onload_edit,edit_Proc'; //scripts for edit page
-	protected $header_edit_script='nouislider.js,jscolor.js,tool-man/core.js,tool-man/events.js,tool-man/css.js,tool-man/coordinates.js,tool-man/drag.js,tool-man/dragsort.js'; //outsidescript for edit page
+	protected $edit_font_size=1;
+	protected $edit_font_family='Helvetica=> sans-serif';//default edit font family  
+	protected $header_style='styling/animate.css';//
+	protected $header_edit_style='nouislider.css';//
+	protected $header_script='hammer.js';//
+     protected $initiate_script_once=array();//initialize array for closing body js initates  
+     protected $jsResizeArr=array();//initialize array for closing body js initates  on resize 
+     protected $header_script_once=array();// 
+	protected $header_css_once=array();// 
+	protected $header_script_function='onload,gen_Proc,autoShow,fadeTo'; //generates jsfile
+     protected $header_script_webmode='prefixfree.js';//webmode only
+     protected $header_edit_script_function='onload_edit,edit_Proc'; //scripts for edit page
+	protected $header_edit_script='jsexpressedit.js,nouislider.js,jscolor.js,tool-man/core.js,tool-man/events.js,tool-man/css.js,tool-man/coordinates.js,tool-man/drag.js,tool-man/dragsort.js'; //file scripts for edit page
 	//add included php file::   use header_insert function to add to head  links ie css external files etc. 
 	protected $onload='';
 	protected $edit_onload='';#other copies of edit onload in gallery master addgallerypiccore add page pic core add video
@@ -58,22 +64,30 @@ class global_master extends global_edit_master{
 	protected $pageeditcss='';//initializes all editcss
 	protected $editgencss='';//initializes all editgencss
 	protected $editoverridecss='';//initializes all edit override css
-	protected $css='';//initializes all page 
-	protected $sitecss='';
-	protected $imagecss='';//initialize build image css
+	protected $css='';//initializes all col/blog css
+	protected $mediacss='';//initializes all col/blog mediacss
+	protected $collect_css='';//coll all page css
+	protected $collect_mediacss='';//coll all col/blog media css
+	protected $script='';//initializes script
+	protected $scriptArr=array();//initializes scriptArr
+	protected $css_page_array=array();//initializes css
+	protected $clone_list_id=array();//list clone ids
+	protected $noloadscript='';//initializes no onload script 
+	protected $onresizescript='';//initializes onresizescript
+	protected $onresizescriptonce=array();//initializes onresizescriptonce
+	protected $prescript='';//initializes no onload script
 	protected $navcss='';//initializes all page css
 	protected $initcss='';//initializes all page css
-	protected $highslidecss='';//initializes all page css
-	protected $mediacss='';
+	protected $highslidecss='';//initializes all page css 
 	protected $fontcss='';
-	protected $pagecss='';
-	protected $advancedmediacss='';
+	protected $pagecss=''; 
 	protected $success='';
 	protected $message='';
+     protected $custom_styler=false;
 	protected $field_data=Cfg::Page_fields;
 	protected $append_script='';
 	protected $gallery_global=false;
-	protected $users_record=false;
+	protected $users_data=false;
 	protected $echo_eob='';//concate echo for end of body rendering... 
 	protected $header_type='html5_header.php';
 	protected $text_box_javascript=false;
@@ -171,14 +185,12 @@ class global_master extends global_edit_master{
 	#end column level colors colors
 	protected $block_style=false;//if padding etc. too excessive  blocks rendering
 	protected $page_pic_quality=95;
-	protected $next_image='photonav_next2.gif';
 	protected $hover_image=85;#percentage in the field for vert position with 100 being bottom
 	protected $editor_background='#fff';//defaults set in editor configs
 	protected $editor_color='#000';//defaults set in editor configs
 	protected $thumnail_pad_right=5;
 	protected $main_top=45;
 	protected $prevnext_top=190;# probably set in local height of div wrapping for cursor 
-	protected $previous_image='photonav_prev2.gif';
 	private static $instance=false; //store instance
 	protected $rem='rem';//css style unit
 	protected $blog_id='null';//set default
@@ -187,7 +199,7 @@ class global_master extends global_edit_master{
 	protected $viewport_current_width='';
 	protected $column_clone_status_arr=array(); 
 	protected $column_masonry_status_arr=array(); 
-	protected $page_stylesheet_inc=array();//used to include all cloned page styles
+	protected $page_has_clone_inc=array();//used to include all cloned page styles
 	protected $is_clone=false;//initialize
 	protected $preload='';
 	protected $page_images_arr=array();//hold current page_images_dir images and quality info
@@ -218,14 +230,17 @@ class global_master extends global_edit_master{
 	protected $is_masonry=false; 
      protected $font_scale=false;
      protected $rem_scale=false;//whether scaling affects rem units 
-     protected $current_em_scale=false;//whether scaling affects em units 
+     protected $current_em_scale=false;//whether scaling affects em units
+     protected $tiny_cache_array=array();//initialize
+     protected $no_release_arr=array(); //do not re-mirror release cloned blog id 
      
 #__con   #cons  
 function __construct($edit=false,  $return=false){
      if($return)return; 
+     //$this->header_script_webmode.=','.$this->pagename.'.js';
 	$this->viewport_current_width=process_data::get_viewport(); 
 	$this->color_arr_long=explode(',',Cfg::Light_editor_color_order);//default value
-	$this->deltatime=time::instance(); $this->deltatime->delta_log('global construct delta'); 
+	$this->deltatime=time::instance(); (Sys::Deltatime)&&$this->deltatime->delta_log('global construct delta'); 
 	$this->column_width_array[0]='body'; 
 	$this->edit=($edit=='edit')?true:$edit;// this is set in editpages for each web page individually....
      $this->ext=request::check_request_ext();  
@@ -234,14 +249,16 @@ function __construct($edit=false,  $return=false){
 	if ((!Sys::Bypass||(Sys::Loc&&Cfg::Force_local_login))&&(($this->edit&&!Sys::Pass_class)||Sys::Check_restricted)){//this is always on for security for editpages and other restricted utilities such as file_gen.php and display user pages see (Sys.php)
 #logged_in #login
 		new secure_login('ownerAdmin',false); //for access to editpages  
-		}  
+		}
+	#*************  End Restrict Access 
 	$this->css_suffix=$this->passclass_ext=(Sys::Pass_class)?Cfg::Temp_ext:'';		 
-	if ($this->edit && (isset($_POST['page_restore_view'])&&!empty($_POST['page_restore_view']))||(isset($_SESSION[Cfg::Owner.'db_to_restore'])&&isset($_GET['page_restore_dbopt'])))$this->db_backup_restore();
+	if ($this->edit && (isset($_POST['page_restore_view'])&&!empty($_POST['page_restore_view']))||(isset($_SESSION[Cfg::Owner.'db_to_restore'])&&isset($_GET['page_restore_dbopt'])))
+		$this->db_backup_restore();
 	$this->ajax_check();
      if ($this->edit){//clear last round editpage outputbuffer generation
           if (!is_dir(Cfg_loc::Root_dir.Cfg::Data_dir))mkdir(Cfg_loc::Root_dir.Cfg::Data_dir,0755,1);
           if (!is_dir(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Buffer_dir))mkdir(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Buffer_dir,0755,1);
-          if (!isset($_SESSION['clean_buffer'])){
+          if (!isset($_SESSION['clean_buffer'])){  
                foreach (glob(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Buffer_dir .'*.dat') as $filename) { 
                     unlink($filename);
                     }
@@ -253,10 +270,11 @@ function __construct($edit=false,  $return=false){
                     }
                }
           } 
+          
+          
 	(Sys::Onsubmitoff)&&$this->onsubmit='';
-	#*************  End Restrict Access
-	
-	if ($this->edit)$_SESSION[Cfg::Owner.'editmode']=1;//prevents pages from cacheing if cacheing were on also this session created when logged in or by request
+	if ($this->edit)$_SESSION[Cfg::Owner.'editmode']=1;//prevents pages from cacheing if caching were on also this session created when logged in or by request
+	$this->rand=(isset($_SESSION[Cfg::Owner.'editmode']))?'?'.rand(1,32000):''; 
 	$file=Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'sibling_id_arr_'.$this->pagename.'.dat';
      if (is_file($file)){
           $this->sibling_id_arr=unserialize(file_get_contents($file));
@@ -266,113 +284,75 @@ function __construct($edit=false,  $return=false){
 		$this->edit='return';
 		return;
 		}
-	if (isset($_GET['xpzawn2'])){//this is a ajax response request to get accumulate further browser information from user see browser info();
-		$this->browser_info();
-		exit();
-		}
+	
 	$indexes=explode(',',Cfg::Page_options);
 	foreach($indexes as $key =>$index){
-		if (!empty($index)) {
-			$this->{$index.'_index'}=$key;  
-			}
-		}
-	/*$indexes=explode(',',Cfg::Blog_height_opts);
-	foreach($indexes as $key =>$index){
-		if (!empty($index)) {
-			$this->{$index.'_index'}=$key;  
-			}
-		}*/
+		$this->{$index.'_index'}=$key;
+		} 
 	$backindexes=explode(',',Cfg::Column_options);
 	foreach($backindexes as $key =>$index){   
 		$this->{$index.'_index'}=$key;
 		}
 	$indexes=explode(',',Cfg::Style_functions );
 	foreach($indexes as $key =>$index){
-		if (!empty($index)) {
-			$this->{$index.'_index'}=$key;
-			  //print NL.  $index." = $key"; 
-			}
+		$this->{$index.'_index'}=$key;
 		}
 	$indexes=explode(',',Cfg::Animation_options );
 	foreach($indexes as $key =>$index){
-		if (!empty($index)) {
-			$this->{$index.'_index'}=$key;
-			  //print NL.  $index." = $key"; 
-			}
+		$this->{$index.'_index'}=$key;
 		}
 	$indexes=explode(',',Cfg::Display_options );
 	foreach($indexes as $key =>$index){
-		if (!empty($index)) {
-			$this->{$index.'_index'}=$key;
-			  //print NL.  $index." = $key"; 
-			}
+		$this->{$index.'_index'}=$key;
 		}
 	$indexes=explode(',',Cfg::Position_options );
 	foreach($indexes as $key =>$index){
-		if (!empty($index)) {
-			$this->{$index.'_index'}=$key;
-			  //print NL.  $index." = $key"; 
-			}
+		$this->{$index.'_index'}=$key;
+		}
+	$indexes=explode(',',Cfg::Opacity_options );
+	foreach($indexes as $key =>$index){
+		$this->{$index.'_index'}=$key;
 		}
 	$indexes=explode(',',Cfg::Blog_options);
 	foreach($indexes as $key =>$index){
-		if (!empty($index)) {
-			$this->{$index.'_index'}=$key;  
-			}
+		$this->{$index.'_index'}=$key;
 		}  
 	$indexes=explode(',',Cfg::Style_functions );
 	foreach($indexes as $key =>$index){
-		if (!empty($index)) {
-			$this->{$index.'_index'}=$key;
-			 // print NL.  $index." = $key"; 
-			}
+		$this->{$index.'_index'}=$key;
 		}
 	$indexes=explode(',',Cfg::Main_width_options);
 	foreach($indexes as $key =>$index){
-		if (!empty($index)) {
-			$this->{$index.'_index'}=$key;
-			 // print NL.  $index." = $key"; 
-			}
+		$this->{$index.'_index'}=$key;
 		}
 	$indexes=explode(',',Cfg::Box_shadow_options);
 	foreach($indexes as $key =>$index){
-		if (!empty($index)) {
-			$this->{$index.'_index'}=$key;
-			 // print NL.  $index." = $key"; 
-			}
+		$this->{$index.'_index'}=$key;
 		}
           
      $indexes=explode(',',Cfg::Col_flex_options);
 	foreach($indexes as $key =>$index){
-		if (!empty($index)) {
-			$this->{$index.'_index'}=$key;
-			 // print NL.  $index." = $key"; 
-			}
+		$this->{$index.'_index'}=$key;
 		}
           
      $indexes=explode(',',Cfg::Image_options);
 	foreach($indexes as $key =>$index){
-		if (!empty($index)) {
-			$this->{$index.'_index'}=$key; 
-			}
+		$this->{$index.'_index'}=$key;
 		}
           
      $indexes=explode(',',Cfg::Blog_flex_options);
 	foreach($indexes as $key =>$index){
-		if (!empty($index)) {
-			$this->{$index.'_index'}=$key;
-			 // print NL.  $index." = $key"; 
-			}
+		$this->{$index.'_index'}=$key;
 		} 
 	$this->col_field_arr_all=explode(',',Cfg::Col_fields_all);
 	$this->col_field_arr=explode(',',Cfg::Col_fields); 
 	if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);  
-	store::setVar('backup_clone_refresh_cancel',false);
-	#buffer    ||($this->edit&&Sys::Pass_class)
+	store::setVar('backup_clone_refresh_cancel',false);//not used
+	#buffer    
 	((!Sys::Debug&&!Sys::Norefresh&&(isset($_POST['submit'])||Sys::Bufferoutput))||isset($_GET['advanced'])||isset($_GET['advancedoff']))&&ob_start();  #ob
 	if (Sys::Debug||Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__); 
 	$this->set_cookie(); 
-	$this->deltatime->delta_log('page initiate');  
+	(Sys::Deltatime)&&$this->deltatime->delta_log('page initiate');  
 	$this->update_db(); 
 	if ($this->edit){  
 	$this->edit_script();
@@ -386,7 +366,6 @@ function __construct($edit=false,  $return=false){
 function flex_items($type){// handles col and blog flex-items
      if ($this->is_clone&&!$this->clone_local_style)return;
      if(!$this->flex_box_item){
-         // printer::print_info('Flex box flex-item positioning of this '.$this->blog_typed.' is <b>Not Active</b> as not enabled in parent column.'); 
           return;
           }
      $flexitems=explode(',',$this->blog_flex_box); 
@@ -421,7 +400,7 @@ function flex_items($type){// handles col and blog flex-items
           ######## turn on  flex_grow_enabled
           if ($this->is_column&&!empty($grow)&&$this->flex_box_item)$this->flex_grow_enabled=true;
           $shrink=(is_numeric($flexitems[$this->flex_shrink_index+$k])&&$flexitems[$this->flex_shrink_index+$k]>0&&$flexitems[$this->flex_shrink_index+$k]<=100)?$flexitems[$this->flex_shrink_index+$k]:0;
-          $align_self=(in_array($flexitems[$this->flex_align_self_index+$k],$align_self_arr))?$flexitems[$this->flex_align_self_index+$k]:'def';
+          $align_self=(!empty($flexitems[$this->flex_align_self_index+$k])&&in_array($flexitems[$this->flex_align_self_index+$k],$align_self_arr))?$flexitems[$this->flex_align_self_index+$k]:'def';
           $align_self_css=($align_self==='def')?'':'align-self:'.$align_self_assoc[$align_self].';';
           $mediacss='';
           $floatstyle='';'margin-left:0 !important;margin-right:0 !important;';//margin auto blog item creates some problems with rendering
@@ -479,7 +458,6 @@ function flex_items($type){// handles col and blog flex-items
           $css='';
           if ($max_flex==='none'&&$min_flex==='none'){
                if ($i>0)echo 'Choose @media max or min width to initiate viewport responsive flex settings';
-                
                else
                     $this->css.=$css='
 .'.$css_id.'{flex:'.$grow.' '.$shrink.' '.$basis_css.';
@@ -488,7 +466,7 @@ order:'.$order.';
 ';
 			} 
 		elseif ($max_flex!=='none'&&$min_flex!=='none') {
-			 $this->mediacss.=$css='
+			 $this->css.=$css='
 @media screen and (max-width:'.$max_flex.'px) and (min-width:'.$min_flex.'px){  	
 '.$css_id.'{flex:'.$grow.' '.$shrink.' '.$basis_css.';
 order:'.$order.';
@@ -496,7 +474,7 @@ order:'.$order.';
      }';
 			}
 		elseif ($max_flex!=='none'){
-			 $this->mediacss.=$css='
+			 $this->css.=$css='
 @media screen and (max-width: '.$max_flex.'px){  	
 .'.$css_id.'{flex:'.$grow.' '.$shrink.' '.$basis_css.';
 order:'.$order.';
@@ -504,7 +482,7 @@ order:'.$order.';
      }';
 			}
 		else {
-			 $this->mediacss.=$css='
+			 $this->css.=$css='
 @media screen and (min-width: '.$min_flex.'px){  	
 .'.$css_id.'{flex:'.$grow.' '.$shrink.' '.$basis_css.';
 order:'.$order.';
@@ -530,10 +508,67 @@ order:'.$order.';
      printer::close_print_wrap('flex items');
      $this->show_close('Choose flex-item options'); 
      }
+function color_populate(){ 
+     $this->page_options[$this->page_darkeditor_background_index]=(preg_match(Cfg::Preg_color,$this->page_options[$this->page_darkeditor_background_index]))?$this->page_options[$this->page_darkeditor_background_index]:'687867';
+	$this->page_options[$this->page_darkeditor_color_index]=(preg_match(Cfg::Preg_color,$this->page_options[$this->page_darkeditor_color_index]))?$this->page_options[$this->page_darkeditor_color_index]:'ffffff';
+	$this->page_options[$this->page_lighteditor_background_index]=(preg_match(Cfg::Preg_color,$this->page_options[$this->page_lighteditor_background_index]))?$this->page_options[$this->page_lighteditor_background_index]:'ECECEC';
+	$this->page_options[$this->page_lighteditor_color_index]=(preg_match(Cfg::Preg_color,$this->page_options[$this->page_lighteditor_color_index]))?$this->page_options[$this->page_lighteditor_color_index]:'687867';
+	$this->page_options[$this->page_darkeditor_info_index]=(preg_match(Cfg::Preg_color,$this->page_options[$this->page_darkeditor_info_index]))?$this->page_options[$this->page_darkeditor_info_index]:$this->page_options[$this->page_darkeditor_color_index];
+	$this->page_options[$this->page_lighteditor_info_index]=(preg_match(Cfg::Preg_color,$this->page_options[$this->page_lighteditor_info_index]))?$this->page_options[$this->page_lighteditor_info_index]:$this->page_options[$this->page_lighteditor_color_index];
+	$this->page_options[$this->page_darkeditor_red_index]=(preg_match(Cfg::Preg_color,$this->page_options[$this->page_darkeditor_red_index]))?$this->page_options[$this->page_darkeditor_red_index]:$this->redAlert; 
+	$this->page_options[$this->page_lighteditor_red_index]=(preg_match(Cfg::Preg_color,$this->page_options[$this->page_lighteditor_red_index]))?$this->page_options[$this->page_lighteditor_red_index]:$this->redAlert; 
+	$this->page_options[$this->page_darkeditor_pos_index]=(preg_match(Cfg::Preg_color,$this->page_options[$this->page_darkeditor_pos_index]))?$this->page_options[$this->page_darkeditor_pos_index]:$this->pos; 
+	$this->page_options[$this->page_lighteditor_pos_index]=(preg_match(Cfg::Preg_color,$this->page_options[$this->page_lighteditor_pos_index]))?$this->page_options[$this->page_lighteditor_pos_index]:$this->pos;
+     
+    if($this->page_options[$this->page_editor_choice_index]==='dark'){
+          $theme= 'dark';
+           $cfgorder=explode(',',Cfg::Dark_editor_color_order);
+           }
+     else {
+          $theme='light';
+          $cfgorder=explode(',',Cfg::Light_editor_color_order);
+          }
+     $this->info=$this->page_options[$this->{'page_'.$theme.'editor_info_index'}];
+     $page_order=(!empty($this->{'page_'.$theme.'_editor_order'}))?explode(',',$this->{'page_'.$theme.'_editor_order'}):array();
+     $this->{'page_'.$theme.'_editor_value'}=(empty($this->{'page_'.$theme.'_editor_value'}))?array():explode(',',$this->{'page_'.$theme.'_editor_value'});
+     $this->color_order_arr=(count($page_order)>5)?$page_order:$cfgorder;
+     if (count($page_order)<6){ 
+          $msg='You must maintain at least 5 column level colors or else the default column level colors and order will be used';
+          $this->message[]=$msg;
+          $collect='';
+          foreach($this->color_order_arr as $key =>$color){
+               $collect.="$color,";
+               }
+          $collect=substr_replace($collect,'',-1);
+          $q="Update $this->master_page_table set page_".$theme."_editor_order='$collect'";
+          $this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);
+          $this->success[]='Updated to default color level colors';
+          }
+     foreach($this->color_order_arr as $key =>$color){
+          if (!empty($color)){
+               $this->{$color.'_index'}=$key;  
+               }
+          if (array_key_exists($key,$this->{'page_'.$theme.'_editor_value'})&&preg_match(Cfg::Preg_color,$this->{'page_'.$theme.'_editor_value'}[$key]))
+               $this->$color=$this->{'page_'.$theme.'_editor_value'}[$key];
+          elseif (!isset($this->$color)){
+               $msg="Error: Unconfigured color value for  $color being temporarily set to black";
+               $this->message[]=$msg;
+               $this->$color='000000';
+               }
+          #You can add colors to default by setting up color value in global_master const then putting additional colors in Cfg_master list! uncomment here to auto print color and value
+          #if (isset($this->$color)&&strpos($color,'aqua')!==false)
+          #     echo 'protected $'."$color='".$this->$color."';
+          #     <br>";
+          }  
+     $this->editor_background=$this->page_options[$this->{'page_'.$theme.'editor_background_index'}];
+     $this->editor_color=$this->page_options[$this->{'page_'.$theme.'editor_color_index'}];
+	$this->color_arr_long=$this->color_order_arr;//explode(',',substr_replace(str_repeat($color_order.',',3),'',-1));
+     
+	}//end function
      
 function flex_container(){
      if ($this->column_use_grid_array[$this->column_level]==='use_grid'){
-          printer::print_warn('RWD Choice for child posts already enabled. Remove RWD to enable flex-box options for posts directly within this column');
+          printer::print_warn('RWD Choice for child posts already enabled.  <span class="orange" style="font-size:1.1em;">Remove RWD <b>to enable flex-column choices and turn on flex-item</b> options for posts directly within this column</span>');
           return;
           }
      if ($this->is_clone&&!$this->clone_local_style)return; 
@@ -575,20 +610,20 @@ function flex_container(){
                     printer::print_notice('Activated Media Query Below');
                     }
                $this->show_more('Add additional @media query controlled option tweaks for flex-container');
-          
                $this->print_redwrap('additional media wrap #'.$i);
                }
           $dis_suffix=($i<1)?'1':'2';//choose display array
-          $display=(in_array($flexcontainer[$this->flex_display_index+$k],${'display'.$dis_suffix.'_arr'}))?$flexcontainer[$this->flex_display_index+$k]:'off';
-          $display_css=($display==='off')?'':'display:'.${'display'.$dis_suffix.'_assoc'}[$display].';';      $direction=(in_array($flexcontainer[$this->flex_direction_index+$k],$flex_direction_arr))?$flexcontainer[$this->flex_direction_index+$k]:'row';
+          $display=(!empty($flexcontainer[$this->flex_display_index+$k])&&in_array($flexcontainer[$this->flex_display_index+$k],${'display'.$dis_suffix.'_arr'}))?$flexcontainer[$this->flex_display_index+$k]:'off';
+          $display_css=($display==='off')?'':'display:'.${'display'.$dis_suffix.'_assoc'}[$display].';';
+          $direction=(!empty($flexcontainer[$this->flex_direction_index+$k])&&in_array($flexcontainer[$this->flex_direction_index+$k],$flex_direction_arr))?$flexcontainer[$this->flex_direction_index+$k]:'row';
           $direction_css='flex-direction:'.$flex_direction_assoc[$direction].';';
-          $wrap=(in_array($flexcontainer[$this->flex_wrap_index+$k],$flex_wrap_arr))?$flexcontainer[$this->flex_wrap_index+$k]:'now';
+          $wrap=(!empty($flexcontainer[$this->flex_wrap_index+$k])&&in_array($flexcontainer[$this->flex_wrap_index+$k],$flex_wrap_arr))?$flexcontainer[$this->flex_wrap_index+$k]:'now';
           $wrap_css='flex-wrap:'.$flex_wrap_assoc[$wrap].';';
-          $justify_content=(in_array($flexcontainer[$this->flex_justify_content_index+$k],$justify_content_arr))?$flexcontainer[$this->flex_justify_content_index+$k]:'sta';
+          $justify_content=(!empty($flexcontainer[$this->flex_justify_content_index+$k])&&in_array($flexcontainer[$this->flex_justify_content_index+$k],$justify_content_arr))?$flexcontainer[$this->flex_justify_content_index+$k]:'sta';
           $justify_content_css='justify-content:'.$justify_content_assoc[$justify_content].';';
-          $align_items=(in_array($flexcontainer[$this->flex_align_items_index+$k],$align_items_arr))?$flexcontainer[$this->flex_align_items_index+$k]:'sta';
+          $align_items=(!empty($flexcontainer[$this->flex_align_items_index+$k])&&in_array($flexcontainer[$this->flex_align_items_index+$k],$align_items_arr))?$flexcontainer[$this->flex_align_items_index+$k]:'sta';
           $align_items_css='align-items:'.$align_items_assoc[$align_items].';';
-          $align_content=(in_array($flexcontainer[$this->flex_align_content_index+$k],$align_content_arr))?$flexcontainer[$this->flex_align_content_index+$k]:'sta';
+          $align_content=(!empty($flexcontainer[$this->flex_align_content_index+$k])&&in_array($flexcontainer[$this->flex_align_content_index+$k],$align_content_arr))?$flexcontainer[$this->flex_align_content_index+$k]:'sta'; 
           $align_content_css='align-content:'.$align_content_assoc[$align_content].';';
           $mediacss='';
           if ($i<1)
@@ -604,19 +639,19 @@ function flex_container(){
 ';
 			} 
 		elseif ($max_flex!=='none'&&$min_flex!=='none') {
-			 $this->mediacss.=$css='
+			 $this->css.=$css='
 @media screen and (max-width:'.$max_flex.'px) and (min-width:'.$min_flex.'px){  	
      .'.$css_id.'{'.$display_css.$direction_css.$wrap_css.$justify_content_css.$align_items_css.$align_content_css.'}
 }';
 			}
 		elseif ($max_flex!=='none'){
-			 $this->mediacss.=$css='
+			 $this->css.=$css='
 @media screen and (max-width: '.$max_flex.'px){  
      .'.$css_id.'{'.$display_css.$direction_css.$wrap_css.$justify_content_css.$align_items_css.$align_content_css.'}
 }';
                }
 		else {
-			 $this->mediacss.=$css='
+			 $this->css.=$css='
 @media screen and (min-width: '.$min_flex.'px){
 .'.$css_id.'{'.$display_css.$direction_css.$wrap_css.$justify_content_css.$align_items_css.$align_content_css.'}
 }';
@@ -630,8 +665,7 @@ function flex_container(){
                     $checked='checked="checked"';
                else $checked=''; 
                echo '<p><input type="radio" name="'.$this->col_name.'_col_flex_box['.($this->flex_display_index+$k).']" value="'.$asa.'" '.$checked.'> '.${'display'.$dis_suffix.'_assoc'}[$asa].'</p>';
-          
-               }//end foreach
+          }//end foreach
           printer::close_print_wrap1('display mode');
           ###################
           printer::print_wrap1('flex wrap',$this->column_lev_color);
@@ -667,7 +701,6 @@ function flex_container(){
                }//end foreach
                printer::close_print_wrap1('justify content');
                ################################
-          
           printer::print_wrap1('align items',$this->column_lev_color);
           printer::alert('align-items: Choose default vertical arrangement for aligning child posts within each row.  Will align the content of posts of a particular row vertically. This setting may be overriden for an individual child post(s) as needed using align-self option.');
           foreach ($align_items_arr as $asa){
@@ -718,20 +751,21 @@ function flex_container(){
      
 function overlapbutton(){
      $style=' {position: \'relative !important\'}';  
-	printer::alertx('<div class="floatleft editbackground underline editfont underline rad5 tiny cursor button'.$this->column_lev_color.'mini highlight" title="this may happen when a post in editmode with background image opacity set overlaps show_more style fields with another background image opacity post above it." onclick="this.parentNode.style.cssText +=\';position:static !important;\'">EditMode: Turn Off opacity background Image if overlapping Post above from Proper Editing</div>');
+	printer::alertx('
+<div class="floatleft editbackground underline editfont underline rad5 tiny cursor button'.$this->column_lev_color.'mini highlight" title="this may happen when a post in editmode with background image opacity set overlaps show_more style fields with another background image opacity post above it." onclick="this.parentNode.style.cssText +=\';position:static !important;\'">EditMode: Turn Off opacity background Image if overlapping Post above from Proper Editing</div>');
      printer::pclear();
      } 
 
 function col_info_prime(){
-     $this->show_more('info','off','info smaller');
+     $this->show_more('info','no_clear','info smaller floatleft');
 	$this->print_wrap('primal info');
 	printer::alert('Column Css element &amp; ID/CLASS: '.$this->col_dataCss);
      printer::alert('Full class names: '.$this->col_full_class);
-     $info=$this->check_spacing($this->col_options[$this->col_max_width_opt_index],'max-width');
-     $info.=$this->check_spacing($this->col_options[$this->col_width_opt_index],'width');
-     $info.=$this->check_spacing($this->col_options[$this->col_min_width_opt_index],'min-width');
+     $info=$this->check_spacing($this->col_options[$this->col_max_width_alt_opt_index],'max-width');
+     $info.=$this->check_spacing($this->col_options[$this->col_width_alt_opt_index],'width');
+     $info.=$this->check_spacing($this->col_options[$this->col_min_width_alt_opt_index],'min-width');
      $altunits=(empty($info))?'&#x2715;':'&#x2713;';
-     $this->scale_width_enabled=(empty($info))?false:true; 
+     $this->alt_width_enabled=(empty($info))?false:true; 
      $maxwidthSetting='&#x2715;';
 	$parentGrid='NA'; 
 	$float='NA'; 
@@ -775,7 +809,7 @@ function col_info_prime(){
      (!empty($this->right_border_info))&&printer::print_info('Right Border info: '.$this->right_border_info);
      printer::print_tip('In primary columns you can enable a RWD grid or flex-box (using display flex/flex-inline, or masonry RWD to position posts that are within it, but the column itself is positioned centerally in the body so RWD grid percentage choices and flex box item choices, and float options are not are not usuable',.8); 
 	echo '<table class="p10 editcolor editbackground editfont" style="max-width:700px">
-	<tr><th style="width:15%">Status</th><th style="width:85%">Setting</th></tr>
+	<tr><th style="width:15%">Status</th><th style="width:85%;">Setting</th></tr>
 	<tr><td class="tiny">&nbsp; '.$parentGrid.' in primary</td><td>Active RWD Grid Unit System to position this column </td></tr>
 	<tr><td> &nbsp; '.$childrenEnableGrid.'</td><td>  RWD Grid Unit System Enabled for positioning child posts this column</td></tr>
 	<tr><td class="tiny">&nbsp; NA in primary</td><td>Active Flex Box System to position this column</td></tr>
@@ -794,14 +828,14 @@ function col_info_prime(){
 
 function col_info(){  
 	
-     $this->show_more('info','','info smaller');
+     $this->show_more('info','no_clear','info smaller floatleft');
 	$this->print_wrap('non primal col info');
 	printer::alert('Post Parent Blog id'.$this->blog_id);
 	printer::alert('Column Css &amp; ID/Class: '.$this->col_dataCss);
      printer::alert('Full class names: '.$this->col_full_class);
-     $info=$this->check_spacing($this->col_options[$this->col_max_width_opt_index],'max-width');
-          $info.=$this->check_spacing($this->col_options[$this->col_width_opt_index],'width');
-     $info.=$this->check_spacing($this->col_options[$this->col_min_width_opt_index],'min-width');
+     $info=$this->check_spacing($this->col_options[$this->col_max_width_alt_opt_index],'max-width');
+          $info.=$this->check_spacing($this->col_options[$this->col_width_alt_opt_index],'width');
+     $info.=$this->check_spacing($this->col_options[$this->col_min_width_alt_opt_index],'min-width');
      $altunits=(empty($info))?false:true;
      $maxwidthSetting='&#x2715;';
      $parentGrid='&#x2715;';//'&#10004';
@@ -809,7 +843,7 @@ function col_info(){
      $masonryParent='&#x2715;';
      $float='&#x2715;'; 
      $altGridFull='&#x2715;';
-     $scaleWidth='&#x2715;';
+     $altWidth='&#x2715;';
      $altGridPercent='&#x2715;';
      $childrenEnableGrid='&#x2715;';
 	$childrenEnableMasonry='&#x2715;';
@@ -829,14 +863,14 @@ function col_info(){
      if ($this->column_use_grid_array[$this->column_level-1]!=='use_grid'){
           if(!$this->use_col_main_width){
                printer::print_info($this->col_width_info); 
-               $scaleWidth=($this->scale_width_enabled)?'&#x2713;':'&#x2715;';
+               $altWidth=($this->alt_width_enabled)?'&#x2713;':'&#x2715;';
                }    
           else{ 
                $maxwidthSetting=($this->blog_width_mode[$this->blog_width_mode_index]!=='compress_full_width'&&$this->blog_width_mode[$this->blog_width_mode_index]!=='compress_to_percentage')?'&#x2713;':'&#x2715;';  
                
                $altGridFull=($this->blog_width_mode[$this->blog_width_mode_index]==='compress_full_width')?'&#x2713;':'&#x2715;';
                $altGridPercent=($this->blog_width_mode[$this->blog_width_mode_index]==='compress_to_percentage')?'&#x2713;':'&#x2715;'; 
-               $scale=($maxwidthSetting==='&#x2713;')?'using max-width':(($maxwidthSetting==='compress_full_width')?'using  % scale':'using % scale to a min-width');
+               $scale=($maxwidthSetting==='&#x2713;')?'using max-width':(($maxwidthSetting==='compress_full_width')?'using full compress by percent2':'using percent with set media width tweaks.');
                 printer::print_info('Main Width Set '.$scale);
                }
           }
@@ -876,7 +910,7 @@ function col_info(){
 	<tr><td> &nbsp; '.$maxwidthSetting.'</td><td>Main Width max-width Setting status on sizing this column itself</td></tr> 
 	<tr><td>&nbsp; '.$altGridFull.'</td><td>Main Width Full Percentage Compress status</td></tr>  
 	<tr><td>&nbsp; '.$altGridPercent.'</td><td>Main Width Percentage Compress to Min Width status</td></tr>
-     <tr><td>&nbsp; '.$scaleWidth.'</td><td>Alt width alt units status (ie. em rem %)</td></tr>
+     <tr><td>&nbsp; '.$altWidth.'</td><td>Alt width alt units status (ie. em rem %)</td></tr>
 	<tr><td>&nbsp; '.$masonryParent.'</td><td >Enabled Masonry Assist System Acting on this column (set in parent column)<br>Automatic Float Center on column</td></tr>
 	<tr><td> &nbsp; '.$childrenEnableGrid.'</td><td>  RWD Grid Unit System Enabled for child posts within in this column</td></tr>
 	<tr><td> &nbsp; '.$childrenEnableFlex.'</td><td>  Flex Box System Enabled for child posts within this column</td></tr>
@@ -887,7 +921,7 @@ function col_info(){
 
  
 #coldata 
-function col_data($prime=false){
+function col_data($prime=false){ 
      $this->prime=$prime;
      $tablename=($this->is_clone&&$this->clone_local_style)?'clone_'.$this->col_table:$this->col_table;
      $this->col_name=$tablename;  //col name for form name fields parent blog data names
@@ -909,6 +943,19 @@ function col_data($prime=false){
           $this->flex_grow_enabled=false;//flex grow enabled in 
         //flex grow enabled inconserve image space mode turns on full cache for images to account for flex grow..
           $this->max_width_limit=$this->column_total_width[0];
+		//limit javascript cache size to current prime column width
+		$collect=array();
+		foreach (explode(',',$this->page_cache) as $val){
+			if ($val <= $this->max_width_limit)
+				$collect[]=$val;
+			}
+		$image_response_array=json_encode($collect);
+		echo <<<eol
+		
+	<script>
+	gen_Proc.image_response = $image_response_array;
+	</script>
+eol;
 		if($this->edit){
                $this->rem_width_percent=100;
                } 
@@ -927,8 +974,7 @@ function col_data($prime=false){
 	$this->column_id_array[$this->column_level]=$col_id; 
      $pass=$this->column_use_grid_array[$this->column_level]=$this->col_options[$this->col_use_grid_index];  
      $this->column_use_flex_array[$this->column_level]=($pass!=='use_grid'&&(substr($this->col_flex_box,0,3)==='fle'||substr($this->col_flex_box,0,3)==='inf'))?true:false;
-     $this->is_masonry=($this->col_options[$this->col_enable_masonry_index]==='masonry')?true:false;
-     //!$this->column_use_flex_array[$this->column_level]&&$pass!=='use_grid'&&
+     $this->is_masonry=(strpos($this->col_options[$this->col_enable_masonry_index],'masonry')===0)?true:false;
 	$this->column_masonry_status_arr[$this->column_level]=$this->is_masonry;
 	$this->column_level_base[$this->column_level]=$this->col_table_base;
 	$this->current_overall_floated_total[$this->column_level]=0;//initiate 
@@ -949,7 +995,7 @@ function col_data($prime=false){
 	//$this->column_num_array[$this->column_level]=$this->col_num;_
 	$this->column_id_array[$this->column_level]=$this->col_id;
 	$this->blog_order_array[$this->column_level]=$this->blog_order_mod; 
-	 printer::pclear();	if(Sys::Custom)return;
+	printer::pclear();	if(Sys::Custom)return;
      if (!$this->edit){
           return;
           }  
@@ -957,12 +1003,13 @@ function col_data($prime=false){
 	#clone status for columns is held in col_clone where since primary columns cannot be cloned and uncloned   unclone status is held in blog_unstatus
 	$clone_msg=($this->is_clone)?'<span class="red">Cloned </span>':(($this->blog_unstatus==='unclone')?'<span class="orange">Mirror release Column</span><br>':''); 
 	$title=(!$this->is_clone)?'title="The Unique Column Id: C'.$this->col_id.' would be Used to Copy/Mirror/Move This Entire Column"':'title="This entire column is cloned"';
-	$info=$this->check_spacing($this->col_options[$this->col_max_width_opt_index],'max-width');
-     $info.=$this->check_spacing($this->col_options[$this->col_width_opt_index],'width');
-     $info.=$this->check_spacing($this->col_options[$this->col_min_width_opt_index],'min-width');
-     $this->col_info=$info;// used in col_options and also gives status of $this->scale_width_enabled
+	$info=$this->check_spacing($this->col_options[$this->col_max_width_alt_opt_index],'max-width');
+     $info.=$this->check_spacing($this->col_options[$this->col_width_alt_opt_index],'width');
+     $info.=$this->check_spacing($this->col_options[$this->col_min_width_alt_opt_index],'min-width');
+     $this->col_info=$info;// used in col_options and also gives status of $this->alt_width_enabled
     if ($this->column_level > 0){
 		if ($this->blog_unstatus==='unclone'){
+               
                $this->show_more('Mirror Release Info','','info underline italic small editbackground editfont');
                if ($this->orig_val['blog_type'] ==='nested_column')
                     printer::print_info('The Original Column post which was indirectly cloned then unmirrored here is from page_ref: '.$this->orig_val['blog_table_base'].'  and is Col Id:'.$this->orig_val['blog_data1'].'. If doing a template tranfer include this column in your template and you will automatically include this content from this current column here!');
@@ -970,8 +1017,9 @@ function col_data($prime=false){
                $this->show_close('From Info');
                }//$this->blog_unstatus==='unclone'
           printer::print_wrap1('column info', $this->column_lev_color.' fs1'.$this->column_lev_color.' floatleft editbackground editfont left'); 
-          printer::alertx('<p '.$title.' class="'.$this->column_lev_color.'">'.$clone_msg.' Col #'.$this->col_order.'<br>'.$clone_msg.'Column Id: C'.$this->col_id.'<br><span class="highlight info smaller">From: <br>Column#'.$this->column_order_array[$this->column_level-1].' Post#'.$this->blog_order_array[$this->column_level].'</span>'); 
-          $this->col_info();
+          printer::alertx('<p '.$title.' class="'.$this->column_lev_color.'">'.$clone_msg.' Col #'.$this->col_order.'<br>'.$clone_msg.'Column Id: C'.$this->col_id.'<br><span class="highlight info smaller">From: <br>Column#'.$this->column_order_array[$this->column_level-1].' Post#'.$this->blog_order_array[$this->column_level].'</span>');
+          $this->col_info();    
+          echo '<p class="floatright pr15" id="goctop_'.$this->col_id.'"><a title="go to column bottom" href="#gocbot_'.$this->col_id.'" style="color:#'.$this->editor_color.'" class="cursor  editcolor editbackground tiny italic underline floatright">Go CBot</a></p>';
           printer::pclear();
           printer::close_print_wrap1('column info',false);
 		}//$this->column_level > 0
@@ -980,7 +1028,8 @@ function col_data($prime=false){
 		$title=(!$this->is_clone)?'title="The Unique Column Id: C'.$this->col_id.' would be Used to Copy/Mirror/Move This Entire Column"':'title="This entire column is cloned"';
           printer::print_wrap1('primal',$this->column_lev_color.' fs1'.$this->column_lev_color.' floatleft');
 		printer::alertx('<p '.$title.' class="'.$this->column_lev_color.'">'.$clone.'Column#'.$this->col_order.'<br>Column Id: C'.$this->col_id.'<br><span class="info smaller">From: <br>The Body'.'</span> </p>');
-          $this->col_info_prime();  
+          $this->col_info_prime();
+          echo '<p class="floatright pr15" id="goctop_'.$this->col_id.'"><a title="go to column bottom" href="#gocbot_'.$this->col_id.'" style="color:#'.$this->editor_color.'" class="cursor  editcolor editbackground tiny italic underline floatright">Go CBot</a></p>';
           printer::pclear();
           printer::close_print_wrap1('primal',false);
           }	 
@@ -997,18 +1046,18 @@ function col_data($prime=false){
 		printer::alertx('<p class="editbackground editfont editcolor fs2npred small left shadowoff floatleft">Cloned Column '.$clone_msg.' and Changes to the Parent Column Id C'.$col_id.' on Page <a class="whiteshadow2" style="color:#0075a0;" target="_blank"  href="'.check_data::dir_to_file(__METHOD__,__LINE__,__FILE__,$this->col_table_base).$this->ext.'#col_'.$col_id.'"><u>'.check_data::table_to_title($this->col_table_base,__method__,__LINE__,__file__).'</u></a> Will Also Appear Here ');
 		printer::pclear();
 		if (in_array('c'.$col_id,$this->clone_check_arr)){
-				printer::alertx('<p class="redAlertbackground white smaller">'."OOPs Column Id P$col_id has been cloned twice on this Page And multiple identical Clones on same page affect one another</p>");
+				printer::alertx('<p class="redAlertbackground white smaller">'."OOPs Column Id P$col_id has been cloned more than once on this same Page And local styling/configuring naturally affects the additional clone as well</p>");
 				} 
 		if (!$prime&&$this->blog_unstatus!=='unclone'){
 			$this->unclone_options('c'.$col_id,$this->post_target_clone_column_id);
 			}
-		 
-		#&&&&&&&&&&&&& BEGIN CHECK CLONE STYLING OPTION  &&&&&&&&&&&&&&&&&&&&&&&		
+		#&&&&&&&&&&&&& BEGIN CHECK CLONE STYLING OPTION  	
 		if ($this->edit&&!Sys::Quietmode){
 			if (empty($this->clone_local_style)){
 				$this->show_more('Enable Local Col Settings','noback','small highlight editbackground editfont rad3 fs2npinfo click','Enable Local Column Styling and Other Column Settings Without Affecting the Parent.  This only affects the Column Styles and not those Set in the Posts or Nested Column content within!',600); 
 				$msg='Enable local styling &amp; other settings of this Cloned Column without affecting those of the parent or styles and settings of  those Set in the Posts or Nested Column content within!';
-				echo '<div class="fsminfo editbackground editfont  floatleft '.$this->column_lev_color.'"><!--Local clone style-->';
+				echo '
+<div class="fsminfo editbackground editfont  floatleft '.$this->column_lev_color.'"><!--Local clone style-->';
 				printer::printx('<input type="checkbox" name="add_collocalstyle['.$col_id.']" value="1" >'.$msg);
 				printer::alert_neu('Note: When Enabled the Column Styling &amp; Settings will not Update When the Parent Style Updates, instead only when you make Styling Changes here.',.8);
 				echo '</div><!--Local clone style-->';
@@ -1017,7 +1066,8 @@ function col_data($prime=false){
 			else {
 				$this->show_more('Disable Local Settings','noback','small highlight editbackground editfont rad3 fs2npinfo click','Disable Local Styling of this Column Clone and Return to Updating When the Parent of this Clone Updates',600); 
 				$msg='Check to Disable local Settings and Column Styles for this Column Clone';
-				echo '<div class="fsminfo editbackground editfont  floatleft '.$this->column_lev_color.'"><!--Local clone style-->';
+				echo '
+<div class="fsminfo editbackground editfont  floatleft '.$this->column_lev_color.'"><!--Local clone style-->';
 				printer::printx('<input type="checkbox" name="delete_collocalstyle['.$col_id.']" value="1" >'.$msg);
 				printer::alertx('<p class="small info">Note: By disabling Local Settings and Column Style the Column WILL NOW assume the Settings of the Parent Column and Update When the Parent Column Style and Other Features Updates. Style Settings for the Posts and Columns within will Remain as they Are</p>');
 				echo '</div><!--Local clone style-->';
@@ -1039,7 +1089,7 @@ function col_data($prime=false){
 	if (!$this->is_clone||$this->clone_local_style){
 		$this->show_more('Settings for Column Id'.$this->col_id, 'buffer_column_settings_'.$this->col_id.'_'.self::$colinc,'','',500,'','float:left');
 		//$this->column_tree();//column tree info not used currently
-		$this->print_wrap('Settings for Column',true);
+		$this->print_wrap('Settings for Column'); 
 		$this->primestat=($prime)?'prime':'notprime';
 		printer::pclear(); 
           $this->column_options();//cloned columns without local styling have no access to column_options as it shares cloned parent options
@@ -1048,33 +1098,89 @@ function col_data($prime=false){
 	 $msg='Add Spacing Within (padding) or Outside (margin) this Column,  Change the Column Background Color or Create a Column Border or Box Shadow Here. Column Borders and Box Shadows style an edge or edge(s) of the column based on the colors, the edges chosen, and type of style you choose. Radius the corners of the column Here. In addition,  set new <span class="bold">Column Specific Text Style Defaults</span> Here. Each Post has its own styling options (a wide choice for text based posts) for further Changes as Needed. !!';
 	$class=($prime)?'primary':'nested';
 	$class='';
-	$this->edit_styles_close($tablename,'col_style','.'.$this->col_dataCss,'background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,borders,box_shadow,outlines,radius_corner,font_color,text_shadow,font_size,font_family','Edit Column Styles','noback',$msg);
+	$this->edit_styles_close($tablename,'col_style','.'.$this->col_dataCss,'background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,margin_right,borders,box_shadow,outlines,radius_corner,font_color,text_shadow,font_size,font_media_unit,font_family','Edit Column Styles','noback',$msg);
 	printer::pclear(2); 
 	
 	$msg='&#34;Group Styles&#34; provide an quick means to select consequitive posts within a Column and group style them such as with a border, background, etc.  You begin by checking the begin box on the first post and end box on the last post you wish to style!  Make any number of groups within a column and they will all have the styles you set Here!!  Options included to style borders or box shadows,  background colors, background images, etc. Padding spacing changes made here will increase spacing between posts and borders if used!.  Begin by checking the begin box on the first non column post and check the end box on the last non-column post you wish to distinguish within the same column! Span column posts between open and close tags if you wish.  Be sure to match with a close groupstyle before beginning with a new one in the same column.  Unmatched open border and close border checked options will generate an alert mesage and can mess up the webpage styling.   Check both boxes on the same post to end an group and begin another group or to wrap a single post, the system will determine which one is intended as long as your consistent with closing every opening  ';
      if(!$this->is_clone||$this->clone_local_style){
           $this->show_more('Style Group, Tags,Date, and Comment for Column','noback');
-     $this->print_wrap('Style Group,Date',true);
-     printer::printx('<p class="fsminfo">Group Styles are a quick way to wrap several posts with Style. YSet default Group, Comments and date styles Here and Adjust as necessary with column specific options for the same. Finally style HR tags here which will be in affect page wise.</p>');
-    $this->edit_styles_close($tablename,'col_grp_bor_style','.'.$this->col_dataCss.'>.style_groupstyle','','Set &#34;Group Styles&#34;','noback',$msg);
-    $msg='Set style HR tags.  HR can be placed anywhere in text and the styles you set here will be expressed. HR are theme breaks, typically bordered lines with spacing';
-     $this->edit_styles_close($tablename,'col_hr','.'.$this->col_dataCss.' .post>hr','width_special,width_max_special,width_min_special,background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,borders,box_shadow,outlines,radius_corner','Set Col Specific HR Tags if needed','noback',$msg);
-    
-     $this->edit_styles_close($tablename,'col_comment_style', '.'.$this->col_dataCss.' .posted_comment','','Style Comment Entries','noback','Comment Styles will affect all comment post feedback styles for posts made directly in this column');	
-     $this->edit_styles_close($tablename,'col_date_style','.'.$this->col_dataCss.' .style_date','','Style Post Date Entries','noback','Date Styling Affects Posts within this Column (And within any nested columns unless set there) with Show Post Date Enabled');
-     $this->edit_styles_close($tablename,'col_comment_date_style','.'.$this->col_dataCss.' .style_comment_date','','Style Comment Date Entries','noback','Comment Date Styling Affects Comments within this Column (And within any nested columns unless set there)');
-     $this->edit_styles_close($tablename,'page_comment_view_style','.'.$this->col_dataCss.' .style_comment_view','','Style #/view/Leave Comments','noback','Style the #of Comments  and View/Leave Comments Link');
-     }
+		$this->print_wrap('Style Group,Date',true);
+		printer::printx('<p class="fsminfo">Group Styles are a quick way to wrap several posts with Style. Set default Group, Comments  date styles and HR tags may be styled here. Comments may be left in text and image-text posts when initiated in the post settings. Styles for these made here  will be in affect for posts within the column tree with the column setting made in the closest parent of the post having css precedence. </p>');
+		$group_name=$this->col_name.'_col_options['.$this->col_enable_group_style_index.']';
+		$group_style= ($this->col_options[$this->col_enable_group_style_index]==='group_style_on')?true:false;
+		printer::print_wrap('Group Styles etc.');
+		printer::print_tip('By default Group Styles Comments and Date configs are turned off until required. Enable/Disable here');
+		if ($group_style) 
+			 printer::alert('<input type="checkbox" value="group_style_off" name="'.$group_name.']">Disable Enable Group Comment HR and Date Styling');
+		else 
+			 printer::alert('<input type="checkbox" value="group_style_on" name="'.$group_name.'">Enable Group Comment HR and Date Styling');
+		printer::close_print_wrap('Group Styles etc.');
+		if ($group_style){
+			$this->edit_styles_close($tablename,'col_grp_bor_style','.'.$this->col_dataCss.'>.style_groupstyle','','Set &#34;Group Styles&#34;','noback',$msg);
+			$msg='Set style HR tags.  HR can be placed anywhere in text and the styles you set here will be expressed. HR are theme breaks, typically bordered lines with spacing';
+			 $this->edit_styles_close($tablename,'col_hr','.'.$this->col_dataCss.' .post>hr','width_special,width_max_special,width_min_special,background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,margin_right,borders,box_shadow,outlines,radius_corner','Set Col Specific HR Tags if needed','noback',$msg);
+			
+			 $this->edit_styles_close($tablename,'col_comment_style', '.'.$this->col_dataCss.' .posted_comment','','Style Comment Entries','noback','Comment Styles will affect all comment post feedback styles for posts made directly in this column');	
+			 $this->edit_styles_close($tablename,'col_date_style','.'.$this->col_dataCss.' .style_date','','Style Post Date Entries','noback','Date Styling Affects Posts within this Column (And within any nested columns unless set there) with Show Post Date Enabled');
+			 $this->edit_styles_close($tablename,'col_comment_date_style','.'.$this->col_dataCss.' .style_comment_date','','Style Comment Date Entries','noback','Comment Date Styling Affects Comments within this Column (And within any nested columns unless set there)');
+			 $this->edit_styles_close($tablename,'page_comment_view_style','.'.$this->col_dataCss.' .style_comment_view','','Style #/view/Leave Comments','noback','Style the #of Comments  and View/Leave Comments Link');
+			}//enable group
+		}//if !clone
      if (!$this->is_clone||$this->clone_local_style){
           $this->submit_button();
           printer::close_print_wrap('Style Group,Date');
           $this->show_close('Style Group,Date, and Comment for Column');
           printer::pclear(7);
+          if (!$this->is_clone||$this->clone_local_style){
+          $this->show_more('Style Special Classes ','buffer_col_childrenClass_'.$this->blog_id); 
+          $this->print_wrap('special styles',true);
+		printer::print_info('Style Special Classes to affect particular Posts in this Column  by adding the class name in the post settings of posts you wish to style');
+          if(is_file(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'css_data_sheet_'.$this->pagename.$this->passclass_ext)){
+               $this->render_view_css=unserialize(file_get_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'css_data_sheet_'.$this->pagename.$this->passclass_ext)); 
+               $this->show_more('Page Level Tag and Class Styles','','highlight tiny editbackground editfont floatleft');
+               printer::array_print($this->render_view_css); 
+               $this->show_close('View Current Tag and Class Styles');
+               }
+          else $this->render_view_css='';
+          $type = ($this->column_level > 0)?'.nested':'.primary';
+		
+		
+		##############
+		printer::print_wrap('class act');
+		printer::alert('To minimize server time in EditMode column class styles must first be enabled here');
+		
+	    $arr=array('Choose to Activate Column Class Styling','1 class','3 classes','5 classes');
+	    $valarr=array(0,1,3,5);
+	    $value=(!empty($this->col_options[$this->col_class_style_index])&&in_array($this->col_options[$this->col_class_style_index],$valarr))?$this->col_options[$this->col_class_style_index]:$valarr[0];
+	    $key=array_keys($valarr,$value)[0];  
+	    $classvalue=$arr[$key];
+	    forms::form_dropdown($valarr,$arr,'','',$this->col_name.'_col_options['.$this->col_class_style_index.']',$classvalue,false,'maroon whitebackground left');
+	     printer::close_print_wrap('class act');
+	   
+		if ($value >0){
+			$tag_styles='width_special,width_max_special,width_min_special,width_media_unit,flex_container_width,flex_item_width,float,background,animate_class,fade_this,display_media,height_special,height_max_special,height_min_special,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,margin_right,font_color,text_shadow,font_family,font_size,font_media_unit,font_weight,text_align,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner';
+			$msg='Set a custom col class to selectively style posts directly within this column having the specified Class'; 
+			$this->edit_styles_close($tablename,'col_class1','.'.$this->col_dataCss.$type.' >.col1',$tag_styles,'Set Class col1 Styles','noback',$msg,false,false,false);
+			}
+		if ($value >2){
+			$this->edit_styles_close($tablename,'col_class2','.'.$this->col_dataCss.$type.'  >.col2',$tag_styles,'Set Class col2 Styles','noback',$msg,false,false,false); 
+			$this->edit_styles_close($tablename,'col_class3','.'.$this->col_dataCss.$type.'  >.col3',$tag_styles,'Set Class col3 Styles','noback',$msg,false,false,false);
+			}
+		if ($value >4){
+			$this->edit_styles_close($tablename,'col_class4','.'.$this->col_dataCss.$type.' >.col4',$tag_styles,'Set Class col4 Styles','noback',$msg,false,false,false); 
+			$this->edit_styles_close($tablename,'col_class5','.'.$this->col_dataCss.$type.' >.col5',$tag_styles,'Set Class col5 Styles','noback',$msg,false,false,false);
+			}
+          
+          $this->submit_button();
+          printer::close_print_wrap('special styles');
+          $this->show_close('Style Special Classes','buffer_col_childrenClass_'.$this->blog_id);
+          }
           $this->submit_button(); 
           printer::close_print_wrap('Settings for Column');  
           $this->show_close('Settings for Column#','buffer_column_settings_'.$this->col_id."_".self::$colinc);//<!--Show More Master col Settings-->';
           printer::pclear(2);
-         }  
+         }//if (!$this->is_clone||$this->clone_local_style){
+      
 	($this->edit&&$this->overlapbutton)&&$this->overlapbutton();#when mulitple posts with background image opacity  set the element is set to position relative and may prevent overlapping 
 	}#end col_data
      #postop #blogop
@@ -1083,7 +1189,7 @@ function column_main_width(){
      $prime=$this->prime;
      $maxwid=($this->column_level==0)?Cfg::Col_maxwidth:$this->column_net_width[$this->column_level-1];
      $column_percent=($this->column_level==0)?($this->column_total_width[$this->column_level]/$this->page_width*100):$this->col_width; 
-     $opt=($prime)?'Primary Max-width Main Wrapper':'Main Width Options';
+     $opt=($prime)?'Primary Max-width Main Wrapper':'Main Width Options for max-width px, width %, or simple @media %';
      $this->show_more($opt);//Main Width Options
      printer::print_wrap('column width');  
      if ($this->column_level==0){
@@ -1104,7 +1210,8 @@ function column_main_width(){
           if (!$this->use_col_main_width){
                printer::alert('Main Width Units for this primary column not used. Alternative width units may be Active but are overriden by choosing a value here.'); 
                }
-          echo '<div class="fsminfo editbackground editfont floatleft" ><!--width float wrap-->';//Choose Column Width:
+          echo '
+<div class="fsminfo editbackground editfont floatleft" ><!--width float wrap-->';//Choose Column Width:
           }//column_level==0 main column
      else{
           if ($this->rwd_post) 
@@ -1132,12 +1239,14 @@ function column_main_width(){
           else  $widthmode='No Width system in Use. Will occupy 100% space available';
           if (!$this->flex_enabled_twice) {
                printer::alertx('<p class="highlight editbackground editfont" title="The Parent Column Width is the Upper Limit for this Nested Column. Optionally set a narrower Column Width as required.">Max Width Available: <span class="editcolor editbackground editfont">'.intval(ceil($maxwid*10)/10).'px</span></p>'); 
-               echo '<div class="highlight editbackground editfont" title="The Column width setting will include the value of margins and will take up 100% of the available column width if no limiting width value is chosen! Limit the width if required.  Both the percentage available of the parent column width and the pixel value will be shown"><!--width float wrap-->Current Column Width: <span class="editcolor editbackground editfont">: '.intval(ceil($this->column_total_width[$this->column_level]*10)/10).'px   ('.(ceil($column_percent*10)/10).'%)</span>';
+               echo '
+<div class="highlight editbackground editfont" title="The Column width setting will include the value of margins and will take up 100% of the available column width if no limiting width value is chosen! Limit the width if required.  Both the percentage available of the parent column width and the pixel value will be shown"><!--width float wrap-->Current Column Width: <span class="editcolor editbackground editfont">: '.intval(ceil($this->column_total_width[$this->column_level]*10)/10).'px   ('.(ceil($column_percent*10)/10).'%)</span>';
                }
                     #column width  #col width  
           else{
                printer::print_warn('Previous activation of Flex Box in column tree means that max-width chosen here may no longer be accurate and percent (ie. choice 2) used instead or choose other width options');
-                echo '<div class="highlight editbackground editfont" ><!--width float wrap-->Current Column Width: <span class="editcolor editbackground editfont">: '.(ceil($column_percent*10)/10).'%</span>';
+                echo '
+<div class="highlight editbackground editfont" ><!--width float wrap-->Current Column Width: <span class="editcolor editbackground editfont">: '.(ceil($column_percent*10)/10).'%</span>';
                }
           if (!$this->use_col_main_width){
                printer::alert('Main Width Units for this primary column not used. Alternative width units are overridden by choosing a value here.'); 
@@ -1149,7 +1258,7 @@ function column_main_width(){
      $factor=($this->flex_enabled_twice)?1:$maxwid/100;
      $unit2=($this->flex_enabled_twice)?'':'px';
      $msgjava='Choose Width:';
-     printer::print_info('Choosing a main-width value overrides any choice made  from option under em, rem, %, px & px scale opt for min-width, max-width, & width choices');
+     printer::print_info('Choosing a main-width value overrides any choice made  from option under em, rem, %, vw, px scale opt for min-width, max-width, & width choices');
      $this->show_more('Style info','','info italic smaller');
      printer::print_wrap1('techinfo');
      echo $widthmode.'<br>';
@@ -1167,14 +1276,20 @@ function column_main_width(){
           }
      printer::close_print_wrap1('techinfo');
      $this->show_close('Style info');
-     if (!$prime)
+     if (!$prime){
+		(!$prime)&&$this->width_mode();
+		$this->show_more('Values #1,#2 max-width, percent');
+		printer::print_wrap('max width');
+		printer::print_tip('Set a value here for choice #1 as max-with or choice #2 as percentage');
           $this->mod_spacing($this->col_name.'_col_width',$currwidth,0,100,.05,'%','',$msgjava,$factor,$unit2);
+		printer::close_print_wrap('max width');
+		$this->show_close('Values #1,#2 max-width, percent');
+		$this->width_rwd_alt_grid();
+		}
       else
           $this->mod_spacing($this->col_name.'_col_width',$currwidth,0,$maxwid,1,'px','',$msgjava); 
      echo'</div><!--width float wrap-->	';
      printer::pclear(2); 
-     (!$prime)&&$this->width_mode();
-     $this->submit_button();
      printer::close_print_wrap('column width');  
      $this->show_close('Main Width Options');
      }//end col_main_width     
@@ -1208,14 +1323,17 @@ function column_bp_width_track(){
      }
      
 #column_options     
-function column_options(){
+function column_options(){   
      $prime=$this->prime;
      $col_id=$this->col_id;
      $this->show_more('Column Options','noback','','',350); 
-     $this->print_wrap('Col Opts',true);
+     $this->print_wrap('Col Opts',true); 
      $this->submit_button();
-     echo '<p class="highlight floatleft" title="Info: From parent nested column with Post Id#'.$this->blog_id.' Post Order#'.$this->blog_order_mod .' in Column '. $this->blog_table.'">Info</p>';
+     $msg=($prime)?'Info: Primary column directly in body':'Info: From parent nested column with Post Id#'.$this->blog_id.' Post Order#'.$this->blog_order_mod .' in Column '. $this->blog_table;
+     echo '<p class="highlight floatleft tiny" title="">'.$msg.'</p>';
      printer::pclear();
+     $this->display_parse_options('col',$this->col_id);
+     printer::pclear(7);
      $delete_msg=($this->blog_unstatus!=='unclone')?'Delete This Entire Column':'Remove this Mirror release Column';
      $delete_alert= ($this->col_status==='unclone')?"THIS MIRROR RELEASE COLUMN WILL BE DELETED AND THE PARENT CLONE WILL NOW BE EXPRESSED":'';
     (!$this->is_clone)&&printer::printx( '<p class="left warn1 floatleft neg"><input type="checkbox" name="deletecolumn['.$this->col_name.']" value="delete" onchange="edit_Proc.oncheck(\'deletecolumn['.$this->col_name.']\',\''.$delete_alert.' CAUTION THIS ENTIRE COLUMN AND ALL THE POSTS AND NESTED COLUMNS WITHIN IT WILL BE DELETED WHEN YOU HIT CHANGE, UNCHECK TO CANCEL\');gen_Proc.use_ajax(\''.Sys::Self.'?unclone_list_column='.$col_id.'@@del_col_unc_'.$col_id.'@@'.$this->primestat.'\',\'handle_replace\',\'get\');" >'.$delete_msg.'</p>');
@@ -1226,10 +1344,13 @@ function column_options(){
           }
      printer::pclear(5);
      (!$this->clone_local_style)&&printer::alertx('<p class="highlight floatleft" title="Turn On Publication for all Posts and Nested Columns Within this Column"><input type="checkbox" value="1" name="'.$this->col_name.'_express_pub">Express Publish Entire Column all Posts Within</p>'); 
-     printer::pclear(2); 
-     $this->show_more('Width &amp; float Options / RWD systems');
+     printer::pclear(2);
+	 $fmsg=($prime)?'':'&amp Float';
+     $this->show_more('Width '.$fmsg.' Options / RWD systems');
      $this->print_redwrap('wrap width float rwd');
      $this->submit_button();
+	printer::pclear(5);
+	$this->show_more('View width choice info','',$this->column_lev_color.' smaller italic editbackground editcolor editfont');
      printer::print_wrap1('width status',$this->column_lev_color);   
      if ($this->rwd_post){
           printer::print_caution('RWD GRID System is On to position this entire column with all posts. Turn Off in parent Column to enable other width choices');
@@ -1262,8 +1383,10 @@ function column_options(){
           printer::print_info('Masonry <b>Not Active</b> for post within',.8);
      else 
           printer::print_info('Masonry Primary Column <b>NA</b>',.8); 
-     printer::close_print_wrap1('width status');   
-     if ($this->column_level>0){
+     printer::close_print_wrap1('width status');
+	$this->show_close('view width choice info');
+	printer::pclear(5);
+      if ($this->column_level>0){
           $this->show_more('Float Choices for Column');
           printer::print_wrap1('wrap width float',$this->column_lev_color);
           printer::print_info('<b>Note setting the float value on a nested column will directly affect the entire column ie. not the posts within it.</b>');
@@ -1283,7 +1406,18 @@ function column_options(){
           $this->show_close('Column Float Choices');
           }#column level >0 and not flex box
      elseif($this->column_level<1)printer::printx('<p class="fsminfo editbackground editfont left '.$this->column_lev_color.'">Note: Primary Columns Are Always Aligned Centrally and do not share space with other columns or posts. Create columns and other post types within this column and share row space as needed using  RWD grids, flex-box, alternative widths, and masonry.js for desktop to mobile responsive layout. <p>'); 
-     #width calculate w/o grid... parent grid turn on!!  
+     #width calculate w/o grid... parent grid turn on!!
+      
+	if ($this->column_level==0||($this->column_level>0&&$this->column_use_grid_array[$this->column_level-1]!=='use_grid')){  
+		$msg=($this->column_level==0)?'Choose Maximum Display Width For this Top Level Column. Used for limiting Image Size and Content Displays on Larger Size Screens. Default is specified by the current page_width setting.' : ' Original RWD Grid Sizing for posts (incuding this nested column) is not enabled within the <b>Parent Column</b>. Manually narrow the maximum width of this Column Here'; 
+		$this->column_main_width();
+          printer::pclear(2);  
+		##############################################
+		$this->width_options('col',$this->col_name);
+		 ############   End manual width/float  Control for this column  &&&&&&&&&&& 
+          printer::pclear(2); 
+		}//non rwd parent column or primary column
+	  
      if ($this->column_level>0&&$this->column_use_grid_array[$this->column_level-1]==='use_grid'){#&&&&&&&&&&&&&&&&&&&&&&&&&&  BEGIN CLASS QUERY FOR  ACTIVE RWD POSTS  &&&&&&&&&&&&&&&&&&
           $this->rwd_build('col',$this->col_name); 
           }//if parent column RWD
@@ -1306,11 +1440,14 @@ function column_options(){
 	$this->column_bp_width_track();
      if($this->column_use_grid_array[$this->column_level]!=='use_grid'){
           $msg= ' RWD Grid Sizing for posts within this Column is not set. You can enable here.</b>';  
-          printer::print_wrap1('rwd mode',$this->column_lev_color);
+          $this->show_more('Original RWD Mode');
+		printer::print_wrap1('rwd mode',$this->column_lev_color);
+		printer::print_notice('This option may be phased out in the future. The original rwd grid mode, although gives sizes in px units for each grid percentage chosen, is more complicated and limiting to set up than the new alt grid mode option #3 in the main width settings. ');
           (!$prime)&&printer::alertx('<p class="tip" >'.$msg.'</p>');
           $gridstyle='style="display:none;"';
           printer::printx('<p class="editbackground editfont highlight floatleft" title="Enable Responsive Web Sizing/Positioning for Child Posts Within This Column"><input type="checkbox" name="'.$this->col_name.'_col_options['.$this->col_use_grid_index.']" onclick="edit_Proc.displaythis(\''.$this->col_name.'_grid_show\',this,\'\')" value="use_grid">Enable RWD Grid Positioning for Child Posts Within This Column</p>');
           printer::close_print_wrap1('rwd mode');
+          $this->show_close('Original RWD Mode');
           printer::pclear();	
           }
      else{
@@ -1318,45 +1455,10 @@ function column_options(){
           $gridstyle='style="display:block;"';
           printer::printx('<p class="editbackground editfont highlight left" '.$gridstyle.' title="Disable Responsive Web Sizing for Posts Within This Column"><input type="checkbox" name="'.$this->col_name.'_col_options['.$this->col_use_grid_index.']"  value="0">Disable RWD Grid Positioning for Posts Within This Column</p>');
           printer::pclear();
-          } 
+          }   
      printer::pclear();
-     $this->flex_container(); 
-     if ($this->column_level==0||($this->column_level>0&&$this->column_use_grid_array[$this->column_level-1]!=='use_grid')){  
-		$msg=($this->column_level==0)?'Choose Maximum Display Width For this Top Level Column. Used for limiting Image Size and Content Displays on Larger Size Screens. Default is specified by the current page_width setting.' : ' RWD Grid Sizing for posts (incuding this nested column) is not enabled within the <b>Parent Column</b>. Manually narrow the maximum width of this Column Here'; 
-		$this->column_main_width();
-          printer::pclear(2);  
-		##############################################
-		$this->width_options('col',$this->col_name);
-		 ############   End manual width/float  Control for this column  &&&&&&&&&&& 
-          printer::pclear(2); 
-		}//non rwd parent column or primary column
-	if (!$prime){
-		$checked1=($this->col_options[$this->col_enable_masonry_index]!=='masonry')?'checked="checked"':'';
-		$checked2=($this->col_options[$this->col_enable_masonry_index]==='masonry')?'checked="checked"':'';
-          $this->show_more('Masonry Option');
-		$this->print_redwrap('wrap masonry','maroon');
-	if ($this->column_use_flex_array[$this->column_level])printer::print_warn('Note: Flex Box Container enabled and masonry assist currently overrides various Flex Box features.  ie. the two are not fully compatible.');
-		$msg='Optionally enable Masonry to Assist in grid layout of Posts (including a nested column) directly within this column. Masonry will work in conjunction with your post width settings and alternative width settings. Post Float settings should be set to float left or float right. Float center may also be used but appropriate margin percents will need to be included as masonry otherwise overlooks the centering. Masonry will override Flex Box functionality';
-		printer::print_tip($msg);
-          $this->show_more('Style info','','info italic smaller');
-     printer::print_wrap1('techinfo');
-     $msg='Info: Masonry is a javascript open source Git Hub project by Desandro. When activated, the parent column recieves the class name of grid and the posts directly within this parent column receive the classname of grid-item. Both inline javascript and external file javascript then control the grid-like behavior of the child posts within the parent column. Masonry works in conjunction with width settings as outlined previously.'; 
-     printer::print_info($msg);
-     printer::close_print_wrap1('techinfo');
-     $this->show_close('Style info');
-		printer::print_tip('Masonry if enabled may change the order of your posts to get the best fit');
-          printer::print_tip('The width of the first post in a masonry column will set the grid width for all other posts. Best results often using widest post in first position');
-		printer::printx('<p><input type="radio" '.$checked1.' value="nomasonry" name="'.$this->col_name.'_col_options['.$this->col_enable_masonry_index.']">No Masonry</p>');
-		printer::printx('<p><input type="radio" '.$checked2.' value="masonry" name="'.$this->col_name.'_col_options['.$this->col_enable_masonry_index.']">Enable Post Masonry Assist</p>');
-          $this->submit_button();
-		$this->close_print_wrap('wrap masonry' );
-          $this->show_close('Masonry Option');
-		}
-	else{
-		$this->show_more('Primary Column Masonry Info');
-		printer::print_tip('Masonry enabling not available in Primary Column because the masonry enabling column needs to be wrapped itself by a column. Simply create a nested a column in the primary column and posts within will be masonry enabled when you enable the masonry option in the nested column. Any primary column can easily become a nested column by checking the box to create a new primary column under the add primary option, submit,  then choose to <b>move</b> the  old primary column entering its id. Thats it, you can then enable masonry mode in that column.'); 
-		$this->show_close('Primary Column Masonry Info'); 
-		}	
+	$this->flex_container(); 
+     $this->masonry();
 	$this->submit_button();
 	printer::close_print_wrap('wrap width float rwd');
 	$this->show_close('Width and float Options / RWD Grid System');
@@ -1365,7 +1467,8 @@ function column_options(){
 	$this->show_more('Import/Export Column Config Option');
 	$this->print_redwrap('import/export',true);
      printer::print_info('Individual Column Style settings are imported/exported for the various groups of styles by using options at the bottom of each type list of style options');
-	echo '<div class="'.$this->column_lev_color.' fsminfo floatleft editbackground editfont left "><!--import-->Import Column Configurations and Column styles from another Column from any page. Will Not change the basic Data such Images, captions, text within your column';
+	echo '
+<div class="'.$this->column_lev_color.' fsminfo floatleft editbackground editfont left "><!--import-->Import Column Configurations and Column styles from another Column from any page. Will Not change the basic Data such Images, captions, text within your column';
 	printer::printx( '<p class="editcolor editbackground editfont" title="Be Sure to Use the Column Id Which Begins with a C ie C11.  Do Not Use the  Col# which simply refer to the Column Display Order Within the Page. Col Ids and #s are displayed at the top of each column"><input class="editcolor editbackground editfont" name="col_configcopy['.$this->col_id.']" size="8" maxlength="8" type="text">Enter the  <span class="info">Col Id</span> <span class="red">(Not Col#) </span>that you wish to Copy Configurations and Styles</p>');
 	printer::pclear();
 	echo '</div><!--import-->';
@@ -1373,42 +1476,51 @@ function column_options(){
 	###########################################################Begin Import/Export Col
 	if ($this->column_level>0){  
 		
-		echo '<div class="'.$this->column_lev_color.' fsminfo  editbackground editfont left "><!--export-->Export styles and configuration from this Nested Column post to any other Nested Column post that is directly within the same parent Column';
+		echo '
+<div class="'.$this->column_lev_color.' fsminfo  editbackground editfont left "><!--export-->Export styles and configuration from this Nested Column post to any other Nested Column post that is directly within the same parent Column';
 		printer::printx( '<p class="editcolor editbackground editfont" 	><input class="editcolor editbackground editfont" name="col_configexport['.$this->col_id.']"   type="checkbox" value="'.$this->col_id.'">Export these Styles and Configs to other nested column posts within this column</p>');
 		echo '</div><!--export-->';
 		####################################################
-		echo '<div class="'.$this->column_lev_color.' fsminfo  editbackground editfont left "><!--import-->Import RWD Grid percentage selections  from another nested column post from any page that has the same Grid Break Points set in the page options.  ';
-		printer::printx( '<p class="editcolor editbackground editfont" title="Be Sure to Use the Column Id Which Begins with a C ie C42.  Do Not Use the  Column# which simply refer to the Column Display Order Within the Primary Column. Column Ids and #s are displayed at the top of each post"><input class="editcolor editbackground editfont" name="col_rwdcopy['.$this->col_id.']" size="8" maxlength="8" type="text">Enter the  <span class="info">Column Id</span> <span class="red">(Not Column#) </span>that you wish to copy Column RWD grid break point percentages</p>');
-		echo '</div>'; 
-		echo '<div class="'.$this->column_lev_color.' fsminfo  editbackground editfont left "><!--export-->Export RWD settings from this Nested Column to any other nested column post that is directly within the same parent Column as this column';
-		printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="col_rwdexport['.$this->col_id.']"  type="checkbox" value="'.$this->col_id.'">Export this Columns RWD Grid settings to other nested columns directly within the parent column</p>');
-		printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="col_post_rwdexport['.$this->col_id.']"  type="checkbox" value="'.$this->col_id.'">Also inlude exporting these nested column RWD GRID settings to non-nested post types also directly within the same parent column (will not affect posts within this nested column)</p>'); 
-		echo '</div><!--export-->'; 
+		
 		#######################################################
-		echo '<div class="'.$this->column_lev_color.' fsminfo  editbackground editfont left "><!--export-->Export the Main Width value setting (affects posts in non-RWD grid mode) from this post to  posts that are in the same parent Column as this column';
+		echo '
+<div class="'.$this->column_lev_color.' fsminfo  editbackground editfont left "><!--export-->Export the Main Width value settings including max-width, percentage, and Alt RWD Percentage choices from this column to others that are in the same parent Column as this column';
 		printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="col_widthexport['.$this->col_id.']"  type="checkbox" value="'.$this->blog_id.'">Export the Main Width value setting of this nested column to all other nested columns directly in the same parent column</p>');
           printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="col_post_widthexport['.$this->col_id.']"  type="checkbox" value="'.$this->blog_id.'">Also include exporting this nested column width value setting  to non-nested post types also directly within the same parent column (will not affect posts within this nested column)</p>'); 
 		echo '</div><!--export-->'; 
 		#######################################################
-		echo '<div class="'.$this->column_lev_color.' fsminfo  editbackground editfont left "><!--export-->Export the Alt RWD Percentage settings (affects posts in non-RWD grid mode) from this post to  posts that are in the same parent Column as this column';
-		printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="col_widthmodeexport['.$this->blog_id.']"  type="checkbox" value="'.$this->blog_id.'">Export the Alt RWD Percentage settings of this nested column to all other nested columns directly in the same parent column</p>');
-          printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="col_post_widthmodeexport['.$this->blog_id.']"  type="checkbox" value="'.$this->blog_id.'">Also include exporting these nested column width mode settings to non-nested post types also directly within the same parent column (will not affect posts within this nested column)</p>'); 
-		echo '</div><!--export-->'; 
+		printer::print_wrap('alt units');
+		printer::print_tip('<b>Alt min max width</b> Units (ie percentage,rem,em,vw) available under the Additional individual field choices to import or export from field col_options');
+		printer::close_print_wrap('alt units');
 		#######################################################
-		echo '<div class="'.$this->column_lev_color.' fsminfo  editbackground editfont left "><!--export-->Export the Float Mode settings (affects posts sharing rows in non Flex Box mode) from this post to  posts that are directly within the same parent Column as this column';
+		echo '
+<div class="'.$this->column_lev_color.' fsminfo  editbackground editfont left "><!--export-->Export the Float Mode settings (affects posts sharing rows in non Flex Box mode) from this post to  posts that are directly within the same parent Column as this column';
 		printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="col_floatexport['.$this->blog_id.']"  type="checkbox" value="'.$this->blog_id.'">Export Float setting of this nested column to all other nested columns directly in the same parent column (will not affect posts within this nested column)</p>');
           printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="col_post_floatexport['.$this->blog_id.']"  type="checkbox" value="'.$this->blog_id.'">Also include exporting these nested column float settings to non-nested post types also directly within the same parent column (will not affect posts within this nested column)</p>'); 
 		echo '</div><!--export-->'; 
 		 ################
 		 #############################
-       echo '<div class="'.$this->column_lev_color.' fsminfo  editbackground editfont left "><!--export-->Export the <b>Flex Item settings</b> (see flex-container setting down below for this option) for this Column to sibling columns when the parent column is activated for flex box (affects nested column posts in non-rwd grid mode). Copies flex-item settings from this nested column post to others  directly within the parent Column. Field: blog_flex_box';
+      
+	printer::print_tip('Original Rwd Grid');
+	echo '
+<div class="'.$this->column_lev_color.' fsminfo  editbackground editfont left "><!--import-->Import RWD Grid percentage selections  from another nested column post from any page that has the same Grid Break Points set in the page options.  ';
+		printer::printx( '<p class="editcolor editbackground editfont" title="Be Sure to Use the Column Id Which Begins with a C ie C42.  Do Not Use the  Column# which simply refer to the Column Display Order Within the Primary Column. Column Ids and #s are displayed at the top of each post"><input class="editcolor editbackground editfont" name="col_rwdcopy['.$this->col_id.']" size="8" maxlength="8" type="text">Enter the  <span class="info">Column Id</span> <span class="red">(Not Column#) </span>that you wish to copy Column RWD grid break point percentages</p>');
+		echo '</div>'; 
+		echo '
+<div class="'.$this->column_lev_color.' fsminfo  editbackground editfont left "><!--export-->Export RWD settings from this Nested Column to any other nested column post that is directly within the same parent Column as this column';
+		printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="col_rwdexport['.$this->col_id.']"  type="checkbox" value="'.$this->col_id.'">Export this Columns RWD Grid settings to other nested columns directly within the parent column</p>');
+		printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="col_post_rwdexport['.$this->col_id.']"  type="checkbox" value="'.$this->col_id.'">Also inlude exporting these nested column RWD GRID settings to non-nested post types also directly within the same parent column (will not affect posts within this nested column)</p>'); 
+		echo '</div><!--export-->';
+		 echo '
+<div class="'.$this->column_lev_color.' fsminfo  editbackground editfont left "><!--export-->Export the <b>Flex Item settings</b> (see flex-container setting down below for this option) for this Column to sibling columns when the parent column is activated for flex box (affects nested column posts in non-rwd grid mode). Copies flex-item settings from this nested column post to others  directly within the parent Column. Field: blog_flex_box';
 	printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="col_flexitemexport['.$this->blog_id.']"  type="checkbox" value="'.$this->blog_id.'">Export the Flex Item settings of this nested column to all nested columns directly in the parent column</p>');
      printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="col_post_flexitemexport['.$this->blog_id.']"  type="checkbox" value="'.$this->blog_id.'">Also include Flex Item export of values to non nested column posts directly in same parent column. Field: blog_flex_box</p>');
-	echo '</div><!--export-->'; 
+	echo '</div><!--export-->';
           }
 		#End Import/Export col ..
 	####################################################
-	echo '<div class="'.$this->column_lev_color.' fsminfo  editbackground editfont left "><!--import-->Import Flex Container  settings from another column to this column. Will affect behavior of posts within column and whether this column itself has inline property or not';
+	echo '
+<div class="'.$this->column_lev_color.' fsminfo  editbackground editfont left "><!--import-->Import Flex Container  settings from another column to this column. Will affect behavior of posts within column and whether this column itself has inline property or not';
 		printer::printx( '<p class="editcolor editbackground editfont" title="Be Sure to Use the Column Id Which Begins with a C ie C42.  Do Not Use the  Column# which simply refer to the Column Display Order Within the Primary Column. Column Ids and #s are displayed at the top of each post"><input class="editcolor editbackground editfont" name="col_flexcopy['.$this->col_id.']" size="8" maxlength="8" type="text">Enter the  <span class="info">Column Id</span> <span class="red">(Not Column#) </span>that you wish to copy Column Flex Container settings</p>');
 		echo '</div>';
      
@@ -1418,44 +1530,35 @@ function column_options(){
      printer::close_print_wrap('import/export');
      $this->show_close('Import Column Configurations Option');
      printer::pclear();
-	$this->show_more('Adjust default Vertical Alignment within row');
-	$this->print_redwrap('Adjust default Vertical');
-     printer::print_tip('Flex Box Settings if enabled in parent column will override these Vertical settings according to flex container align-item settings and flex-item align-self setting');
-	printer::print_tip('By Default Nested Columns will Vertically Top Align with Other Posts within the Parent Column. Affects non-flex mode columns. Change that Default Here '); 
-	printer::alert('Column Vertical Positioning Choice','','left editcolor editbackground editfont');
-	$current_vert_val=($this->col_options[$this->col_vert_pos_index]!=='middle'&&$this->col_options[$this->col_vert_pos_index]!=='bottom')?'top':$this->col_options[$this->col_vert_pos_index];
-	forms::form_dropdown(array('top','middle','bottom'),'','','',$this->col_name.'_col_options['.$this->col_vert_pos_index.']',$current_vert_val,false,'editcolor editbackground editfont left');
-	$this->css.=$css="\n.". $this->col_dataCss.'{vertical-align:'.$current_vert_val.'}';
-     
-     $this->show_more('Style info','','info italic smaller');
-     printer::print_wrap1('techinfo');
-     printer::print_info('Current setting Css: '.$css.' in '.$this->roots.Cfg::Style_dir.$this->pagename.'.css');
-     $msg='Vertical Positioning applied to col main div.';
-     printer::print_info($msg);
-     printer::close_print_wrap1('techinfo');
-     $this->show_close('Tech info');
-	printer::close_print_wrap('Adjust default Vertical'); 
-	$this->show_close('Adjust default Vertical Positioning');	
+		
 		#colopt  #colconf 
 			printer::pclear();
 		$tag=(!empty($this->col_options[$this->col_tag_display_index]))?$this->col_options[$this->col_tag_display_index]:'';
 	$this->show_more('Tagged Post Display');
 		$this->print_redwrap('tagged area');
 		printer::print_tip('Optionally Display tagged Posts here and Only Posts matching the tag you enter here will be displayed in this column. Posts Previously made in this column will not not be displayed unless similary tagged');
-		printer::printx('<div><p class="editcolor editbackground editfont info floatleft"><input type="text" value="'.$tag.'" name="'.$this->col_name.'_col_options['.$this->col_tag_display_index.']" size="20" maxlength="20">Enter Tags to Display Here (space separate):&nbsp;</p></div>');
+		printer::printx('
+<div><p class="editcolor editbackground editfont info floatleft"><input type="text" value="'.$tag.'" name="'.$this->col_name.'_col_options['.$this->col_tag_display_index.']" size="20" maxlength="20">Enter Tags to Display Here (space separate):&nbsp;</p></div>');
 		printer::pclear();
 		printer::close_print_wrap('tagged area');
           $this->show_close('Enter Tagged posts to dispaly only');
 		$this->animation();
 		printer::pclear();
 		$this->position();
+		$this->opacity();
           $this->overflow('col',$this->col_name);
           $this->height_style('col',$this->col_name);
+		$this->parallax_stellar();
+          (!$prime)&&$this->sticky_scroll();
+		(!$prime)&&$this->fadethis_scroll();//RWD control display_state
+          (!$prime)&&$this->display_px_scroll();
+		  (!$prime)&&$this->column_vertical_align();
 		(!$prime)&&$this->display_state();//RWD control display_state
-		$this->show_more('Transfer Clone Column');
+          $this->show_more('Transfer Clone Column');
 	$this->print_redwrap('clone transfer');
 	echo '<p class="highlight Os3darkslategray fsmyellow editbackground editfont click floatleft" title="View Pages with clones of this column" onclick="gen_Proc.use_ajax(\''.Sys::Self.'?check_clones='.$this->col_id.'&amp;check_id=check_clones_'.self::$xyz.'\',\'handle_replace\',\'get\');" >Click to display Pages with Clones of this Column</p>';
-	echo '<div id="check_clones_'.self::$xyz.'"></div>';
+	echo '
+<div id="check_clones_'.self::$xyz.'"></div>';
 	printer::pclear();
 	printer::print_tip('If this Column is directly cloned ie. used as a template you can change the template to another Column by entering its Column Id and submitting.  All the former Column Clones of id C'.$this->col_id.' will then be changed to the new template and unmirrored content if any is retrieved by importing the unmirorred post/col.');
 	($this->col_primary)&&printer::print_caution('Clone Transfer of a Primary Column to a Nested Column will reset the nested column to the default Page Width configuration on the cloned page rendering',.8);
@@ -1463,13 +1566,18 @@ function column_options(){
 	printer::close_print_wrap('clone transfer');
 	$this->show_close('Transfer Clone Column');
      printer::pclear(2);
-     $this->show_more('Special Text','','smaller cursor editbackground '.$this->column_lev_color.' editfont p10');
-	$this->print_redwrap('Special Text');
-     printer::print_info('This is an area for custom advanced text that needs to work directly within this parent column so that elements can work directly with the column flex-container setting or with column masonary turned on. Great for repetitive text such as a restaurant menu written with flex-items. Style with custom classes.');
-     if ($this->edit)$this->textarea('col_text',$this->col_name.'_col_text');
-     printer::pclear(5);
-     printer::close_print_wrap('Special Text');
-	$this->show_close('Special Text');
+     ###################################
+	$col_custom_class=(!empty($this->col_options[$this->col_custom_class_index])&&!is_numeric($this->col_options[$this->col_custom_class_index]))?$this->col_options[$this->col_custom_class_index]:'';
+	echo '
+<div class="fsminfo info editbackground editfont floatleft"><!--Col Tag Border-->'; 
+	printer::printx('<p title="">Add one or more Custom Classnames:&nbsp;<input type="text" value="'.$col_custom_class.'" name="'.$this->col_name.'_col_options['.$this->col_custom_class_index.']" size="20" maxlength="40"></p>');
+	$this->show_more('More Info','','tiny info','Add a class suffix');
+     printer::print_wrap1('more info custom class');
+     printer::print_tip('Add a custom classname to this column and style the column classname by using the custom classnames in the page options or the advanced styles under this column style options and appending the classname suffix selector to the styling selector in this column or a parent column. When adding a suffix to the selector in the advanced styles using a space or not in front of the the class or id will effect the outcome!, for example a space will effect the child posts within the column not the column css itself unless there is no space. similarly you can use a space in a parent col to effect this column.');
+     printer::close_print_wrap1('more info tag');
+	$this->show_close('More Info'); 
+	echo '</div><!--Col Tag-->';
+     ################################### 
      $this->submit_button();
      printer::close_print_wrap('Col Opts');
      $this->show_close('Column Options');echo '<!--column options-->';
@@ -1478,12 +1586,14 @@ function column_options(){
 
 
      
-function blog_options($data,$tablename){if(Sys::Custom)return; 
+function blog_options($data,$tablename){if(Sys::Custom)return;  
 	if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
 	if(!$this->edit)return;
      $this->{$data.'_blog_options'}=$this->blog_options;//for passing name array directly to style functions  
 	if ($this->is_clone&&!$this->clone_local_style){
-          $this->width_mode(); 
+          $this->width_mode();
+		$this->submit_button();
+		$this->width_rwd_alt_grid(); 
 		return;
 		}
 	elseif ($this->is_clone&&!$this->clone_local_style)return; 
@@ -1491,7 +1601,10 @@ function blog_options($data,$tablename){if(Sys::Custom)return;
 	$this->show_more('Post Settings','buffer_post_settings_'.$this->orig_val['blog_id'],'','',500,'','float:left;',true);
 	$this->print_redwrap('blog opts',true);
      $this->submit_button();
-	echo '<div class="fsminfo editbackground editfont floatleft "><!--Checkbox OPtions Border-->';	
+	 $this->display_parse_options('blog',$this->blog_id);
+     printer::pclear(7);
+     echo '
+<div class="fsminfo editbackground editfont floatleft "><!--Checkbox OPtions Border-->';	
 	$this->delete_option();
 	printer::pclear();
 	if ($this->blog_pub){
@@ -1548,6 +1661,8 @@ function blog_options($data,$tablename){if(Sys::Custom)return;
 	printer::pclear();
      $this->submit_button();
      printer::pclear(5);
+	$this->show_more('View Widths Modes Chosen','',$this->column_lev_color.' italic editbackground editfont smaller');
+     printer::pclear(5);
      printer::print_wrap1('width status',$this->column_lev_color);   
      if ($this->rwd_post){
           printer::print_caution('RWD GRID System is On. Turn Off in parent Column to enable other width choices');
@@ -1570,28 +1685,31 @@ function blog_options($data,$tablename){if(Sys::Custom)return;
                }
           }//!$this->rwd_post
      
-	$info=$this->check_spacing($this->blog_options[$this->blog_max_width_opt_index],'max-width');
-	$info.=$this->check_spacing($this->blog_options[$this->blog_width_opt_index],'width');
-	$info.=$this->check_spacing($this->blog_options[$this->blog_min_width_opt_index],'min-width');
-     if (empty($info))printer::print_info('<b>No Active</b> alt width units em, rem,  %, px  sizing this '.$this->blog_typed); 
+	$info=$this->check_spacing($this->blog_options[$this->blog_max_width_alt_opt_index],'max-width');
+	$info.=$this->check_spacing($this->blog_options[$this->blog_width_alt_opt_index],'width');
+	$info.=$this->check_spacing($this->blog_options[$this->blog_min_width_alt_opt_index],'min-width');
+     if (empty($info))printer::print_info('<b>No Active</b> alt width units em, rem,  %, px, vw, vh  sizing this '.$this->blog_typed); 
      else printer::print_info('Alternative Width Units Selected: '.$info);
      
      if ($this->is_masonry)printer::print_info('<b>Active</b> masonry assist in parent column positioning this post');
      else printer::print_info('<b>No active</b> masonry assist in parent column acting on this post');
      printer::close_print_wrap1('width status');
+	$this->show_close('Widths Modes Chosen');
      $this->show_more('Float Mode Share Row Space ');
+     printer::alertx('
+<div class="'.$this->column_lev_color.' maxwidth400  floatleft left fsminfo editbackground editfont">Share Horizontal Space');
      printer::print_tip('Flex Box Settings if enabled in parent column will override these Float settings according to flex container justify-content setting');
-     printer::alertx('<div class="'.$this->column_lev_color.' maxwidth400  floatleft left fsminfo editbackground editfont">Share Horizontal Space');
      printer::print_tip('Sets behavior or RWD Grid Mode. Works with Main Width Mode, or scaling width units  ie. em, rem, vw, %, px without or without masonry to share available row space betweem posts.');
-     printer::pclear();
-     $this->show_more('Float Info..','noback','highlight editbackground editfont floatleft','Click Here For More info on Post Horizontal Share (Floating)  Choices',400);
+     printer::pclear(5);
+     $this->show_more('More Float Info','noback',$this->column_lev_color.' cursor italic smaller editbackground editfont','Click Here For More info on Post Horizontal Share (Floating)  Choices',400);
      printer::print_wrap('more info');
      printer::alertx('<p class="floatleft editbackground editfont editcolor">Settings made here effect main div class style for: .'.$this->dataCss.' <br><br>By default in RWD grid mode Posts will float left to share grid space allowed and non-RWD-Grid posts will occupy an entire row. Change this default behavior to Manually choose whether this posts floats next to another or occupies a full row. <br>
      Enable manually floating a post next to another by limiting the respective widths to a total cumulative percentage less than 100% and then choosing a float option. By default, the center row option causes the post to occupy the whole role, whereas the other choices allow space sharing.<b><br><b>Center Row:</b> This single post will occupy full row and be centered.<br><b>Center Float:</b> Centers post and shares the row space with other Floated posts. Utilizes inline-block css styling.<br><b>Left float:</b> uses float:left. Moves to left allows sharing of next post to its right.<br><b>Right float</b> uses float:right css. post justifies right allows sharing of next post to its left. <br>  <b>Float right or float left no next </b>means an element with  clear:both css follows to prevent sharing the next post on the same row.</p>','',"");
      printer::close_print_wrap('more info');
-     
      $this->show_close('Post Position Choices');//<!--Show More Post Position Choices-->';
-     echo '<div class="fs1color floatleft editcolor editbackground editfont"><!--Position- Border-->';
+	printer::pclear(5);
+     echo '
+<div class="fs1color floatleft editcolor editbackground editfont"><!--Position- Border-->';
      printer::alert('Float Choices');
      $chosen=(in_array($this->blog_float,$this->position_arr))?$this->blog_float:'center_row';
       
@@ -1603,7 +1721,7 @@ function blog_options($data,$tablename){if(Sys::Custom)return;
      printer::pclear(2); 
      if ($this->flex_box_item)$this->flex_items('blog');
      if (!$this->rwd_post){
-          $this->show_more('Choose Main Width Options');
+          $this->show_more('Main Width Options for max-width px, width %, or simple @media %');
           $this->print_redwrap('width wrap');
           if ($this->flex_box_item){
                 printer::alert('Flex-box mode is enabled in the parent column. Use flex box or disable it');
@@ -1614,15 +1732,12 @@ function blog_options($data,$tablename){if(Sys::Custom)return;
      printer::print_info($msg);
      printer::close_print_wrap1('techinfo');
      $this->show_close('Style info');
-          printer::print_tip('The main width Mode keeps track of width sizes through nested column levels ( tracker is also compatible mixing with RWD Grid Width use). This  Width mode is expresed as either max-width, percent, or dynamic percent together with min-width explained below.  Below these are further width with em, rem, &amp; vw unit options. To width size this post/column using Flex Box or RWD Grid instead, enable them in the parent column.');
-          echo '<div class="fsminfo editbackground editfont "><!--width options-->';
           $this->blog_width=(is_numeric($this->blog_width))?$this->blog_width:0;
           $this->{$data.'_blog_width_arrayed'}=explode(',',$this->blog_width);
-          $this->width($data.'_blog_width_arrayed',0);
-          printer::pclear();
-          echo '</div><!--width options-->';	 
-          printer::pclear(3);
-          $this->width_mode();   
+		printer::pclear(3);
+          $this->width_mode();
+          $this->width($data.'_blog_width_arrayed',0); 
+		$this->width_rwd_alt_grid();  
           printer::pclear(5);
           ### 
           printer::close_print_wrap('width wrap');
@@ -1640,24 +1755,30 @@ function blog_options($data,$tablename){if(Sys::Custom)return;
 	################################## 
 	printer::pclear(5);
 	$this->animation();
-	printer::pclear(5);
+	printer::pclear(5); 
      $this->blog_import_export_options();
+     $this->parallax_stellar();
+     $this->sticky_scroll();
+     $this->fadethis_scroll();//RWD control display_state 
+     $this->display_px_scroll();
 	$this->display_state();//RWD control display_state 
 	printer::pclear(5);
-	#########################################
-	$maxheight=1500; 
 	#####################################
 	$this->position();
+	$this->opacity();
 	#######################################
 	$this->show_more('Vertical Align Posts');
      $this->print_redwrap('vertical align');
-     printer::print_tip('Flex Box Settings if enabled in parent column will override these Vertical settings according to flex container align-item settings and flex-item align-self setting');
-     printer::alertx('<div class="'.$this->column_lev_color.' fsminfo maxwidth500 floatleft editbackground editfont">By Default Posts will Vertically Top Align with Other Posts within the Parent Column. Change that Default Here '); 
+	$varray=array('baseline','sub','super','top','text-top','middle','bottom','text-bottom','initial','inherit');
+     printer::print_tip('Use center float for vertical align to have effect (uses inline-block). Flex settings override');
+     printer::alertx('
+<div class="'.$this->column_lev_color.' fsminfo maxwidth500 floatleft editbackground editfont">By Default Posts will Vertically Top Align with Other Posts within the Parent Column. Change that Default Here '); 
      printer::alert('Post Vertical Positioning Choice','','left editcolor editbackground editfont');
-     $current_vert_val=($this->blog_options[$this->blog_vert_pos_index]!=='middle'&&$this->blog_options[$this->blog_vert_pos_index]!=='bottom')?'top':$this->blog_options[$this->blog_vert_pos_index];
-     forms::form_dropdown(array('top','middle','bottom'),'','','',$data.'_blog_options['.$this->blog_vert_pos_index.']',$current_vert_val,false,'editcolor editbackground editfont left');
+     $current_vert_val=(!empty($this->blog_options[$this->blog_vert_pos_index])&&in_array($this->blog_options[$this->blog_vert_pos_index],$varray))?$this->blog_options[$this->blog_vert_pos_index]:'';
+     forms::form_dropdown($varray,'','','',$data.'_blog_options['.$this->blog_vert_pos_index.']',$current_vert_val,false,'editcolor editbackground editfont left');
      $css='';
-     $this->css.=$css.="\n.".$this->dataCss.'{vertical-align:'.$current_vert_val.'}';
+	(!empty($current_vert_val))&&
+		$this->css.=$css.="\n.".$this->dataCss.'{vertical-align:'.$current_vert_val.'}';
      printer::alertx('</div>');
      printer::pclear();
      $this->show_more('Style info','','info italic smaller');
@@ -1673,7 +1794,8 @@ function blog_options($data,$tablename){if(Sys::Custom)return;
 	$this->height_style('blog',$this->data);
 	###################################
 	$blog_custom_class=(!empty($this->blog_options[$this->blog_custom_class_index])&&!is_numeric($this->blog_options[$this->blog_custom_class_index]))?$this->blog_options[$this->blog_custom_class_index]:'';
-	echo '<div class="fsminfo info editbackground editfont floatleft"><!--Blog Tag Border-->'; 
+	echo '
+<div class="fsminfo info editbackground editfont floatleft"><!--Blog Tag Border-->'; 
 	printer::printx('<p title="">Add one or more Custom Classnames:&nbsp;<input type="text" value="'.$blog_custom_class.'" name="'.$data.'_blog_options['.$this->blog_custom_class_index.']" size="20" maxlength="40"></p>');
 	$this->show_more('More Info','','tiny info','Add a class suffix');
      printer::print_wrap1('more info custom class');
@@ -1681,7 +1803,8 @@ function blog_options($data,$tablename){if(Sys::Custom)return;
      printer::close_print_wrap1('more info tag');
 	$this->show_close('More Info'); 
 	echo '</div><!--Blog Tag-->';
-	echo '<div class="fsminfo info editbackground editfont floatleft"><!--Blog Tag Border-->'; 
+	echo '
+<div class="fsminfo info editbackground editfont floatleft"><!--Blog Tag Border-->'; 
 	printer::printx('<p title="Enter an optional tag for this post. All posts with the tag will be displayed if you set a  column with matching tag to display. Enter more than one tag as required.">Tag this Post:&nbsp;<input type="text" value="'.$this->blog_tag.'" name="'.$data.'_blog_tag" size="20" maxlength="40"></p>');
 	$this->show_more('More Info','','tiny info','Add a class suffix');
 	printer::print_wrap1('more info custom class');
@@ -1698,8 +1821,8 @@ function blog_options($data,$tablename){if(Sys::Custom)return;
      
      
 #br	#blogrender# this is the main method to process posts for a given column and send them with populated values to their repective functions for content rendering.  
-#$this->render_body_main() calls the primary columns.  This function will recursively be called with each successsive nested column and the posts within called. This occurs by accessing the master_post table in the data base  which holds each post type including nested column post type in  a separate record with reference to the parent column id (blog_col) and the blog_order which orders each post. If a record is a nested column it will hold an additional id of record in separte table columns which holds general column data in addition to certain configurations the column uses held in the original master post table for example blog_float pertains not only to normal posts but to column float row sharing as well.  However col_style in the column record holds the main col styling and blog_style pertains only to non nested column post types.  
-function blog_render($col_id,$prime=false,$col_table_base=''){
+#$this->render_body_main() calls the primary columns determining whether local_clone_styline enabled and whether is clone then populating field values accordingly. This function will recursively be called with each successsive nested column and the posts within called. This occurs by accessing the master_post table in the data base  which holds each post type including nested column post type in  a separate record with reference to the parent column id (blog_col) and the blog_order which orders each post. If a record is a nested column it will hold an additional id of record in separte table columns which holds general column data in addition to certain configurations the column uses held in the original master post table for example blog_float pertains not only to normal posts but to column float row sharing as well.  However col_style in the column record holds the main col styling and blog_style pertains only to non nested column post types.  
+function blog_render($col_id,$prime=false,$col_table_base=''){ 
 	if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
 	if (in_array($col_id,$this->column_moved))return; 
 	$this->col_id=$col_id;
@@ -1712,9 +1835,10 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 	$this->is_masonry=false;
 	$this->blog_border_stop=false;
 	$show_new_blog=false;
-	$this->clone_ext=($this->is_clone&&$this->clone_local_style)?'clone_'.$this->orig_val['blog_id'].'_':'';//for main columns 
-	if($prime){ 
+	if($prime){
+		#prime column fields populated in function render_body_main() clone_local_style and is_clone determined in the function see above description
           $this->fieldmax=0;
+		#ok we need to explode column options for the primary column
 		$this->col_options=(!is_array($this->col_options))?explode(',',$this->col_options):$this->col_options;
 		for ($i=0;$i <count(explode(',',Cfg::Column_options)); $i++){
 			if (!array_key_exists($i,$this->col_options))$this->col_options[$i]=0;
@@ -1726,19 +1850,22 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
                $this->css.="$this->pelement {max-width: {$this->current_total_width}px;}";
                }
           ($this->edit)&&$this->id_array[]=array('col',$this->col_dataCss,$this->column_level,'<span class="bold">column</span> id: c'.$this->col_id,$this->is_clone,'show');
+		$this->key='c'.$this->col_id;
+		($this->is_clone)&&$this->clone_list_id[]='c'.$this->col_id;
           }
 	$this->sibling_id_arr['c'.$col_id]=$this->col_dataCss;
 	if ($col_table_base!==$this->pagename&&!$this->clone_local_style)
 	#page stylesheet will collect additional page references for the expression of cloned css. 
-	$this->page_stylesheet_inc[]=$col_table_base; 
+	$this->page_has_clone_inc[]=$col_table_base; 
 	$this->is_column=true;
 	#with cloning, records from another post   can be presented identically on the same or different page as a clone without disturbing the original..
      #this->is_clone below is very important value. When set as true at the  column level, ie right here,  any posts within that column will be set as is_clone = true.  Is clone when true will prevent styling options from being presented in the cloned presentation. But it will also initiate a search for unclones and local styling and local data as well which allows for restyling, or main data switchout while preserving all configs and styles  or completely substituting out a portion ( post type of any kind) within a cloned column, respectively.
-	$this->is_clone=(array_key_exists($this->column_level,$this->column_clone_status_arr))?(($this->column_clone_status_arr[$this->column_level])?true:false):false;
-	($this->edit)&&$this->column_lev_color=$this->color_arr_long[$this->column_level];
+	
+	//##doublecheck $this->is_clone=(array_key_exists($this->column_level,$this->column_clone_status_arr)&&$this->column_clone_status_arr[$this->column_level])?true:false;
+	 ($this->edit)&&$this->column_lev_color=$this->color_arr_long[$this->column_level];
 	 if ($this->edit){
-		if(isset($_POST['submitted'])&&!$this->is_clone){
-			$this->process_blog($tablename,$col_id);
+		if(isset($_POST['submitted'])&&(!$this->is_clone||$this->is_clone&&$this->clone_local_style)){
+			$this->process_blog($tablename,$col_id);//check for  primary changes
 			#process blog will initiate searches for submitted data changes within this pagename
 			}
 		if(isset($_POST['submitted'])&&in_array($col_id,$this->delete_col_arr))return;//column has been deleted
@@ -1747,26 +1874,32 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 	#Note if prime column,  data for this column has been populated already in method   render_body_main  
 	$style=''; 
 	if($prime){
+		//build up classes for prime column
+		//this original anmimation method can be updated with jquery instead of adding classes directly to html for cleaner code
 		list($anim_type,$anim_height,$anim_lock,$aef_class)=$this->preanimation();
-          
-		$anim_class=($anim_type!=='none' && !$aef_class)?" $anim_type animated active-anim " :(($anim_type!=='none')?" $anim_type animated ":'');
+          $anim_class=($anim_type!=='none' && !$aef_class)?" $anim_type animated active-anim " :(($anim_type!=='none')?" $anim_type animated ":'');
 		$dataAnimHeight=($anim_type!=='none')?' data-hchange="'.$anim_height.'" ':'';
 		$dataAnimLock=($anim_type!=='none')?' data-hlock="'.$anim_lock.'" ':'';
+		$col_custom_class=(!empty($this->col_options[$this->col_custom_class_index])&&!is_numeric($this->col_options[$this->col_custom_class_index]))?' '.$this->col_options[$this->col_custom_class_index]:''; 
+		
           #primediv #primarydiv
           }
      if ($prime&&!$this->edit){
-		print '<div id="'.$this->col_dataCss.'"  class="'.$this->col_dataCss.$anim_class.' primary" '.$dataAnimHeight.$style.'><!--Begin Primary Column id'.($this->col_id).'-->';
+		print '
+<div id="'.$this->col_dataCss.'"  class="'.$this->col_dataCss.$anim_class.$col_custom_class.' primary webmode" '.$dataAnimHeight.$style.'><!--Begin Primary Column id'.($this->col_id).'-->';
 		}
-	elseif ($prime){// this is edit
-          $this->col_full_class=$this->col_dataCss.$anim_class.' primary';
+	elseif ($prime){//this is edit
+          $this->col_full_class=$this->col_dataCss.$anim_class.' primary edit';
           list($bw,$bh)=$this->border_calc($this->col_style);
 		if (!empty($bw)) 
 			$bs=$this->calc_border_shadow($this->col_style);
 		$addclass=(empty($bw))?' bdoub'.$this->page_editborder.$this->column_lev_color.' ':((empty($bs))?' bshad'.$this->page_editborder.$this->column_lev_color.' ':'editcol');
-		print '<div  id="'.$this->col_dataCss.'" class="'.$addclass.' '.$this->col_dataCss.' primary column edit editdefaultcol" '.$style.'><!--Begin edit  Primary Column id'.($this->col_id).'-->';
+		print '
+<div  id="'.$this->col_dataCss.'" class="'.$addclass.' '.$this->col_dataCss.' primary column edit editdefaultcol" '.$style.'><!--Begin edit  Primary Column id'.($this->col_id).'-->';
 		printer::pclear();echo '<!--begin primary-->';
 		if ($this->edit&&$this->col_options[$this->col_use_grid_index]!=='use_grid'&&(substr($this->col_flex_box,0,3)==='fle'||substr($this->col_flex_box,0,3)==='inf')){
-               echo '<div class="flexstay"><!--wrap controls flexbox primary div-->';
+               echo '
+<div class="flexstay"><!--wrap controls flexbox primary div-->';
                if ($this->flexfail)
                     $this->editoverridecss='
                     .'.$this->col_dataCss.'{display:block !important;}';
@@ -1778,7 +1911,7 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 		@media screen and (min-width:'.($margin_total+$this->current_total_width).'px){
 			 .'.$this->col_dataCss.'.primary{margin-left:auto;margin-right:auto;}
 			}';
-		if (!$this->is_clone){
+		if (!$this->is_clone){//editmode only
                #see below for complete description of flat filing.
                #presently primary column records (complete information) are directly obtained from the database whereas all post types (nested columns and non-nested column post types) information is only obtained directly from the database in editmode, processed then flatfiled for data retrieval in regular webpage mode for fastest rendering of webpages.
                #however here in editmode only we also flatfile primary columns as primary columns may be cloned to nested column positions on other pages as well ( enabling for robust versatility of the cloning process.).  In addition we will mimic the master_post record which we will flat file. ie. all nested columns have records in the master_post table which then link to the column record. Primary columns bypass the master_post record. All master_post record data is normally then processed and flatfiled. Here we will create a flatfile (termed post_subbed_row... ) referencing the primary column in case the primary column is ever cloned to a nested column position.
@@ -1788,9 +1921,9 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
                #here we directly create the data for a subbed_post_row for a primary column. And also flatfile the primary column column data record as well.  Further down  below we will similarly deal with nested columns and regular subbed post id flatfiles..
 			
                #for prime columns in case the are cloned elsewhere  as nested columns we must set up a initial post subbed row that will be used in this limited case  
-               #cloned columns and posts     Below we will see that if local styling or data is enabled those respective fields will be obtained from separate flatfiles to replace only relevant  parent fields derived from the main column/post flatfiles.
+               #cloned columns and posts     Below we will see that if local styling or data is enabled those respective fields will be obtained from separate flatfiles to replace only relevant parent fields derived from the main column/post flatfiles.
 			
-               #here we create the column faux post_subbed_row_data flat file
+               #here in editmode only we create the column faux post_subbed_row_data flat file for primary column in case it gets cloned to nested position and the flat file is searched for 
 			
                $post_fields=Cfg::Post_fields;
 			$post_field_arr=explode(',',$post_fields);
@@ -1799,7 +1932,7 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 				$collect[$field]=''; //for post subbed row flat filing.
 				}
 			$collect['blog_id']=''; 
-			$collect['blog_type']='nested_column';//needed in nested column position only so safe to specify
+			$collect['blog_type']='nested_column';//needed in nested column position only. so safe to specify
 			$collect['blog_data1']=$this->col_id;
 			$collect['blog_pub']=1;
 			(!is_dir(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir))&&mkdir(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir,0755,1);
@@ -1813,7 +1946,7 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 			#column data  
 			#col data flat files the field values of individual columns directly
 			file_put_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'column_data_'.$this->col_id,serialize($collect_col_data_arr));
-			}//!clone 
+			}//!clone and editmode
 		$this->fieldmax=0;
 		$border_status='begin';
 		$subbed_row_id='';
@@ -1824,9 +1957,9 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 		$col_field_arr2[]='col_id';
           #removed primary append file for cloned primary columns to secondary positions
 		}//$prime and is edit
-		 
-	#ok we need to explode column options for the primary column	
+		 	
 	#Important:  for restoration of previous column values following nested column recursion  #remember column values are originally populated in previous recursion prior to their application in this round... this is because certain column values are necessary for rendering the opening nested column div tag and other functions before reaching the col_data method. Through this recursive function process variables but not class properties will retain their local scope values which makes it easy to return to previous recursive value..
+	#for all columns
 	foreach ($this->col_field_arr as $field) {
 		${'restore_'.$field}=$this->$field; 
 		}
@@ -1838,12 +1971,13 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 	//col_data is the main method for directing the processing of columns...
 	######### call to column #######
 	#col_data #coldata
-	 $this->col_data($prime);# this is column render edit call to col_data where the main column configurations and styles are set and edited in editmode. Certain values will be populated here necessary for webpage mode as well.#################
+	$this->col_data($prime);# this is column render edit call to col_data where the main column configurations and styles are set and edited in editmode. Certain values will be populated here necessary for webpage mode as well.#################
+	$this->handle_css_edit('c'.$this->col_id);
      ################
      $this->is_column=true;
 	$this->previous_post='';
 	$this->blog_status=false;
-	
+	$css='';
 	#**********end !IMPORTANT *****positoning entire blog
 		#*****BEGIN  AND RENDER POSTS AND POST styles
 	$start_fields='blog_pub,blog_status,blog_clone_target,blog_target_table_base,blog_type,blog_data1,blog_data2,blog_data3,blog_id,blog_order,blog_table,blog_col,blog_table_base';
@@ -1856,9 +1990,10 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 	//tagged post values when tags set in parent column will be displayed
 	//ie will select posts with tags in this column if true
 		$this->tagged=true;
-		$this->is_clone=$this->column_clone_status_arr[$this->column_level]=true;//set tagged posts to clone status ie no editing
+		#tagged posts may be used instead of normal column rendering of posts created within column
 		$tag=trim($this->col_options[$this->col_tag_display_index]);
 		$like='';
+		
 		if (strpos($tag,' ')!==false){ 
 			$tag_arr=explode(' ',$tag);
 			foreach ($tag_arr as $tag){
@@ -1880,13 +2015,12 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 		$where="where blog_table='$tablename'";
 		$q="select $start_fields from $this->master_post_table  $where  order by blog_order";
 		$tags=false;
-		}
+		} 
 	$col_identify='col_'.$this->col_id; 
 	$columnArrayFile=Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'data_col_list_'.$col_identify;  
 	if ($this->edit||$prime){
 		$count=$this->mysqlinst->count_field($this->master_post_table,'blog_order','',false, $where);
 		$this->fieldmax=$this->mysqlinst->get('fieldmax');
-	
 		if ($count<1) {
 			if ($tags){
 				if ($this->edit){//edit re check is redundant for flat file system  
@@ -1908,21 +2042,22 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 			$this->col_return=true; //table lacks posts...
 			($this->edit)&&printer::pclear(1);echo '<!--clear choose first 2-->';
 			if($this->edit&&$prime)
-		#fieldset  switched to class
-				print'</div><!--End Empty Primary Column id'.$this->col_id.'  -->';
+				print'</div><!--End Empty Primary Column id'.$this->col_id.'  -->
+                    ';
 			elseif($prime)
-				print'</div><!--End Empty Div Primary Column id'.$this->col_id.'-->';
-			$this->col_table==='none';
+				print'</div><!--End Empty Div Primary Column id'.$this->col_id.'-->
+                    ';
+			$this->col_table==='none'; 
 			return;
 			}//end count < 0
-          
 		}//if this edit or prime
-     
-	if($this->edit||Sys::Pass_class){  
+	if($this->edit||Sys::Pass_class){  //all subsequent mysql rendering in editmode to generate flat files for webmode..
           $this->blog_new($tablename.'_0',$tablename,0,'','Insert Post Top of',true); 
-		if (!$prime&&$this->flex_box_container)echo '</div><!--wrap controls flexbox-->';
+		if (!$prime&&$this->flex_box_container)echo '</div><!--wrap controls flexbox-->
+          ';
           elseif($prime&&$this->col_options[$this->col_use_grid_index]!=='use_grid'&&(substr($this->col_flex_box,0,3)==='fle'||substr($this->col_flex_box,0,3)==='inf')){
-               echo '</div><!--wrap controls flexbox prime col-->';
+               echo '</div><!--wrap controls flexbox prime col-->
+               ';
                $this->flex_enabled_arr[$this->column_level]=true;
                }
           elseif($prime){
@@ -1949,12 +2084,11 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 			while($mainrow=$this->mysqlinst->fetch_assoc($rpost2,__LINE__)){#while 
 				$orig_val_arr[]=$mainrow;//
 				$id_arr[]=array('blog_id'=>$mainrow['blog_id'],'blog_order'=>$mainrow['blog_order'],'blog_pub'=>$mainrow['blog_pub']);
-			#so the id_arr $columnArrayFile  flat files cherry pics critical post fields foreach post record recalled within the column and can be accessed from the flat file directly in webpage mode by the original or clones .  Notice in webpage mode how the flat file becomes the  orig_val_arr following unserialization to plug into the same foreach statement that the editmode uses. the foreach call is used to accomodate the array whether derived in editmode mysqli call or webpage mode from flatfile.
+			#so the id_arr $columnArrayFile  flat files cherry pics critical post fields foreach post record recalled within the column and can be accessed from the flat file directly in webpage mode by the original or clones .  Notice in webpage mode how the column flat file becomes the  orig_val_arr following unserialization to plug into the same foreach statement that the editmode uses. the foreach call is used to accomodate the array whether derived in editmode mysqli call or webpage mode from flatfile.
 			
                ##In editmode the foreach insulates the bulk of code from the original mysqli record call..
 				} //end mainwhile
-			}
-		
+			} 
 		(!is_dir(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir))&&mkdir(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir,0755,1); 
 		file_put_contents($columnArrayFile,serialize($id_arr));
           //data_col_list_ here we flat file the id_arr as record to recall each flat file record  we will be flat filing on originals and
@@ -1992,7 +2126,7 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
           #flat files incorporated to remove query calls duing non-edit use...
           #towards the end of the edit section there is full list of flat files created with general information
 #populate #popclone values will be editpages_obj populated and then any values for clone will be substitued
-	foreach($orig_val_arr as $orig_val){// this is now main while.. this was done for nested mysql
+	foreach($orig_val_arr as $orig_val){// this is now main while.. this was done as foreach replacement of nested mysql 
 		$this->orig_val['blog_id']=$orig_val['blog_id']; 
 		#######begin big edit  between which edit checks are reduntant 
 		if ($this->edit||Sys::Pass_class){#begin big#big begin/begin big edit
@@ -2073,12 +2207,13 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 			#unclone #unmirror
 			#READ IN THE UNCLONE VALUES if any checking for for is_clone property (ie posts within a cloned parent column.) then checking databases against blog_table_base = current  page and blog_unclone = blog_id which is a post within a cloned column
 			#blog_unclone is the cloned post id that is being uncloned!!
-			#this can further target a cloned post which if  is referred to as clone target
+			#this can further target a cloned post   if it is referred to as clone target
 			#selecting blog_order and blog_table to use for editpage_obj populate values. these values will be re-selected if  is blog_status turns out to be immediately recloned!  
-			if ($this->is_clone &&$orig_val['blog_status']!=='unclone'){#check for unclone in cloned nested column
+			if ($this->is_clone&&!in_array($blog_id,$this->no_release_arr) &&$orig_val['blog_status']!=='unclone'){#check for unclone in cloned nested column
 				$q="select blog_type,blog_order,blog_table,blog_data1,blog_status,blog_clone_target,blog_id,blog_data2 from $this->master_post_table  where blog_unstatus='unclone' and blog_table_base='$this->pagename' and blog_unclone='$blog_id' limit 1";  
 				$unc=$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
 				if ($this->mysqlinst->affected_rows()) {
+                         $this->no_release_arr[]=$blog_id; //without this check recursive mirror would occur if the same parent clone was recloned in the mirror release column
                          $this->is_clone=false;//uncloned posts not consider cloned anymore and open for full editing unless recloned immediately which will change status
 					$blog_unstatus='unclone';
 					$temp_blog_id=$blog_id;
@@ -2223,7 +2358,7 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 							else {
                                         $this->clone_local_style=false;
                                         if (is_file(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'blog_clone_local_style_'.$this->pagename.'_'.$origval_id))
-                                             unlink(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'blog_clone_local_style_'.$this->pagename.'_'.$origval_id);//file presence and is_clone status will be determination of whether to sub in these local_clone_style values after post_subbed_row_data is read in from flatfile in webpage mode
+                                             unlink(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'blog_clone_local_style_'.$this->pagename.'_'.$origval_id);//file presence and is_clone status will be determination of whether to sub in these clone_local_style values after post_subbed_row_data is read in from flatfile in webpage mode
                                              }
 							}
 						else { //local style is true going to switch back in local values
@@ -2262,6 +2397,9 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 								$data_val=$base_value.',blog_data1,blog_data7,blog_tiny_data4,blog_tiny_data5';
 								break;
 								case 'auto_slide':
+								$data_val=$base_value.',blog_data1';
+								break;
+								case 'carousel':
 								$data_val=$base_value.',blog_data1';
 								break;
 								case 'video':
@@ -2366,13 +2504,16 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 								case 'auto_slide':
 								$data_val=$base_value.'blog_data1';
 								break;
+								case 'carousel':
+								$data_val=$base_value.'blog_data1';
+								break;
 								case 'video':
 								$data_val=$base_value.'blog_data1,blog_data2,blog_data3,blog_data4,blog_tiny_data1';
 								break;
 								default:
 								$data_val=$base_value;
 								}
-							if ($this->blog_type==='image'||$this->blog_type==='video'||$this->blog_type==='social_icons'||$this->blog_type==='auto_slide'||$this->blog_type==='text'||$this->blog_type==='gallery'){//only these are presently configured
+							if ($this->blog_type==='image'||$this->blog_type==='video'||$this->blog_type==='social_icons'||$this->blog_type==='auto_slide'||$this->blog_type==='carousel'||$this->blog_type==='text'||$this->blog_type==='gallery'){//only these are presently configured
 								$q="select $data_val from $this->master_post_data_table where blog_table_base='$this->pagename' and blog_orig_val_id='$origval_id' and blog_id='p$blog_id' limit 1";  //sub out if present
 								#popclone #populate local data here we do this differently with clone local data
 								#we are going to use the parent post_subbed_row_data for webpage mode then subbout the local fields when in local mode..   Here we will create the necessary array to be called in local data posts in webpage mode..
@@ -2399,7 +2540,7 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 				else{//is nested column
 					$col_fields=Cfg::Col_fields;  
 					if (isset($_POST['delete_collocalstyle'][$this->blog_data1])){
-						$q="delete from $this->master_col_css_table Where col_id='c$this->blog_data1' and col_table_base='$this->pagename'";
+						$q="delete from $this->master_col_css_table Where col_id='c$this->blog_data1' and col_clone_target_base='$this->pagename'";
 						$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);
 						$this->clone_local_style=false;
                               if (is_file(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'column_css_clone_'.$this->pagename.'_'.$this->blog_data1))
@@ -2407,7 +2548,7 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 						}
 					else {  
 						($blog_status==='clone')&&$this->parent_col_clone=$this->blog_data1;//for providing information
-						$count=$this->mysqlinst->count_field($this->master_col_css_table,'css_id','',false,"where col_id='c$this->blog_data1' and col_table_base='$this->pagename'"); 
+						$count=$this->mysqlinst->count_field($this->master_col_css_table,'css_id','',false,"where col_id='c$this->blog_data1' and col_clone_target_base='$this->pagename'"); 
 						if ($count < 1){// local column style/config is enabled
 							if (isset($_POST['submitted'])&&isset($_POST['add_collocalstyle'][$this->blog_data1])){//create new column css local style record
 								$q="select $col_fields from $this->master_col_table where col_id='$this->blog_data1'"; //get parent values 
@@ -2417,14 +2558,14 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 								$value=''; 
 								$css_id=$this->mysqlinst->field_inc;
 								foreach ($this->col_field_arr as $field) {
-									if($field==='col_table_base')$value.="'$this->pagename',";
-									elseif($field==='col_table')$value.="'$this->col_table',";
+									if($field==='col_clone_target_base')$value.="'$this->pagename',";
 									else $value.="'".$col_rows[$field]."',";
 									}
 								$q="insert into $this->master_col_css_table   (css_id,col_id,$col_fields,col_update,col_time,token) values ($css_id,'c$this->blog_data1',$value '".date("dMY-H-i-s")."','".time()."','".mt_rand(1,mt_getrandmax())."')";   
 								$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true); 
 								$this->clone_local_style=true;
 								if (is_file(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'column_css_clone_'.$this->pagename.'_'.$this->blog_data1))unlink(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'column_css_clone_'.$this->pagename.'_'.$this->blog_data1);
+                                        $this->clone_local_style=true;
 								}//submitted
 							else {//no col clone css record exists
                                         $this->clone_local_style=false;
@@ -2435,7 +2576,7 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 						else {//count >1 col css style local
                                    //in each editpage round we will regenerate the file regardless of submit condition in case file is deleted...
                                    //Here no switch selection is necessary as all values can be switched out and flatfiled from the local column css record and there is no data to worry about parent column changes...
-							$q="select $col_fields from $this->master_col_css_table where col_table_base='$this->pagename' and col_id='c$this->blog_data1'"; 
+							$q="select $col_fields from $this->master_col_css_table where col_clone_target_base='$this->pagename' and col_id='c$this->blog_data1'"; 
 							$lc=$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);
 							$col_css_row=$this->mysqlinst->fetch_assoc($lc,__LINE__);
 							$col_local_clone_collect_arr=array();
@@ -2501,7 +2642,7 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 			file_put_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'post_append_data_'.$appfile,serialize($append_arr));
 				//contigency plan for a situation where a  post or column in a template/cloned column has been added on the parent column adding a new clone and the page where clone is expressed hasn't been updated in edit mode...
 			if ($this->blog_table_base!==$this->pagename&&!$this->clone_local_style){ 
-				$this->page_stylesheet_inc[]=$this->blog_table_base; 
+				$this->page_has_clone_inc[]=$this->blog_table_base; 
 				}//this is used to include stylesheets of cloned posts 
                #clones will not make new post subbed row data
                #flatfile info #flat file info
@@ -2574,8 +2715,10 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 				$post_fields=Cfg::Post_fields;
 				$post_field_arr=explode(',',$post_fields);
 				$value=''; 
-				foreach ($post_field_arr as $field){ 
-					$this->$field=$collect[$field];  //populate blog row fields retrieved from flat file
+				foreach ($post_field_arr as $field){
+					if(array_key_exists($field,$collect))
+						$this->$field=$collect[$field];  //populate blog row fields retrieved from flat file
+					else $collect[$field]=0;
                         }
 				$this->blog_id=$collect['blog_id'];
 				}//
@@ -2625,7 +2768,7 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 			continue;//main foreach
 			} 
 		if(!$this->edit&&!Sys::Pass_class&&$this->blog_type==='nested_column'){ //!edit  for sake of flat filing and avoiding queries.. 
-			$col_par_masonry=$this->is_masonry;//value of col_masonry whether prev col was enabled
+			$col_par_masonry=$this->is_masonry;//value of col_masonry whether prev col was enabled because has not been passed yet col_data function so this->is masonry value active for previous column..
 			#north
 			$file2=Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'column_data_'.$this->blog_data1;
 			 if (is_file($file2))$file=$file2; 
@@ -2668,9 +2811,12 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
           else { 
                $this->dataCss=$this->clone_ext.$this->blog_table_base.'_postId_'.$this->blog_id;//this id is to form immutable css for
                $this->pelement=".$this->dataCss.$this->blog_type"; 
-               $this->sibling_id_arr['p'.$this->blog_id]=$this->dataCss;//keeps track for animation 
-               }
-          if ($orig_val['blog_status']==='clone')$blog_order=$this->blog_order=$orig_val['blog_order']; $this->blog_order_mod=$blog_order/10;#timing is important here...
+               $this->sibling_id_arr['p'.$this->blog_id]=$this->dataCss;//keeps track for animation being able to respond to post coming after as well as before
+		 
+          if ($orig_val['blog_status']==='clone')$blog_order=$this->blog_order=$orig_val['blog_order'];
+		$this->blog_order_mod=$blog_order/10;#timing is important here...    
+		
+			}
           #here we are rendering from flat files if !edit..
           #column_level
           #if is_column then column level still one above (lower in number)
@@ -2720,8 +2866,8 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 			if(!$this->is_column&&$this->is_masonry||$this->column_masonry_status_arr[$this->column_level]
 ){//float adjust too...
 				$this->display_edit_data='inline-block'; 
-				$floatstyle='display:inline-block;';// center floating by default...
-				$floating=true;//clear float checks same parameters so will use value for floating
+				//$floatstyle='display:inline-block;';// center floating by default...
+				//$floating=true;//clear float checks same parameters so will use value for floating
 				}
 			if (!$floating){
                     //printer::pclear();echo '<!--clear border float-->';
@@ -2731,7 +2877,7 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 			#mainfloat
 		if (!$this->flex_box_item){
                if (empty($this->blog_float)||$this->blog_float==$this->position_arr[0])://center row 
-                    printer::pclear();
+                    //printer::wmclear();
                     $floatstyle='margin-left:auto;margin-right:auto;';//default..
                      $floating=false;
                     $this->display_edit_data='block';
@@ -2762,7 +2908,10 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
                     $floating=false;//clear float checks same parameters so will use value for floating
                    $this->display_edit_data='inline-table'; 	   
                     $floatstyle='display:inline-table; ';//this sets up float for local...margin-left:auto;margin-right:auto;
-                   
+               elseif ($this->blog_float===$this->position_arr[7])://float center no next
+                    $floating=true;//will not create clear block
+                   $this->display_edit_data='inline-block'; 	   
+                    $floatstyle='';// no float no center row css..  
                     
                else:
                     
@@ -2772,7 +2921,7 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
                          $floating=true;//clear float checks same parameters so will use value for floating
                         }
                     else {
-                         printer::pclear();
+                         //printer::wmclear();echo '<!--clear ahead-->';
                          $this->display_edit_data='block';
                          $floatstyle='margin-left:auto;margin-right:auto;';
                          $floating=false;
@@ -2796,7 +2945,8 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 		  $width='';   
 		if(!empty($this->blog_border_start)){  
 			 (isset($this->groupstyle_begin_col_id_arr[$this->col_id])&&isset($this->groupstyle_begin_blog_id_arr[$this->col_id]))&&printer::alertx('<p class="floatleft warn1">Caution need closing groupstyle for post Id '.$this->groupstyle_begin_blog_id_arr[$this->col_id]. " within this parent Column id $this->col_id before opening another</p>");
-			printer::pclear();echo '<!--clear caution group border-->';
+			printer::wmclear();echo '<!--clear caution group border-->
+               ';
 			$this->groupstyle_begin_blog_id_arr[$this->col_id]=$this->blog_id;
 			$this->groupstyle_begin_col_id_arr[$this->col_id]=true;
 			print('<fieldset class="style_groupstyle"'.$width.'><legend></legend><!-- begin Group Style Border-->');// begin the border
@@ -2839,11 +2989,13 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 			$show_more_on=true;//signal to close out show_more following render
 			}
 		else $show_more_on=false;
+          $cloned=($this->is_clone)?'cloned ':'';
           if($this->edit&&$this->blog_type==='nested_column'){
                if($show_more_on){
                     $idl="c$this->col_id";
-                    echo '<div id="'.$idl.'" style="'.$floatstyle.' width:'.$setwid.'px;">';//create anchor before show_more statement
-                    $this->show_more('Edit Nested Column Post Id'.$this->col_id,'','small info fsmorange posbackground white  click','',500,'',$floatstyle,'','');echo '<!--open show more on-->';
+                    echo '
+<div id="'.$idl.'" style="'.$floatstyle.' width:'.$setwid.'px;">';//create anchor before show_more statement
+                    $this->show_more('Edit '.$cloned.'Nested Column Post Id'.$this->col_id,'','small info fsmorange posbackground white  click','',500,'',$floatstyle,'','');echo '<!--open show more on-->';
                      printer::print_wrap('Expand current width '.$this->blog_type);
                      }
                else   $idl=$this->col_dataCss;
@@ -2852,8 +3004,9 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
           elseif($this->edit){//is blog
                $idl="p{$this->orig_val['blog_id']}";
                if($show_more_on){
-                    echo '<div id="'.$idl.'" style="'.$floatstyle.' width:'.$setwid.'px" >';//create anchor before show_more statement
-                    $this->show_more('Edit '.str_replace('_',' ',strtoupper($this->blog_type)). ' Post Id'.$this->blog_id,'','small info fsm2orange posbackground white  click','',500,'',$floatstyle,'','');echo '<!--open show more on-->';
+                    echo '
+<div id="'.$idl.'" style="'.$floatstyle.' width:'.$setwid.'px" >';//create anchor before show_more statement
+                    $this->show_more('Edit '.$cloned.str_replace('_',' ',strtoupper($this->blog_type)). ' Post Id'.$this->blog_id,'','small info fsm2orange posbackground white  click','',500,'',$floatstyle,'','');echo '<!--open show more on-->';
                     printer::single_style_wrap('Expand current width '.$this->blog_type,'border: solid 3px orange;color:#'.$this->current_color.';background-color:#'.$this->current_background_color.';');
                     } 
                $this->id_array[]=array($this->blog_type,$idl,$this->column_level,$this->blog_type.' id: p'.$this->blog_id,$this->is_clone);// id_array for quick navigation to posts in editmode
@@ -2867,8 +3020,7 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
           #use_blog_main_width #use_col_main_with #use_'.$type.'_main_width
           #this value for blog or col use_blog_main_width is set in function total float
           #if blog main width not set we may be using #3 blog width main mode and we can update the main width value to equal this initial setting made in mode #3 so we allow it here
-          if ($this->edit)$mediapercent=(is_numeric($this->blog_width_mode[$this->{'blog_percent_init_index'}])&&$this->blog_width_mode[$this->blog_percent_init_index]>0&&$this->blog_width_mode[$this->blog_percent_init_index]<=100)?$this->blog_width_mode[$this->blog_percent_init_index]:'';
-          else $this->scroll_height_fade();
+          if ($this->edit)$mediapercent=(is_numeric($this->blog_width_mode[$this->{'blog_percent_init_index'}])&&$this->blog_width_mode[$this->blog_percent_init_index]>0)?$this->blog_width_mode[$this->blog_percent_init_index]:''; 
           #mainmode  #mode 
           if ($this->edit&&!$this->rwd_post&&(is_numeric($this->{$type.'_width'})&&$this->{$type.'_width'}>0&&$this->{'use_'.$type.'_main_width'} ||$this->blog_width_mode[$this->blog_width_mode_index]==='compress_to_percentage'&&!empty($mediapercent))){ 
                $mode=($this->blog_width_mode[$this->blog_width_mode_index]==='maxwidth'||$this->blog_width_mode[$this->blog_width_mode_index]==='compress_full_width'||$this->blog_width_mode[$this->blog_width_mode_index]==='compress_to_percentage'||$this->blog_width_mode[$this->blog_width_mode_index]==='off')?$this->blog_width_mode[$this->blog_width_mode_index]:'maxwidth'; 
@@ -2878,43 +3030,14 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
                div .'.$cb_data.'{width:'.($this->current_total_width_percent).'%;}';
                          }
                     elseif ($mode==='compress_to_percentage'){
-                         $fitfactor=($this->is_masonry)?.985:.995;
-                         $marginleft=(is_numeric($this->blog_width_mode[$this->blog_marginleft_init_index])&&$this->blog_width_mode[$this->blog_marginleft_init_index]>=0&&$this->blog_width_mode[$this->{'blog_marginleft_init_index'}]<=100)?'margin-left:'.($fitfactor*$this->blog_width_mode[$this->{'blog_marginleft_init_index'}]).'%;':'';
-                         $marginright=(is_numeric($this->blog_width_mode[$this->blog_marginright_init_index])&&$this->blog_width_mode[$this->blog_marginright_init_index]>=0&&$this->blog_width_mode[$this->blog_marginright_init_index]<=100)?'margin-right:'.($fitfactor*$this->blog_width_mode[$this->blog_marginright_init_index]).'%;':'';
-                          if (!empty($mediapercent)){
-                              if($this->edit&&$this->blog_width!==$mediapercent){
-                                   $this->updater('typeenv',"{$type}_width='$mediapercent'",'idenv'); #here we update blog_width ie main width value because setting this will set this->use_blog_main_width to true and will also update width values in function total float. 
-                                   }
-                              $this->css.='
-                    html div .'.$cb_data.'{width:'.($mediapercent*$fitfactor).'%;'.$marginleft.$marginright.'}
-                         ';
-                              }
-                         $array_key=$array_collect=array();
-                         for ($i=1; $i<9;$i++){
-                              $mediawidth=(is_numeric($this->blog_width_mode[$this->{'blog_media_'.$i.'_index'}])&&$this->blog_width_mode[$this->{'blog_media_'.$i.'_index'}]>=250&&$this->blog_width_mode[$this->{'blog_media_'.$i.'_index'}]<=3000)?$this->blog_width_mode[$this->{'blog_media_'.$i.'_index'}]:'';
-                              $mediapercent=(is_numeric($this->blog_width_mode[$this->{'blog_percent_'.$i.'_index'}])&&$this->blog_width_mode[$this->{'blog_percent_'.$i.'_index'}]>0&&$this->blog_width_mode[$this->{'blog_percent_'.$i.'_index'}]<=100)?$this->blog_width_mode[$this->{'blog_percent_'.$i.'_index'}]:'';
-                              $marginleft=(is_numeric($this->blog_width_mode[$this->{'blog_marginleft_'.$i.'_index'}])&&$this->blog_width_mode[$this->{'blog_marginleft_'.$i.'_index'}]>=0&&$this->blog_width_mode[$this->{'blog_marginleft_'.$i.'_index'}]<=100)?'margin-left:'.($fitfactor*$this->blog_width_mode[$this->{'blog_marginleft_'.$i.'_index'}]).'%;':'';
-                              $marginright=(is_numeric($this->blog_width_mode[$this->{'blog_marginright_'.$i.'_index'}])&&$this->blog_width_mode[$this->{'blog_marginright_'.$i.'_index'}]>=0&&$this->blog_width_mode[$this->{'blog_marginright_'.$i.'_index'}]<=100)?'margin-right:'.($fitfactor*$this->blog_width_mode[$this->{'blog_marginright_'.$i.'_index'}]).'%;':'';
-                              $array_collect[$mediawidth]=array($mediapercent,$marginleft,$marginright);
-                              }
-                         krsort($array_collect);
-                         foreach ($array_collect as $key=>$sorted){
-                              $mediawidth=$key;
-                              $mediapercent=$sorted[0];
-                              $marginleft=$sorted[1];
-                              $marginright=$sorted[2];
-                              (!empty($mediawidth)&&!empty($mediapercent))&&
-                                   $this->mediacss.='
-               @media screen and (max-width:'.$mediawidth.'px){
-                    html div .'.$cb_data.'{width:'.($mediapercent*$fitfactor).'%;'.$marginleft.$marginright.'}
-                         }';   
-               
-                              }//end for loop
+					//updated to combine with choices handled in function width_rwd_alt_grid
+					$this->compress_to_percent();
                          }
+					######
                     }
-                    elseif ($this->flex_enabled_twice&&$mode==='maxwidth'){ 
-                         //flex box enabled in parent tree and widthcalculator not correct..
-                         $this->css.='
+               elseif ($this->flex_enabled_twice&&$mode==='maxwidth'){ 
+                     //flex box enabled in parent tree and widthcalculator not correct..
+                    $this->css.='
                div .'.$cb_data.'{width:'.($this->current_total_width_percent).'%;}';
                          }
                elseif($mode==='maxwidth'){// default maxwidth
@@ -2924,41 +3047,48 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
                }//$this->edit&&use_blog/col main width
          #mainanimation && !$this->rwd_post&&!$this->flex_box_item
 		$masonclass=($this->is_masonry)?' grid-item_'.$this->col_id:''; 
-		//note these  values are also used below in nested column divisions 
+		
+          
+          
+          #this is legacy implementation for adding data and class attributes instead of using jQuery for simililar. ie  update this
+          //note these  values are also used below in nested column divisions 
           list($anim_type,$anim_height,$anim_lock,$aef_class)=$this->preanimation(); 
           $anim_class=($anim_type!=='none' && !$aef_class)?" $anim_type animated active-anim " :(($anim_type!=='none')?" $anim_type animated ":'');
           $dataAnimHeight=($anim_type!=='none')?' data-hchange="'.$anim_height.'" ':'';
           $dataAnimLock=($anim_type!=='none')?' data-hlock="'.$anim_lock.'" ':''; 
           
 		if ($this->blog_type!=='nested_column'){
-               $blog_custom_class=(!empty($this->blog_options[$this->blog_custom_class_index])&&!is_numeric($this->blog_options[$this->blog_custom_class_index]))?$this->blog_options[$this->blog_custom_class_index]:''; 
+               $blog_custom_class=(!$this->edit&&!empty($this->blog_options[$this->blog_custom_class_index])&&!is_numeric($this->blog_options[$this->blog_custom_class_index]))?$this->blog_options[$this->blog_custom_class_index]:''; 
 			$style=($this->edit&&$this->current_total_width<50)?'style="width:50px;"':'';
 			list($bw,$bh)=$this->border_calc($this->blog_style);
 			if (!empty($bw)) 
-				$bs=$this->calc_border_shadow($this->col_style); 
-			$class=($this->rwd_post)?$this->dataCss.' post '.str_replace(',',' ',$this->blog_grid_width).' '.str_replace(',',' ',$this->blog_gridspace_right).' '.str_replace(',',' ',$this->blog_gridspace_left).' '.$blog_custom_class:$this->dataCss.' post '.$blog_custom_class;
+				$bs=$this->calc_border_shadow($this->col_style);
+               $cloneclass=($this->is_clone)?' clone':'';
+               $hidden=(!$this->edit&&$this->blog_type==='carousel')?' hidden':'';
+               $cclasstype=($this->clone_local_data)?' clonedata':(($this->clone_local_style)?' clonestyle':'');
+               $class=($this->rwd_post)?$this->dataCss.' post '.str_replace(',',' ',$this->blog_grid_width).' '.str_replace(',',' ',$this->blog_gridspace_right).' '.str_replace(',',' ',$this->blog_gridspace_left).' '.$blog_custom_class.$cloneclass.$cclasstype.$hidden:$this->dataCss.' post '.$blog_custom_class.$cloneclass.$cclasstype.$hidden;
 			
 		//call in animation info for webpage mode this will retrieve minimal javascript if animation enabled as well as main division class and data attributes..
 		#maindiv blog    #mainwidth 
 			$float_image=($this->blog_type==='float_image_left'||$this->blog_type==='float_image_right')?' float_image':'';//this is used for globalizing styles within a column with float image right and left we dont want to copy the image styles because of necessary padding between right and left but we do want to copy the text styles..  whereas image styles can also be globalized if type matches. to accomadate this in render textarea we use the css extenstion : float images and in images we use the the full blog type css extension.  Here we include both to cover all situations
 		#maindiv 
-			$dataMinheight='';//($this->blog_height_arr[$this->blog_min_height_index]>=5&&$this->blog_height_arr[$this->blog_min_height_index]<=1000)?' data-minHeight="'.$this->blog_height_arr[$this->blog_min_height_index].'" ':'  data-minHeight="1" ';
-			$classHeight='';//($this->blog_height_arr[$this->blog_image_height_index]==='adjust')?' respondHeight ':''; 
-			$dataHeight='';//($this->blog_height_arr[$this->blog_image_height_index]==='adjust')?' data-rwd="'.$this->rwd_post.'" data-type="'.$this->blog_type.'" data-height="init" data-hwid="init" ':'';
-			
-		 	if (!$this->edit)
-				print '<div id="'.$this->dataCss.'" '.$style.' class="'.$class.$anim_class.$classHeight.$masonclass.' '.$this->blog_type.$float_image.' webmode"'.$dataHeight.$dataMinheight.$dataAnimHeight.$dataAnimLock.' >';
+			if (!$this->edit)
+				print '
+<div id="'.$this->dataCss.'" '.$style.' class="'.$class.$anim_class.$masonclass.' '.$this->blog_type.$float_image.' webmode"'.$dataAnimLock.' >';
 			else {
-                    $this->post_full_class=$class.$anim_class.$classHeight.$masonclass.' '.$this->blog_type.$float_image.' webmode';
+                    $this->post_full_class=$class.$anim_class.$masonclass.' '.$this->blog_type.$float_image.' webmode';
 				$addclass=(empty($bw))?' bs'.$this->page_editborder.$this->column_lev_color.' ':((empty($bs))?' bshad'.$this->page_editborder.$this->column_lev_color.' ':'');
 		#fieldset  switched to class  //removed style="max-width:'.$this->current_total_width.'px;"
           
                     $stylemore=($show_more_on)?'style="max-width:500px !important;width:500px;"':'';
                     $pid=(!$show_more_on)?' id="p'.$this->orig_val['blog_id'].'"':'';
-				 print '<div id="'.$this->dataCss.'" '.$stylemore.' class="'.$class.$addclass.' '.$this->blog_type.$float_image.' edit post"><!--Editpage fieldset post border--><p '.$pid.' class="lineh90 fs1'.$this->column_lev_color.' '.$this->column_lev_color.' p10 shadowoff editbackground editfont ">Post</p>'; 
+				 print '
+<div id="'.$this->dataCss.'" '.$stylemore.' class="'.$class.$addclass.' '.$this->blog_type.$float_image.' edit post"><!--Editpage fieldset post border--><p '.$pid.' class="lineh90 fs1'.$this->column_lev_color.' '.$this->column_lev_color.' p10 shadowoff editbackground editfont ">Post</p>'; 
 				printer::pclear();echo '<!--clear edit main blog div begin-->';
                     } 
 			$this->background_video('blog_style');
+               $this->key='b'.$this->blog_id; 
+			($this->is_clone)&&$this->clone_list_id[]='b'.$this->blog_id;//retrieve clones
 			}//if !nested column
 		if ($this->edit&&$this->blog_type!='nested_column'){ 
 			if ($blog_status==='clone'&&$blog_unstatus==='unclone'&&!empty($blog_clunc_id)){
@@ -2966,10 +3096,12 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 				}
 			if (empty($this->blog_pub)){
 				if (!$this->is_clone||$this->clone_local_style){
-					echo '<div class="fsminfo editbackground editfont rad10 floatleft"><!--wrap publish-->';
-					printer::alertx('<p class="pos floatleft editbackground editfont bold"><input type="checkbox" value="1" name="'.$data.'_blog_pub"> Publish Post to Web Pages<br></p>');
-					$this->navobj->return_url($this->pagename,'',$this->column_lev_color.' floatleft    smallest button'.$this->column_lev_color,true);
-					echo '</div><!--wrap publish-->';
+					echo '
+<div class="fsminfo editbackground editfont rad10 floatleft"><!--wrap publish-->';
+					printer::alertx('<p class="pos floatleft fs1'.$this->column_lev_color.' oldlacebackground  editfont"><input type="checkbox" value="1" name="'.$data.'_blog_pub"> Publish Post to Web Pages<br></p>');
+					$this->navobj->return_url($this->pagename,'',$this->column_lev_color.' floatleft smallest button'.$this->column_lev_color,true);
+					echo '</div><!--wrap publish-->
+                         ';
 					printer::pclear();echo '<!--clear publish-->';
 					}
 				}
@@ -3005,44 +3137,53 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 					if ($orig_val['blog_status']!=='clone')
 					$this->unclone_options('p'.$blog_id,$this->post_target_clone_column_id);
 					}
-				 printer::pclear();echo '<!--clone otps-->';
+				 printer::wmclear();echo '<!--clone opts-->
+                     ';
 				#enable clone options
 				#enable local post
 				if (!$this->clone_local_style&&$this->is_clone&&!$this->clone_local_data){ 
 					$this->show_more('Enable Local Post Settings','noclose','small highlight editbackground editfont rad3 fs2npinfo click','Enable Local Styling/Configs of this Cloned Post Without Affecting the styling of the Parent Post',600); 
 					$msg='Check to enable local styling/configs of this clone without affecting the parent style';
-					echo '<div class="fsminfo editbackground editfont  floatleft '.$this->column_lev_color.'"><!--Local clone style-->';
+					echo '
+<div class="fsminfo editbackground editfont  floatleft '.$this->column_lev_color.'"><!--Local clone style-->';
 					printer::printx('<input type="checkbox" name="add_bloglocalstyle['.$this->orig_val['blog_id'].']" value="1" >'.$msg);
 					printer::alert_neu('Note: By enabling Local Styling/Configs of this Post the Styling which includes floating and width, and various settings, will not Update When the Parent Style Updates, instead only when you make styling changes here',.8);
-					echo '</div><!--Local clone style-->';
+					echo '</div><!--Local clone style-->
+                         ';
 					$this->show_close('Local clone style');
 					}
 				elseif ($this->clone_local_style){
 					$this->show_more('Disable Local Post Style','noclose','small highlight editbackground editfont rad3 fs2npinfo click','Disable Local Styling of this Cloned Post and Return to the Parent Post Style',600); 
 					$msg='Disable local post styling';
-					echo '<div class="fsminfo editbackground editfont  floatleft '.$this->column_lev_color.'"><!--Local clone style-->';
+					echo '
+<div class="fsminfo editbackground editfont  floatleft '.$this->column_lev_color.'"><!--Local clone style-->';
 					printer::printx('<input type="checkbox" name="delete_bloglocalstyle['.$this->orig_val['blog_id'].']" value="1" >'.$msg);
 					printer::alertx('<p class="small info">Note: By disabling Local Styling of this Post the Styling which includes floating and width, colors,etc, WILL NOW assume the style of the Parent and Update When the Parent Style Updates</p>');
-					echo '</div><!--Local clone style-->';
+					echo '</div><!--Local clone style-->
+                         ';
 					$this->show_close('Local clone style2');
 					}
-				if ($this->blog_type==='image'||$this->blog_type==='video'||$this->blog_type==='social_icons'||$this->blog_type==='auto_slide'||$this->blog_type==='text'||$this->blog_type==='gallery'){
+				if ($this->blog_type==='image'||$this->blog_type==='video'||$this->blog_type==='social_icons'||$this->blog_type==='auto_slide'||$this->blog_type==='carousel'||$this->blog_type==='text'||$this->blog_type==='gallery'){
 					if (!$this->clone_local_data&&$this->is_clone&&!$this->clone_local_style){ 
 						$this->show_more('Enable Local Post Data','noclose','small highlight editbackground editfont rad3 fs2npinfo click','Enable Local Data while keeping all Cloned Styling of this Cloned Post Without Affecting the Data of the Parent Post',600); 						
                               $msg='Check to enable local data while retaining cloned style of this clone post and without affecting the parent data';
-						echo '<div class="fsminfo editbackground editfont  floatleft '.$this->column_lev_color.'"><!--Local clone style-->';
+						echo '
+<div class="fsminfo editbackground editfont  floatleft '.$this->column_lev_color.'"><!--Local clone style-->';
 						printer::printx('<input type="checkbox" name="add_bloglocaldata['.$origval_id.']" value="1" >'.$msg);
-						echo '</div><!--Local clone style-->';
+						echo '</div><!--Local clone style-->
+                              ';
 						$this->show_close('Local clone style3');
 						}
 					elseif ($this->clone_local_data){
 						$this->show_more('Disable Local Post Data','noclose','small highlight editbackground editfont rad3 fs2npinfo click','Disable Local Styling of this Cloned Post and Return to the Parent Post Style',600); 
 						$msg='Disable local post Data';
 						$msg='Will return to full clone without local data changes';
-						echo '<div class="fsminfo editbackground editfont  floatleft '.$this->column_lev_color.'"><!--Local clone style-->';
+						echo '
+<div class="fsminfo editbackground editfont  floatleft '.$this->column_lev_color.'"><!--Local clone style-->';
 						printer::printx('<input type="checkbox" name="delete_bloglocaldata['.$origval_id.']" value="1" >'.$msg);
 						printer::alertx('<p class="small info">Note: By disabling Local Styling of this Post the Styling which includes floating and width, colors,etc, WILL NOW assume the style of the Parent and Update When the Parent Style Updates</p>');
-						echo '</div><!--Local clone style-->';
+						echo '</div><!--Local clone style-->
+                              ';
 						$this->show_close('Local clone style4');
 						}
 					}//blog types enabled for local data
@@ -3050,7 +3191,8 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 				
 			elseif($this->is_clone && $this->tagged){
 				printer::alertx('<p class="neg fs2npred small floatleft editbackground editfont left shadowoff">This Post is a <u><span class="orange whitebackground">Tagged Post</span></u> and Changes to the Parent Post Id: P'.$blog_id.' on Page <a style="color:#0075a0;"  target="_blank" href="'.check_data::dir_to_file(__METHOD__,__LINE__,__FILE__,$this->blog_table_base).$this->ext.'#post_'.$blog_id.'"><u>'.check_data::table_to_title($this->blog_table_base,__method__,__LINE__,__file__).'</u></a> Will Appear Here </p>');
-				printer::pclear();echo '<!--clear tagged Post-->';
+				printer::wmclear();echo '<!--clear tagged Post-->
+                    ';
 				}
 			}// is edit and !nested_column
 		$alerted=($this->is_clone)?'this is clone': ' this is not clone';
@@ -3059,13 +3201,18 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
           $this->blog_typed=str_replace('_',' ',$this->blog_type);
 		 if($this->blog_options[$this->blog_date_on_index]==='date_on'){
 			list($date,$v,$n)=$this->format_date($this->blog_date);
-			echo '<div class="floatleft style_date">'.$date.'</div>';
+			echo '
+<div class="floatleft style_date">'.$date.'</div>
+               ';
 			
 			if ($this->edit){
 				printer::pclear();
 				echo '<!--clear date entry-->';
 				}
 			}
+		
+	
+		(Sys::Deltatimepost)&&$this->deltatime->delta_log_post('Blog Render Id '.$this->blog_id.' blog:type: '.$this->blog_type.'  '.__line__.' @ '.__method__.'  ');   
 		(Sys::Deltatime)&&$this->deltatime->delta_log('Blog Render Id '.$this->blog_id.' blog:type: '.$this->blog_type.'  '.__line__.' @ '.__method__.'  ');   
 		$floatnewblog=($this->edit)?$floating:false;
           if ($this->blog_type==='text'){ 
@@ -3093,12 +3240,18 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 		 
 		elseif ($this->blog_type==='contact'){ 
 			$this->contact_form($data,'',false,'Edit Overall Contact Styling',true,$this->blog_table); 
+			} 
+		elseif ($this->blog_type==='mailing_list'){ 
+			$this->mailing_list($data,'',false,'Edit Overall Post',true,$this->blog_table); 
 			}
 		elseif ($this->blog_type==='social_icons'){
 			$this->social_icons($data,'',false,'Edit Social Icon Styling',true,$this->blog_table); 
 			}
 		elseif ($this->blog_type==='auto_slide'){
 			$this->auto_slide($data,'blog'); 
+			}
+		elseif ($this->blog_type==='carousel'){
+			$this->carousel($data,'blog'); 
 			}
 		elseif ($this->blog_type==='gallery'){ 
 			$this->gallery($data,$this->blog_data1); 
@@ -3112,7 +3265,6 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 			} 
  #nested  #nc
 		elseif ($this->blog_type==='nested_column'){
-			 
 			#&&&&&&&&&  Note: till nest column function called column level still parent!  &&&&&&&&&&&&&&&&&&&
 			 $this->blog_order_arr[$this->column_level]=$orig_val['blog_order'];//this currently appears to be used for html div <!-- reference only --> 
 	#nesteddiv  
@@ -3120,59 +3272,24 @@ function blog_render($col_id,$prime=false,$col_table_base=''){
 			$textalign=($this->rwd_post)?'':' text-align:center;';//this is applied for cases in which rwd is not used and center float (inline-block) is used for posts within this column in order that ..  also use when rwd is in play for consistency 
 			($this->edit)&&$this->css.="\n .$this->col_dataCss{".$floatstyle.$textalign.'}';
 			#NON RWD WIDTHS HANDLED BY CSS IN maindiv
-			 $width_express=''; 
+			 $width_express='';
+               $col_custom_class=(!$this->edit&&!empty($this->col_options[$this->col_custom_class_index])&&!is_numeric($this->col_options[$this->col_custom_class_index]))?' '.$this->col_options[$this->col_custom_class_index]:''; 
 			#width of nested columns now set along with post width go to # maindiv
-			 $class=($this->rwd_post)?$this->col_dataCss.' '.str_replace(',',' ',$this->col_grid_width).' '.str_replace(',',' ',$this->col_gridspace_right).' '.str_replace(',',' ',$this->col_gridspace_left):$this->col_dataCss; 
+			$cloneclass=($this->is_clone)?' clone':'';
+               $cclasstype=($this->clone_local_data)?' clonedata':(($this->clone_local_style)?' clonestyle':'');
+               $class=($this->rwd_post)?$this->col_dataCss.' '.str_replace(',',' ',$this->col_grid_width).' '.str_replace(',',' ',$this->col_gridspace_right).' '.str_replace(',',' ',$this->col_gridspace_left).$cloneclass.$cclasstype:$this->col_dataCss.$cloneclass.$cclasstype; 
 			list($bw,$bh)=$this->border_calc($this->col_style); 
 			if (!empty($bw)) 
 				$bs=$this->calc_border_shadow($this->col_style);
                $col_masonry=($col_par_masonry)?' grid-item_'.$col_id:'';#we could go with col level arr setup but this works also..
-               $enablemasonclass='';
 #################
-         #Here we are checking raw col_option data as it hasn't been passed around yet to col_data.
+			#Here we are checking raw col_option data as it hasn't been passed around yet to col_data.
          
-               if ($this->col_options[$this->col_enable_masonry_index]==='masonry'){
-                   $enablemasonclass=' gridcol_'.$this->col_id; 
-                   $this->load_masonry();//load files..
-                   $masonryClass='gridcol_'.$this->col_id;
-                   $mclass=".$masonryClass";
-                   if (!$this->edit){// padleft,
-                        echo <<<eol
-					
-<script>
-var resizeTimer1_$this->col_id='';
-var mopts={
-     gutter: 0,  
-     isFitWidth: false,
-     itemSelector: '.grid-item_$this->col_id' 
-     } 
-\$(function(){ 
-     
-          $('$mclass').imagesLoaded().always( function( instance ) {
-               setTimeout( function(){
-                    \$gridcol_$this->col_id=\$('$mclass').masonry(mopts); 
-                    \$gridcol_$this->col_id=\$('$mclass').masonry(mopts); //initiating twice
-                    }, 100);
-               var windowWidth = \$(window).width();
-               window.addEventListener('resize', function(){//overcomes 
-               if (\$(window).width() != windowWidth) {
-                    windowWidth = \$(window).width();
-                    if (\$gridcol_$this->col_id.masonry()!=='undefined')\$gridcol_$this->col_id.masonry('destroy'); 
-                     clearTimeout(resizeTimer1_$this->col_id); 
-                     resizeTimer1_$this->col_id=setTimeout( function(){ 
-                     \$gridcol_$this->col_id=\$('$mclass').masonry(mopts); 
-                     \$gridcol_$this->col_id=\$('$mclass').masonry(mopts);//initiating twice 
-                    }, 200);
-                    }
-                }, true); 
-     });
-});
-</script>
-eol;
-						}//masonry but not edit\
-					}//end is masonry 
+			$this->key='c'.$this->col_id;
+			($this->is_clone)&&$this->clone_list_id[]='c'.$this->col_id;//retrieve clones
 			if (!$this->edit){  
-				print '<div id="'.$this->col_dataCss.'" class="'.$class.$anim_class.$enablemasonclass.$col_masonry.' nested webmode" '.$dataAnimHeight.$dataAnimLock.'><!--Begin Nested Column id:'.$this->col_id.'-->';
+				print '
+<div id="'.$this->col_dataCss.'" class="'.$class.$anim_class.$col_masonry.$col_custom_class.' nested webmode" '.$dataAnimHeight.$dataAnimLock.'><!--Begin Nested Column id:'.$this->col_id.'-->';
                     if (!empty($this->col_text)){
                         echo $this->col_text.'<!--custom column text-->';
                         } 
@@ -3181,19 +3298,21 @@ eol;
 				$addclass=(empty($bw))?' bdot'.$this->page_editborder.$this->color_arr_long[$this->column_level+1].' ':((empty($bs))?' bshad'.$this->page_editborder.$this->column_lev_color.' ':'');
                     $stylemore=($show_more_on)?'style="max-width:500px !important;width:500px;"':'';
 			#fieldset  switched to class     add addclass for edit border...
-				echo '<div id="'.$this->col_dataCss.'" '.$stylemore.' class="'.$class.$addclass.' nested column edit" ><!--Begin edit Nested Column id'.$this->col_id.'-->';
+				echo '
+<div id="'.$this->col_dataCss.'" '.$stylemore.' class="'.$class.$addclass.' nested column edit" ><!--Begin edit Nested Column id'.$this->col_id.'-->';
                     #flexstay
-                    $this->col_full_class=$class.$anim_class.$enablemasonclass.$col_masonry.' nested webmode';
-                    if ($this->edit&&$this->flex_box_container)echo '<div class="flexstay"><!--wrap controls flexbox-->';
+                    $this->col_full_class=$class.$anim_class.$col_masonry.' nested webmode';
+                    if ($this->edit&&$this->flex_box_container)echo '
+<div class="flexstay"><!--wrap controls flexbox-->';
                     echo'<p class="lineh90  shadowoff '.($this->color_arr_long[$this->column_level+1]).' editbackground editfontcol fs1'.$this->color_arr_long[$this->column_level+1].' p10">Nested Column</p>';
 				printer::pclear();echo '<!--clear nested col info-->';  
-				if($this->edit&&$show_more_on)printer::print_spacer();
+				if($this->edit&&$show_more_on)printer::pclear();
                     if($blog_status==='clone'&&$blog_unstatus==='unclone'&&!empty($blog_clunc_id)){
 					$this->delete_unc_clone_option($blog_clunc_id);
 					$this->is_clone=true;
 					}
 				echo $deleteclone;
-				printer::pclear();echo '<!--clear field level2-->';
+				printer::wmclear();echo '<!--clear field level2-->';
 				if (empty($this->blog_pub)){
 					if (!$this->is_clone||$this->clone_local_style){
 						printer::alertx('<p class="pos editfont floatleft editbackground editfont  bold"><input type="checkbox" value="1" name="'.$data.'_blog_pub"> Publish Nested Column to WebPages</p>');
@@ -3217,6 +3336,7 @@ eol;
 			$this->blog_type='nested_column'; 
 			$col_field_arr2=$this->col_field_arr; 
 			$col_field_arr2[]='col_id';
+			
 			#values from primary or previous nested to replace once next nested column is closed.. 
 			#note property vals will be restored with recursion whereas vars will automatically retain their column level value in the nested column render in this method..!!
 			#here we restore the previous round of column values stored as variables not properties 
@@ -3234,20 +3354,27 @@ eol;
                if ($floatnewblog){
                    
                     if ($this->edit&&$this->col_options[$this->col_use_grid_index]!=='use_grid'&&(substr($this->col_flex_box,0,3)==='fle'||substr($this->col_flex_box,0,3)==='inf')){
-                         echo '<div class="flexstay"><!--wrap column flexbox control Bottom  div-->';
+                         echo '
+<div class="flexstay"><!--wrap column flexbox control Bottom  div-->';
                     $this->blog_new($data,$this->blog_table,$blog_order, $this->blog_order_mod.' in ');
-                     echo '</div><!--close wrap column flexbox control Bottom  div-->';
+                     echo '</div><!--close wrap column flexbox control Bottom  div-->
+                     ';
                     }
                else  $this->blog_new($data,$this->blog_table,$blog_order, $this->blog_order_mod.' in ');
                }
-			($this->edit)&&printer::print_spacer();
-               printer::pclear(); echo '<!--preclosing-->';
-			print '</div><!--End Nested Column id:'. $this->column_id_array[$this->column_level+1].' -->';
+			if($this->edit && !$floating)printer::print_spacer(); 
+			else printer::pclear();
+               printer::wmclear(); echo '<!--preclosing-->';
+               if ($this->edit)echo '<p id="gocbot_'.$this->column_id_array[$this->column_level+1].'" class="marginauto block"><a title="go to column top"  href="#goctop_'.$this->column_id_array[$this->column_level+1].'" style="color:#'.$this->editor_color.'" class="p3 rad5 cursor  editcolor editbackground tiny italic underline ">Go C'.$this->column_id_array[$this->column_level+1]. 'top </a></p>';
+			print '</div><!--End Nested Column id:'. $this->column_id_array[$this->column_level+1].' -->
+               ';
 			 if ($this->edit&&$show_more_on){
                     $show_more_on=false; 
                     //printer::close_single_style_wrap('Expand current width');
                     $this->show_close('show more on');echo '<!--close show more column on-->';
-                    echo '</div><!--wrap show id-->';
+                    echo printer::pclear();
+                    echo '</div><!--wrap show id-->
+                    ';
                    }
                }//end nested column.. 
 		else {
@@ -3255,19 +3382,30 @@ eol;
 			mail::alert($msg);
 			echo $msg;
 			}
+          if($this->edit&&$this->is_blog){
+			$this->handle_css_edit('b'.$this->blog_id);
+	
+			echo '<p id="pbot_'.$this->blog_id.'"></p>';
+			}
 		#reinit clone status for all
 		$this->is_clone=(array_key_exists($this->column_level,$this->column_clone_status_arr)&&$this->column_clone_status_arr[$this->column_level])?true:false;
 		if ($this->blog_type!=='nested_column'){
                ($floatnewblog)&&$this->blog_new($data,$this->blog_table,$blog_order, $this->blog_order_mod.' in ');
-			print '</div><!-- id#'.$this->blog_id.' '.$this->blog_type.'-->';
+               printer::wmclear();
+			print '</div><!-- id#'.$this->blog_id.' '.$this->blog_type.'-->
+               ';
                if ($this->edit&&$show_more_on){
                     $show_more_on=false;
                     printer::close_single_style_wrap('Expand current width '.$this->blog_type);
                    $this->show_close('show more on');echo '<!--close show more on '.$this->blog_type.'-->';
-                    echo '</div><!--wrap show id-->';
+                   printer::pclear();
+                    echo '</div><!--wrap show id-->
+                    ';
                    
                    }
-               if(!$floating){printer::pclear(); echo '<!--clear post level-->';} 
+               if(!$floating){
+                    printer::wmclear(); echo '<!--clear post level-->';
+                    } 
 			}
 		if (!empty($this->blog_border_stop)) {
 			//($this->edit)&&printer::alert_neg('Extra blog boarder alert Above Post');
@@ -3282,13 +3420,15 @@ eol;
 	
 	($this->edit&&isset($this->groupstyle_begin_col_id_arr[$this->col_id]))&&printer::alertx('<p class="floatleft warn1">Caution You have an error having not closed  an open groupstyle for post Id '.$this->groupstyle_begin_blog_id_arr[$this->col_id]. " within this parent Column id $this->col_id</p>");
 		if ($prime){
-               ($this->edit)&&printer::print_spacer();
-			printer::pclear();echo '<!--clear prime level-->';
-               print'</div><!--End Primary Column id '.$this->col_id.'-->';
+               ($this->edit)&&printer::pclear();
+               if ($this->edit)echo '<p id="gocbot_'.$this->col_id.'" class="marginauto block"><a title="go to column top"  href="#goctop_'.$this->col_id.'" style="color:#'.$this->editor_color.'" class="p3 rad5 cursor  editcolor editbackground tiny italic underline ">Go C'.$this->col_id. 'top </a></p>';
+			printer::wmclear();echo '<!--clear prime level-->';
+               print'</div><!--End Primary Column id '.$this->col_id.'-->
+               ';
 				}
 			
 		if  ($this->blog_float===$this->position_arr[0]||$this->blog_float===$this->position_arr[4]||$this->blog_float===$this->position_arr[5]||$this->blog_float===$this->position_arr[6]){ 
-			 printer::pclear(); echo '<!--clear Column level-->';
+			 printer::wmclear(); echo '<!--clear Column level-->';
 			}
 	$this->is_blog=false;//turned off...   first use is for determining element size for rendering font size preview in styling options..
 	$this->blog_status='';
@@ -3310,7 +3450,17 @@ function page_populate_options(){
 				} 
 			}
 		}
-      $this->current_font_size=$this->rem_root=(is_numeric($this->page_options[$this->page_rem_unit_index])&&$this->page_options[$this->page_rem_unit_index]<=50&&$this->page_options[$this->page_rem_unit_index]>=5)? $this->page_options[$this->page_rem_unit_index]: 16;//needed for webpage mode and editpages..
+     $this->page_carousel_cache_min=$carouselmin=($this->page_options[$this->page_carousel_min_index]>99&&$this->page_options[$this->page_carousel_min_index]<1001)?$this->page_options[$this->page_carousel_min_index]:Cfg::Carousel_cache_min;
+     $this->page_tiny_cache_min=$tinymin=($this->page_options[$this->page_tiny_min_index]>99&&$this->page_options[$this->page_tiny_min_index]<1001)?$this->page_options[$this->page_tiny_min_index]:Cfg::Tiny_cache_min;
+      $this->current_font_size=$this->rem_root=(is_numeric($this->page_options[$this->page_rem_unit_index])&&$this->page_options[$this->page_rem_unit_index]<=50&&$this->page_options[$this->page_rem_unit_index]>=5)? $this->page_options[$this->page_rem_unit_index]: 16;
+      $this->page_tiny_cache_min=($this->page_options[$this->page_tiny_min_index]>99&&$this->page_options[$this->page_tiny_min_index]<1001)?$this->page_options[$this->page_tiny_min_index]:Cfg::Tiny_cache_min;
+     $this->page_tiny_cache=$this->page_options[$this->page_tiny_cache_index];
+     $this->generate_cache('page_tiny_cache');//will work it out
+     $this->page_carousel_cache=$this->page_options[$this->page_carousel_cache_index];
+     $this->generate_cache('page_carousel_cache');//will work it out
+     //here we are setting up value for ajax response in webmode will not pass thru this value so will send to file data.. 
+      //needed for webpage mode and editpages..
+      $this->generate_cache('page_cache');
 	}
 
 function page_initiate(){ if (Sys::Debug) Sys::Debug(__LINE__,__FILE__,__METHOD__); if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
@@ -3334,17 +3484,13 @@ function page_initiate(){ if (Sys::Debug) Sys::Debug(__LINE__,__FILE__,__METHOD_
 function page_script(){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
 	$fields='page_id,'.Cfg::Page_fields;  
 	$this->accessvar_obj($this->master_page_table,$fields,'page_ref',$this->pagename);
-	/*if($this->page_ref==='indexpage'&&!is_dir(Cfg::PrimeEditDir)){//check for completely new database manual clone
-		//new secure_login('ownerAdmin',false);
-		}*/
      $this->page_populate_options();
-	$this->generate_cache(); 
 	$this->generate_bps();
 	$this->deltatime->delta_log('accessvar.obj');
 	$this->pre_render_data();$this->deltatime->delta_log('pre_render_data');
 	$this->render_header_open();
-	$this->render_analytics();  //note will not render  unless cached..// renders with ?render_return
 	$this->gen_Proc_init();
+	$this->render_analytics();  //note will not render  unless cached..// renders with ?render_return
 	// $this->render_yt_embed_player();
 	$this->header_close(); $this->deltatime->delta_log('header'); 
 	$this->render_body();
@@ -3367,11 +3513,8 @@ function accessvar_obj($master_table,$field_data,$ref1,$refval1,$ref2='',$refval
 			}
 		}
 	catch(mail_exception $me){
-		$url = Sys::Home_site;
 		mail::alert('Page not found and page file needs to be deleted using database:'.Sys::Dbname.' and query: '.$q);
-		//header("Location: $url");
-		}
-	//$this->mailinst->mailwebmaster($this->success, $this->message, $vars);		
+		}	
 	$flag=true;
 	while ($rows=$this->mysqlinst->fetch_assoc($r,__LINE__)) {
 		if ($flag){
@@ -3417,13 +3560,33 @@ function set_cookie(){ return;  //for collecting browser information  needs upda
 		}
 	}
 
+function setcookieSameSite($name, $value, $expire, $path, $domain, $secure, $httponly, $samesite="None")
+{//https://stackoverflow.com/questions/39750906/php-setcookie-samesite-strict
+    if (PHP_VERSION_ID < 70300) {
+        setcookie($name, $value, $expire, "$path; samesite=$samesite", $domain, $secure, $httponly);
+    }
+    else {
+        setcookie($name, $value, [
+            'expires' => $expire,
+            'path' => $path,
+            'domain' => $domain,
+            'samesite' => $samesite,
+            'secure' => $secure,
+            'httponly' => $httponly,
+        ]);
+    }
+}	
+	
+	
+	
 function deltatime($funct){
 	 if (!Sys::Debug&&!Sys::Deltatime)return;
 		$this->echo_eob.=NL.'deltatime post '.$funct.':'.$this->deltatime->delta();
 		}
 function nav_return(){return;//unnecessary
 	if (!$this->edit&&Sys::Logged_in){ 
-		echo '<div style="float:left;">';
+		echo '
+<div style="float:left;">';
           echo '<a href="'.Cfg::PrimeEditDir.Sys::Self.'">Edit-Nav</a>';
 		echo '</div>';
 		}
@@ -3468,10 +3631,11 @@ function render_body_main(){ //if (isset($_POST))print_r($_POST);
 	$count_column=$count=$this->mysqlinst->count_field($this->master_col_table,'col_id','',false,$where);
 	if ($count_column <1){
 		if ($this->edit){
-			printer::alertx('<div class="left fs2'.$this->column_lev_color.' '.$this->column_lev_color.' right10 left10 editbackground  editfont left maxwidth700" title=""><input type="checkbox" value="1" name="addnewcolumn[]">Check this box to Begin Creating Your Content Column From Scratch and hit the Submit Change Button. ');
+			printer::alertx('
+<div class="left fs2color editcolor right10 left10 editbackground  editfont left maxwidth700" title=""><input type="checkbox" value="1" name="addnewcolumn[]">Check to Create New Column. ');
 			printer::pclear(10);
 			echo '</div>';
-			printer::alertx('<p class="left fs2'.$this->column_lev_color.' '.$this->column_lev_color.' right10 left10 editbackground  editfont left maxwidth700" title=""><input type="checkbox" value="1" name="copynewcolumn[]">OR Copy/Clone/Move   Any Previous Column from another Page (ie Template Starter) Here </p>');
+			printer::alertx('<p class="left fs2color editcolor right10 left10 editbackground  editfont left maxwidth700" title=""><input type="checkbox" value="1" name="copynewcolumn[]">OR Copy/Clone/Move   Any Previous Column from another Page (ie Template Starter) Here </p>');
 			printer::pclear(10);
 			 
 			$this->submit_button('SUBMIT ALL'); 
@@ -3486,16 +3650,19 @@ function render_body_main(){ //if (isset($_POST))print_r($_POST);
 	else { 
 		if ($this->edit){
 			$this->show_more('Add Primary Column','','editbackground floatleft editcolor editfont supersmall rad3 fs1color p10 ml10','',600);
-			printer::alertx('<p class="editbackground fsm'.$this->column_lev_color.' '.$this->column_lev_color.' editfont left maxwidth700" title=""><input type="checkbox" value="0" name="addnewcolumn[]">Check the box to Create another Primary Column directly on Top of Your Previous Primary Column in the body (as opposed to a &#34;Nested Column&#34; which is Column with a  Column as typically done in websites. Primary Columns occupy the center space of a page and do not &#34;float&#34; which is to say do not sit side by side with other columns.  Normally, Columns are created within the Main Column by choosing the New Column option in the Post Dropdown Menu. However you may directly create an additonal Primary Columns  HERE on Top of the Page Body or Following the Current Primary Column(s) Under  Add Primary Option  Below</p>');
-			printer::alertx('<p class="editbackground  editfont fs2'.$this->column_lev_color.' '.$this->column_lev_color.' right10 left10 left maxwidth700" title=""><input type="checkbox" value="0" name="copynewcolumn[]">OR Copy/Move/Clone a Column Starter HERE </p>');
+			printer::alertx('<p class="editbackground fsmcolor editcolor editfont left maxwidth700" title=""><input type="checkbox" value="0" name="addnewcolumn[]">Check to Create new Primary Column directly on Top of Previous Primary Column directly in the body</p>');
+			printer::alertx('<p class="editbackground  editfont fs2color editcolor right10 left10 left maxwidth700" title=""><input type="checkbox" value="0" name="copynewcolumn[]">OR Copy/Move/Clone a Column to create Primary Column Here</p>');
 			$this->show_close();//<!--End Add Special-->';
 			printer::pclear();
 			$this->submit_button('SUBMIT ALL');
 			printer::pclear(2);
 			}
-		  
+		
+		$col_fields=Cfg::Col_fields;
+		$col_field_arr=explode(',',$col_fields);  
 		$col_field_arr2=$this->col_field_arr;
-		$col_field_arr2[]='col_id'; 
+		$col_field_arr2[]='col_id';
+		$col_fields=Cfg::Col_fields;
 		$q='select col_id,'.Cfg::Col_fields." from $this->master_col_table where col_table_base='$this->pagename' AND col_primary=1 order by col_num";
 		$primer=$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);
 		$prime_col_arr=array();
@@ -3506,10 +3673,10 @@ function render_body_main(){ //if (isset($_POST))print_r($_POST);
 			foreach ($col_field_arr2 as $field) {
 				$this->$field=$rows[$field];
 				} 
-		$i=1;
-			$this->clone_ext='';//set default
+			$i=1;
 		 	$col_num= $this->col_num;
-			$this->clone_local_style=false;
+			$this->clone_ext='';//set default
+			$this->clone_local_style=false;//set default
 			if (in_array($this->col_id,$this->column_moved))continue;
 			$this->col_child_table='';//to remove child clone
 			if ($this->col_temp=='column_choice'){
@@ -3518,8 +3685,8 @@ function render_body_main(){ //if (isset($_POST))print_r($_POST);
 				continue;
 				}
 			#	begin clone local check.... 
-			$this->column_clone_status_arr[0]=false;
-			$this->is_clone=false;
+			$this->column_clone_status_arr[0]=false;//set default
+			$this->is_clone=false;//set default
 			if ($this->col_status==='clone'&&is_numeric($this->col_clone_target)&&$this->col_clone_target>0){
 				$this->post_target_clone_column_id=$this->col_clone_target;// 
 				$this->column_clone_status_arr[0]=true;
@@ -3527,66 +3694,63 @@ function render_body_main(){ //if (isset($_POST))print_r($_POST);
 				$this->col_id=$this->col_clone_target;
 				$this->parent_col_clone=$this->col_clone_target;//for column/post is cloned moreinfo msg
 				$col_status=$this->col_status;
-				$this->col_child_table=$this->col_table;//If cloned primary table needs to be deleted
-				$count=$this->mysqlinst->count_field($this->master_col_table,'col_id','',false,"where col_id='$this->col_id'");
-				if ($count<1)continue;
-				$q='select '.Cfg::Col_fields." from $this->master_col_table where col_id='$this->col_id'";
-				$r2=$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);
-				if (!$this->mysqlinst->affected_rows()){
-					mail::alert('Cloned Primary Column problem with ID'.$this->col_clone_target);
-					continue;
-					}
-				$row=$this->mysqlinst->fetch_assoc($r2,__LINE__,__METHOD__,true); 
-				foreach ($this->col_field_arr as $field) {
-					$this->$field=$row[$field];
-					}
-				$this->col_status=$col_status;//reinstate status of clone or not
-				if ($this->edit&&$this->col_primary!=1){
-					printer::print_info('Nested Clone in Primary position. Width is set to the current page_width configuration!!',.7);
-					}
-				$col_fields=Cfg::Col_fields;
-				$col_fields_arr=explode(',',$col_fields);
+				$this->col_child_table=$this->col_table;
 				if (isset($_POST['delete_collocalstyle'][$this->col_id])){
-					$q="delete from $this->master_col_css_table Where col_id='c$this->col_id' and col_table_base='$this->pagename'";
+					$q="delete from $this->master_col_css_table Where col_id='c$this->col_id' and col_clone_target_base='$this->pagename'";
 					$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);
 					$this->clone_local_style=false;
 					}
 				else {   
 					$this->parent_col_clone=$this->col_clone_target;
-					$count=$this->mysqlinst->count_field($this->master_col_css_table,'css_id','',false,"where col_id='c$this->col_id' and col_table_base='$this->pagename'");   
-					if ($count < 1){//
+					if (!$this->clone_local_style){//
 						if (isset($_POST['submitted'])&&isset($_POST['add_collocalstyle'][$this->col_id])){
-							$q="select $col_fields from $this->master_col_table where col_id='$this->col_id'";  
+							$q="select $col_fields from $this->master_col_table where col_id='$this->col_id'";//retrieve and populate with current actual values of parent clone  
 							$ins=$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);
 							$col_rows=$this->mysqlinst->fetch_assoc($ins,__LINE__);
 							$this->mysqlinst->count_field($this->master_col_css_table,'css_id','',false);
 							$value='';
 							$css_id=$this->mysqlinst->field_inc;
-							foreach ($col_fields_arr as $field) {
-								if($field==='col_table_base')$value.="'$this->pagename',";
-								elseif($field==='col_table')$value.="'$this->col_table',";
+							foreach ($col_field_arr as $field) {
+								if($field==='col_clone_target_base')$value.="'$this->pagename',";//change for refernce to master_col_css_table value for this current page as other pages can also use local value in shared table
 								else $value.="'".$col_rows[$field]."',";
 								}
 							$q="insert into $this->master_col_css_table   (css_id,col_id,$col_fields,col_update,col_time,token) values ($css_id,'c$this->col_id',$value '".date("dMY-H-i-s")."','".time()."','".mt_rand(1,mt_getrandmax())."')";   
 							$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true); 
 							$this->clone_local_style=true; 
 							}
-						else {
-                                   $this->clone_local_style=false;
-                                   
-                                   }
 						}
-					else {//record exists
-                              #NOTE this is all for primary column positions only.  this process is repeated in blog_render for nested columns. The difference is that for nested columns the values will be further flatfiled for webpage mode.  Primary columns at this point are not flat filed for webpage mode..
-						 $q="select $column_css_fields from $this->master_col_css_table where col_table_base='$this->pagename' and col_id='c$this->col_id'"; 
-						$loc=$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);
-						$col_css_row=$this->mysqlinst->fetch_assoc($loc,__LINE__);
-						foreach($column_css_fields_arr as $cfield){//here we select and replace all replacable values in local clone style column enabled cloned columns.  For nested columns and all post types a system of flat filing is used... 
-							$this->{$cfield}=$col_css_row[$cfield];
-							}
-						$this->clone_local_style=true;
-						}//count
+					##removed old populate local style code
 					}//not delete 
+				
+				//check now for   clone_local_style in this cloned primary column 
+				 //checking if record exists is the only check for clone local styling
+				$q="select $col_fields from $this->master_col_css_table where col_id='c$this->col_id' and col_clone_target_base='$this->pagename'"; 
+				$r2=$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
+				if (!$this->mysqlinst->affected_rows()){//clone local style is false so use clone parent which is normal state of cloning
+					 
+					$q='select '.Cfg::Col_fields." from $this->master_col_table where col_id='$this->col_id'";
+					$r2=$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
+					if (!$this->mysqlinst->affected_rows()){
+						mail::alert('Cloned Primary Column problem with ID'.$this->col_clone_target);
+						continue;
+						}
+					}
+				else {//clone local styling  is_  true populate with local copy values of cloned data enabling local editing
+					$this->clone_local_style=true;//set default
+					$this->clone_ext='clone_';
+					}
+				$row=$this->mysqlinst->fetch_assoc($r2,__LINE__,__METHOD__,true);
+				#populate current column fields with cloned column fields.
+				foreach ($col_field_arr as $field) {
+					$this->$field=$row[$field];
+					 //echo NL. "fied is $field and value: ".$row[$field];
+					}
+				
+				$this->col_status=$col_status;//reinstate status of clone or not
+				if ($this->edit&&$this->col_primary!=1){
+					printer::print_info('Nested Column now Cloned to Primary position. Width is set to 100%',.7);
+					}
+				
 				}//pp clone status
 			printer::pclear();
 			$this->current_background_color=$this->column_background_color_arr[0];//reset to top level level colors and font px///  will track through color and individual posts...
@@ -3597,9 +3761,9 @@ function render_body_main(){ //if (isset($_POST))print_r($_POST);
 			if ($this->edit){   
 				$this->submit_button('SUBMIT  ALL');
 				printer::pclear(2);
-				$this->show_more('Add Primary','','floatleft editbackground  editfont editcolor editfontsupersmall rad5 fsminfo','',600);
-				printer::alertx('<p class="editbackground fsm'.$this->column_lev_color.' '.$this->column_lev_color.' editfont  maxwidth700"  title=""><input type="checkbox" value="'.($col_num +.5).'" name="addnewcolumn[]">Check the box to Create another Primary Column directly in the body (as opposed to a &#34;Nested Column&#34; which is Column with a  Column as typically done in websites. Primary Columns occupy the center space of a page and do not &#34;float&#34; which is to say do not sit side by side with other columns. Normally, Columns are created within the Main Column by choosing the nested column option in the Post Dropdown Menu all within a Single Primary Column. However you may directly create additonal Primary Columns in the main Body by checking here. Create a new Primary Column HERE after Primary Column#'.$col_num.'</p>');
-				printer::alertx('<p class="editbackground  editfont fs2'.$this->column_lev_color.' '.$this->column_lev_color.' right10 left10 left maxwidth700" title=""><input type="checkbox" value="'.($col_num+.5).'" name="copynewcolumn[]">OR Copy/Move/Clone a Column Starter HERE after Primary Column#'.$col_num.'</p>');
+				$this->show_more('Add Primary','','floatleft editbackground  editfont editcolor editfontsupersmall rad5 fsmcolor','',600);
+				printer::alertx('<p class="editbackground fsmcolor editcolor editfont  maxwidth700"  title=""><input type="checkbox" value="'.($col_num +.5).'" name="addnewcolumn[]">Create a new Primary Column HERE after Primary Column#'.$col_num.'</p>');
+				printer::alertx('<p class="editbackground  editfont fs2color editcolor right10 left10 left maxwidth700" title=""><input type="checkbox" value="'.($col_num+.5).'" name="copynewcolumn[]">OR Copy/Move/Clone a Column Starter HERE after Primary Column#'.$col_num.'</p>');
 				$this->show_close();//<!--End Add Special-->';
 				printer::pclear(2);
 				}  
@@ -3614,445 +3778,120 @@ function pre_render_data(){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METH
     }//used for customization to render normal pages by pre configuring data    
 
 #noUiSlider
-function initnoUiSlider(){ 
-echo <<<eol
-
-<script>
-function initnoUiSlider(inc,range1,range2,size,increment,unit,factor,unit2){ 
-if (arguments.length>7&&arguments[8]){
-     size=(window['updateinput_'+inc].value);
-     window['updateSlider_'+inc].noUiSlider.destroy();
-     }
-else document.getElementById('button-create-slide_'+inc).className += " hide";
-var diff=(range2-range1); 
-var nextincrement=0;
-var totaldiff=diff/increment; 
-if  (totaldiff >=2000 ){
-     nextincrement=increment;
-     increment=20*increment;
-     }
-else if  (totaldiff >=1000 ){
-     nextincrement=increment;
-     increment=10*increment;
-     }
-else if  (totaldiff >=400 ){
-     nextincrement=increment;
-     increment=5*increment;
-     } 
-window['updateSlider_'+inc] = document.getElementById('slider-update_'+inc);
-window['updateSliderValue_'+inc] = document.getElementById('slider-update-value_'+inc);
-window['updateinput_'+inc]=document.getElementById('slider-input_'+inc); 
-var datarange1=window['updateinput_'+inc].getAttribute('data-min');
-var datarange2=window['updateinput_'+inc].getAttribute('data-max');
-if (document.getElementById('slider-checkbox_'+inc))
-     window['updateslidercheck_'+inc]=document.getElementById('slider-checkbox_'+inc);
-
-noUiSlider.create(window['updateSlider_'+inc], {
-	range: {
-		'min': range1,
-		'max': range2
-	}, 
-	start: size, 
-	step: increment
-});
-
-var convert= unit2 !== '' && factor !=='1' ?'  &nbsp;'+(parseFloat(window['updateinput_'+inc].value*factor).toFixed(2))+unit2:'';
-window['updateSliderValue_'+inc].innerHTML=window['updateinput_'+inc].value+unit+convert;//inititial
-
-window['updateSlider_'+inc].noUiSlider.on('slide', function( values, handle ) { 
-     var num= Number.isInteger(increment) ? Number(values[handle]) : values[handle];
-      var convert= unit2 !== '' && factor !=='1' ?'  &nbsp;'+(parseFloat(num*factor).toFixed(2))+unit2:'';
-	 window['updateSliderValue_'+inc].innerHTML = num+unit+convert;
-});
-
-window['updateSlider_'+inc].noUiSlider.on('change', function( values, handle ) { 
-     var num= Number.isInteger(increment) ? Number(values[handle]) : values[handle];
-      var convert= unit2 !== '' && factor !=='1' ?'  &nbsp;'+(parseFloat(num*factor).toFixed(2))+unit2:'';
-	window['updateSliderValue_'+inc].innerHTML = num+unit+convert;
-	window['updateinput_'+inc].style.visibility='visible';
-	window['updateinput_'+inc].setAttribute('type','hidden');
-	window['updateinput_'+inc].value=num;
-     if (document.getElementById('slider-checkbox_'+inc)) 
-          window['updateslidercheck_'+inc].checked=false;
-});
-window['updateSlider_'+inc].noUiSlider.on('change', function( values, handle ) { 
-          if (nextincrement>0){ 
-               document.getElementById('button-refine-slide_'+inc).classList.remove('hide');
-               var current = values[handle];
-               window['updatenoUiSlidermin_'+inc]=Math.max(datarange1,+current-75*nextincrement);
-               window['updatenoUiSlidermax_'+inc]=Math.min(datarange2,+current+75*nextincrement);
-               window['updatenoUiSliderincrement_'+inc]=nextincrement; 
-               }
-     });
-}
-
-function updateSliderRange(inc) { 
-	window['updateSlider_'+inc].noUiSlider.updateOptions({
-		range: {
-			'min': window['updatenoUiSlidermin_'+inc],
-			'max': window['updatenoUiSlidermax_'+inc]
-		},
-          
-     step: window['updatenoUiSliderincrement_'+inc]
-	});
-} 
-</script>
-eol;
-}
+ 
 #tinymce	
-function tinymce(){  
-//function tinymce_4_4_dev      
+function tinymce(){ 
+/*utilizing tinymce_4.96_dev 
+ *default running with forced_root_block set to 'p'.  Works well without code option ie when enabled  will add extra <p> tags for each line break
+ **Running with forced_root_block set to 'p' will wrap text nodes with p tag allowing full parse editor options
+ *when forced_root_block set to '' tinymce code option works because EditExpress removes tinymce added distinctive <br /> tags added by code option. All legit breaktags are changed to span breaks before routing to tinymce.  
+ *Either way click on textarea before tiny activation to edit code directly or choose parse editor option for direct code manipulation 
+ */
 	$style=Cfg_loc::Root_dir.'styling/'.$this->pagename.'.css';
-	$script=Cfg_loc::Root_dir.'scripts/tinymce/js/tinymce/tinymce.dev.js';
-	$return='/\r?\n/g';
+     //$script2=Cfg_loc::Root_dir.'scripts/iframepostform.js';  
+//<script  src="$script2"></script>
+	$script=Cfg_loc::Root_dir.'scripts/tinymce/js/tinymce/tinymce.min.js';
+	$return='/<br \/>|\r\n|\r|\n/g'; //used if forced line break !=='p'
+     //$return='/<br>|\r\n?/g/';
+     $collectFonts='';
+     $self=Sys::Self;
+     foreach ($this->fonts_all as $tf){
+          $collectFonts.="$tf = $tf;";
+          }
+     $fonts=substr_replace($collectFonts,'',-1);
+     $colormap=Cfg::Text_color_map;
+   
 	echo <<<eol
-
 <script  src="$script"></script>
   <script >
 	 <!--Tiny MCE: by Ephox-->
       <!--Color Pallete by Boot Strap: -->
+     
   tinymce.init({
-    setup: function (editor) {
-		editor.on('BeforeSetContent', function (contentEvent) {
-		contentEvent.content = contentEvent.content.replace($return, '<br>'); 
-		})   
-		},
-     textToggle : 0,
+   /* setup: function (editor) {
+		editor.on('BeforeSetContent', function (contentEvent) {  
+		  contentEvent.content = contentEvent.content.replace($return,''); 
+    		})
+          },*/
+    textToggle : 0,
       textcolor_map: [
-    "ffebee", "red lighten-5",
-"ffcdd2", "red lighten-4",
-"ef9a9a", "red lighten-3",
-"e57373", "red lighten-2",
-"ef5350", "red lighten-1",
-"f44336", "red",
-"e53935", "red darken-1",
-"d32f2f", "red darken-2",
-"c62828", "red darken-3",
-"b71c1c", "red darken-4",
-"ff8a80", "red accent-1",
-"ff5252", "red accent-2",
-"ff1744", "red accent-3",
-"d50000", "red accent-4",
-"fce4ec", "pink lighten-5",
-"f8bbd0", "pink lighten-4",
-"f48fb1", "pink lighten-3",
-"f06292", "pink lighten-2",
-"ec407a", "pink lighten-1",
-"e91e63", "pink",
-"d81b60", "pink darken-1",
-"c2185b", "pink darken-2",
-"ad1457", "pink darken-3",
-"880e4f", "pink darken-4",
-"ff80ab", "pink accent-1",
-"ff4081", "pink accent-2",
-"f50057", "pink accent-3",
-"c51162", "pink accent-4",
-"f3e5f5", "purple lighten-5",
-"e1bee7", "purple lighten-4",
-"ce93d8", "purple lighten-3",
-"ba68c8", "purple lighten-2",
-"ab47bc", "purple lighten-1",
-"9c27b0", "purple",
-"8e24aa", "purple darken-1",
-"7b1fa2", "purple darken-2",
-"6a1b9a", "purple darken-3",
-"4a148c", "purple darken-4",
-"ea80fc", "purple accent-5",
-"e040fb", "purple accent-5",
-"d500f9", "purple accent-5",
-"aa00ff", "purple accent-4",
-"ede7f6", "deep-purple lighten-5",
-"d1c4e9", "deep-purple lighten-4",
-"b39ddb", "deep-purple lighten-3",
-"9575cd", "deep-purple lighten-2",
-"7e57c2", "deep-purple lighten-1",
-"673ab7", "deep-purple",
-"5e35b1", "deep-purple darken-1",
-"512da8", "deep-purple darken-2",
-"4527a0", "deep-purple darken-3",
-"311b92", "deep-purple darken-4",
-"b388ff", "deep-purple accent-1",
-"7c4dff", "deep-purple accent-2",
-"651fff", "deep-purple accent-3",
-"6200ea", "deep-purple accent-4",
-"e8eaf6", "indigo lighten-5",
-"c5cae9", "indigo lighten-4",
-"9fa8da", "indigo lighten-3",
-"7986cb", "indigo lighten-2",
-"5c6bc0", "indigo lighten-1",
-"3f51b5", "indigo",
-"3949ab", "indigo darken-1",
-"303f9f", "indigo darken-2",
-"283593", "indigo darken-3",
-"1a237e", "indigo darken-4",
-"8c9eff", "indigo accent-1",
-"536dfe", "indigo accent-2",
-"3d5afe", "indigo accent-3",
-"304ffe", "indigo accent-4",
-"e3f2fd", "blue lighten-5",
-"bbdefb", "blue lighten-4",
-"90caf9", "blue lighten-3",
-"64b5f6", "blue lighten-2",
-"42a5f5", "blue lighten-1",
-"2196f3", "blue",
-"1e88e5", "blue darken-1",
-"1976d2", "blue darken-2",
-"1565c0", "blue darken-3",
-"0d47a1", "blue darken-4",
-"82b1ff", "blue accent-1",
-"448aff", "blue accent-2",
-"2979ff", "blue accent-3",
-"2962ff", "blue accent-4",
-"e1f5fe", "light-blue lighten-5",
-"b3e5fc", "light-blue lighten-4",
-"81d4fa", "light-blue lighten-3",
-"4fc3f7", "light-blue lighten-2",
-"29b6f6", "light-blue lighten-1",
-"03a9f4", "light-blue",
-"039be5", "light-blue darken-1",
-"0288d1", "light-blue darken-2",
-"0277bd", "light-blue darken-3",
-"01579b", "light-blue darken-4",
-"80d8ff", "light-blue accent-1",
-"40c4ff", "light-blue accent-2",
-"00b0ff", "light-blue accent-3",
-"0091ea", "light-blue accent-4",
-"e0f7fa", "cyan lighten-5",
-"b2ebf2", "cyan lighten-4",
-"80deea", "cyan lighten-3",
-"4dd0e1", "cyan lighten-2",
-"26c6da", "cyan lighten-1",
-"00bcd4", "cyan",
-"00acc1", "cyan darken-1",
-"0097a7", "cyan darken-2",
-"00838f", "cyan darken-3",
-"006064", "cyan darken-4",
-"84ffff", "cyan accent-1",
-"18ffff", "cyan accent-2",
-"00e5ff", "cyan accent-3",
-"00b8d4", "cyan accent-4",
-"e0f2f1", "teal lighten-5",
-"b2dfdb", "teal lighten-4",
-"80cbc4", "teal lighten-3",
-"4db6ac", "teal lighten-2",
-"26a69a", "teal lighten-1",
-"009688", "teal",
-"00897b", "teal darken-1",
-"00796b", "teal darken-2",
-"00695c", "teal darken-3",
-"004d40", "teal darken-4",
-"a7ffeb", "teal accent-1",
-"64ffda", "teal accent-2",
-"1de9b6", "teal accent-3",
-"00bfa5", "teal accent-4",
-"e8f5e9", "green lighten-5",
-"c8e6c9", "green lighten-4",
-"a5d6a7", "green lighten-3",
-"81c784", "green lighten-2",
-"66bb6a", "green lighten-1",
-"4caf50", "green",
-"43a047", "green darken-1",
-"388e3c", "green darken-2",
-"2e7d32", "green darken-3",
-"1b5e20", "green darken-4",
-"b9f6ca", "green accent-1",
-"69f0ae", "green accent-2",
-"00e676", "green accent-3",
-"00c853", "green accent-4",
-"f1f8e9", "light-green lighten-5",
-"dcedc8", "light-green lighten-4",
-"c5e1a5", "light-green lighten-3",
-"aed581", "light-green lighten-2",
-"9ccc65", "light-green lighten-1",
-"8bc34a", "light-green",
-"7cb342", "light-green darken-1",
-"689f38", "light-green darken-2",
-"558b2f", "light-green darken-3",
-"33691e", "light-green darken-4",
-"ccff90", "light-green accent-1",
-"b2ff59", "light-green accent-2",
-"76ff03", "light-green accent-3",
-"64dd17", "light-green accent-4",
-"f9fbe7", "lime lighten-5",
-"f0f4c3", "lime lighten-4",
-"e6ee9c", "lime lighten-3",
-"dce775", "lime lighten-2",
-"d4e157", "lime lighten-1",
-"cddc39", "lime",
-"c0ca33", "lime darken-1",
-"afb42b", "lime darken-2",
-"9e9d24", "lime darken-3",
-"827717", "lime darken-4",
-"f4ff81", "lime accent-1",
-"eeff41", "lime accent-2",
-"c6ff00", "lime accent-3",
-"aeea00", "lime accent-4",
-"fffde7", "yellow lighten-5",
-"fff9c4", "yellow lighten-4",
-"fff59d", "yellow lighten-3",
-"fff176", "yellow lighten-2",
-"ffee58", "yellow lighten-1",
-"ffeb3b", "yellow",
-"fdd835", "yellow darken-1",
-"fbc02d", "yellow darken-2",
-"f9a825", "yellow darken-3",
-"f57f17", "yellow darken-4",
-"ffff8d", "yellow accent-1",
-"ffff00", "yellow accent-2",
-"ffea00", "yellow accent-3",
-"ffd600", "yellow accent-4",
-"fff8e1", "amber lighten-5",
-"ffecb3", "amber lighten-4",
-"ffe082", "amber lighten-3",
-"ffd54f", "amber lighten-2",
-"ffca28", "amber lighten-1",
-"ffc107", "amber",
-"ffb300", "amber darken-1",
-"ffa000", "amber darken-2",
-"ff8f00", "amber darken-3",
-"ff6f00", "amber darken-4",
-"ffe57f", "amber accent-1",
-"ffd740", "amber accent-2",
-"ffc400", "amber accent-3",
-"ffab00", "amber accent-4",
-"fff3e0", "orange lighten-5",
-"ffe0b2", "orange lighten-4",
-"ffcc80", "orange lighten-3",
-"ffb74d", "orange lighten-2",
-"ffa726", "orange lighten-1",
-"ff9800", "orange",
-"fb8c00", "orange darken-1",
-"f57c00", "orange darken-2",
-"ef6c00", "orange darken-3",
-"e65100", "orange darken-4",
-"ffd180", "orange accent-1",
-"ffab40", "orange accent-2",
-"ff9100", "orange accent-3",
-"ff6d00", "orange accent-4",
-"fbe9e7", "deep-orange lighten-5",
-"ffccbc", "deep-orange lighten-4",
-"ffab91", "deep-orange lighten-3",
-"ff8a65", "deep-orange lighten-2",
-"ff7043", "deep-orange lighten-1",
-"ff5722", "deep-orange",
-"f4511e", "deep-orange darken-1",
-"e64a19", "deep-orange darken-2",
-"d84315", "deep-orange darken-3",
-"bf360c", "deep-orange darken-4",
-"ff9e80", "deep-orange darken-1",
-"ff6e40", "deep-orange darken-2",
-"ff3d00", "deep-orange darken-3",
-"dd2c00", "deep-orange darken-4",
-"efebe9", "brown lighten-5",
-"d7ccc8", "brown lighten-4",
-"bcaaa4", "brown lighten-3",
-"a1887f", "brown lighten-2",
-"8d6e63", "brown lighten-1",
-"795548", "brown",
-"6d4c41", "brown darken-1",
-"5d4037", "brown darken-2",
-"4e342e", "brown darken-3",
-"3e2723", "brown darken-4",
-"fafafa", "grey lighten-5",
-"f5f5f5", "grey lighten-4",
-"eeeeee", "grey lighten-3",
-"e0e0e0", "grey lighten-2",
-"bdbdbd", "grey lighten-1",
-"9e9e9e", "grey",
-"757575", "grey darken-1",
-"616161", "grey darken-2",
-"424242", "grey darken-3",
-"212121", "grey darken-4",
-"eceff1", "blue-grey lighten-5",
-"cfd8dc", "blue-grey lighten-4",
-"b0bec5", "blue-grey lighten-3",
-"90a4ae", "blue-grey lighten-2",
-"78909c", "blue-grey lighten-1",
-"607d8b", "blue-grey",
-"546e7a", "blue-grey darken-1",
-"455a64", "blue-grey darken-2",
-"37474f", "blue-grey darken-3",
-"263238", "blue-grey darken-4",
-"000000", "black",
-"ffffff", "white",
-"d0d6e2", "mdb-color lighten-5",
-"b1bace", "mdb-color lighten-4",
-"929fba", "mdb-color lighten-3",
-"7283a7", "mdb-color lighten-2",
-"59698d", "mdb-color lighten-1",
-"45526e", "mdb-color",
-"3b465e", "mdb-color darken-1",
-"2e3951", "mdb-color darken-2",
-"1c2a48", "mdb-color darken-3",
-"1c2331", "mdb-color darken-4"
+    $colormap
   ],
      textcolor_rows:"15",
      textcolor_cols:"17",
-     font_formats: 'Allura = Allura;Amaranth = Amaranth;Antic = Antic;Architects Daughter = Architects Daughter;Arial, Helvetica, sans-serif = Arial, Helvetica, sans-serif; Arial Black, Gadget, sans-serif = Arial Black, Gadget, sans-serif;Aubrey = Aubrey;Bad Script = Bad Script;Basic = Basic;Cabin = Cabin;Cedarville Cursive = Cedarville Cursive;Chancur = Chancur;Chivo = Chivo;Cinzel Decorative = Cinzel Decorative;Comfortaa = Comfortaa; Comic Sans MS, Comic Sans MS5, cursive = Comic Sans MS, Comic Sans MS5, cursive; Constantia, cambria, sans-serif = Constantia, cambria, sans-serif;Contrail One = Contrail One; Courier New, monospace = Courier New, monospace;Delius = Delius;Delius Swash Caps = Delius Swash Caps;Diplomata SC = Diplomata SC;Eagle Lake = Eagle Lake;Fely = Fely; Georgia1, Georgia, serif = Georgia1, Georgia, serif;Give You Glory = Give You Glory;GothicA1 = GothicA1;Handlee = Handlee;Happy Monkey = Happy Monkey; Helvetica, sans-serif = Helvetica, sans-serif;Hind = Hind; Impact, Impact5, Charcoal6, sans-serif = Impact, Impact5, Charcoal6, sans-serif;Indie Flower = Indie Flower;Josefin Slab = Josefin Slab;Julee = Julee;Kite One = Kite One; Lucida Console, Monaco5, monospace = Lucida Console, Monaco5, monospace; Lucida Sans Unicode, Lucida Grande, sans-serif = Lucida Sans Unicode, Lucida Grande, sans-serif;Macondo Swash Caps = Macondo Swash Caps;MeathFLF = MeathFLF;Merienda = Merienda;Miama = Miama;Michroma = Michroma;Nothing You Could Do = Nothing You Could Do;Nova Slim = Nova Slim;Numans = Numans;Over the Rainbow = Over the Rainbow;Oxygen = Oxygen; Palatino Linotype, Book Antiqua3, Palatino, serif = Palatino Linotype, Book Antiqua3, Palatino, serif;Paprika = Paprika;Questrial = Questrial;Redressed,cursive = Redressed,cursive;Ruluko = Ruluko;Shadows Into Light = Shadows Into Light;Shadows Into Light Two = Shadows Into Light Two;Sintony = Sintony;Sofia = Sofia; Tahoma, Geneva, sans-serif = Tahoma, Geneva, sans-serif;Text Me One = Text Me One; Times New Roman, Times New Roman, Times, serif = Times New Roman, Times New Roman, Times, serif; Trebuchet MS1, Trebuchet MS, sans-serif = Trebuchet MS1, Trebuchet MS, sans-serif; Verdana, Verdana, Geneva, sans-serif = Verdana, Verdana, Geneva, sans-serif;',
-    selector: '.enableTiny',  
+     media_filter_html : false,
+     font_formats: "$fonts",
+     selector: '.enableTiny',  
 	inline: true,
-	entity_encoding : "raw",//disable
-	
+	entity_encoding : "raw",
     	fontsize_formats: ".6em .7em .8em .9em 1em 1.1em 1.25em 1.5em 1.75em 2em 2.25em 2.5 2.75em 3em ",
-	content_css: "$style", 
-	remove_linebreaks : false,
-     forced_root_block : false,
-	force_p_newlines  : '',
+	content_css: "$style",
+      force_br_newlines : false,
+      forced_root_block : 'p',
+      valid_elements  :  '*[*]',
      plugins: [
-             "advlist autolink link image lists charmap print preview hr anchor pagebreak spellchecker",
-             "searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media nonbreaking",
-             "save table contextmenu directionality emoticons template paste textcolor"
-       ],
-	
-        
-       toolbar: " undo | redo | styleselect | bold |italic | alignleft | aligncenter | alignright | alignjustify | bullist | numlist | outdent | indent | link | print | media | fullpage |  forecolor | backcolor | fontselect | fontsizeselect | textshadow | emoticons   ", 
-       style_formats: [
-               {title: 'h1', inline: 'h1'},
-               {title: 'h2', inline: 'h2'},
-               {title: 'h3', inline: 'h3'},
-               {title: 'h4', inline: 'h4'},
-               {title: 'h5', inline: 'h5'},
-               {title: 'h6', inline: 'h6'},
-               {title: 'span myclass1', inline: 'span', 'classes' : 'myclass1', exact : true},
-               {title: 'span myclass2', inline: 'span', 'classes' : 'myclass2', exact : true}, 
-               {title: 'span myclass3', inline: 'span', 'classes' : 'myclass3', exact : true}, 
-               {title: 'span myclass4', inline: 'span', 'classes' : 'myclass4', exact : true}, 
-               {title: 'span myclass5', inline: 'span', 'classes' : 'myclass5', exact : true}, 
-               {title: 'span myclass6', inline: 'span', 'classes' : 'myclass6', exact : true}, 
-               {title: 'span myclass7', inline: 'span', 'classes' : 'myclass7', exact : true}, 
-               {title: 'span myclass8', inline: 'span', 'classes' : 'myclass8', exact : true}, 
-               {title: 'span myclass9', inline: 'span', 'classes' : 'myclass9', exact : true}, 
-               {title: 'span myclass10', inline: 'span', 'classes' : 'myclass10', exact : true}, 
-               {title: 'span myclass11', inline: 'span', 'classes' : 'myclass11', exact : true}, 
-               {title: 'span myclass12', inline: 'span', 'classes' : 'myclass12', exact : true},
-               {title: 'div myclass1', inline: 'div', 'classes' : 'myclass1', exact : true},
-               {title: 'div myclass2', inline: 'div', 'classes' : 'myclass2', exact : true}, 
-               {title: 'div myclass3', inline: 'div', 'classes' : 'myclass3', exact : true}, 
-               {title: 'div myclass4', inline: 'div', 'classes' : 'myclass4', exact : true}, 
-               {title: 'div myclass5', inline: 'div', 'classes' : 'myclass5', exact : true}, 
-               {title: 'div myclass6', inline: 'div', 'classes' : 'myclass6', exact : true}, 
-               {title: 'div myclass7', inline: 'div', 'classes' : 'myclass7', exact : true}, 
-               {title: 'div myclass8', inline: 'div', 'classes' : 'myclass8', exact : true}, 
-               {title: 'div myclass9', inline: 'div', 'classes' : 'myclass9', exact : true}, 
-               {title: 'div myclass10', inline: 'div', 'classes' : 'myclass10', exact : true}, 
-               {title: 'div myclass11', inline: 'div', 'classes' : 'myclass11', exact : true}, 
-               {title: 'div myclass12', inline: 'div', 'classes' : 'myclass12', exact : true},
-               {title: 'p myclass1', inline: 'p', 'classes' : 'myclass1', exact : true},
-               {title: 'p myclass2', inline: 'p', 'classes' : 'myclass2', exact : true}, 
-               {title: 'p myclass3', inline: 'p', 'classes' : 'myclass3', exact : true}, 
-               {title: 'p myclass4', inline: 'p', 'classes' : 'myclass4', exact : true}, 
-               {title: 'p myclass5', inline: 'p', 'classes' : 'myclass5', exact : true}, 
-               {title: 'p myclass6', inline: 'p', 'classes' : 'myclass6', exact : true}, 
-               {title: 'p myclass7', inline: 'p', 'classes' : 'myclass7', exact : true}, 
-               {title: 'p myclass8', inline: 'p', 'classes' : 'myclass8', exact : true}, 
-               {title: 'p myclass9', inline: 'p', 'classes' : 'myclass9', exact : true}, 
-               {title: 'p myclass10', inline: 'p', 'classes' : 'myclass10', exact : true}, 
-               {title: 'p myclass11', inline: 'p', 'classes' : 'myclass11', exact : true}, 
-               {title: 'p myclass12', inline: 'p', 'classes' : 'myclass12', exact : true},
-         ],
-     
-     
-  
+             " advlist autolink link image lists charmap print preview hr anchor pagebreak spellchecker",
+             "searchreplace wordcount visualblocks visualchars  fullscreen insertdatetime media nonbreaking",
+             "save table contextmenu directionality emoticons template paste textcolor code"
+       ], 
+     toolbar1: "  styleselect | undo | redo |   bold |italic |alignleft | aligncenter | alignright | alignjustify | fullpage ",
+     toolbar2: " |    | image bullist | numlist | outdent | indent | link | print | emoticons | code ",
+    toolbar3: "    forecolor | backcolor | fontselect | fontsizeselect | textshadow  ",
+     image_title : false,
+     image_caption : false,
+     image_auto_insert :false,//false uses images_upload_url return value
+     image_dimensions :false,
+     image_description : false, 
+     images_upload_url: 'postAcceptor.php',
+     file_picker_types: 'image',
+     automatic_uploads: false,
+     file_picker_callback: function (cb, value, meta) { 
+          //alert(this.id);
+          var form=document.createElement('form');
+          var input = document.createElement('input');
+          input.setAttribute('name','upload_tiny');
+          input.setAttribute('type', 'file');
+          input.setAttribute('accept', 'image/*');
+           var input2 = document.createElement('input');
+           input2.setAttribute('type','hidden');
+           input2.setAttribute('name','tiny_image_quality');
+           input2.setAttribute('value','$this->page_image_quality');
+           var input3 = document.createElement('input');
+           input3.setAttribute('type','hidden');
+           input3.setAttribute('name','tiny_image_size');
+           input3.setAttribute('value','$this->page_tiny_cache_min');
+          form.append(input);
+          form.append(input2);
+          form.append(input3);
+          form.onchange = function () {
+               var file = input.files[0]; 
+               // FormData
+               var fd = new FormData(this);
+               var files = file;
+               fd.append("file",files); 
+               var filename = "";
+               
+               jQuery.ajax({
+                    url: "$self",
+                    type: "post",
+                    data: fd,
+                    contentType: false,
+                    processData: false,
+                    async: true,
+                    success: function(response){
+                         filename = response;
+                         if (!tinymce.activeEditor.settings.image_auto_insert)tinymce.activeEditor.selection.setContent(filename);
+                          },
+                    failure: function (){
+                         alert('failed to upload image');
+                         }
+                    });
+               
+                         console.log(filename);
+               };
+               
+           input.click();
+          }, 
   style_formats: [
     {title: 'Header htags', items: [
       {title: 'Header 1', format: 'h1'},
@@ -4068,17 +3907,74 @@ function tinymce(){
       {title: 'Underline', icon: 'underline', format: 'underline'},
       {title: 'Strikethrough', icon: 'strikethrough', format: 'strikethrough'},
       {title: 'Superscript', icon: 'superscript', format: 'superscript'},
-      {title: 'Subscript', icon: 'subscript', format: 'subscript'},
-      {title: 'Code', icon: 'code', format: 'code'}
+      {title: 'Subscript', icon: 'subscript', format: 'subscript'}
+      
+    ]},
+    {title: 'Padding Bottom Styles', items: [
+	 {title: '.25rem', inline: 'span',styles: {'padding-bottom': '.25rem', 'display':'block' }},
+	 {title: '.5rem', inline: 'span',styles: {'padding-bottom': '.5rem', 'display':'block' }},
+	 {title: '.75rem', inline: 'span',styles: {'padding-bottom': '.75rem', 'display':'block' }},
+	 {title: '1rem', inline: 'span',styles: {'padding-bottom': '1rem', 'display':'block' }},
+	 {title: '.25em', inline: 'span',styles: {'padding-bottom': '.25em', 'display':'block' }},
+	 {title: '.5em', inline: 'span',styles: {'padding-bottom': '.5em', 'display':'block' }},
+	 {title: '.75em', inline: 'span',styles: {'padding-bottom': '.75em', 'display':'block' }},
+	 {title: '1em', inline: 'span',styles: {'padding-bottom': '1em', 'display':'block' }}
+      
     ]},
     {title: 'Text-Shadow', items: [
-          {title: 'Remove shadow',inline: 'span',styles: {'text-shadow': '0px 0px 0px rgba(0,0,0,0.4)'}},
-          {title: 'Dark shadow 1px',inline: 'span',styles: {'text-shadow': '0px 1px 1px rgba(0,0,0,0.4)'}},
-          {title: 'Dark shadow 3px',inline: 'span',styles: {'text-shadow': '0px 1px 3px rgba(0,0,0,0.4)'}},
-          {title: 'Dark shadow 5px',inline: 'span',styles: {'text-shadow': '0px 2px 5px rgba(0,0,0,0.4)'}},
-          {title: 'Light shadow 1px',inline: 'span',styles: {'text-shadow': '0px 1px 1px rgba(255,255,255,0.4)'}},
-          {title: 'Light shadow 3px',inline: 'span',styles: {'text-shadow': '0px 1px 3px rgba(255,255,255,0.4)'}},
-          {title: 'Light shadow 5px',inline: 'span',styles: {'text-shadow': '0px 2px 5px rgba(255,255,255,0.4)'}}
+          {title: 'Remove shadow',inline: 'span',styles: {'text-shadow': '0 0 0 rgba(0,0,0,0.4)'}},
+          {title: 'Even Blur-Shadow', items: [
+           {title: 'Dark small blur shadow 0 0 .0623em',inline: 'span',styles: {'text-shadow': '0 0 .0623em rgba(0,0,0,0.4)'}},
+           {title: 'Dark mid blur shadow 0 0  .125em',inline: 'span',styles: {'text-shadow': '0 0  .125em rgba(0,0,0,0.4)'}},
+           {title: 'Dark larger blur shadow 0 0 .187em',inline: 'span',styles: {'text-shadow': '0 0 .187em rgba(0,0,0,0.4)'}},
+           {title: 'Light small blur shadow 0 0 .0623em',inline: 'span',styles: {'text-shadow': '0 0 .0623em rgba(255,255,255,0.4)'}},
+           {title: 'Light mid blur shadow 0 0  .125em',inline: 'span',styles: {'text-shadow': '0 0  .125em rgba(255,255,255,0.4)'}},
+           {title: 'Light larger blur shadow 0 0 .187em',inline: 'span',styles: {'text-shadow': '0 0 .187em rgba(255,255,255,0.4)'}}
+           ]},
+            {title: 'Dark-Shadows 40%', items: [
+          {title: 'Dark small bottom-right shadow .0623em .0623em .0623em',inline: 'span',styles: {'text-shadow': '.0623em .0623em .0623em rgba(0,0,0,0.4)'}},
+          {title: 'Dark med bottom-right shadow  .125em  .125em  .125em',inline: 'span',styles: {'text-shadow': '.125em  .125em  .125em rgba(0,0,0,0.4)'}},
+          {title: 'Dark large bottom-right shadow .187em .187em .187em',inline: 'span',styles: {'text-shadow': '.187em .187em .187em rgba(0,0,0,0.4)'}},
+          {title: 'Dark small botttom shadow 0 .0623em .0623em',inline: 'span',styles: {'text-shadow': '0 .0623em 0 rgba(0,0,0,0.4)'}},
+          {title: 'Dark med botttom shadow .0623em .187em  .125em',inline: 'span',styles: {'text-shadow': '.0623em .187em  .125em rgba(0,0,0,0.4)'}},
+          {title: 'Dark large botttom shadow  .125em .25em .187em',inline: 'span',styles: {'text-shadow': '.125em .25em .187em rgba(0,0,0,0.4)'}},
+          {title: 'Dark small right shadow .0623em 0 .0623em',inline: 'span',styles: {'text-shadow': '.0623em 0 .0623em rgba(0,0,0,0.4)'}},
+          {title: 'Dark med right shadow .187em .0623em  .125em',inline: 'span',styles: {'text-shadow': '.187em .0623em  .125em rgba(0,0,0,0.4)'}},
+          {title: 'Dark large right shadow .25em .187em .187em',inline: 'span',styles: {'text-shadow': '.25em  .125em .187em rgba(0,0,0,0.4)'}}
+          ]},
+           {title: 'Light Shadows 40% opacity', items: [
+          {title: 'Light small bottom-right shadow .0623em .0623em .0623em',inline: 'span',styles: {'text-shadow': '.0623em .0623em .0623em rgba(255,255,255,0.4)'}},
+          {title: 'Light med bottom-right shadow  .125em  .125em  .125em',inline: 'span',styles: {'text-shadow': '.125em  .125em  .125em rgba(255,255,255,0.4)'}},
+          {title: 'Light large bottom-right shadow .187em .187em .187em',inline: 'span',styles: {'text-shadow': '.187em .187em .187em rgba(255,255,255,0.4)'}},
+          {title: 'Light small botttom shadow 0 .0623em .0623em',inline: 'span',styles: {'text-shadow': '0 .0623em 0 rgba(255,255,255,0.4)'}},
+          {title: 'Light med botttom shadow .0623em .187em  .125em',inline: 'span',styles: {'text-shadow': '.0623em .187em  .125em rgba(255,255,255,0.4)'}},
+          {title: 'Light large botttom shadow  .125em .25em .187em',inline: 'span',styles: {'text-shadow': '.125em .25em .187em rgba(255,255,255,0.4)'}},
+          {title: 'Light small right shadow .0623em 0 .0623em',inline: 'span',styles: {'text-shadow': '.0623em 0 .0623em rgba(255,255,255,0.4)'}},
+          {title: 'Light med right shadow .187em .0623em  .125em',inline: 'span',styles: {'text-shadow': '.187em .0623em  .125em rgba(255,255,255,0.4)'}},
+          {title: 'Light large right shadow .25em .187em .187em',inline: 'span',styles: {'text-shadow': '.25em  .125em .187em rgba(255,255,255,0.4)'}}
+          ]},
+           {title: 'Dark-Shadow 80% opacity', items: [
+          {title: 'Dark small bottom-right shadow .0623em .0623em .0623em',inline: 'span',styles: {'text-shadow': '.0623em .0623em .0623em rgba(0,0,0,0.8)'}},
+          {title: 'Dark med bottom-right shadow  .125em  .125em  .125em',inline: 'span',styles: {'text-shadow': '.125em  .125em  .125em rgba(0,0,0,0.8)'}},
+          {title: 'Dark large bottom-right shadow .187em .187em .187em',inline: 'span',styles: {'text-shadow': '.187em .187em .187em rgba(0,0,0,0.8)'}},
+          {title: 'Dark small botttom shadow 0 .0623em .0623em',inline: 'span',styles: {'text-shadow': '0 .0623em 0 rgba(0,0,0,0.8)'}},
+          {title: 'Dark med botttom shadow .0623em .187em  .125em',inline: 'span',styles: {'text-shadow': '.0623em .187em  .125em rgba(0,0,0,0.8)'}},
+          {title: 'Dark large botttom shadow  .125em .25em .187em',inline: 'span',styles: {'text-shadow': '.125em .25em .187em rgba(0,0,0,0.8)'}},
+          {title: 'Dark small right shadow .0623em 0 .0623em',inline: 'span',styles: {'text-shadow': '.0623em 0 .0623em rgba(0,0,0,0.8)'}},
+          {title: 'Dark med right shadow .187em .0623em  .125em',inline: 'span',styles: {'text-shadow': '.187em .0623em  .125em rgba(0,0,0,0.8)'}},
+          {title: 'Dark large right shadow .25em .187em .187em',inline: 'span',styles: {'text-shadow': '.25em  .125em .187em rgba(0,0,0,0.8)'}}
+          ]},
+           {title: 'Light-Shadows 80% opacity', items: [
+          {title: 'Light small bottom-right shadow .0623em .0623em .0623em',inline: 'span',styles: {'text-shadow': '.0623em .0623em .0623em rgba(255,255,255,0.8)'}},
+          {title: 'Light med bottom-right shadow  .125em  .125em  .125em',inline: 'span',styles: {'text-shadow': '.125em  .125em  .125em rgba(255,255,255,0.8)'}},
+          {title: 'Light large bottom-right shadow .187em .187em .187em',inline: 'span',styles: {'text-shadow': '.187em .187em .187em rgba(255,255,255,0.8)'}},
+          {title: 'Light small botttom shadow 0 .0623em .0623em',inline: 'span',styles: {'text-shadow': '0 .0623em 0 rgba(255,255,255,0.8)'}},
+          {title: 'Light med botttom shadow .0623em .187em  .125em',inline: 'span',styles: {'text-shadow': '.0623em .187em  .125em rgba(255,255,255,0.8)'}},
+          {title: 'Light large botttom shadow  .125em .25em .187em',inline: 'span',styles: {'text-shadow': '.125em .25em .187em rgba(255,255,255,0.8)'}},
+          {title: 'Light small right shadow .0623em 0 .0623em',inline: 'span',styles: {'text-shadow': '.0623em 0 .0623em rgba(255,255,255,0.8)'}},
+          {title: 'Light med right shadow .187em .0623em  .125em',inline: 'span',styles: {'text-shadow': '.187em .0623em  .125em rgba(255,255,255,0.8)'}},
+          {title: 'Light large right shadow .25em .187em .187em',inline: 'span',styles: {'text-shadow': '.25em  .125em .187em rgba(255,255,255,0.8)'}}
+          ]}
     ]},
     {title: 'Exact Font Weight', items: [
           {title: 'Normal 400',inline: 'span',styles: {'text-shadow': '0px 0px 0px rgba(0,0,0,0.4)'}},
@@ -4092,12 +3988,6 @@ function tinymce(){
           {title: '800',inline: 'span',styles: {'font-weight': '800'}},
           {title: '900',inline: 'span',styles: {'font-weight': '900'}}
     ]},
-    {title: 'Blocks', items: [
-      {title: 'Paragraph', format: 'p'},
-      {title: 'Blockquote', format: 'blockquote'},
-      {title: 'Div', format: 'div'},
-      {title: 'Pre', format: 'pre'}
-    ]},
     {title: 'Image align', items: [
           {title: 'Image Left',selector: 'img',styles: {'float': 'left','margin': '0 10px 0 10px'}},
           {title: 'Image Right',selector: 'img', styles: {'float': 'right','margin': '0 0 10px 10px' }}
@@ -4107,49 +3997,133 @@ function tinymce(){
           {title: 'Center', icon: 'aligncenter', format: 'aligncenter'},
           {title: 'Right', icon: 'alignright', format: 'alignright'},
           {title: 'Justify', icon: 'alignjustify', format: 'alignjustify'}
+	]},
+	{title: 'Add Tag Only', items: [
+	{title: 'P', format: 'p'},
+	{title: 'Span', format: 'span'},
+	{title: 'Div', format: 'div'},
+	{title: 'Pre', format: 'pre'},
+	{title: 'figure', format: 'figure'},
+	{title: 'figcaption', format: 'figcaptions'},
+	{title: 'h1', format: 'h1'},
+	{title: 'h2', format: 'h2'},
+	{title: 'h3', format: 'h3'},
+	{title: 'h4', format: 'h4'},
+	{title: 'h5', format: 'h5'},
+	{title: 'h6', format: 'h6'},
+	{title: 'a', format: 'a'},
+	{title: 'ul', format: 'ul'},
+	{title: 'li', format: 'li'},
+	{title: 'ol', format: 'ol'},
+	{title: 'fieldset', format: 'fieldset'},
+	{title: 'legend', format: 'legend'},
+	{title: 'blockquote', format: 'blockquote'}
+	]},
+	{title: 'Wrap with P Tag add post level classname', items: [
+     {title: 'p tag with class: post1', inline: 'p', 'classes' : 'post1', exact : true},
+          {title: 'p tag with class: post2', inline: 'p', 'classes' : 'post2', exact : true}, 
+          {title: 'p tag with class: post3', inline: 'p', 'classes' : 'post3', exact : true}, 
+          {title: 'p tag with class: post4', inline: 'p', 'classes' : 'post4', exact : true}, 
+          {title: 'p tag with class: post5', inline: 'p', 'classes' : 'post5', exact : true}, 
+          {title: 'p tag with class: post6', inline: 'p', 'classes' : 'post6', exact : true}, 
+          {title: 'p tag with class: post7', inline: 'p', 'classes' : 'post7', exact : true}, 
+          {title: 'p tag with class: post8', inline: 'p', 'classes' : 'post8', exact : true}, 
+          {title: 'p tag with class: post9', inline: 'p', 'classes' : 'post9', exact : true}, 
+          {title: 'p tag with class: post10', inline: 'p', 'classes' : 'post10', exact : true}, 
+          {title: 'p tag with class: post11', inline: 'p', 'classes' : 'post11', exact : true}, 
+          {title: 'p tag with class: post12', inline: 'p', 'classes' : 'post12', exact : true}
     ]},
-    {title: 'Special Class Wrap (span)', items: [
-     {title: 'span myclass1', inline: 'span', 'classes' : 'myclass1', exact : true},
-          {title: 'span myclass2', inline: 'span', 'classes' : 'myclass2', exact : true}, 
-          {title: 'span myclass3', inline: 'span', 'classes' : 'myclass3', exact : true}, 
-          {title: 'span myclass4', inline: 'span', 'classes' : 'myclass4', exact : true}, 
-          {title: 'span myclass5', inline: 'span', 'classes' : 'myclass5', exact : true}, 
-          {title: 'span myclass6', inline: 'span', 'classes' : 'myclass6', exact : true}, 
-          {title: 'span myclass7', inline: 'span', 'classes' : 'myclass7', exact : true}, 
-          {title: 'span myclass8', inline: 'span', 'classes' : 'myclass8', exact : true}, 
-          {title: 'span myclass9', inline: 'span', 'classes' : 'myclass9', exact : true}, 
-          {title: 'span myclass10', inline: 'span', 'classes' : 'myclass10', exact : true}, 
-          {title: 'span myclass11', inline: 'span', 'classes' : 'myclass11', exact : true}, 
-          {title: 'span myclass12', inline: 'span', 'classes' : 'myclass12', exact : true}
+    {title: 'Wrap with span Tag add post level classname', items: [
+     {title: 'span tag with class: post1', inline: 'span', 'classes' : 'post1', exact : true},
+          {title: 'span tag with class: post2', inline: 'span', 'classes' : 'post2', exact : true}, 
+          {title: 'span tag with class: post3', inline: 'span', 'classes' : 'post3', exact : true}, 
+          {title: 'span tag with class: post4', inline: 'span', 'classes' : 'post4', exact : true}, 
+          {title: 'span tag with class: post5', inline: 'span', 'classes' : 'post5', exact : true}, 
+          {title: 'span tag with class: post6', inline: 'span', 'classes' : 'post6', exact : true}, 
+          {title: 'span tag with class: post7', inline: 'span', 'classes' : 'post7', exact : true}, 
+          {title: 'span tag with class: post8', inline: 'span', 'classes' : 'post8', exact : true}, 
+          {title: 'span tag with class: post9', inline: 'span', 'classes' : 'post9', exact : true}, 
+          {title: 'span tag with class: post10', inline: 'span', 'classes' : 'post10', exact : true}, 
+          {title: 'span tag with class: post11', inline: 'span', 'classes' : 'post11', exact : true}, 
+          {title: 'span tag with class: post12', inline: 'span', 'classes' : 'post12', exact : true}
+    ]},/*
+    {title: 'Wrap with div Tag add post level classname', items: [
+     {title: 'div tag with class: post1', inline: 'div', 'classes' : 'post1', exact : true},
+          {title: 'div tag with class: post2', inline: 'div', 'classes' : 'post2', exact : true}, 
+          {title: 'div tag with class: post3', inline: 'div', 'classes' : 'post3', exact : true}, 
+          {title: 'div tag with class: post4', inline: 'div', 'classes' : 'post4', exact : true}, 
+          {title: 'div tag with class: post5', inline: 'div', 'classes' : 'post5', exact : true}, 
+          {title: 'div tag with class: post6', inline: 'div', 'classes' : 'post6', exact : true}, 
+          {title: 'div tag with class: post7', inline: 'div', 'classes' : 'post7', exact : true}, 
+          {title: 'div tag with class: post8', inline: 'div', 'classes' : 'post8', exact : true}, 
+          {title: 'div tag with class: post9', inline: 'div', 'classes' : 'post9', exact : true}, 
+          {title: 'div tag with class: post10', inline: 'div', 'classes' : 'post10', exact : true}, 
+          {title: 'div tag with class: post11', inline: 'div', 'classes' : 'post11', exact : true}, 
+          {title: 'div tag with class: post12', inline: 'div', 'classes' : 'post12', exact : true}
+    ]},*/
+    {title: 'Wrap with P Tag add col level classname', items: [
+		{title: 'p tag with class: col1', inline: 'p', 'classes' : 'col1', exact : true},
+          {title: 'p tag with class: col2', inline: 'p', 'classes' : 'col2', exact : true}, 
+          {title: 'p tag with class: col3', inline: 'p', 'classes' : 'col3', exact : true}, 
+          {title: 'p tag with class: col4', inline: 'p', 'classes' : 'col4', exact : true}, 
+          {title: 'p tag with class: col5', inline: 'p', 'classes' : 'col5', exact : true} 
     ]},
-    {title: 'Special Class Wrap (div)', items: [
-          {title: 'div myclass1', inline: 'div', 'classes' : 'myclass1', exact : true},
-          {title: 'div myclass2', inline: 'div', 'classes' : 'myclass2', exact : true}, 
-          {title: 'div myclass3', inline: 'div', 'classes' : 'myclass3', exact : true}, 
-          {title: 'div myclass4', inline: 'div', 'classes' : 'myclass4', exact : true}, 
-          {title: 'div myclass5', inline: 'div', 'classes' : 'myclass5', exact : true}, 
-          {title: 'div myclass6', inline: 'div', 'classes' : 'myclass6', exact : true}, 
-          {title: 'div myclass7', inline: 'div', 'classes' : 'myclass7', exact : true}, 
-          {title: 'div myclass8', inline: 'div', 'classes' : 'myclass8', exact : true}, 
-          {title: 'div myclass9', inline: 'div', 'classes' : 'myclass9', exact : true}, 
-          {title: 'div myclass10', inline: 'div', 'classes' : 'myclass10', exact : true}, 
-          {title: 'div myclass11', inline: 'div', 'classes' : 'myclass11', exact : true}, 
-          {title: 'div myclass12', inline: 'div', 'classes' : 'myclass12', exact : true},
+    {title: 'Wrap with SPAN Tag add col level classname', items: [
+		{title: 'span tag with class: col1', inline: 'span', 'classes' : 'col1', exact : true},
+          {title: 'span tag with class: col2', inline: 'span', 'classes' : 'col2', exact : true}, 
+          {title: 'span tag with class: col3', inline: 'span', 'classes' : 'col3', exact : true}, 
+          {title: 'span tag with class: col4', inline: 'span', 'classes' : 'col4', exact : true}, 
+          {title: 'span tag with class: col5', inline: 'span', 'classes' : 'col5', exact : true} 
+    ]},/*
+    {title: 'Wrap with DIV Tag add col level classname', items: [
+		{title: 'div tag with class: col1', inline: 'div', 'classes' : 'cp;1', exact : true},
+          {title: 'div tag with class: col2', inline: 'div', 'classes' : 'col2', exact : true}, 
+          {title: 'div tag with class: col3', inline: 'div', 'classes' : 'col3', exact : true}, 
+          {title: 'div tag with class: col4', inline: 'div', 'classes' : 'col4', exact : true}, 
+          {title: 'div tag with class: col5', inline: 'div', 'classes' : 'col5', exact : true} 
+    ]},*/
+    {title: 'Wrap with P Tag add page level classname', items: [
+     {title: 'p tag with class: myclass1', inline: 'p', 'classes' : 'myclass1', exact : true},
+          {title: 'p tag with class: myclass2', inline: 'p', 'classes' : 'myclass2', exact : true}, 
+          {title: 'p tag with class: myclass3', inline: 'p', 'classes' : 'myclass3', exact : true}, 
+          {title: 'p tag with class: myclass4', inline: 'p', 'classes' : 'myclass4', exact : true}, 
+          {title: 'p tag with class: myclass5', inline: 'p', 'classes' : 'myclass5', exact : true}, 
+          {title: 'p tag with class: myclass6', inline: 'p', 'classes' : 'myclass6', exact : true}, 
+          {title: 'p tag with class: myclass7', inline: 'p', 'classes' : 'myclass7', exact : true}, 
+          {title: 'p tag with class: myclass8', inline: 'p', 'classes' : 'myclass8', exact : true}, 
+          {title: 'p tag with class: myclass9', inline: 'p', 'classes' : 'myclass9', exact : true}, 
+          {title: 'p tag with class: myclass10', inline: 'p', 'classes' : 'myclass10', exact : true}, 
+          {title: 'p tag with class: myclass11', inline: 'p', 'classes' : 'myclass11', exact : true}, 
+          {title: 'p tag with class: myclass12', inline: 'p', 'classes' : 'myclass12', exact : true}
     ]},
-    {title: 'Special Class Wrap (p tag)', items: [
-               {title: 'p myclass1', inline: 'p', 'classes' : 'myclass1', exact : true},
-               {title: 'p myclass2', inline: 'p', 'classes' : 'myclass2', exact : true}, 
-               {title: 'p myclass3', inline: 'p', 'classes' : 'myclass3', exact : true}, 
-               {title: 'p myclass4', inline: 'p', 'classes' : 'myclass4', exact : true}, 
-               {title: 'p myclass5', inline: 'p', 'classes' : 'myclass5', exact : true}, 
-               {title: 'p myclass6', inline: 'p', 'classes' : 'myclass6', exact : true}, 
-               {title: 'p myclass7', inline: 'p', 'classes' : 'myclass7', exact : true}, 
-               {title: 'p myclass8', inline: 'p', 'classes' : 'myclass8', exact : true}, 
-               {title: 'p myclass9', inline: 'p', 'classes' : 'myclass9', exact : true}, 
-               {title: 'p myclass10', inline: 'p', 'classes' : 'myclass10', exact : true}, 
-               {title: 'p myclass11', inline: 'p', 'classes' : 'myclass11', exact : true}, 
-               {title: 'p myclass12', inline: 'p', 'classes' : 'myclass12', exact : true}
-  ]}
+    {title: 'Wrap with span Tag add page level classname', items: [
+               {title: 'span tag with class: myclass1', inline: 'span', 'classes' : 'myclass1', exact : true},
+               {title: 'span tag with class: myclass2', inline: 'span', 'classes' : 'myclass2', exact : true}, 
+               {title: 'span tag with class: myclass3', inline: 'span', 'classes' : 'myclass3', exact : true}, 
+               {title: 'span tag with class: myclass4', inline: 'span', 'classes' : 'myclass4', exact : true}, 
+               {title: 'span tag with class: myclass5', inline: 'span', 'classes' : 'myclass5', exact : true}, 
+               {title: 'span tag with class: myclass6', inline: 'span', 'classes' : 'myclass6', exact : true}, 
+               {title: 'span tag with class: myclass7', inline: 'span', 'classes' : 'myclass7', exact : true}, 
+               {title: 'span tag with class: myclass8', inline: 'span', 'classes' : 'myclass8', exact : true}, 
+               {title: 'span tag with class: myclass9', inline: 'span', 'classes' : 'myclass9', exact : true}, 
+               {title: 'span tag with class: myclass10', inline: 'span', 'classes' : 'myclass10', exact : true}, 
+               {title: 'span tag with class: myclass11', inline: 'span', 'classes' : 'myclass11', exact : true}, 
+               {title: 'span tag with class: myclass12', inline: 'span', 'classes' : 'myclass12', exact : true}
+  ]}/*,
+  {title: 'Wrap with div Tag add page level classname', items: [
+               {title: 'div tag with class: myclass1', inline: 'div', 'classes' : 'myclass1', exact : true},
+               {title: 'div tag with class: myclass2', inline: 'div', 'classes' : 'myclass2', exact : true}, 
+               {title: 'div tag with class: myclass3', inline: 'div', 'classes' : 'myclass3', exact : true}, 
+               {title: 'div tag with class: myclass4', inline: 'div', 'classes' : 'myclass4', exact : true}, 
+               {title: 'div tag with class: myclass5', inline: 'div', 'classes' : 'myclass5', exact : true}, 
+               {title: 'div tag with class: myclass6', inline: 'div', 'classes' : 'myclass6', exact : true}, 
+               {title: 'div tag with class: myclass7', inline: 'div', 'classes' : 'myclass7', exact : true}, 
+               {title: 'div tag with class: myclass8', inline: 'div', 'classes' : 'myclass8', exact : true}, 
+               {title: 'div tag with class: myclass9', inline: 'div', 'classes' : 'myclass9', exact : true}, 
+               {title: 'div tag with class: myclass10', inline: 'div', 'classes' : 'myclass10', exact : true}, 
+               {title: 'div tag with class: myclass11', inline: 'div', 'classes' : 'myclass11', exact : true}, 
+               {title: 'div tag with class: myclass12', inline: 'div', 'classes' : 'myclass12', exact : true}
+  ]}*/
     ] 
   });
   </script>
@@ -4160,55 +4134,72 @@ eol;
  
 #gen_Proc	javascript initiate
 function gen_Proc_init(){
+     $tiny_cache_arr = explode(',',$this->page_tiny_cache);  
+     $carousel_cache_arr = explode(',',$this->page_carousel_cache);
+     $tiny_cache_array=json_encode($tiny_cache_arr);
+     $carousel_cache_array=json_encode($carousel_cache_arr);
+     $tiny_cache_min=$this->page_tiny_cache_min;
 	$image_response_array=json_encode(explode(',',$this->page_cache)); 
-	$response_dir_prefix=Cfg::Response_dir_prefix;
+	$root_dir_prefix=Cfg_loc::Root_dir;
+     $response_dir_prefix=Cfg::Response_dir_prefix;
 	$largegalldir=Cfg::Large_image_dir;
-	$token=(isset($_SESSION[Cfg::Owner."sess_token"]))?$_SESSION[Cfg::Owner."sess_token"]:'';
+     $tiny_upload_dir=Cfg::Tiny_upload_dir;
+     $tiny_resize_dir=Cfg::Tiny_resize_dir;
+     $tiny_orig_sz_dir=Cfg::Tiny_orig_sz_dir;
+	$token=(isset($_SESSION[Cfg::Owner.'token']))?$_SESSION[Cfg::Owner.'token']:'';
 	$maxlimit=$this->page_width;
 	$slidedir=Cfg::Auto_slide_dir;
 	$sysedit=Sys::Edit;
 	$sysloc=Sys::Loc;
 	$cfgdev=Cfg::Development;
 	$passclass=Sys::Pass_class;
-echo <<<eol
+     $scriptSubmit=Cfg::Script_submit;
+     $iframeSubmit=Cfg::Iframe_submit;//override 
+    
+$script= <<<eol
 
-<script >
-gen_Proc.edit='$this->edit';
-gen_Proc.image_response = $image_response_array;
-gen_Proc.image_response_dir_prefix = '$response_dir_prefix';
-gen_Proc.large_gall_dir =  '$largegalldir';
-gen_Proc.auto_slide_dir =  '$slidedir';
-gen_Proc.token='$token';
-gen_Proc.Edit='$sysedit';
-gen_Proc.Loc='$sysloc';
-gen_Proc.Dev='$cfgdev';
-gen_Proc.maxPicLimit=$maxlimit;
-gen_Proc.passclass='$passclass';
-</script>
+
+     gen_Proc.image_response = $image_response_array;
+     gen_Proc.tiny_cache = $tiny_cache_array;
+     gen_Proc.carousel_cache = $carousel_cache_array;
+     gen_Proc.tiny_cache_min = $tiny_cache_min;
+     gen_Proc.root_dir_prefix = '$root_dir_prefix';
+     gen_Proc.image_response_dir_prefix = '$response_dir_prefix';
+     gen_Proc.large_gall_dir = '$largegalldir';
+     gen_Proc.tiny_upload_dir = '$tiny_upload_dir'; 
+     gen_Proc.tiny_resize_dir = '$tiny_resize_dir'; 
+     gen_Proc.tiny_orig_sz_dir = '$tiny_orig_sz_dir';
+     gen_Proc.auto_slide_dir = '$slidedir';
+     gen_Proc.token='$token';
+     gen_Proc.Loc='$sysloc';
+     gen_Proc.Dev='$cfgdev';
+     gen_Proc.maxPicLimit=$maxlimit;
+     gen_Proc.passclass='$passclass';
+     gen_Proc.pagename='$this->pagename';
+     gen_Proc.scriptSubmit='$scriptSubmit';
+     gen_Proc.iframeSubmit='$iframeSubmit';
+
 eol;
+     if ($this->edit){
+          echo  "
+     <script>
+          gen_Proc.Edit='$this->edit'
+          $script;
+          </script>
+          ";//for editpage
+          $this->noloadscript.=$script;//for webmode
+          }
+     else {
+          echo  "
+     <script>
+          gen_Proc.Edit='$this->edit';
+          </script>
+          ";
+         
+          }
 	}
 #highslide
-function load_slippry(){
-	static $enter=0; $enter++; if ($enter >1)return;
-	$scriptdir=Cfg_loc::Root_dir.Cfg::Script_dir.'slippry.js';
-	echo '<script  src="'.$scriptdir.'"></script>';
-	}
-function load_masonry(){
-	if ($this->edit)return;
-	static $enter=0; $enter++; if ($enter >1)return;
-	$scriptdir=Cfg_loc::Root_dir.Cfg::Script_dir.'masonry.js';
-	echo '<script  src="'.$scriptdir.'"></script>';
-	$scriptdir=Cfg_loc::Root_dir.Cfg::Script_dir.'imagesLoaded.js';
-	echo '<script  src="'.$scriptdir.'"></script>';
-	}
-function load_photoswipe(){
-	if ($this->edit)return;
-	static $enter=0; $enter++; if ($enter >1)return;
-	$scriptdir=Cfg_loc::Root_dir.Cfg::Script_dir.'photoswipe.js';
-	$scriptdir2=Cfg_loc::Root_dir.Cfg::Script_dir.'photoswipe-ui-default.js';
-	echo '<script  src="'.$scriptdir.'"></script>';
-	echo '<script  src="'.$scriptdir2.'"></script>';
-	}
+
 function render_highslide(){    
 	static $enter=0; $enter++; if ($enter >1)return;
 	$scriptdir=Cfg_loc::Root_dir.Cfg::Script_dir.'highslide/highslide-with-gallery.js';
@@ -4260,68 +4251,32 @@ function render_header_open(){ if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__
           }
 	if (isset($_GET['magnify_margins']))
           printer::printx('<style>
-     .column.edit{margin:2px !important;padding:2px !important;border-width: 4px !important;}</style>');
-	if (!empty($this->page_head)) 
-		printer::printx( "\n".$this->page_head);
-		printer::printx( "\n".'<link href="'.$this->roots.Cfg::Style_dir.$this->css_suffix.$this->pagename.'.css?'.rand(0,32323).'" rel="stylesheet" type="text/css">'); 
-		printer::printx( "\n".'<link href="'.$this->roots.Cfg::Style_dir.$this->pagename.'_paged.css?'.rand(0,32323).'" rel="stylesheet" type="text/css">');
-		printer::printx( "\n".'<link href="'.$this->roots.Cfg::Style_dir.$this->pagename.'_mediacss.css?'.rand(0,32323).'" rel="stylesheet" type="text/css">');  
-		(Sys::Advanced||!$this->edit||(!Sys::Advancedoff&&$this->page_options[$this->page_advanced_index]!=='disabled'))&&printer::printx( "\n".'<link href="'.$this->roots.Cfg::Style_dir.$this->pagename.'_adv.css?'.rand(0,32323).'" rel="stylesheet" type="text/css">');
-		($this->edit)&&printer::printx( "\n".'<link href="'.$this->roots.Cfg::Style_dir.$this->pagename.'pageedit.css?'.rand(0,32323).'" rel="stylesheet" type="text/css">');
-		 ($this->edit)&&printer::printx("\n".'<link href="'.Cfg_loc::Root_dir.$this->css_fonts_extended_dir.'"  rel="stylesheet" type="text/css">');
-
-		($this->edit)&&printer::printx( "\n".'<link href="'.$this->roots.Cfg::Style_dir.$this->pagename.'editoverride.css?'.rand(0,32323).'" rel="stylesheet" type="text/css">'); 
-		($this->edit)&&printer::printx( "\n".'<link href="'.$this->roots.Cfg::Style_dir.'gen_edit.css?'.rand(0,32323).'" rel="stylesheet" type="text/css">');
-		echo '
-		<link href="'.$this->roots.Cfg::Style_dir.'gen_page.css" rel="stylesheet" type="text/css">
-		    ';
-	$page_array=array();
-	if (is_file(Cfg_loc::Root_dir.Cfg::Data_dir.'page_stylesheet_'.$this->pagename)){ 
-		$csspage=explode(',',file_get_contents(Cfg_loc::Root_dir.Cfg::Data_dir.'page_stylesheet_'.$this->pagename));
-		if (count($csspage)>0){ 
-			foreach ($csspage as $page){
-				if(strlen($page)>2){
-					$page_array[]=$page;
-					if (is_file(Cfg_loc::Root_dir.Cfg::Data_dir.'page_stylesheet_'.$page)){ 
-						$css2page=explode(',',file_get_contents(Cfg_loc::Root_dir.Cfg::Data_dir.'page_stylesheet_'.$page));
-						if (count($css2page)>0){ 
-							foreach ($css2page as $page2){
-								if(strlen($page2)>2){
-									$page_array[]=$page2;
-									}
-								}
-							}
-						}
-					}
-				}
-			}
+     .column.edit{margin:2px !important;padding:2px !important;border-width: 4px !important;}
+	</style>'); 
+	printer::printx("\n".'<link href="'.$this->roots.Cfg::Style_dir.$this->pagename.'_paged.css'.$this->rand.'" rel="stylesheet" type="text/css">
+<link href="'.$this->roots.Cfg::Style_dir.'gen_page.css" rel="stylesheet" type="text/css">
+<link href="'.$this->roots.Cfg::Style_dir.$this->pagename.'.css'.$this->rand.'" rel="stylesheet" type="text/css">
+<link href="'.$this->roots.Cfg::Style_dir.$this->pagename.'_media.css'.$this->rand.'" rel="stylesheet" type="text/css">
+	');
+	if ($this->edit){
+		printer::printx( "\n".'<link href="'.$this->roots.Cfg::Style_dir.$this->pagename.'pageedit.css'.$this->rand.'" rel="stylesheet" type="text/css">
+<link href="'.Cfg_loc::Root_dir.$this->css_fonts_extended_dir.'"  rel="stylesheet" type="text/css">
+<link href="'.$this->roots.Cfg::Style_dir.$this->pagename.'editoverride.css'.$this->rand.'" rel="stylesheet" type="text/css">
+<link href="'.$this->roots.Cfg::Style_dir.'gen_edit.css'.$this->rand.'" rel="stylesheet" type="text/css">
+		');
+		}
+	else 
+		$this->handle_css_render();//also rendered in editmode in  css_render   
+	foreach($this->header_css_once as $css_sheet){
+		printer::printx('<link href="'.$this->roots.Cfg::Style_dir.$css_sheet.$this->rand.'" rel="stylesheet" type="text/css">');
 		}
 	
-	$page_array=array_unique($page_array);
-	foreach  ($page_array as $page){
-		echo '
-			<link href="'.$this->roots.Cfg::Style_dir.$page.'.css?'.rand(0,32323).'" rel="stylesheet" type="text/css"> 
-			<link href="'.$this->roots.Cfg::Style_dir.$page.'_mediacss.css?'.rand(0,32323).'" rel="stylesheet" type="text/css">';
-		 ($this->edit)&& print '
-			  <link href="'.$this->roots.Cfg::Style_dir.$page.'editoverride.css?'.rand(0,32323).'" rel="stylesheet" type="text/css">';
-					((Sys::Advanced||!$this->edit)||(!Sys::Advancedoff&&$this->page_options[$this->page_advanced_index]!=='disabled') )&&printer::printx("\n". '<link href="'.$this->roots.Cfg::Style_dir.$page.'_adv.css?'.rand(0,32323).'" rel="stylesheet" type="text/css">'); 
-		}
-	if (is_file(Cfg_loc::Root_dir.Cfg::Data_dir.'page_stylesheet_'.$this->pagename.$this->passclass_ext)&&!empty($this->passclass_ext)){//here we are doubling up to replace the former with the current if it has been rendered  otherwise we need to iframe_generate the pages of clone originals
-		$csspage=explode(',',file_get_contents(Cfg_loc::Root_dir.Cfg::Data_dir.'page_stylesheet_'.$this->pagename.$this->passclass_ext));
-		if (count($csspage)>0){ 
-			foreach ($csspage as $page){
-				if(strlen($page)>2){
-					(Sys::Advanced||!$this->edit||(!Sys::Advancedoff&&$this->page_options[$this->page_advanced_index]!=='disabled') )&&printer::printx( '<link href="'.$this->roots.Cfg::Style_dir.$page.'_adv.css?'.rand(0,32323).'" rel="stylesheet" type="text/css">');
-					}
-				}
-			}
-		}
 	if (!empty($this->header_style)){
-		$this->header_style=(!is_array($this->header_style))?explode(',',$this->header_style):$this->header_style;    
+		$this->header_style=(!is_array($this->header_style))?explode(',',$this->header_style):$this->header_style;
 		foreach($this->header_style as $var){  
 		    if (!empty($var)){
 				echo'
-				<link href="'.$this->roots.$var.'?'.rand(0,32323).'" rel="stylesheet" type="text/css">'; 
+<link href="'.$this->roots.$var.$this->rand.'" rel="stylesheet" type="text/css">'; 
 				}
 			}
 		}
@@ -4330,45 +4285,271 @@ function render_header_open(){ if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__
 		foreach($this->header_edit_style as $var){  
 		    if (!empty($var)){
 				echo'
-				<link href="'.$this->roots.Cfg::Style_dir.$var.'?'.rand(0,32323).'" rel="stylesheet" type="text/css">'; 
+				<link href="'.$this->roots.Cfg::Style_dir.$var. $this->rand.'" rel="stylesheet" type="text/css">'; 
 				}
 			}
 		}
-	($this->edit)&&$this->initnoUiSlider(); //javascript slider
-	if (!empty($this->header_script_function)){#note that the standard pagename script will be dumped here...!!
-	    $this->header_script=(!is_array($this->header_script))?explode(',',$this->header_script):$this->header_script;    
-	    $this->header_script[]='gen_Procscripts.js'; //     
-	    }
-    
+	//we want to minimize included scripts at same time we need to include scripts used on another page if this page has a cloned post from it so towards this end:
+     #please note  timing of script loading important to prevent errors.
+     if (is_file(Cfg_loc::Root_dir.Cfg::Script_dir.Cfg::Jquery_src))
+          echo '
+               <script  src="'.Cfg_loc::Root_dir.Cfg::Script_dir.Cfg::Jquery_src.'"></script>';
+     else if (is_file(Sys::Common_dir.Cfg::Script_dir.Cfg::Jquery_src)){
+          copy(Sys::Common_dir.Cfg::Script_dir.Cfg::Jquery_src,Cfg_loc::Root_dir.Cfg::Script_dir.Cfg::Jquery_src);
+          echo '
+               <script  src="'.Cfg_loc::Root_dir.Cfg::Script_dir.Cfg::Jquery_src.'"></script>';
+           }
+     else {
+          $this->message[]="Missing hard copy of jquery ".Cfg::Jquery_src;
+          echo
+               '<script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-2.2.4.min.js"></script>';
+          }
+   
+         
+     if (!$this->edit){
+          //temp $csspage page_has_clone went here  
+		$this->handle_script_render();//this is also called in editmode at css_render_file();
+          }//if!edit
+     
+     $this->header_script=(!is_array($this->header_script))?explode(',',$this->header_script):$this->header_script;    
+	$this->header_script[]='gen_Procscripts.js'; //
+     $this->header_script=array_merge($this->header_script,$this->header_script_once);
 	if (!empty($this->header_script)){  
 		$this->header_script=(!is_array($this->header_script))?explode(',',$this->header_script):$this->header_script;
 		 foreach ($this->header_script as $var){
 	   	if (!empty($var)){
 			    echo ' 
-			    <script  src="'.$this->roots.Cfg::Script_dir.$var.'?'.rand(0,32323).'"></script> ';
+			    <script  src="'.$this->roots.Cfg::Script_dir.$var.$this->rand.'"></script> ';
 			    }
 			}
 		 }
-	if (!$this->edit&&!empty($this->header_script_webmode)){ 
+	if (!empty($this->header_script_webmode)){ //call before header script function ie. for animate class to initiate animated.. this is list of js files to download..
+          
 		$this->header_script_webmode=(!is_array($this->header_script_webmode))?explode(',',$this->header_script_webmode):$this->header_script_webmode;    
 		 foreach ($this->header_script_webmode as $var){
-	   	if (!empty($var)){
+               if (!empty($var)&&is_file($this->roots.Cfg::Script_dir.$var)){
 			    echo ' 
-			    <script  src="'.$this->roots.Cfg::Script_dir.$var.'?'.rand(0,32323).'"></script> ';
+			    <script  src="'.$this->roots.Cfg::Script_dir.$var.$this->rand.'"></script> ';
 			    }
 			}
 		 }
-	if ($this->edit){
-	    echo '<title>Edit ' .$this->page_title .'</title>';  
-		}
-	else {
-		echo'
-		<title> '.$this->page_title .'</title>';
-		} 
- $this->header_insert();
+		
+	if (!empty($this->page_head)) 
+		printer::printx(process_data::remove_line_break($this->page_head));
+	$this->header_insert();
 	$this->header_global();
-    }
-function header_global(){
+    }//end fucntion
+    
+
+   
+function handle_css_render(){
+	if (!$this->edit&&is_file(Cfg_loc::Root_dir.Cfg::Style_dir.$this->pagename.'.css')&&is_file(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'master_css_arr.dat')&&filemtime(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'master_css_arr.dat')<filemtime(Cfg_loc::Root_dir.Cfg::Style_dir.$this->pagename.'.css')&&is_file(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'header_css_once_complete'.$this->pagename.'.dat')){
+		//so here we determine that this pagename dat is the latest which means all css including cloned css from out of page are present in pagename.css..   we also then get latest version of header_css_once_complete (which collects only necessary css including those for clones posts from other pages having css..
+		$this->header_css_once=unserialize(file_get_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'header_css_once_complete'.$this->pagename.'.dat'));  
+		//return;
+		}   
+	#here we gather the non cloned css organized by the key which otherwise presents css in less organized fashion
+	if (!$this->edit&&is_file(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'css_page_array_'.$this->pagename.'.dat'))
+		$this->css_page_array=unserialize(file_get_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'css_page_array_'.$this->pagename.'.dat'));
+	else if (!$this->edit)
+		$this->css_page_array=array();
+	$css=$mediacss=$header_css_once=$editoverridecss=array();
+	foreach($this->css_page_array as $key => $array){
+		foreach($array as $arr){
+			${$arr[0]}[]=$arr[1];
+			}
+		} 
+	#here we gather the cloned css organized by the key  
+	if (is_file(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'clone_list_id_'.$this->pagename.'.dat')){
+		$clone_list_id=unserialize(file_get_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'clone_list_id_'.$this->pagename.'.dat')); 
+		}
+	else $clone_list_id=array();   
+	$count=count($clone_list_id);
+	if ($count>0&&is_file(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'master_css_arr.dat')){
+		$mastercssArr=unserialize(file_get_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'master_css_arr.dat'));
+		$collect=array(); 
+		foreach ($mastercssArr as $pagekey => $arr ){//lose pagename index
+			foreach ($arr as $key => $array){
+				$collect[$key][]=$array;
+				}
+			}
+		}
+	else $collect=array(); 
+	 if ($count>0&&count($collect)>0){
+		$css[]='
+		
+		/* cloned additions */';
+		$mediacss[]='
+		
+		/* cloned additions */';
+		foreach($clone_list_id as $key){
+			if (array_key_exists($key,$collect)){  
+				$css[]='/* clone css '.$key.' */';
+				$array=$collect[$key]; 
+				foreach ($array as $key=> $arr){// all $array indexes are valid and collected
+					foreach ($arr as $subarr){
+						${$subarr[0]}[]=$subarr[1]; //css or mediacss array coll
+						}
+					}
+				}
+			else mail::mininfo('Missing cloned css in '.__function__.' for id='.$key);
+			}
+		}
+		 
+	
+	$coll_css='';
+     foreach ($css as $val){
+		$coll_css.="
+		$val";
+		}
+	$coll_mediacss=''; 
+     foreach ($mediacss as $val){
+		$coll_mediacss.="
+		$val";
+		}
+	$coll_editoverridecss='';  
+     foreach ($editoverridecss as $val){
+		$coll_editoverridecss.="
+		$val";
+		}  
+	$this->header_css_once=array_unique($header_css_once); 
+	file_put_contents($this->roots.Cfg::Css_dir.$this->pagename.'_media.css',$coll_mediacss);
+	file_put_contents($this->roots.Cfg::Css_dir.$this->pagename.'editoverride.css',$coll_editoverridecss);
+	file_put_contents($this->roots.Cfg::Css_dir.$this->pagename.'.css',$coll_css);
+	file_put_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'header_css_once_complete'.$this->pagename.'.dat',serialize($this->header_css_once));
+     }
+    
+#ion header #handle    
+function handle_script_render(){
+     if (!$this->edit&&is_file(Cfg_loc::Root_dir.Cfg::Script_dir.$this->pagename.'.js')&&is_file(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'scriptArr_Master.dat')&&filemtime(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'scriptArr_Master.dat')<filemtime(Cfg_loc::Root_dir.Cfg::Script_dir.$this->pagename.'.js')&&is_file(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'header_script_once_complete'.$this->pagename.'.dat')){
+		//so here we determine that this pagename.js script is the latest which means all scripts including cloned scripts from out of page are present in pagename.js..   we also then get latest version of header_script_once_complete (which collects only necessary script src calls including those for clones posts from other pages having necessary scripts..
+		$this->header_script_once=unserialize(file_get_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'header_script_once_complete'.$this->pagename.'.dat'));
+		return;
+		}
+	//continue if editmode or updating once in webmode to create lastest current flat file for this pagename..
+	if (is_file(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'header_script_once_'.$this->pagename.'.dat')){
+		$header_script_once=file_get_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'header_script_once_'.$this->pagename.'.dat');
+		$header_script_once= (!empty($header_script_once)) ? unserialize($header_script_once) :  array();
+		}
+	else $header_script_once=array();
+     if (is_file(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'initiate_script_once_'.$this->pagename.'.dat')){
+           $initiate_script_once=file_get_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'initiate_script_once_'.$this->pagename.'.dat');
+          $initiate_script_once= (!empty($initiate_script_once)) ? unserialize($initiate_script_once) :  array();
+		}
+	else $initiate_script_once=array();
+	
+	
+     if (is_file(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'onresizescriptonce_'.$this->pagename.'.dat')){
+           $onresizescriptonce=file_get_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'onresizescriptonce_'.$this->pagename.'.dat');
+          $onresizescriptonce= (!empty($onresizescriptonce)) ? unserialize($onresizescriptonce) :  array();
+		}
+	else $onresizescriptonce=array(); 
+               
+	if (is_file(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'script_'.$this->pagename.'.dat')){//all this pagename scripts does not contain original clone will get below..
+          $script=file_get_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'script_'.$this->pagename.'.dat');
+          }
+     else $script='';  
+     
+     if (is_file(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'noloadscript_'.$this->pagename.'.dat')){
+          $noloadscript=file_get_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'noloadscript_'.$this->pagename.'.dat');
+          }
+     else $noloadscript='';
+    
+     
+     if (is_file(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'onresizescript_'.$this->pagename.'.dat')){
+          $onresizescript=file_get_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'onresizescript_'.$this->pagename.'.dat');
+          }
+     else $onresizescript=''; 
+	
+	if (is_file(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'clone_list_id_'.$this->pagename.'.dat')){
+		$clone_list_id=unserialize(file_get_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'clone_list_id_'.$this->pagename.'.dat'));
+		}
+	else $clone_list_id=array(); 
+	$count=count($clone_list_id);
+	if ($count>0&&is_file(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'scriptArr_Master.dat')){
+		$masterscriptArr=unserialize(file_get_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'scriptArr_Master.dat'));
+		$collect=array();
+		foreach ($masterscriptArr as $arr ){//lose pagename index
+			$collect=array_merge($collect,$arr);
+			}
+		}
+	else $collect=array();
+	
+	if ($count>0&&count($collect)>0){
+		foreach($clone_list_id as $key){
+			if (array_key_exists($key,$collect)){
+				$array=$collect[$key]; 
+				foreach ($array as $arr){// all $array indexes are valid and collected
+					if (strpos($arr[0],'once')!==false)
+						${$arr[0]}[]=$arr[1];
+					else
+						${$arr[0]}.=$arr[1];
+					}
+				}
+			else mail::mininfo('Missing cloned script in '.__function__.' for id='.$key);
+			}
+		}
+     $this->header_script_once=array_unique($header_script_once);
+	
+	$initiate_script_once=array_unique($initiate_script_once);
+	$onresizescriptonce=array_unique($onresizescriptonce);
+	$collect='';
+	foreach ($initiate_script_once as $init){
+		if (!empty($init))
+			$collect.='
+			'.$init;
+			}
+		$init=$collect;
+	$collect='';
+	foreach ($onresizescriptonce as $initonce){
+		if (!empty($initonce))
+			$collect.='
+			'.$initonce;
+			 
+		}
+	(!empty($collect))&&
+		$onresizescript.='
+		
+		//****RESIZE SCRIPTS UNIQUE in Onloads**** '.
+	$collect; 
+     if (!empty($onresizescript))
+		$onresize=<<<eol
+	gen_Proc.pageTimer='';
+	jQuery(window).on('resize', function(){  
+		clearTimeout(gen_Proc.pageTimer);
+		gen_Proc.pageTimer = setTimeout(function(){
+			$onresizescript 
+			jQuery(window).trigger('scroll');
+			},200);
+		})
+eol;
+     else $onresize='';
+	$count=self::$xyz++;
+     $script=<<<eol
+jQuery("document").ready(function(jQuery){
+	
+	//****ONLOAD SCRIPTS
+     
+	$script
+	
+	//****RESIZE SCRIPTS in ONLOAD**** '
+	$onresize
+	
+	//****INIT SCRIPTS UNIQUE in ONLOAD**** '
+	
+	$init;
+     });//end doc ready
+	
+	//****NO-ONLOAD**** '
+     $noloadscript
+eol;
+     
+	file_put_contents($this->roots.Cfg::Script_dir.$this->pagename.'.js',$script);
+	$this->header_script_once[]=$this->pagename.'.js';
+	file_put_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'header_script_once_complete'.$this->pagename.'.dat',serialize($this->header_script_once));
+     }
+     
+function header_global(){//empty function for adding head content on page or site levels.
 	return;
 	}
 function header_insert(){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
@@ -4377,7 +4558,13 @@ function header_insert(){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD
 	//use individual page class ie about.class.php for the same but page specific..
 	}
 
-function header_close(){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__); 
+function header_close(){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__); if ($this->edit){
+	    echo '<title>Edit ' .$this->page_title .'</title>';  
+		}
+	else {
+		echo'
+		<title> '.$this->page_title .'</title>';
+		} 
 	echo'</head>';
     }    
     
@@ -4399,7 +4586,9 @@ function render_message(){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHO
     
 function call_body(){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
 	if($this->edit){ 
-		echo '<body id="'.$this->pagename.'" class="editcoldefault '.$this->pagename.'" '.$this->edit_onload.'>';
+		echo '
+          <body id="'.$this->pagename.'" class="editcoldefault '.$this->pagename.'" '.$this->edit_onload.'>
+          ';
           $this->echo_msg();#actually called in edit_body #drop in success message after nav
 		$this->uploads();
           } 
@@ -4408,22 +4597,22 @@ function call_body(){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
 	(isset($_GET['iframepos']))&&printer::alertx('<p class="smallest cursor Od3navy fs2green rad5 floatleft whitebackground navy"><a href="'.request::return_full_url().'"><u>'.request::return_full_url().'</u></a></p>');
 		$this->background_video('page_style');
 		if ($this->edit&&Sys::Pass_class&&Sys::Viewdb){
-			$this->print_wrap('restore opts','white redbackground Os3salmon fsminfo');
-			printer::alert_neg('Viewing Database: '.Sys::Dbname);
-			printer::alert_neu('Use Normal Edit Page Navigations to Check Pages. Use Restore Link Below to Restore entire web Page as needed');
+			$this->print_wrap('restore opts','white lightmaroonbackground Os3salmon fsminfo');
+			printer::print_warnlight('Viewing Database: '.Sys::Dbname);
+			printer::alert('Use Normal Edit Page Navigations to Check Pages. Use Restore Link Below to Restore entire web Page as needed');
 			$pagename=check_data::dir_to_file(__METHOD__,__LINE__,__FILE__,$this->pagename); 
 			$pagename=($pagename)?$pagename:'index'; 
 			$file='./'.$pagename.'.php?viewdboff';
-			printer::alert_neu('Return Back to <a class="acolor click" href="'.$file.'"> Normal Edit Page</a>');
+			printer::alert('<b>Return Back to <a class="acolor click" href="'.$file.'"> Normal Edit Page</a></b>');
 			$file='../'.$pagename.'.php?viewdb';
-			printer::alert_neu('View this restore choice page in <a class="acolor click" href="'.$file.'">View Restore as regular Webpage</a>');
+			printer::print_tip('View this restore choice page in <a class="acolor click" href="'.$file.'">View Restore as regular Webpage</a>');
 			$file='./'.$pagename.'.php?viewdboff&amp;page_restore_dbopt';
 			
 			list($fname,$time)=explode('@@',$_SESSION[Cfg::Owner.'db_to_restore']);
 			if (!Sys::Home_pub.Cfg::Backup_dir.$fname)$fname=str_replace('.gz','',$fname);
 			$msg='Restore this Previous Website replacing the current Db';
 			$msg1=' from TimeAgo: '.$this->get_time_ago($time).'&nbsp; Date: '.date("dMY-H-i-s",$time).'&nbsp;Filename: '.$fname.'&nbsp; Size: '.(filesize(Sys::Home_pub.Cfg::Backup_dir.$fname)/1000).'Kb';
-			printer::alert_neg('<a class="acolor click" onclick="return gen_Proc.confirm_click(\'Confirm if you wish to '.$msg.' \');" href="'.$file.'">Restore this Webite </a>'.$msg1);
+			printer::print_warnlight('<a class="acolor click" onclick="return gen_Proc.confirm_click(\'Confirm if you wish to '.$msg.' \');" href="'.$file.'"><b>Restore this Webite</b> </a>'.$msg1);
 			printer::close_print_wrap('restore opts');
 			}
 		elseif (Sys::Pass_class&&Sys::Viewdb){
@@ -4438,39 +4627,41 @@ function call_body(){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
 			}
 	}
      
-     #ion db_
-     function update_db($dbname=''){
-     if (!$this->edit)return;
-      $table_array=array('master_post','master_post_css','master_post_data');
-     /*foreach ($table_array as $table ){
-          $q="ALTER TABLE $table CHANGE blog_data1 blog_data1 text CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL;";
-          $r = $this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
-          $q="UPDATE $table SET `blog_table` = REPLACE(`blog_table`, '_post', '_col') WHERE `blog_table` LIKE '%_post%'";
-          $r = $this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
-          $q="UPDATE $table SET `blog_table` = REPLACE(`blog_table`, '_blog', '_col_id') WHERE `blog_table` LIKE '%_blog%'";
-          $r = $this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
-          }*/
-     if(!isset($_POST['submit']))return;
-     if (!empty($dbname)) 
+     #ion db_ #update_db #db_updat
+function update_db($dbname=''){  
+      if (!empty($dbname)){ 
           $this->mysqlinst->dbconnect($dbname);
-      //else return;//cancel out for updating fields or will return if not backup restore or viewing external theme db
+          }
+     ####################  Note: to update db fields 
+     #cancel out else return for updating newly added db fields. Will not return restoring backups or viewing external theme db to insure new fields added to older db.
+     // else return;
+     ####################
+     if (!$this->edit&&!Cfg::EditmodeDb_update)return;
      $this->express[]=printer::alert_neu('Database fields being updated mode',1,1); 
-     $q="UPDATE master_col_data SET col_table = REPLACE(col_table, '_post_', '_col_') WHERE col_table LIKE '%_post_%'";
-     $r = $this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
-     $columns_array=array('col_id'=>'key','col_table_base'=>'tinytext','col_table'=>'tinytext','col_num'=>'tinyint(4)','col_primary'=>'tinyint(1)','col_options'=>'text','col_clone_target'=>'tinytext','col_status'=>'tinytext','col_gridspace_right'=>'tinytext','col_gridspace_left'=>'tinytext','col_flex_box'=>'tinytext','col_grid_width'=>'tinytext','col_grid_clone'=>'tinytext','col_style'=>'text','col_style2'=>'tinytext','col_temp'=>'tinytext','col_grp_bor_style'=>'text','col_comment_style'=>'text','col_date_style'=>'text','col_comment_date_style'=>'text','col_comment_view_style'=>'text','col_clone_target_base'=>'tinytext','col_hr'=>'tinytext','col_update'=>'tinytext','col_width'=>'tinytext','col_tcol_num'=>'decimal(5,1)','token'=>'tinytext','col_time'=>'tinytext','col_text'=>'text');
-     $master_col_css_array=array('css_id'=>'smallint(5) unsigned','col_id'=>'tinytext','col_table_base'=>'tinytext','col_table'=>'tinytext','col_num'=>'tinyint(4)','col_primary'=>'tinyint(1)','col_options'=>'tinytext','col_clone_target'=>'tinytext','col_status'=>'tinytext','col_gridspace_right'=>'tinytext','col_gridspace_left'=>'tinytext','col_grid_width'=>'tinytext','col_grid_clone'=>'tinytext','col_flex_box'=>'tinytext','col_style'=>'text','col_style2'=>'tinytext','col_temp'=>'tinytext','col_grp_bor_style'=>'text','col_comment_style'=>'text','col_date_style'=>'text','col_comment_date_style'=>'text','col_comment_view_style'=>'text','col_clone_target_base'=>'tinytext','col_hr'=>'tinytext','col_update'=>'tinytext','col_width'=>'tinytext','col_tcol_num'=>'decimal(5,1)','token'=>'tinytext','col_time'=>'tinytext','col_text'=>'text');
+     
+     $columns_array=array('col_id'=>'key','col_table_base'=>'tinytext','col_table'=>'tinytext','col_num'=>'tinyint(4)','col_primary'=>'tinyint(1)','col_options'=>'text','col_clone_target'=>'tinytext','col_status'=>'tinytext','col_gridspace_right'=>'tinytext','col_gridspace_left'=>'tinytext','col_flex_box'=>'tinytext','col_grid_width'=>'tinytext','col_grid_clone'=>'tinytext','col_style'=>'text','col_style2'=>'text','col_temp'=>'tinytext','col_grp_bor_style'=>'text','col_comment_style'=>'text','col_date_style'=>'text','col_comment_date_style'=>'text','col_comment_view_style'=>'text','col_clone_target_base'=>'tinytext','col_hr'=>'tinytext','col_update'=>'tinytext','col_width'=>'tinytext','col_tcol_num'=>'decimal(5,1)','token'=>'tinytext','col_time'=>'tinytext','col_class1'=>'text','col_class2'=>'text','col_class3'=>'text','col_class4'=>'text','col_class5'=>'text','col_style3'=>'text');
+     $master_col_css_array=array('css_id'=>'smallint(5) unsigned','col_id'=>'tinytext','col_table_base'=>'tinytext','col_table'=>'tinytext','col_num'=>'tinyint(4)','col_primary'=>'tinyint(1)','col_options'=>'tinytext','col_clone_target'=>'tinytext','col_status'=>'tinytext','col_gridspace_right'=>'tinytext','col_gridspace_left'=>'tinytext','col_flex_box'=>'tinytext','col_grid_width'=>'tinytext','col_grid_clone'=>'tinytext','col_style'=>'text','col_style2'=>'text','col_temp'=>'tinytext','col_grp_bor_style'=>'text','col_comment_style'=>'text','col_date_style'=>'text','col_comment_date_style'=>'text','col_comment_view_style'=>'text','col_clone_target_base'=>'tinytext','col_hr'=>'tinytext','col_update'=>'tinytext','col_width'=>'tinytext','col_tcol_num'=>'decimal(5,1)','token'=>'tinytext','col_time'=>'tinytext','col_class1'=>'text','col_class2'=>'text','col_class3'=>'text','col_class4'=>'text','col_class5'=>'text','col_style3'=>'text');
 
-     $master_page_array=array('page_id'=>'key','page_ref'=>'tinytext','page_title'=>'tinytext','page_filename'=>'tinytext','page_width'=>'smallint(6)','page_pic_quality'=>'tinyint(4)','page_style'=>'text','page_custom_css'=>'tinytext','page_head'=>'text','keywords'=>'tinytext','metadescription'=>'tinytext','page_data1'=>'text','page_data2'=>'text','page_update'=>'tinytext','page_data3'=>'text','page_data4'=>'text','page_data5'=>'text','page_data6'=>'text','page_data7'=>'text','page_data8'=>'text','page_data9'=>'text','page_data10'=>'text','use_tags'=>'tinyint(4)','page_options'=>'text','page_break_points'=>'tinytext','page_cache'=>'tinytext','page_dark_editor_value'=>'text','page_light_editor_value'=>'text','page_dark_editor_order'=>'text','page_light_editor_order'=>'text','page_comment_style'=>'text','page_date_style'=>'text','page_comment_date_style'=>'text','page_comment_view_style'=>'text','page_style_day'=>'text','page_style_month'=>'text','page_grp_bor_style'=>'text','page_hr'=>'tinytext','page_h1'=>'text','page_h2'=>'text','page_h3'=>'text','page_h4'=>'text','page_h5'=>'text','page_h6'=>'text','page_myclass1'=>'text','page_myclass2'=>'text','page_myclass3'=>'tinytext','page_myclass4'=>'text','page_myclass5'=>'text','page_myclass6'=>'text','page_myclass7'=>'text','page_myclass8'=>'text','page_myclass9'=>'text','page_myclass10'=>'text','page_myclass11'=>'text','page_myclass12'=>'text','page_tiny_data1'=>'tinytext','page_tiny_data2'=>'tinytext','page_tiny_data3'=>'tinytext','page_tiny_data4'=>'tinytext','page_tiny_data5'=>'tinytext','page_tiny_data6'=>'tinytext','page_tiny_data7'=>'tinytext','page_tiny_data8'=>'tinytext','page_tiny_data9'=>'tinytext','page_tiny_data10'=>'tinytext','page_clipboard'=>'text','page_link'=>'text','page_link_hover'=>'text','page_time'=>'tinytext','token'=>'tinytext');
-     $master_post_array=array('blog_id'=>'key','blog_col'=>'mediumint(11) unsigned','blog_order'=>'smallint(5) unsigned','blog_type'=>'tinytext','blog_table'=>'tinytext','blog_gridspace_right'=>'tinytext','blog_gridspace_left'=>'tinytext','blog_grid_width'=>'tinytext','blog_flex_box'=>'tinytext','blog_data1'=>'text','blog_data2'=>'text','blog_data3'=>'text','blog_data4'=>'text','blog_data5'=>'text','blog_data6'=>'text','blog_data7'=>'text','blog_data8'=>'text','blog_data9'=>'text','blog_data10'=>'text','blog_data11'=>'text','blog_data12'=>'text','blog_data13'=>'text','blog_data14'=>'text','blog_data15'=>'text','blog_tiny_data1'=>'tinytext','blog_tiny_data2'=>'tinytext','blog_tiny_data3'=>'tinytext','blog_tiny_data4'=>'tinytext','blog_tiny_data5'=>'tinytext','blog_tiny_data6'=>'tinytext','blog_tiny_data7'=>'tinytext','blog_tiny_data8'=>'tinytext','blog_tiny_data9'=>'tinytext','blog_tiny_data10'=>'tinytext','blog_tiny_data11'=>'tinytext','blog_tiny_data12'=>'tinytext','blog_tiny_data13'=>'tinytext','blog_tiny_data14'=>'tinytext','blog_tiny_data15'=>'tinytext','blog_grid_clone'=>'tinytext','blog_style'=>'text','blog_style2'=>'tinytext','blog_table_base'=>'tinytext','blog_text'=>'text','blog_border_start'=>'tinytext','blog_border_stop'=>'tinytext','blog_global_style'=>'tinytext','blog_date'=>'tinytext','blog_width'=>'tinytext','blog_width_mode'=>'tinytext','blog_status'=>'tinytext','blog_unstatus'=>'tinytext','blog_clone_target'=>'tinytext','blog_target_table_base'=>'tinytext','blog_clone_table'=>'tinytext','blog_float'=>'tinytext','blog_unclone'=>'tinytext','blog_tag'=>'tinytext','blog_options'=>'text','blog_update'=>'tinytext','blog_pub'=>'tinyint(4)','blog_temp'=>'mediumint(5) unsigned','blog_time'=>'tinytext','token'=>'tinytext');
-     $master_post_css_array=array('css_id'=>'key','blog_id'=>'tinytext','blog_orig_val_id'=>'tinytext','blog_col'=>'mediumint(11) unsigned','blog_order'=>'smallint(5) unsigned','blog_type'=>'tinytext','blog_table'=>'tinytext','blog_gridspace_right'=>'tinytext','blog_gridspace_left'=>'tinytext','blog_grid_width'=>'tinytext','blog_data1'=>'text','blog_data2'=>'text','blog_data3'=>'text','blog_data4'=>'text','blog_data5'=>'text','blog_data6'=>'text','blog_data7'=>'text','blog_data8'=>'text','blog_data9'=>'text','blog_data10'=>'text','blog_data11'=>'text','blog_data12'=>'text','blog_data13'=>'text','blog_data14'=>'text','blog_data15'=>'text','blog_tiny_data1'=>'tinytext','blog_tiny_data2'=>'tinytext','blog_tiny_data3'=>'tinytext','blog_tiny_data4'=>'tinytext','blog_tiny_data5'=>'tinytext','blog_tiny_data6'=>'tinytext','blog_tiny_data7'=>'tinytext','blog_tiny_data8'=>'tinytext','blog_tiny_data9'=>'tinytext','blog_tiny_data10'=>'tinytext','blog_tiny_data11'=>'tinytext','blog_tiny_data12'=>'tinytext','blog_tiny_data13'=>'tinytext','blog_tiny_data14'=>'tinytext','blog_tiny_data15'=>'tinytext','blog_grid_clone'=>'tinytext','blog_style'=>'text','blog_style2'=>'tinytext','blog_table_base'=>'tinytext','blog_text'=>'text','blog_border_start'=>'tinytext','blog_border_stop'=>'tinytext','blog_global_style'=>'tinytext','blog_date'=>'tinytext','blog_width'=>'tinytext','blog_flex_box'=>'tinytext','blog_width_mode'=>'tinytext','blog_status'=>'tinytext','blog_unstatus'=>'tinytext','blog_clone_target'=>'tinytext','blog_target_table_base'=>'tinytext','blog_clone_table'=>'tinytext','blog_float'=>'tinytext','blog_unclone'=>'tinytext','blog_tag'=>'tinytext','blog_options'=>'tinytext','blog_update'=>'tinytext','blog_pub'=>'tinyint(4)','blog_temp'=>'mediumint(5) unsigned','blog_time'=>'tinytext','token'=>'tinytext');
-     $master_post_data_array=array('data_id'=>'key','blog_id'=>'tinytext','blog_orig_val_id'=>'tinytext','blog_col'=>'mediumint(11) unsigned','blog_order'=>'smallint(5) unsigned','blog_type'=>'tinytext','blog_table'=>'tinytext','blog_gridspace_right'=>'tinytext','blog_gridspace_left'=>'tinytext','blog_grid_width'=>'tinytext','blog_adv_media'=>'tinytext','blog_data1'=>'text','blog_data2'=>'text','blog_data3'=>'text','blog_data4'=>'text','blog_data5'=>'text','blog_data6'=>'text','blog_data7'=>'text','blog_data8'=>'text','blog_data9'=>'text','blog_data10'=>'text','blog_data15'=>'text','blog_data11'=>'text','blog_data12'=>'text','blog_data13'=>'text','blog_data14'=>'text','blog_tiny_data1'=>'tinytext','blog_tiny_data2'=>'tinytext','blog_tiny_data3'=>'tinytext','blog_tiny_data4'=>'tinytext','blog_tiny_data5'=>'tinytext','blog_tiny_data6'=>'tinytext','blog_tiny_data7'=>'tinytext','blog_tiny_data8'=>'tinytext','blog_tiny_data9'=>'tinytext','blog_tiny_data10'=>'tinytext','blog_tiny_data11'=>'tinytext','blog_tiny_data12'=>'tinytext','blog_tiny_data13'=>'tinytext','blog_tiny_data14'=>'tinytext','blog_tiny_data15'=>'tinytext','blog_grid_clone'=>'tinytext','blog_style'=>'text','blog_style2'=>'tinytext','blog_table_base'=>'tinytext','blog_text'=>'text','blog_border_start'=>'tinytext','blog_border_stop'=>'tinytext','blog_global_style'=>'tinytext','blog_date'=>'tinytext','blog_width'=>'tinytext','blog_width_mode'=>'tinytext','blog_flex_box'=>'tinytext','blog_status'=>'tinytext','blog_unstatus'=>'tinytext','blog_clone_target'=>'tinytext','blog_target_table_base'=>'tinytext','blog_clone_table'=>'tinytext','blog_float'=>'tinytext','blog_unclone'=>'tinytext','blog_tag'=>'tinytext','blog_options'=>'tinytext','blog_update'=>'tinytext','blog_pub'=>'tinyint(4)','blog_temp'=>'mediumint(5) unsigned','blog_time'=>'tinytext','token'=>'tinytext');
+     $master_page_array=array('page_id'=>'key','page_ref'=>'tinytext','page_title'=>'tinytext','page_filename'=>'tinytext','page_width'=>'smallint(6)','page_pic_quality'=>'tinyint(4)','page_style'=>'text','page_style2'=>'text','page_style3'=>'text','page_custom_css'=>'text','page_head'=>'text','keywords'=>'tinytext','metadescription'=>'tinytext','page_data1'=>'text','page_data2'=>'text','page_update'=>'tinytext','page_data3'=>'text','page_data4'=>'text','page_data5'=>'text','page_data6'=>'text','page_data7'=>'text','page_data8'=>'text','page_data9'=>'text','page_data10'=>'text','use_tags'=>'tinyint(4)','page_options'=>'text','page_break_points'=>'tinytext','page_cache'=>'tinytext','page_dark_editor_value'=>'text','page_light_editor_value'=>'text','page_dark_editor_order'=>'text','page_light_editor_order'=>'text','page_comment_style'=>'text','page_date_style'=>'text','page_comment_date_style'=>'text','page_comment_view_style'=>'text','page_style_day'=>'text','page_style_month'=>'text','page_grp_bor_style'=>'text','page_hr'=>'tinytext','page_h1'=>'text','page_h2'=>'text','page_h3'=>'text','page_h4'=>'text','page_h5'=>'text','page_h6'=>'text','page_myclass1'=>'text','page_myclass2'=>'text','page_myclass3'=>'tinytext','page_myclass4'=>'text','page_myclass5'=>'text','page_myclass6'=>'text','page_myclass7'=>'text','page_myclass8'=>'text','page_myclass9'=>'text','page_myclass10'=>'text','page_myclass11'=>'text','page_myclass12'=>'text','page_tiny_data1'=>'tinytext','page_tiny_data2'=>'tinytext','page_tiny_data3'=>'tinytext','page_tiny_data4'=>'tinytext','page_tiny_data5'=>'tinytext','page_tiny_data6'=>'tinytext','page_tiny_data7'=>'tinytext','page_tiny_data8'=>'tinytext','page_tiny_data9'=>'tinytext','page_tiny_data10'=>'tinytext','page_clipboard'=>'text','page_link'=>'text','page_link_hover'=>'text','page_time'=>'tinytext','token'=>'tinytext');
+     $master_post_array=array('blog_id'=>'key','blog_col'=>'mediumint(11) unsigned','blog_order'=>'smallint(5) unsigned','blog_type'=>'tinytext','blog_table'=>'tinytext','blog_gridspace_right'=>'tinytext','blog_gridspace_left'=>'tinytext','blog_grid_width'=>'tinytext','blog_flex_box'=>'tinytext','blog_data1'=>'text','blog_data2'=>'text','blog_data3'=>'text','blog_data4'=>'text','blog_data5'=>'text','blog_data6'=>'text','blog_data7'=>'text','blog_data8'=>'text','blog_data9'=>'text','blog_data10'=>'text','blog_data11'=>'text','blog_data12'=>'text','blog_data13'=>'text','blog_data14'=>'text','blog_data15'=>'text','blog_tiny_data1'=>'tinytext','blog_tiny_data2'=>'tinytext','blog_tiny_data3'=>'tinytext','blog_tiny_data4'=>'tinytext','blog_tiny_data5'=>'tinytext','blog_tiny_data6'=>'tinytext','blog_tiny_data7'=>'tinytext','blog_tiny_data8'=>'tinytext','blog_tiny_data9'=>'tinytext','blog_tiny_data10'=>'tinytext','blog_tiny_data11'=>'tinytext','blog_tiny_data12'=>'tinytext','blog_tiny_data13'=>'tinytext','blog_tiny_data14'=>'tinytext','blog_tiny_data15'=>'tinytext','blog_grid_clone'=>'tinytext','blog_style'=>'text','blog_style2'=>'text','blog_table_base'=>'tinytext','blog_text'=>'text','blog_border_start'=>'tinytext','blog_border_stop'=>'tinytext','blog_global_style'=>'tinytext','blog_date'=>'tinytext','blog_width'=>'tinytext','blog_width_mode'=>'tinytext','blog_status'=>'tinytext','blog_unstatus'=>'tinytext','blog_clone_target'=>'tinytext','blog_target_table_base'=>'tinytext','blog_clone_table'=>'tinytext','blog_float'=>'tinytext','blog_unclone'=>'tinytext','blog_tag'=>'tinytext','blog_options'=>'text','blog_update'=>'tinytext','blog_pub'=>'tinyint(4)','blog_temp'=>'mediumint(5) unsigned','blog_time'=>'tinytext','token'=>'tinytext','blog_style3'=>'text');
+     $master_post_css_array=array('css_id'=>'key','blog_id'=>'tinytext','blog_orig_val_id'=>'tinytext','blog_col'=>'mediumint(11) unsigned','blog_order'=>'smallint(5) unsigned','blog_type'=>'tinytext','blog_table'=>'tinytext','blog_gridspace_right'=>'tinytext','blog_gridspace_left'=>'tinytext','blog_grid_width'=>'tinytext','blog_data1'=>'text','blog_data2'=>'text','blog_data3'=>'text','blog_data4'=>'text','blog_data5'=>'text','blog_data6'=>'text','blog_data7'=>'text','blog_data8'=>'text','blog_data9'=>'text','blog_data10'=>'text','blog_data11'=>'text','blog_data12'=>'text','blog_data13'=>'text','blog_data14'=>'text','blog_data15'=>'text','blog_tiny_data1'=>'tinytext','blog_tiny_data2'=>'tinytext','blog_tiny_data3'=>'tinytext','blog_tiny_data4'=>'tinytext','blog_tiny_data5'=>'tinytext','blog_tiny_data6'=>'tinytext','blog_tiny_data7'=>'tinytext','blog_tiny_data8'=>'tinytext','blog_tiny_data9'=>'tinytext','blog_tiny_data10'=>'tinytext','blog_tiny_data11'=>'tinytext','blog_tiny_data12'=>'tinytext','blog_tiny_data13'=>'tinytext','blog_tiny_data14'=>'tinytext','blog_tiny_data15'=>'tinytext','blog_grid_clone'=>'tinytext','blog_style'=>'text','blog_style2'=>'text','blog_table_base'=>'tinytext','blog_text'=>'text','blog_border_start'=>'tinytext','blog_border_stop'=>'tinytext','blog_global_style'=>'tinytext','blog_date'=>'tinytext','blog_width'=>'tinytext','blog_flex_box'=>'tinytext','blog_width_mode'=>'tinytext','blog_status'=>'tinytext','blog_unstatus'=>'tinytext','blog_clone_target'=>'tinytext','blog_target_table_base'=>'tinytext','blog_clone_table'=>'tinytext','blog_float'=>'tinytext','blog_unclone'=>'tinytext','blog_tag'=>'tinytext','blog_options'=>'tinytext','blog_update'=>'tinytext','blog_pub'=>'tinyint(4)','blog_temp'=>'mediumint(5) unsigned','blog_time'=>'tinytext','token'=>'tinytext','blog_style3'=>'text');
+     $master_post_data_array=array('data_id'=>'key','blog_id'=>'tinytext','blog_orig_val_id'=>'tinytext','blog_col'=>'mediumint(11) unsigned','blog_order'=>'smallint(5) unsigned','blog_type'=>'tinytext','blog_table'=>'tinytext','blog_gridspace_right'=>'tinytext','blog_gridspace_left'=>'tinytext','blog_grid_width'=>'tinytext','blog_data1'=>'text','blog_data2'=>'text','blog_data3'=>'text','blog_data4'=>'text','blog_data5'=>'text','blog_data6'=>'text','blog_data7'=>'text','blog_data8'=>'text','blog_data9'=>'text','blog_data10'=>'text','blog_data15'=>'text','blog_data11'=>'text','blog_data12'=>'text','blog_data13'=>'text','blog_data14'=>'text','blog_tiny_data1'=>'tinytext','blog_tiny_data2'=>'tinytext','blog_tiny_data3'=>'tinytext','blog_tiny_data4'=>'tinytext','blog_tiny_data5'=>'tinytext','blog_tiny_data6'=>'tinytext','blog_tiny_data7'=>'tinytext','blog_tiny_data8'=>'tinytext','blog_tiny_data9'=>'tinytext','blog_tiny_data10'=>'tinytext','blog_tiny_data11'=>'tinytext','blog_tiny_data12'=>'tinytext','blog_tiny_data13'=>'tinytext','blog_tiny_data14'=>'tinytext','blog_tiny_data15'=>'tinytext','blog_grid_clone'=>'tinytext','blog_style'=>'text','blog_style2'=>'text','blog_table_base'=>'tinytext','blog_text'=>'text','blog_border_start'=>'tinytext','blog_border_stop'=>'tinytext','blog_global_style'=>'tinytext','blog_date'=>'tinytext','blog_width'=>'tinytext','blog_width_mode'=>'tinytext','blog_flex_box'=>'tinytext','blog_status'=>'tinytext','blog_unstatus'=>'tinytext','blog_clone_target'=>'tinytext','blog_target_table_base'=>'tinytext','blog_clone_table'=>'tinytext','blog_float'=>'tinytext','blog_unclone'=>'tinytext','blog_tag'=>'tinytext','blog_options'=>'tinytext','blog_update'=>'tinytext','blog_pub'=>'tinyint(4)','blog_temp'=>'mediumint(5) unsigned','blog_time'=>'tinytext','token'=>'tinytext','blog_style3'=>'text');
 $backups_db_array=array('backup_id'=>'key','backup_filename'=>'tinytext','backup_time'=>'tinytext','backup_date'=>'tinytext','backup_restore_time'=>'tinytext','backup_data1'=>'tinytext','token'=>'tinytext');
      $table_array=array('master_page'=>'page_style','columns'=>'col_style','master_col_css'=>'col_style','master_post'=>'blog_style','master_post_css'=>'blog_style','master_post_data'=>'blog_style','backups_db'=>'backup_time');
      $char_arr=array('text','char','blob');
      foreach ($table_array as $table => $table_field){
           $q = "SHOW COLUMNS FROM $table";  
           $rx = $this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
-          if (!$this->mysqlinst->affected_rows())continue;
+          if (!$this->mysqlinst->affected_rows()){
+			$ftype=($table_field === 'backuptime')?'tinytext':'text';
+			$q=" CREATE TABLE IF NOT EXISTS $table
+			(
+			  $table_field $ftype
+			);";
+			$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
+			$q = "SHOW COLUMNS FROM $table";
+			$rx = $this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
+			}
           $page_list=array();
           while($row = mysqli_fetch_array($rx)){
                $page_list[$row['Field']]=$row['Type'];
@@ -4479,9 +4670,9 @@ $backups_db_array=array('backup_id'=>'key','backup_filename'=>'tinytext','backup
                } 
           foreach (${$table.'_array'} as $field => $type){
                 $character=(in_array($type,$char_arr))?'CHARACTER SET utf8 COLLATE utf8_bin':'';
-               $after=(array_key_exists($table_field,$page_list))?"AFTER $table_field":''; 
+               $after=(array_key_exists($table_field,$page_list))?"AFTER $table_field":''; //organization only
                if ($type=='key'&&!array_key_exists($field,$page_list)){ 
-                    $q="ALTER TABLE `$table` ADD `$field` MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT FIRST, ADD PRIMARY KEY (`$field`)";echo $q;
+                    $q="ALTER TABLE `$table` ADD `$field` MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT FIRST, ADD PRIMARY KEY (`$field`)"; 
                     $this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
                     }
                elseif (!array_key_exists($field,$page_list)){
@@ -4543,11 +4734,14 @@ function echo_msg(){  if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__)
 	if  (isset($_SESSION[Cfg::Owner.'update_msg'])&&!empty($_SESSION[Cfg::Owner.'update_msg'])&&!isset($_POST['submit'])){ //here we dont display on submit but when reaching destructor function we refresh page ie. new page will not be submitted. 
 	 
 		$mymessages=array_unique($_SESSION[Cfg::Owner.'update_msg']);
-		echo '<div class="fs1redAlert"><!--outerwrap message alerting-->';
-		echo '<div class="fsminfo whitebackground"><!--innerwrap message alerting-->';
+		echo '
+<div class="fs1redAlert"><!--outerwrap message alerting-->';
+		echo '
+<div class="fsminfo whitebackground"><!--innerwrap message alerting-->';
 		printer::printx('<p class="fsmred editbackground  editfont info floatleft large">Hit the Browser Refresh Button <a href="'.Sys::Self.'">  <img src="'.Cfg_loc::Root_dir.'refresh_button.png" alt="refresh button" width="20" height="20"> once or twice to Insure All New Styles are Updated!!</a></p>');
 		printer::pclear();
-		print '<div class="fs2navy left large p10all editbackground  editfont maxwidth700"><!--Alert Messages--> ';
+		print '
+<div class="fs2navy left large p10all editbackground  editfont maxwidth700"><!--Alert Messages--> ';
 		foreach ($mymessages as $message){
 			print($message);
 			printer::pclear();
@@ -4577,14 +4771,14 @@ function alert($msg,$return=false){
  
 function render_body_end(){   if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
 	(Sys::Deltatime)&&$this->deltatime->delta_log(__line__.' @ '.__method__.'  ');
-	$this->deltatime->delta_log('body main');
+	(Sys::Deltatime)&&$this->deltatime->delta_log('body main');
 	if (Sys::Debug){
 		echo $this->echo_eob;#echo the time
 		}
       
-       // $this->render_body_end_add2();//just depends where you want the extra info		
+       // $this->render_body_end_add2();//just depends where you want the extra info
+     $this->destructor();	//get destructor in before form  close for orphan unclone choices...
 	if ($this->edit){// css is rendered to file before destructor
-		$this->destructor();	//get destructor in before form  close for orphan unclone choices...
 		$this->edit_form_end();
           echo '<p id="bottom"></p>';
 		}
@@ -4697,13 +4891,14 @@ function show_more($msg_open,$msg_var='',$class='',$title='',$width=800,$showwid
 	$lesswidth=($this->current_net_width<80)?5:20;
 	$zstyle='';//'position:relative;';
 	 
-	$stylewidth='style="'.$zstyle.'"';(!empty($showwidth))?'style="'.$zstyle.'max-width:'.$showwidth.$styledirect.'"':((isset($this->current_net_width)&&!empty($this->current_net_width))?'style="'.$zstyle.'max-width:'.($this->current_net_width-$lesswidth).'px;'.$styledirect.'"':(!empty($styledirect)?'style="'.$zstyle.$styledirect.';"':''));
+	$stylewidth='style="'.$zstyle.'"';//(!empty($showwidth))?'style="'.$zstyle.'max-width:'.$showwidth.$styledirect.'"':((isset($this->current_net_width)&&!empty($this->current_net_width))?'style="'.$zstyle.'max-width:'.($this->current_net_width-$lesswidth).'px;'.$styledirect.'"':(!empty($styledirect)?'style="'.$zstyle.$styledirect.';"':''));
 	$floatleft=(strpos($class,'float')===false)?'floatleft':'';
      $onClick=(strpos($msg_var,'buffer')!==false&&!Sys::Nobuffer)?'gen_Proc.use_ajax(\''.Sys::Self.'?bufferOutput='.$msg_var.'\',\'handle_replace\',\'get\');':'';
      $id=(strpos($msg_var,'buffer')!==false&&!Sys::Nobuffer)?$msg_var:'show'.$this->show_more;
-    echo '<p class="clear '.$floatleft.' left underline  shadowoff cursor '.$class.'" title="'.$title.'" '.$stylewidth.'  onclick="gen_Proc.show(\''.$id.'\',\''.$msg_open_mod.'\',\''.$msg_var.'\',\''.$width.'\', \''.$mainstyle.'\');'.$onClick.'" id="'.$id.'">'.$msg_open.'</p>';
-    printer::pclear();
-    echo '<div class="clear floatleft '.$background.' left"   id="'.$id.'t" style="display: none; '.$styledirect.'"><!--'.$msg_open_mod.'-->';
+    echo '<p class=" '.$floatleft.' left underline  shadowoff cursor '.$class.'" title="'.$title.'" '.$stylewidth.'  onclick="gen_Proc.show(\''.$id.'\',\''.$msg_open_mod.'\',\''.$msg_var.'\',\''.$width.'\', \''.$mainstyle.'\');'.$onClick.'" id="'.$id.'">'.$msg_open.'</p>';
+    printer::pclear();//if ($msg_var !=='no_clear')
+    echo '
+<div class="clear floatleft '.$background.' left"   id="'.$id.'t" style="display: none; '.$styledirect.'"><!--'.$msg_open_mod.'-->';
      $type=($this->is_page)?' is page and '.$msg_open:(($this->is_column)?' is column id '.$this->col_id.' '.$msg_open:' is blog and id is '.$this->blog_id. '  '.$msg_open); 
     if (strpos($msg_var,'buffer')!==false&&!Sys::Nobuffer){ 
            ob_start();
@@ -4762,7 +4957,37 @@ function plus2($msg){ if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__)
 
 function update_arrays(){  
 	if (Sys::Pass_class)return;
-	if (!$this->edit)return;
+     if (is_file(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'scriptArr_Master.dat')){//master script of all pages containing original scripts.
+          $arr=unserialize(file_get_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'scriptArr_Master.dat'));
+          $arr[$this->pagename]=$this->scriptArr;//pagename arrays replaced outright to keep all current in case of moving/deletion 
+          file_put_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'scriptArr_Master.dat',serialize($arr));
+          }
+     else {
+          $arr=array();
+          $arr[$this->pagename]=$this->scriptArr;
+          file_put_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'scriptArr_Master.dat',serialize($arr));
+          }
+     if (is_file(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'master_css_arr.dat')){//master script of all pages containing original scripts.
+          $arr=unserialize(file_get_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'master_css_arr.dat'));
+          $arr[$this->pagename]=$this->css_page_array;//pagename arrays replaced outright to keep all current in case of moving/deletion 
+          file_put_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'master_css_arr.dat',serialize($arr));
+          }
+     else {
+          $arr=array();
+          $arr[$this->pagename]=$this->css_page_array;
+          file_put_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'master_css_arr.dat',serialize($arr));
+          }
+	 
+     file_put_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'css_page_array_'.$this->pagename.'.dat',serialize($this->css_page_array));
+     file_put_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'script_'.$this->pagename.'.dat',$this->script);
+     file_put_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'noloadscript_'.$this->pagename.'.dat',$this->noloadscript);
+     file_put_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'onresizescript_'.$this->pagename.'.dat',$this->onresizescript);
+     file_put_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'onresizescriptonce_'.$this->pagename.'.dat',serialize($this->onresizescriptonce));
+     file_put_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'clone_list_id_'.$this->pagename.'.dat',serialize($this->clone_list_id));
+     file_put_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'header_script_once_'.$this->pagename.'.dat',serialize($this->header_script_once)); 
+     file_put_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'header_css_once_'.$this->pagename.'.dat',serialize($this->header_css_once)); 
+     file_put_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'initiate_script_once_'.$this->pagename.'.dat',serialize($this->initiate_script_once));
+     file_put_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'jsResizeArr_'.$this->pagename.'.dat',serialize($this->jsResizeArr));
      file_put_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'sibling_id_arr_'.$this->pagename.'.dat',serialize($this->sibling_id_arr));
      file_put_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'display_anchor_'.$this->pagename.'.dat',serialize($this->id_array));
      foreach(array(Cfg::Page_images_dir,Cfg::Page_images_expand_dir,Cfg::Large_image_dir,Cfg::Auto_slide_dir) as $dir){
@@ -4784,9 +5009,11 @@ function update_arrays(){
 	}
 	
 function destructor(){// css is rendered to file before destructor 
-	$this->update_arrays(); 
-	$this->deltatime->delta_log('begin destructor');  
-	echo '<div class="inline floatleft"><!-- float buttons-->';
+	if (!$this->edit)return;
+	$this->update_arrays();
+	(Sys::Deltatime)&&$this->deltatime->delta_log('begin destructor');  
+	echo '
+<div class="inline floatleft"><!-- float buttons-->';
 	$msg='Advanced Style Css is Always Displayed On in Normal Webpage but toggled in the editor. Toggle here';
 	if (!Sys::Advanced) 
 		printer::printx('<p class="buttonnavymini highlight supertiny" title="'.$msg.'"> <a class="highlight click" href="'.Sys::Self.'?advanced">Enable Advanced Display</a></p>');
@@ -4794,7 +5021,7 @@ function destructor(){// css is rendered to file before destructor
 		echo '</div><!-- float buttons--><!--float button-->'; 
 	if (isset($_GET['iframepos']))return;//the following unnecessary for updating css and flatfiles.
 	if (Sys::Methods)   Sys::Debug(__LINE__,__FILE__,__METHOD__);if (Sys::Quietmode) return;
-	if (isset($_POST['submit'])&&Sys::Norefresh){//printer::vert_print($this->backup_page_arr); 
+	if (isset($_POST['submit'])&&Sys::Norefresh){
 		printer::print_request();
 		if (isset($_SESSION[Cfg::Owner.'QUERY'])){
 			printer::horiz_print($_SESSION[Cfg::Owner.'QUERY']);
@@ -4848,10 +5075,10 @@ function destructor(){// css is rendered to file before destructor
 			print NL.'Collect List:'.NL;
 			printer::vert_print($this->list);
 			}
-          if (Sys::Deltatime&&isset($_POST['submit'])&&!Sys::Norefresh){
+          if ((Sys::Deltatime||Sys::Deltatimepost)&&isset($_POST['submit'])&&!Sys::Norefresh){
                $_SESSION[Cfg::Owner.'update_msg'][]=printer::alert($this->deltatime->return_delta_log(),1,'small');
                }
-		else if(Sys::Deltatime) printer::alert( $this->deltatime->return_delta_log());
+		else if(Sys::Deltatime||Sys::Deltatimepost) printer::alert( $this->deltatime->return_delta_log());
 	printer::pclear();
 		}
 	//check for unclones
@@ -4866,7 +5093,8 @@ function destructor(){// css is rendered to file before destructor
 		}
 	if ($this->edit&&$count>0){  
 		$this->styleoff=true;//redundant
-		echo '<div class="editbackground  editfont width600 editfont fd5brightgreen" id="leftovers"><!--begin Unclone Orphans-->';
+		echo '
+<div class="editbackground  editfont width600 editfont fd5brightgreen" id="leftovers"><!--begin Unclone Orphans-->';
 		$q="select blog_id,blog_col,blog_type,blog_order,blog_table,blog_data1 from $this->master_post_table where blog_unclone!='' and blog_unstatus='unclone' AND blog_table_base='$this->pagename'";  
 		$r=$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);	 
 		if ($this->mysqlinst->affected_rows()) {
@@ -4876,10 +5104,9 @@ function destructor(){// css is rendered to file before destructor
 				 
 				$data=$this->pagename.'_colId_'.$blog_col.'_postId_'.$blog_id;
 				if (in_array($blog_id,$this->current_unclone_table)) continue;
-				 echo '<div class="fs2aqua maxwidth500"><!--Wrap View-->';
-				 //
+				 echo '
+<div class="fs2aqua maxwidth500"><!--Wrap View-->';
 				 $this->accessvar_obj($this->master_post_table,Cfg::Post_fields,'blog_table',$blog_table,'blog_order',$blog_order);
-  				//self::editpages_obj($this->master_post_table,Cfg::Post_fields,'','blog_order',$blog_order,'blog_table',$blog_table,'populate_data');
 				$this->blog_id=$blog_id;
 				$this->column_level=0;
 		
@@ -4893,7 +5120,8 @@ function destructor(){// css is rendered to file before destructor
 				$post_prefix=($this->blog_type==='nested_column')?'C':'P';
 				printer::printx('<p class="fs1black editbackground  editfont editcolor"><input type="checkbox" name="'.$name.'[]" value="'.$id.'">Check Here to Delete Orphaned Unclone Type: ' .str_replace('_',' ',strtoupper($this->blog_type)).' OR Use Id '.$post_prefix.$id.$msg.'  </p>');
 				 $this->show_more('View '.$blog_type,'Close View');//show more View
-				echo '<div style="max-width:500px" class="maxwidth500 fs2pos"><!--view unclone wrap-->';
+				echo '
+<div style="max-width:500px" class="maxwidth500 fs2pos"><!--view unclone wrap-->';
 				$this->blog_table_base='';
 				$this->col_table_base='';
 				if ($this->blog_type==='text'){
@@ -4918,10 +5146,19 @@ function destructor(){// css is rendered to file before destructor
 				 if ($this->blog_type==='contact'){ 
 					$this->contact_form($data,'',false,'Edit Overall Contact Form Styling',true,$this->blog_table); 
 					}
+                    if ($this->blog_type==='auto_slide'){
+                        $this->auto_slide($data,'blog'); 
+                        }
+                    if ($this->blog_type==='carousel'){
+                        $this->carousel($data,'blog'); 
+                        }
+                    if ($this->blog_type==='gallery'){ 
+                        $this->gallery($data,$this->blog_data1); 
+                        }
 				if ($this->blog_type==='social_icons'){
 					$this->social_icons($data,'',false,'Edit Social Icon Styling',true,$this->blog_table); 
 					}
-				 if ($this->blog_type==='navigation_menu'){  
+				if ($this->blog_type==='navigation_menu'){  
 					$this->nav_menu($data,$this->blog_data1,false,'',true,$tablename); 
 					} 
 		 
@@ -4971,7 +5208,6 @@ function destructor(){// css is rendered to file before destructor
 			}
 		if ($count==0)unset($_SESSION[Cfg::Owner.'_'.$this->pagename.'_leftovers']);
 		else $_SESSION[Cfg::Owner.'_'.$this->pagename.'_leftovers']=true;
-				
 		}// if this edit...
 	 
 			
@@ -4987,6 +5223,10 @@ function destructor(){// css is rendered to file before destructor
 	
         #this is replaced with alert message to update when ready not everytime!!
           if (ob_get_contents()) {
+			if ((Sys::Deltatime||Sys::Deltatimepost)&&isset($_POST['submit'])&&!Sys::Norefresh){
+               $_SESSION[Cfg::Owner.'update_msg'][]=printer::alert($this->deltatime->return_delta_log(),1,'small');
+               }
+		else if(Sys::Deltatime||Sys::Deltatimepost) printer::alert( $this->deltatime->return_delta_log());
                     $data = ob_get_contents();
                     ob_end_clean();
                      
@@ -5039,10 +5279,8 @@ eol;
 		$dv=get_defined_vars();
 		echo NL.'defined vars: '; print_r($dv);
 		}
-	if ($this->users_record){ return; 
+	if ($this->users_data){ return; 
 		$usr=users::instance();
-	   //($this->edit)&&$usr->put('edit','edit');#defualt is noedit..
-		//$usr->delta_log($this->deltatime->return_delta_log());
 		$usr->diff_request_ini=$this->deltatime->diff_request_ini;
 		($this->browser_info&&$this->browser_active)&&$usr->browser_info='true'; 	
 		$usr->cookie_count=$this->cookie_count;
@@ -5066,9 +5304,10 @@ eol;
 		 mail::alert('ob_get_contents bypassed header redirect');
 		 //if (!file_put_contents(Sys::Home_pub.'bufferoutput.txt',$data)) mail::alert('buffer output data file failure');
 		}
-     printer::alert_pos(NL.'memory: '.memory_get_usage(),1.3);
+     printer::alert_pos(NL.'memory: '.memory_get_usage(),.7);
 	if (Sys::Methods)   Sys::Debug(__LINE__,__FILE__,__METHOD__);
-	$this->deltatime->delta_log('end destructor');  
+	$this->deltatime->delta_log('Total Server Time');
+	 printer::alert_pos( $this->deltatime->return_delta_log(),.7);
     }
     
     
@@ -5081,24 +5320,24 @@ eol;
 #csscreate  #cssinit
 
 function css_stylesheet_include(){
-	$array=array_unique($this->page_stylesheet_inc);  
+	$array=array_unique($this->page_has_clone_inc); //this can be used to narrow down use of master_css_arr.dat  but omitted at present  
 	$data= (count($array)>0)?implode(',',$array):''; 
-	file_put_contents(Cfg_loc::Root_dir.Cfg::Data_dir.'page_stylesheet_'.$this->pagename.$this->passclass_ext,$data);
+	file_put_contents(Cfg_loc::Root_dir.Cfg::Data_dir.'page_has_clone_'.$this->pagename.$this->passclass_ext,$data);
 	}
 	
-		
+
 function render_css(){  //accessed in edit mode only
 	(Sys::Deltatime)&&$this->deltatime->delta_log(__line__.' @ '.__method__.'  '); 
 	$this->css_stylesheet_include();//include stylesheets of non local clones
 	if(!Sys::Style)return;
 	$this->css_at_fonts();//gen specific local fonts and all for editpages 
-	 $this->css_initiate(); 
+	$this->css_initiate(); 
 	$this->css_generate();
 	$this->css_custom_page();
-	 $this->css_nav();  
+	$this->css_nav();  
 	$this->css_custom();// can be used to bypass upper css info....    $this->css_pics(); currently not in use
 	$this->css_gall();
-	$this->css_grid();  
+	//$this->css_grid();  
 	$this->css_custom_site();
 	$this->css_custom_gallery(); 
 	$this->css_highslide();
@@ -5107,83 +5346,79 @@ function render_css(){  //accessed in edit mode only
 	}
 #cssgrid #cssrwd  #grid ion css_rwd
 
-function css_grid(){
-	$this->css_grid='';
-	 if (!isset($this->grid_class_selected_wid_array))return;
-	/*$this->css_grid='
+function css_grid($bp_arr,$gu){  
+	 // if (!isset($this->grid_class_selected_wid_array))return;
+	/*$this->css.='
 	[class^="wid-bp"], [class*=" wid-bp-"],[class^="left-bp"], [class*=" left-bp-"],[class^="right-bp"], [class*=" right-bp-"] {
 	float:left;  
 	}';*/
     //display:inline-block ;vertical-align: middle;baseline;  not working
-      foreach (array('wid','right','left')as $type){
-			$this->{'grid_class_selected_'.$type.'_array'}=array_unique($this->{'grid_class_selected_'.$type.'_array'});
-		}
-		
-	foreach(array_unique($this->column_grid_css_arr) as $arr){
-		list($gu,$bpv)=explode('@@',$arr); 
-		$punit=floor(100000/$gu)/1001;
-		$width100=1000/1005*100;
-		$bp_arr=explode(',',$bpv);
-		process_data::natkrsort($bp_arr);
-		$this->css_grid.='
-		@media screen and (min-width: '.($bp_arr[0]+1).'px){';
-			$this->css_grid.=(in_array('wid-bp-max'.$bp_arr[0].'-0-'.$gu,$this->grid_class_selected_wid_array,true))?'
-				.wid-bp-max'.$bp_arr[0].'-0-'.$gu.'{display:none}
-				':'';
-			for($i=1; $i<$gu; $i++){
-				$this->css_grid.=(in_array('wid-bp-max'.$bp_arr[0].'-'.$i.'-'.$gu,$this->grid_class_selected_wid_array,true))?'
-				.wid-bp-max'.$bp_arr[0].'-'.$i.'-'.$gu.'{width:'.round(($i*$punit),3).'%;}
-				':'';
-				}
-			for($i=.5; $i<$gu; $i+=.5){
-				$i2=(strpos($i,'.5')===false)?$i:str_replace('.5','',$i).'x5';
-				$this->css_grid.=(in_array('right-bp-max'.$bp_arr[0].'-'.$i2.'-'.$gu,$this->grid_class_selected_right_array,true))?' 
-				.right-bp-max'.$bp_arr[0].'-'.$i2.'-'.$gu.'{margin-right:'.round(($i*$punit),3).'%;}
-				':''; 
-				$this->css_grid.=(in_array('left-bp-max'.$bp_arr[0].'-'.$i2.'-'.$gu,$this->grid_class_selected_left_array,true))?'
-				.left-bp-max'.$bp_arr[0].'-'.$i2.'-'.$gu.'{margin-left:'.round(($i*$punit),3).'%;}
-				':'';
-				}
-			$this->css_grid.=(in_array('wid-bp-max'.$bp_arr[0].'-'.$gu.'-'.$gu,$this->grid_class_selected_wid_array,true))?'
-				.wid-bp-max'.$bp_arr[0].'-'.$gu.'-'.$gu.'{width:'.$width100.'%;}
-				}
-				':'}';
+      
+	$punit=floor(100000/$gu)/1001;
+	$width100=1000/1005*100;
+	if ($wid='wid'){
+	$this->css.='
+	@media screen and (min-width: '.($bp_arr[0]+1).'px){';
+		$this->css.=(in_array('wid-bp-max'.$bp_arr[0].'-0-'.$gu,$this->grid_class_selected_wid_array,true))?'
+			.wid-bp-max'.$bp_arr[0].'-0-'.$gu.'{display:none}
+			':'';
+		for($i=1; $i<$gu; $i++){
+			$this->css.=(in_array('wid-bp-max'.$bp_arr[0].'-'.$i.'-'.$gu,$this->grid_class_selected_wid_array,true))?'
+			.wid-bp-max'.$bp_arr[0].'-'.$i.'-'.$gu.'{width:'.round(($i*$punit),3).'%;}
+			':'';
+			}
+		for($i=.5; $i<$gu; $i+=.5){
+			$i2=(strpos($i,'.5')===false)?$i:str_replace('.5','',$i).'x5';
+			$this->css.=(in_array('right-bp-max'.$bp_arr[0].'-'.$i2.'-'.$gu,$this->grid_class_selected_right_array,true))?' 
+			.right-bp-max'.$bp_arr[0].'-'.$i2.'-'.$gu.'{margin-right:'.round(($i*$punit),3).'%;}
+			':''; 
+			$this->css.=(in_array('left-bp-max'.$bp_arr[0].'-'.$i2.'-'.$gu,$this->grid_class_selected_left_array,true))?'
+			.left-bp-max'.$bp_arr[0].'-'.$i2.'-'.$gu.'{margin-left:'.round(($i*$punit),3).'%;}
+			':'';
+			}
+		$this->css.=(in_array('wid-bp-max'.$bp_arr[0].'-'.$gu.'-'.$gu,$this->grid_class_selected_wid_array,true))?'
+			.wid-bp-max'.$bp_arr[0].'-'.$gu.'-'.$gu.'{width:'.$width100.'%;}
+			 
+			':'}';
 			 
 		$max=count($bp_arr);
 		for ($bc=0; $bc<$max; $bc++){
 			$bp=$bp_arr[$bc];
 			$mw=$minw='';
-			if ($bc < $max-1){
+			if ($bc < $max-1){//if index is not last index..  add in minwidth..
 				$minw=' and (min-width:'.($bp_arr[$bc+1]).'px)';
 				$mw='-'.$bp_arr[$bc+1];
 				}
 			else $mw='-'.$bp;
-			$this->css_grid.='
+			$this->css.='
 			@media screen and (max-width: '.($bp).'px)'.$minw.'{';
-			$this->css_grid.=(in_array('wid-bp-'.$bp.$mw.'-0-'.$gu,$this->grid_class_selected_wid_array,true))?'
+			$this->css.=(in_array('wid-bp-'.$bp.$mw.'-0-'.$gu,$this->grid_class_selected_wid_array,true))?'
 				.wid-bp-'.$bp.$mw.'-0-'.$gu.'{display:none;}
 				':'';
 			for($i=1; $i<$gu; $i++){
-				$this->css_grid.=(in_array('wid-bp-'.$bp.$mw.'-'.$i.'-'.$gu,$this->grid_class_selected_wid_array,true))?'
+				$this->css.=(in_array('wid-bp-'.$bp.$mw.'-'.$i.'-'.$gu,$this->grid_class_selected_wid_array,true))?'
 				.wid-bp-'.$bp.$mw.'-'.$i.'-'.$gu.'{width:'.round(($i*$punit),3).'%;}
 				':''; 
 				}
 			for($i=.5; $i<$gu; $i+=.5){
 				$i2=(strpos($i,'.5')===false)?$i:str_replace('.5','',$i).'x5';
-				$this->css_grid.=(in_array('right-bp-'.$bp.$mw.'-'.$i2.'-'.$gu,$this->grid_class_selected_right_array,true))?' 
+				$this->css.=(in_array('right-bp-'.$bp.$mw.'-'.$i2.'-'.$gu,$this->grid_class_selected_right_array,true))?' 
 				.right-bp-'.$bp.$mw.'-'.$i2.'-'.$gu.'{margin-right:'.round(($i*$punit),3).'%;}
 				':'';
-				$this->css_grid.=(in_array('left-bp-'.$bp.$mw.'-'.$i2.'-'.$gu,$this->grid_class_selected_left_array,true))?'
+				$this->css.=(in_array('left-bp-'.$bp.$mw.'-'.$i2.'-'.$gu,$this->grid_class_selected_left_array,true))?'
 				.left-bp-'.$bp.$mw.'-'.$i2.'-'.$gu.'{margin-left:'.round(($i*$punit),3).'%;}
 				':''; 
 				}
-			$this->css_grid.=(in_array('wid-bp-'.$bp.$mw.'-'.$gu.'-'.$gu,$this->grid_class_selected_wid_array,true))?'
+			$this->css.=(in_array('wid-bp-'.$bp.$mw.'-'.$gu.'-'.$gu,$this->grid_class_selected_wid_array,true))?'
 				.wid-bp-'.$bp.$mw.'-'.$gu.'-'.$gu.'{width:'.$width100.'%;}
 				}
 				':'}';
 			}//foreach bp
 		}//foreach 
 	}
+	
+
+	
 #leave copy of custom functions here and put same function in site_master.class or page class in includes directory .. will override parent custom class..
 function css_custom_page(){
 	//place custom css in page specific function css_custom_page in ie  pagetitle.class.php
@@ -5198,37 +5433,17 @@ function css_custom_gallery(){
      } 	
 function css_at_fonts(){ 
 	$font_ext=array('woff','woff2','ttf');
-	$check=array(); 
-	foreach($this->at_fonts as $af){   
-		$af=explode(',',$af);
-		$after=str_replace(' ','',$af[0]);
-		if (!in_array($after,$check)){//checks doubles
-			foreach($font_ext as $ext){  
-				if (is_file('../fonts/'.$after.'.'.$ext)){ 
-					$type=($ext==='ttf')?'truetype':$ext;
-			$this->fontcss.='
-@font-face {
-  font-family: \''.$af[0].'\';
-  src: url(../fonts/'.$after.'.'.$ext.') format(\''.$type.'\');
-}';
-					break;
-					} 
-				}//foreach 
-			$check[]=$after;  
-			}//not in array
-		}//foreach
 	foreach($this->fonts_extended as $af){   
 		$af=explode(',',$af);
 		$after=str_replace(' ','',$af[0]); 
           foreach($font_ext as $ext){ 
                if (is_file('../fonts/'.$after.'.'.$ext)){
                     $type=($ext==='ttf')?'truetype':$ext;
-          $this->editgencss.='
+          $this->fontcss.='
 @font-face {
 font-family: \''.$af[0].'\';
 src: url(../fonts/'.$after.'.'.$ext.') format(\''.$type.'\');
-}';
-                     
+}';             
                     } 
                }//foreach 
 		}//foreach 
@@ -5242,16 +5457,35 @@ function css_initiate(){
  -webkit-touch-callout: none !important;  
 		}*/
      $this->initcss.='
-	.editfontfamily {font-family:'.$this->edit_font_family.';} 
-	.editfont {font-family:'.$this->edit_font_family.';text-shadow:none; text-align:left;font-size:'.($this->edit_font_size*16).'px;letter-spacing:0;font-weight:400;}  
-	#displayCurrentSize{padding:5px;margin-top:4px;margin-left:5px;padding-top:6px;} 
-     @media screen and (max-width:1000px) and (min-width:600px){ 
-          html .editfont #displayCurrentSize{font-size:12px;padding:0px;}
-          }
-     @media screen and (max-width:600px) {
-          html body div #displayCurrentSize{font-size:18px;padding:0px;}
-          html .editfont #displayCurrentSize{font-size:10px;padding:0px;}
-          }
+	/*plug in related*/
+     .slick-prev,.slick-next{z-index:100;}
+     .slick-track::before {
+	content: "";
+	display: inline-block;
+	height: 100%;
+	vertical-align: middle;
+	margin-right: -4px;
+	}
+	
+.slick-slide{
+     float:none!important;
+     }
+.slick-slide img,.slick-slide {
+    vertical-align: middle;
+    display: inline-block!important;
+	}
+	/*  end */
+	input[type=text] {
+	-webkit-box-sizing: border-box; /* Safari, other WebKit */
+	-moz-box-sizing: border-box;    /* Firefox, other Gecko */
+	box-sizing: border-box;         /* Opera/IE 8+ */
+	}
+	.webmode.text img{width:100%;}
+     .pclear,.wmclear {clear:both;display:block;height:0;}
+     .text.edit img {margin:0 auto; max-width:100%; height:auto;}
+     .editfontfamily {font-family:'.$this->edit_font_family.';} 
+	.editfont {text-shadow:none;font-size:'.($this->edit_font_size).'px; text-align:left;letter-spacing:0;font-weight:400;font-family:'.$this->edit_font_family.'}  
+	
      .hidden{visibility:hidden;}     
 	.hide{display:none;}		 
 	#scrWid,#top_contain, #topmenu,#loadingsize,#displayCurrentSize{float:left;}
@@ -5261,27 +5495,28 @@ function css_initiate(){
       box-sizing: border-box; }
      ul {list-style:none}
      ul {list-style-type:none;}
+     .webmode figure img{width:100%; height:auto; display:block;}
      html, body, div, span, applet, object, iframe,
-    h1, h2, h3, h4, h5, h6, p, blockquote, pre,
-    a, abbr, acronym, address, big, cite, code,
-    del, dfn, em, font, img, ins, kbd, q, s, samp,
-    small, strike, strong, sub, sup, tt, var,
-    dl, dt, dd, ol, ul, li,
-    fieldset, form, label, legend,
-    table, caption, tbody, tfoot, thead, tr, th, td {
-         margin-top: 0;
+     h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+     a, abbr, acronym, address, big, cite, code,
+     del, dfn, em, font, img, ins, kbd, q, s, samp,
+     small, strike, strong, sub, sup, tt, var,
+     dl, dt, dd, ol, ul, li,
+     fieldset, form, label, legend,
+     table, caption, tbody, tfoot, thead, tr, th, td, figure,figcaption {
+          margin-top: 0;
          margin-bottom: 0;
          margin-right: 0;
          margin-left: 0;
          padding: 0;
          outline: 0;   
-         vertical-align: baseline;
+         vertical-align: top;/*baseline;*/
           }
     body h1,body h2, body h3,body h4,body h5,body h6{ 
          padding: 0;
          outline: 0;
          padding-bottom:0; 
-         vertical-align: baseline;}
+         vertical-align: top;} /*baseline;*/
     body{font-size:16px;height:100%;margin-right:0px;margin-left:0px;}
     .show_arrow{opacity:.7; font-size:.6em;}
     .fixed{position:fixed;top:0;}
@@ -5304,6 +5539,7 @@ function css_initiate(){
          quotes: "" "";}
     /*from stackoverflow video iframe 100%*/
     .videoWrapper {
+    display:block;
     position: relative;
     padding-bottom: 56.25%; /* 16:9 */
     padding-top: 25px;
@@ -5316,6 +5552,8 @@ function css_initiate(){
     width: 100%;
     height: 100%;
      }
+.edit.post .enableTiny .videoWrapper iframe{
+     position:static; width:100%; }
 	.nav ul li {LIST-STYLE-TYPE: none;}
 	a:link,a:visited,a:active,body ul a:link {text-decoration:none;}
 	td, th {border-width:1px;  border-style:solid;}
@@ -5332,12 +5570,10 @@ function css_initiate(){
 	a:link.click,a:visited.click {text-decoration: underline;display:inline-block;text-align:left; cursor: pointer;  text-decoration: underline;}
 	.click{display:inline-block;text-align:left; cursor: pointer;  text-decoration: underline;}
 	.navnavy {color:#'.$this->navy.'; text-shadow: -.8px -.8px  0.4px #ffffff;}
-	.highlight,.highlight:visited{color:#'.$this->info.';font-style:italic;font-weight:500;}
+	.highlight,.highlight:visited{color:#'.$this->info.';font-style:italic;font-weight:500;} 
 	.navr1 a:link, .navr1 a:visited{color:#'.$this->navy.';}
 	.navr1{display:inline-block; margin:  5px 0; font-size: 1em; background: #e6eff1; padding:  3px;
 	color:#'.$this->navy.';
-	-moz-border-radius:5px;
-	   -webkit-border-radius:5px;
 	   border-radius:5px; 
 	   border: 2px  double #'.$this->navy.'}
 	.hide{display:none;}
@@ -5356,7 +5592,7 @@ function css_initiate(){
     .ramana{padding:.1em .5em;text-align:left; color:#'.$this->editor_color.';background:#'.$this->editor_background.'; display:inline-block;}
 	.ramanaleft{padding:.1em .5em;color:#'.$this->editor_color.'; text-align: left;background:#'.$this->editor_background.'; display:inline-block;}
 	a img { border: none;}
-	input {line-height:125%;}
+	.edit input {line-height:125%;}
 	.addheight{line-height:200%;}
 	.heightauto{height:auto;}
 	.whitebackground {background:#ffffff}
@@ -5384,6 +5620,7 @@ function css_initiate(){
     .mspace {margin-bottom:3px; margin-top:3px}
     .pt2 {padding-top: 2px;}
     .pt5 {padding-top: 5px;}
+    .pt7 {padding-top: 7px;}
     .pb2{padding-bottom:2px;} 
     .pb5{padding-bottom:5px;} 
     .pb10{padding-bottom:10px;}
@@ -5404,6 +5641,8 @@ function css_initiate(){
     .pt5 {padding-top: 5px;}
     .pb5{padding-bottom:5px;}
     .pl2 {padding-left:5px;}
+    .pr10{padding-right:10px;}
+    .pr15{padding-right:15px;}
     .pl5 {padding-left:2px;}
     .pl10 {padding-left:10px;}
     .pl25 {padding-left:25px;}
@@ -5426,8 +5665,6 @@ function css_initiate(){
 	border-width: 5px 5px 5px 5px;
 	border-style: solid;
 	border-color: #ffffff;
-	-moz-box-shadow: 0px 0px 5px 0px #D8D8D8;
-	-webkit-box-shadow: 0px 0px 5px 0px #D8D8D8;
 	box-shadow: 0px 0px 5px 0px #D8D8D8;
 	outline-width: 0px;
 	outline-style: solid;
@@ -5465,6 +5702,7 @@ function css_initiate(){
     .right20{padding-right:20px}
 	.fs2navy {border: 2px  solid #'.Cfg::Navy_color.' }
 	.fs1black {border: 1px  solid #000; }
+	.fs1nporange {border: 1px  solid orange; }
 	.pinkbackground {background:#fdf0ee;} 
     .marginauto {margin-left:auto; margin-right:auto;}
     .block{display:block}
@@ -5572,12 +5810,7 @@ displayOn {
   -webkit-transition: opacity 600ms, visibility 600ms;
   transition: opacity 600ms, visibility 600ms;
   opacity: 1;
-  z-index:initial;
-  position:initial;
-  top:initial;
-  left:initial;
-  right:initial;
-  bottom:initial;
+  
 }
 .visibleTransitionOff {
   opacity: 0;
@@ -5593,29 +5826,21 @@ displayOn {
 }
     ';
     }
- 
+
+     
 function css_render_file(){ if (Sys::Cssoff) return; 
 	if(Sys::Quietmode||Sys::Debug)return;
-	$this->sitecss.="\n".$this->gall_css."\n".$this->nav_site_css."\n".$this->initcss."\n".$this->highslidecss;
-	$this->css.="\n".$this->fontcss."\n".$this->navcss."\n".$this->imagecss; 
-    file_put_contents($this->roots.Cfg::Style_dir.$this->pagename.'.css',$this->css);
+	$sitecss="\n".$this->gall_css."\n".$this->nav_site_css."\n".$this->initcss."\n".$this->highslidecss."\n".$this->fontcss; 
+	$this->handle_css_render();    //file_put_contents($this->roots.Cfg::Style_dir.$this->pagename.'.css',$this->collect_css);
     //for add pages Pics etc.
     file_put_contents($this->roots.Cfg::Style_dir.$this->pagename.'_paged.css',$this->pagecss);
-    file_put_contents($this->roots.Cfg::Style_dir.'gen_page.css','@charset "UTF-8";'. $this->sitecss);//for add pages Pics etc.
-     file_put_contents($this->roots.Cfg::Style_dir.$this->pagename.'_adv.css','@charset "UTF-8";'. $this->advancedmediacss);// 
-     file_put_contents($this->roots.Cfg::Style_dir.$this->css_suffix.$this->pagename.'_mediacss.css','@charset "UTF-8";'. $this->mediacss."\n".$this->css_grid);//
-     /*the following was for developement work to update automatically
-	$return=include_copy_gen::copypath('slippry.js',$this->roots.Cfg::Script_dir.'slippry.js');
-	(!$return)&&mail::alert('False return on   slippry.js'.$this->roots.Cfg::Script_dir.'slippry.js');
-	$return=include_copy_gen::copypath('slippry.css',$this->roots.Cfg::Style_dir.'slippry.css');
-	(!$return)&&mail::alert('False return on   slippry.css'.$this->roots.Cfg::Style_dir.'slippry.css');*/
-	printer::alert_pos('Css file Gen Complete');  
+    file_put_contents($this->roots.Cfg::Style_dir.'gen_page.css',$sitecss);//for add pages Pics etc.
+	printer::alert_pos('Css file Gen Complete',.7);  
 	}
-    
+   
 function css_edit_file(){
     $this->css_edit_page_common();
     $this->css_edit_page();   // this is for page_specific editcss...
-     file_put_contents($this->roots.Cfg::Style_dir.$this->pagename.$this->css_suffix.'editoverride.css', $this->editoverridecss);// 
 	file_put_contents($this->roots.Cfg::Style_dir.$this->pagename.'pageedit.css', $this->pageeditcss);// editcss generated by all the system css for editcss 
    file_put_contents($this->roots.Cfg::Style_dir.'gen_edit.css', $this->editgencss);// editcss generated by all the system css for editcss
    if (Sys::Methods)    Sys::Debug(__METHOD__,__LINE__,__FILE__,' End '.__METHOD__); 
@@ -5705,20 +5930,18 @@ function css_gall(){
 	border-radius: .1em .1em .1em .1em;
     } 
  .containbackto { position:relative; float:left;  width:6'.$this->rem.';  margin-left:200px; margin-top:100px; }
-.backto { position:absolute; top: 0px; left: 0px; background:#fff; filter:alpha(opacity=35);opacity:.35; 
-  width:100%; height:100%;  -moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px;}
+.backto { position:absolute; top: 0px; left: 0px; background:#fff; opacity:.35; 
+  width:100%; height:100%; border-radius:5px;}
 .refbackto{ position:absolute; top: 0px; left: 0px; width:100%;
 text-align:center; font-size: .9'.$this->rem.'; font-family: arial,sans-serif;font-weight: 700;
  color:rgba(217, 224, 152, 1);}
-.fs1color{border:1px solid  #'.$this->editor_color.';}  
+.fs1color{border-radius:5px;padding: 10px; margin:3px;border:1px solid  #'.$this->editor_color.';} 
+.fs2color{border-radius:5px;padding: 10px; margin:3px;border:2px solid  #'.$this->editor_color.';}  
  a:link.darkpurple,  a:visited.darkpurple{color:#8700b3;}
 .mback {background:#f8e7e6;}
 .backtoborder,.backto,.containbackto{padding:.3'.$this->rem.' 0 .4'.$this->rem.' 0;}
 .backtoborder{ position:absolute; top: 0px; left: 0px;
- width:100%; height:100%; 
- -moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px;
--moz-box-shadow: 1px 1px 5px -4px #0a2268;
--webkit-box-shadow: 1px 1px 5px -4px #0a2268;
+ width:100%; height:100%;  border-radius:5px;
 box-shadow: 1px 1px 5px -4px #0a2268; 
 	     }  
 	';
@@ -5750,14 +5973,12 @@ function css_nav(){
  .nav_gen ul.top-level li.show_icon,.nav_gen li.show_icon a:after{display:none;} 
     .nav_gen ul.top-level li.show_icon p.aShow, ul.top-level li.show_icon p:after{
 	background:none; border:none; box-shadow:none;
-	webkit-box-shadow:none;moz-box-shadow:none;
 	padding:0;
 	margin:0;
 	}
 
 ';
 }#end navcss
-
     
 function edit_metadata(){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
      $this->show_more('Configure Outer Tab Title, keywords and Meta data','noback','','',500);
@@ -5784,11 +6005,9 @@ function edit_metadata(){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD
      #***************BEGIN EDIT CSS FUNCTIONS********************
     #editstyle #editcss
     
-     //text area is set to font-size 1.0 em which will allow element size to work properly... color is a default only   
+     //text area is set to font-size 1.0 em which will allow element size to work properly... color is a default only
+#css_edit    
 function css_edit_page_common(){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-/*.navigation_menu.edit .nav_gen ul.top-level{max-height:1000px;display:block;}
-	.navigation_menu.edit .nav_gen ul.top-level li{display:block;}
-	*/
 	$fontfamily=(!empty($this->master_font))? 'font-family: '.$this->master_font.'; ':' font-family: Arial, helvetica,  sans-serif; '; 
    $this->editgencss.=' 
 table.rwdmedia{
@@ -5798,39 +6017,100 @@ table.rwdmedia{
      word-wrap:break-word;
      width:300px;
      overflow:hidden;
+     } 
+table.carotable{
+     border:2px;
+     table-layout: fixed;
+     word-wrap:break-word; 
+     }
+table.carotable td,table.carotable th{
+     width:35px; 
+     }	 
+@media screen and (max-width:450px){
+     table.carotable{
+          border:1px;
+          font-size: 10px;
+          
+          }
+     table.carotable select option{
+     font-size:10px;
+     overflow:visible;
+     }
+     table.carotable td,table.carotable th{
+          width:20px;
+          overflow:visible;
+          }
+     }
+div .edit .para_group,div .edit .para_back,div .edit .para_main{
+     position:static; transform: translateZ(0px);
      }
 table.rwdmedia td,table.rwdmedia th{
      width:75px;
      overflow:hidden;
      }
+.floatbutton{display:inline-block;vertical-align:top;}
+.mce-tinymce-inline{left:30px !important;}
+.post.text.edit textarea,.post.float_image_left.edit textarea,post.float_image_right.edit textarea {font-size: 16px; font-family:Helvitica, sans-serif;}
+select{color:#ccc;background:#777;padding:1px 5px;}
+.altmsg{background:#A0AAA4; color:#333;font-size:10px;border: 1px solid #888;}
+.altUpdate,.altSubmit{float:left;cursor:pointer;margin: 0 5px; font-size:10px;padding:2px;-webkit-border-radius: 3px 3px 3px 3px;border-radius: 3px 3px 3px 3px;border: 1px solid black;background:#777;color:white;}
+div .altSubmit{background-color:#285a14;}
+.altEdTagText{float:left;}
+.altGoToIt{ background:#687867;color:#fff;}
+.altTagEdit{display:block;clear:both;}
+.altTagEnd{display:block;clear:both;}
+.altCurImgSz{text-align:left;}
+.altImageSize{float:left;}
+.altEditorHtml .edit.text img {width:35px; height:auto;}
+.altEditorHtml .altEdRemove {float:left;cursor:pointer; margin-left:2%;margin-top:10px; font-family:cursive;padding:5px;font-size:12px;}
+.altEditorHtml select optgroup option,.altEditorHtml select optgroup{font-size:11px!important;}
+.altEditorHtml .altEdSource {float:left;cursor:pointer;margin-top:40px; margin-left:2%;font-family:cursive;padding:5px;font-size:12px;}
+.altEdText{float:left;color:#fef;clear:both;}
+.altImgTextAreaShow,.altIframeTextAreaShow,.altSourceTextAreaShow,.altTextAreaShow{margin:0 auto;display:block;width:95%;border:1px black solid; }
+.altIframeTextAreaShow textarea,.altTextAreaShow textarea,.altImgTextAreaShow textarea,.altSourceTextAreaShow textarea {text-align:left;width:95%;background:#687867;color:#fff;font-size: 14px; font-family:Helvitica, sans-serif;}
+.altEdActivateButton{float:left;background:grey;border:1px black solid; color:white; font-size:7px; font-family:oxygen; padding:3px; margin: 5px 5px; cursor:pointer;-webkit-border-radius: 3px 3px 3px 3px;border-radius: 3px 3px 3px 3px;}
+.altClassStyle{ background:#999;color:#222; padding:10px;-webkit-border-radius: 3px 3px 3px 3px;border-radius: 3px 3px 3px 3px;border: 1px solid black;}
+.altMultiStyle{ background:#999;color:#f; padding:10px;-webkit-border-radius: 3px 3px 3px 3px;border-radius: 3px 3px 3px 3px;border: 1px solid black;}
+.altEditorHtml{position:absolute;z-index:1000000; width:100%; max-width:2000px;}
+.altEditNodes{border-bottom: solid #cbbbb9 1px; padding: 4px; display:block;clear:both;}
+.altEditElem{margin-left:25px; border-bottom: solid #cbbbbb 1px;padding: 4px; display:block;clear:both;}
+.altEdButton {float:left;background:#9c9c9c;border:1px black solid; color:white; font-size:10px; padding:3px; margin: 0 5px; cursor:pointer;}
+.altEditTitleContainer {position:relative;text-align:center;border-bottom: white 1px solid;padding-bottom:60px; }
+.altEditTitle{cursor:pointer;background:#dad3d3; color:#4d0d0d; border-bottom: 1px solid black; padding:4px 10px; font-size: 14px; display:inline-block; }
+.altSysEdit{border:solid maroon 1px;background:#afafaf;color:white;margin:15px; padding:20px; font-size: 16px; font-family:oxygen;text-align:left;}
+.mce-text{color:#000000 !important;}
+.enableTiny.mce-edit-focus{padding:15px; }
+.enableTiny.mce-edit-focus img{margin:15px;}
 html .button {
-   float:left;
-   font-size:1em;
-   background: #6e9fb6;
-   color: #fff;
-   margin: 0 5px ;
-   padding: 0  5px;
-   border-width:4px;
-   border-style: solid;
-   border-color:#6399b2;  
-   -moz-border-radius:10px;
-   -webkit-border-radius:10px;
-   border-radius:10px;
-   -moz-box-shadow:inset 0 10px 0 rgba(255,255,255,0.5);
-   -webkit-box-shadow:inset 0 10px 0 rgba(255,255,255,0.5);
-   box-shadow:inset 0 10px 0 rgba(255,255,255,0.5);
-   cursor:pointer;
-   }
-     #topunder{background:rgba(255,255,255,.7);position:relative;left:0px; top:5px;}
+     float:left;
+     font-size:1em;
+     background: #6e9fb6;
+     color: #fff;
+     margin: 0 5px ;
+     padding: 0  5px;
+     border-width:4px;
+     border-style: solid;
+     border-color:#6399b2;  
+     border-radius:10px;
+     box-shadow:inset 0 10px 0 rgba(255,255,255,0.5);
+     cursor:pointer;
+     }
+     #gotop{padding:7px 7px 7px 0;}
+     #{padding:7px 0 7px 7px}
+     #topunder{background:rgba(255,255,255,.5);position:relative;left:0px; top:5px;padding:7px 7px 7px 0; width:20px;}
+	#fixedsubmit {background: rgba(255,255,255,.3); color:black; overflow:visible;margin-top:12px;width:37px;
+     }
 	#topmenu {left:8px; top:10px;}
 	#botmenu {right:2px;top:6px;}
+     #topmenu img{width:15px;}
 	#topoutmenu {left:0;top:0px;opacity:.7;}
      #top_upload{position:absolute;left:15px;top:2px;}
      #toprefresh{position:absolute;left:0px; top:0px}
 	#botoutmenu {right:0px;top:3px;opacity:.7;}
-	#topconfig #topmenu,#topconfig  #botmenu{font-size:10px;color:black;cursor:pointer; z-index:10000000; position:fixed;padding:0;margin:0;}
-	#botoutmenu,#topoutmenu{font-size:20px;color:white;cursor:pointer; z-index:1000000; position:fixed;padding:0;margin:0;} 
-	#topconfig{top:10px;}  
+	#topconfig #topmenu,#topconfig  #botmenu{font-size:10px;color:black;cursor:pointer; z-index:100000000; position:fixed;padding:0;margin:0;}
+	#gotoAltEditTop{font-size:10px;background-color:rgba(255, 0, 0, .15);cursor:pointer; z-index:10000000000; position:fixed;padding:0;margin:0;top:40%;border:navy 1px solid;left:10px;}
+	#botoutmenu,#topoutmenu{font-size:20px;color:white;cursor:pointer; z-index:100000000; position:fixed;padding:0;margin:0;} 
+	#topconfig{}  
 	#topconfig #topoutmenu,#topconfig   
 	#edit-menu-icon .xbar1, #edit-menu-icon .xbar2, #edit-menu-icon .xbar3 {
     width: 20px;
@@ -5843,9 +6123,9 @@ html .button {
 #topconfig #edit-menu-icon .xbar1 {margin-top:0px; margin-bottom:2px;}
 	.navigation_menu.edit .nav_gen ul.top-level {display:inline-block !important;}
 	.navigation_menu.edit .nav_gen ul.top-level ul li {display:none !important;}
-    .navigation_menu.edit .nav_gen ul.top-level li:hover ul  li{display:block  !important;}
+    .navigation_menu.edit .nav_gen ul.top-level li:hover ul  li{display:block !important;}
      .navigation_menu.edit ul.top-level li{display:inline-block !important;}
-      .navigation_menu.edit .nav_gen ul.top-level{max-height:1000px;} 
+     .navigation_menu.edit .nav_gen ul.top-level{max-height:1000px;} 
 	.z100 {z-index:100;position:relative;} 
 	.tip {background:rgb(243,243,243); margin: 4px; padding:4px; border: 2px  double #a0a4a5; color:#352c3e;
 	background: -webkit-linear-gradient(rgb(224,224,224),rgb(243,243,243),rgb(243,243,243),rgb(243,243,243),rgb(243,243,243),rgb(224,224,224));
@@ -5853,12 +6133,13 @@ background: -o-linear-gradient(rgb(224,224,224),rgb(243,243,243),rgb(243,243,243
 background: -moz-linear-gradient(rgb(224,224,224),rgb(243,243,243),rgb(243,243,243),rgb(243,243,243),rgb(243,243,243),rgb(224,224,224));
 background: linear-gradient(rgb(224,224,224),rgb(243,243,243),rgb(243,243,243),rgb(243,243,243),rgb(243,243,243),rgb(224,224,224));
 	}
-	.tip2 {background:rgb(223,223,223); margin: 2px; padding:2px; border: 1px  double #a0a4a5; color:#352c3e;
-	background: -webkit-linear-gradient(rgb(214,214,214),rgb(223,223,223),rgb(223,223,223),rgb(223,223,223),rgb(223,223,223),rgb(214,214,214));
-background: -o-linear-gradient(rgb(214,214,214),rgb(223,223,223),rgb(223,223,223),rgb(223,223,223),rgb(223,223,223),rgb(214,214,214));
-background: -moz-linear-gradient(rgb(214,214,214),rgb(223,223,223),rgb(223,223,223),rgb(223,223,223),rgb(223,223,223),rgb(214,214,214));
-background: linear-gradient(rgb(214,214,214),rgb(223,223,223),rgb(223,223,223),rgb(223,223,223),rgb(223,223,223),rgb(214,214,214));
+	.tip2 {background:rgb(220,220,220); margin: 2px; padding:2px; border: 1px  double #a0a4a5; color:#352c3e;
+	background: -webkit-linear-gradient(rgb(200,200,200),rgb(220,220,220),rgb(220,220,220),rgb(220,220,220),rgb(220,220,220),rgb(200,200,200));
+background: -o-linear-gradient(rgb(200,200,200),rgb(220,220,220),rgb(220,220,220),rgb(220,220,220),rgb(220,220,220),rgb(200,200,200));
+background: -moz-linear-gradient(rgb(200,200,200),rgb(220,220,220),rgb(220,220,220),rgb(220,220,220),rgb(220,220,220),rgb(200,200,200));
+background: linear-gradient(rgb(200,200,200),rgb(220,220,220),rgb(220,220,220),rgb(220,220,220),rgb(220,220,220),rgb(200,200,200));
 	}
+     .tipdark {padding:14px;background:#aaa; color:white; text-align:left;}
      .min100{min-width:100px;min-height:100px;}
      .flexstay {flex:0 0 auto;width:100%;
      order:0;}
@@ -5874,12 +6155,11 @@ background: linear-gradient(rgb(214,214,214),rgb(223,223,223),rgb(223,223,223),r
     .info{color:#'.$this->info.';}
     .information {display:inline-block;padding:.2em .5em;text-align:left; color:#'.$this->info.'; display:inline;  }
     .informationcenter {text-align:center;   font-style:italic; color:#'.$this->info.'; }
-    .hightlight{color:#'.$this->info.';text-decoration:italic;font-weight:700;}
    .infoclick,a.infoclick{padding:3px 3px;display:inline-block;text-align:left; cursor: pointer; font-style:italic; color:#'.$this->info.'; text-decoration: underline;}
 	.inlinehighlight { padding:3px 10px;display:inline;background:#1E2F4D;color:#FFFAFF;}
 	.red, .neg{color:red;}
 	.expand{display:block; width:100%;} 
-	.hide,.hidemar,.hidepad,.hidefont,#hide_leftovers {display:none;} 
+	.hide,.hidemar,.hidepad,.hidefont,#hide_leftovers,.hideElem {display:none;} 
 	.bordernavy{border-color:#'.$this->navy.';}
 	.borderblue{border-color:#'.$this->blue.';}
 	.borderekblue{border-color:#'.$this->ekblue.';}
@@ -5908,8 +6188,6 @@ background: linear-gradient(rgb(214,214,214),rgb(223,223,223),rgb(223,223,223),r
 	.floatleft {float:left; }
 	.navr2{display:inline-block; margin:  4px 0; background: #e6eff1; padding:  1px;
 	color:#'.$this->pos.';
-	-moz-border-radius:5px;
-	   -webkit-border-radius:5px;
 	   border-radius:5px; 
 	   border: 3px  double #'.$this->navy.';
 	   outline: 2px solid #'.$this->floralwhite.';}
@@ -5920,11 +6198,12 @@ background: linear-gradient(rgb(214,214,214),rgb(223,223,223),rgb(223,223,223),r
 	.width500 {width:500px;}
 	.width600 {width:600px;}
 	.width700 {width:700px;}
-	 input,legend,label,option,select  {margin:0; padding:0;color:#'.$this->editor_color.';}
+	 input,legend,label,option,select  {margin:0; padding:0;color:#'.$this->editor_color.';background:#'.$this->editor_background.';}
 	.warn1,.warn{margin:1px;  background: #f1d8d8; padding:1px 3px; color: #'.$this->orange.';}
-	.warnlight{margin:1px; background: #fff2f2; padding:1px 3px; border: 2px  double #'.$this->redAlert.'}
+	.warnlight{margin:1px;color:#7e2f2f; background: #fff2f2; padding:1px 3px; border: 2px  double #'.$this->redAlert.'}
 	.warn2{margin:1px; background: #f1d8d8; padding:1px 3px; }
 	.caution{margin:1px; background: orange; padding:1px 3px; border: 2px  double #'.$this->redAlert.'}
+	.positon{margin:1px; background: green; padding:1px 3px; border: 2px  double #fff}
 	.cautionmaroon{color:maroon; margin:1px; background: #f1d8d8; padding:1px 3px; border: 2px  double #'.$this->redAlert.'}
 	.neg{color:#'.$this->redAlert.';}
 	.alertnotice {font-weight:800; color:#'.$this->redAlert.';}
@@ -5945,8 +6224,7 @@ background: linear-gradient(rgb(214,214,214),rgb(223,223,223),rgb(223,223,223),r
 		background: linear-gradient(to bottom right,#96bfbb,#aa739b,#c7e3cd,#0075a0,#FFFAFF,rgba(200,44,29,0.23) );
 		}
 	 
-	.fbs1info{margin: 12px; padding:4px; -moz-box-shadow: 4px 4px 7px -6px #800000; 
--webkit-box-shadow:  4px 4px 7px -6px #800000;   
+	.fbs1info{margin: 12px; padding:4px;
 box-shadow:  4px 4px 7px -6px #800000;} 
 	
 	
@@ -5957,7 +6235,8 @@ box-shadow:  4px 4px 7px -6px #800000;}
 	transform: rotate(0deg) skewX(3deg) skewY(0deg);}
 
 	.lineh90{float: left; line-height:90%; font-size:12px;}
- 
+	.line120 {line-height:120%;}
+	.line300 {line-height:300%;}
      * HTML .utility_horiz UL UL A, * HTML .utility_horiz UL UL A:visited,.utility_horiz UL UL A,.utility_horiz UL UL A:visited,.utility_horiz UL UL A:hover, * HTML .utility_horiz UL UL,.utility_horiz UL UL,.utility_horiz UL UL A:active{WIDTH:190px}	
 	.utility_horiz UL UL li A:visited, .utility_horiz UL UL li A:link{Z-INDEX: 100;}
 	.utility_horiz UL UL li A:visited, .utility_horiz UL UL li A:link,
@@ -5977,7 +6256,7 @@ box-shadow:  4px 4px 7px -6px #800000;}
      .utility_horiz UL UL  { VISIBILITY: hidden }
      ';	
 $this->pageeditcss.='
-	 .editfontcol {font-size:'.($this->edit_font_size*16).'px;font-family:'.$this->edit_font_family.'text-shadow:none; text-align:center;font-weight:400;}
+	 .editfontcol {font-size:'.($this->edit_font_size*16).'px;font-family:'.$this->edit_font_family.';text-shadow:none; text-align:center;font-weight:400;}
 	.editdefaultcol { text-shadow:none; text-align:center;}
 	editcolor{color:#'.$this->editor_color.';}
 	.ramanablock {max-width:700px; text-align:left;background:#'.$this->editor_background.';color:#'.$this->editor_color.';}
@@ -5993,38 +6272,33 @@ $this->pageeditcss.='
 	.editbackground{ background:#'.$this->editor_background.';} 
 	.fs1color{border:1px solid  #'.$this->editor_color.';}
 	.fs1npblack {border: 1px  solid #'.$this->editor_color.';}
-	.editfontcenter {font-size:'.($this->edit_font_size*16).'px;font-family:'.$this->edit_font_family.';text-align:center;font-weight:400;}
+	.editfontcenter {font-size:'.($this->edit_font_size).'px;font-family:'.$this->edit_font_family.';text-align:center;font-weight:400;}
 	';
 	$this->editgencss.='
     
-         .buttoneditcolor{ text-align:left;  color:#'.$this->editor_color.' !important; 
+     .buttoneditcolor{ text-align:left;  color:#'.$this->editor_color.' !important; 
 	   background: #'.$this->editor_background.';   margin: 2px;
-	   padding: 10px; line-height:110%; border-width:1px; border-style: solid; border-color:#'.$this->editor_color.';  
-	   -moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px; 
+	   padding: 7px; line-height:110%; border-width:1px; border-style: solid; border-color:#'.$this->editor_color.';  
+	    border-radius:5px; 
 	    cursor:pointer; }
 	 ';    
 foreach ($this->color_order_arr as $color){ 
      $colorlight=process_data::colourBrightness($this->$color,.4);
- 
-	//text-shadow: #f2f0e4 0.1em 0.1em 0.1em;
 	$this->editgencss.='
 		.button'.$color.'{ text-align:left;
 	   background: #'.$this->editor_background.';   margin: 2px;
-	   padding: 10px; line-height:110%; border-width:1px; border-style: solid; border-color:#'.$this->$color.';  
-	   -moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px;
-	  
+	   padding: 7px; line-height:110%; border-width:1px; border-style: solid; border-color:#'.$this->$color.';  
+	  border-radius:5px;
 	    cursor:pointer; }  
 		.button'.$color.'mini{ text-align:left;
 	   background: #'.$this->editor_background.';   margin: 2px;
-	   padding: 10px; border-width:1px; border-style: solid; border-color:#'.$this->$color.';  
-	   -moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px;
+	   padding: 7px; border-width:1px; border-style: solid; border-color:#'.$this->$color.';  
+       border-radius:5px;
 	    cursor:pointer; }  
 	.glowbutton'.$color.'{ text-align:left;
 	   background: #'.$this->editor_background.';   margin: 5px 5px ;
-	   padding: 10px; line-height:120%; border-width:9px; border-style: solid; border-color:#'.$this->info.';  
-	   -moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px;
-	   -moz-box-shadow:inset -3px -3px  3px  #'.$colorlight.',inset 2px  2px  2px  #'.$colorlight.';
-	   -webkit-box-shadow:inset -3px -3px 3px  #'.$colorlight.',inset 2px  2px  2px  #'.$colorlight.';
+	   padding: 7px; line-height:120%; border-width:9px; border-style: solid; border-color:#'.$this->info.';  
+	    border-radius:5px;
 	   box-shadow:inset  -3px -3px  3px #'.$colorlight.', inset 2px  2px  2px  #'.$colorlight.'; 
 	    cursor:pointer; } '; 
 	} //foreach color
@@ -6034,45 +6308,38 @@ foreach ($this->color_order_arr as $color){
      $carr[]='info';
      $carr[]='redAlert';
      $carr[]='pos';
+	 
 foreach ($carr as $color){
 	$this->editgencss.= 
-	'.fs1'.$color.'{-moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px;padding:10px; margin:3px; border: 1px  solid #'.$this->$color.';} 
-	.fs2'.$color.'{-moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px;padding: 10px; margin:3px; border: 2px  solid #'.$this->$color.';}  
-	.fs3'.$color.'{-moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px;padding: 10px; margin:3px; border: 3px  solid #'.$this->$color.';} 
-	.fd1'.$color.'{-moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px;padding: 10px; margin:4px; border: 1px  double #'.$this->$color.';} 
-	.fd2'.$color.'{-moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px;padding: 10px; margin:4px; border: 2px  double #'.$this->$color.';}  
-	.fd3'.$color.'{-moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px;padding: 10px; margin:4px; border: 3px  double #'.$this->$color.';}    
-	.bs1'.$color.'{-moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px;border: 1px  solid #'.$this->$color.';}   
-	.bs2'.$color.'{-moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px;border: 2px  solid #'.$this->$color.';}  
-	.bs3'.$color.'{-moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px;border: 3px  solid #'.$this->$color.';} 
-	.bs4'.$color.'{-moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px;border: 4px  solid #'.$this->$color.';}
-	.Os3'.$color.'{-moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px;outline: 3px  solid #'.$this->$color.';}
-	.bdot1'.$color.'{-moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px;margin:1px;border: 1px  dotted #'.$this->$color.';} 
+	'.fs1'.$color.'{ border-radius:5px;padding:10px; margin:3px; border: 1px  solid #'.$this->$color.';} 
+	.fs2'.$color.'{border-radius:5px;padding: 10px; margin:3px; border: 2px  solid #'.$this->$color.';}  
+	.fs3'.$color.'{border-radius:5px;padding: 10px; margin:3px; border: 3px  solid #'.$this->$color.';} 
+	.fd2'.$color.'{ border-radius:5px;padding: 10px; margin:4px; border: 2px  double #'.$this->$color.';}  
+	.bs1'.$color.'{ border-radius:5px;border: 1px  solid #'.$this->$color.';}   
+	.bs2'.$color.'{border-radius:5px;border: 2px  solid #'.$this->$color.';}  
+	.bs3'.$color.'{border: 3px  solid #'.$this->$color.';} 
+	 .Os3'.$color.'{border-radius:5px;outline: 3px  solid #'.$this->$color.';}
 	
 	.bdoub1'.$color.'{border: 1px  double #'.$this->$color.';} 
-     .bshad1'.$color.'{-moz-box-shadow: 0px 0px 1px 1px #'.$this->$color.'; 
--webkit-box-shadow:  0px 0px 1px 1px #'.$this->$color.';    
+     .bshad1'.$color.'{   
 box-shadow:  0px 0px 1px 1px #'.$this->$color.';}
-	.bdoub2'.$color.'{border: 2px  double #'.$this->$color.';} 
-	.bdot2'.$color.'{border: 2px  dotted #'.$this->$color.';} 
-	.bshad2'.$color.'{-moz-box-shadow: 0px 0px 2px 2px #'.$this->$color.'; 
--webkit-box-shadow:  0px 0px 2px 2px #'.$this->$color.';    
-box-shadow:  0px 0px 3px 3px #'.$this->$color.';}
+	.bdoub2'.$color.'{border: 2px  double #'.$this->$color.';}  
 	.bdoub3'.$color.'{border: 3px  double #'.$this->$color.';} 
 	.bdoub4'.$color.'{border: 4px  double #'.$this->$color.';} 
-	.bdot3'.$color.'{border: 3px  dotted #'.$this->$color.';} 
-	.bdot4'.$color.'{border: 4px  dotted #'.$this->$color.';} 
-	.bshad3'.$color.'{-moz-box-shadow: 0px 0px 3px 3px #'.$this->$color.'; 
--webkit-box-shadow:  0px 0px 3px 3px #'.$this->$color.';    
+	.bdot1'.$color.'{border-radius:5px;padding:1px;border: 1px  dotted #'.$this->$color.';} 
+	.bdot2'.$color.'{border-radius:5px;padding:1px;border: 2px  dotted #'.$this->$color.';} 
+	.bdot3'.$color.'{border-radius:5px;border: 3px  dotted #'.$this->$color.';} 
+	.bdot4'.$color.'{border-radius:5px;border: 4px  dotted #'.$this->$color.';} 
+	.bshad3'.$color.'{ 
 box-shadow:  0px 0px 3px 3px #'.$this->$color.';}
-	.bshad4'.$color.'{-moz-box-shadow: 0px 0px 4px 4px #'.$this->$color.';
--webkit-box-shadow:  0px 0px 4px 4px #'.$this->$color.';    
+	.bshad4'.$color.'{   
 box-shadow:  0px 0px 4px 4px #'.$this->$color.';}
-	.fsec'.$color.'{margin: 2px; padding:3px; border: 4px  double #'.$this->$color.';}
-	.fsm2'.$color.'{-moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px;margin: 4px; padding:20px 10px; border: 2px  double #'.$this->$color.';}
-	.fsm'.$color.'{-moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px;margin: 4px; padding:20px 10px; border: 1px  solid #'.$this->$color.';} 
-	.fsm1'.$color.'{-moz-border-radius:5px; -webkit-border-radius:5px; border-radius:5px;margin: 4px; padding:20px 10px; border: 1px  solid #'.$this->$color.';}';
+	.fsm2'.$color.'{ border-radius:5px;margin: 4px; padding:20px 10px; border: 2px  double #'.$this->$color.';}
+	.fsm'.$color.'{ border-radius:5px;margin: 4px; padding:20px 10px; border: 1px  double #'.$this->$color.';} 
+	.fsm1'.$color.'{ border-radius:5px;margin: 4px; padding:20px 10px; border: 1px  solid #'.$this->$color.';} 
+	';
 	}
+
 foreach ($carr as $color){
 	$this->editgencss.= 
 	'.'.$color.'{color:#'.$this->$color.';}';
@@ -6093,7 +6360,6 @@ foreach ($carr as $color){
 	.staticdim{ opacity:.98;}
 	.fullopacity{opacity:1.0}
 	 a:link.linkcolorinherit, a:visited.linkcolorinherit{color:inherit;}
-	.infoback {background:#f4f3e0;}
 	.lightgreenbackground{background:#ebf4e7;padding: 20px 10px 40px 10px}
 	.lightredAlertbackground{background:#fff2f2;padding: 20px 10px 40px 10px}
 	.lightgreenbackgroundnp{background:#ebf4e7;}
@@ -6105,13 +6371,12 @@ foreach ($carr as $color){
    .whitehide {border:3px solid #'.Cfg::Pos_color.';  background-color:#FFFAFF; }
    .whitecolor{color:white;}
    .whitegreen {border:3px solid  #000; padding: 20px 30px 40px 20px; background-color:#fff; color:#555}
-   .relative {position:relative;}
+   .relative {position:relative;z-index:5}
+   .fixed {position:fixed;z-index:5;}
    .fcol{ border:1px dashed #'.$this->redAlert.';}
    .sfield{text-align:left; border:1px solid #'.$this->redAlert.';}
    .redfield{text-align:left; border:3px solid #'.$this->redAlert.';}
-      textarea.textarea,textarea {padding:0 !important; margin:0 !important}
-	.margincenter {margin: 0 auto;}
-	
+     .margincenter {margin: 0 auto;}
 	.editfontsmall {font-size:14px;text-align:left;font-weight:400;}
 	.editfontsmaller {font-size:12.5px;text-align:left;font-weight:400;}
 	.editfontsmallest {font-size:11px;text-align:left;font-weight:400;}

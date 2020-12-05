@@ -16,8 +16,8 @@ function __construct(){
 	$wwwexpand=request::check_request_data('wwwexpand');//this is obsolete now
 	$expandfield=request::check_request_data('expandfield');//data field for image no expand
 	$quality=request::check_request_data('quality');
+	$sess=session::instance();
 	if (empty($postreturn)){
-			mail::alert('empty postreturn'); 
 			$refer=new redirect;
 			$refer->page_referrer_redirect("!MISSING POST INFORMATION: TRY AGAIN!", '', $sess->page_referrer_2,'true'); 
 			}
@@ -33,7 +33,7 @@ function __construct(){
 	$ttt=request::check_request_data('ttt');
 	if (!empty($ttt)){  
 		if (in_array($ttt, $table_list)){$tablename=$ttt; }
-		else{
+		else{ 
 			$refer=new redirect;
 			$refer->page_referrer_redirect("!MISSING TABLE INFORMATION: TRY AGAIN!", '', $sess->page_referrer_2,'true'); 
 			}

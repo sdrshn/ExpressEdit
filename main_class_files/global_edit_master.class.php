@@ -1,8 +1,8 @@
 <?php
-#ExpressEdit 2.0.4
+#ExpressEdit 3.01
 /*
 ExpressEdit is an integrated Theme Creation CMS
-	Copyright (c) 2018  Brian Hayes expressedit.org
+	Copyright (c) 2018   expressedit.org
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -24,7 +24,7 @@ ExpressEdit is an integrated Theme Creation CMS
 #blogrender# function blog_render is the central method of the system
 #for reasons of size and content grouping the main class was broken up to four classes...
 #the extended main class is broken into 4 classes with each  limited to under ~7000 lines for quick editing in komodo edit 8.5 ::  global_master  extends global_edit_master  extends global_post_master extends global_process_master
-class global_edit_master extends global_post_master{
+class global_edit_master extends global_style_master{
 	protected $blog_drop_array=array(	'New Column Here',
 								'New Text',
 								'New Image',
@@ -32,9 +32,11 @@ class global_edit_master extends global_post_master{
 								'New Right Image-Text Wrap',
 								'New Video/Iframe', 
 								'New Contact Form',
+								'New Mailing List Signup',
 								'New Social Icon Links',
 								'New Auto Slide Show',
 								'New Gallery',
+                                        'New Carousel',
 								'New Navigation Menu',
 								'Copy/Move/Clone Post',
 								'Copy/Move/Clone Column' 
@@ -49,7 +51,7 @@ class global_edit_master extends global_post_master{
 	protected $blog_float='';
 	protected $blog_order='Om';
 	protected  $pic_ext='';#used to add pic extension for float image css styling in blog_render
-	protected $default_blog_text='Ready for Action. Put Your Text Here. Posts will not appear on the webpage till you Check the Publish Box!';
+	protected $default_blog_text='Content Goes Here. Posts will not appear on the webpage till you Check the Publish Box!';
 	protected $page_background='background-color:white;';//default for highslide dimming
 	protected $styler_blog_instructions='Styles '; 
 	protected $styler2_instruct='';
@@ -81,7 +83,6 @@ class global_edit_master extends global_post_master{
 	protected $blog_order_array=array();  
 	protected $column_order_array=array(); 
 	protected $column_lev_color='pos';
-	protected $file_generate_css=false;#will generate css for all pages file_generator::file_generate(true,false);// css  file generate after update
 	protected $current_total_width='';
 	protected $current_net_width='800';//set as default value for intital page styling
 	protected $current_background_color='';
@@ -98,11 +99,10 @@ class global_edit_master extends global_post_master{
 	protected  $sibling_id_arr=array();//keep track to get id dataCss or col_dataCss based on id for animation
 	protected $menu_icon_color='white,yellow,gold,lightestblue,lightlightblue,lightblue,lavender,blue2,blue,navy,ekblue,electricblue,ekaqua,forestgreen,green,lime,electricgreen,ekdarkpurple,olive,orange,ekmagenta,magenta,red,ekred,lightbrown,brown,black,silverlightest,silverlight,silver,greydark,greydarkest';
 	protected $marketing_default='';
-	protected $position_arr=array('center_row','center_float','left_float','right_float','left_float_no_next','right_float_no_next','center_float_no_next');
-	protected $position_val_arr=array('center row','center float','left float','right float','left float no next','right float no next','center float no next');
+	protected $position_arr=array('center_row','center_float','left_float','right_float','left_float_no_next','right_float_no_next','center_float_no_next','force_float_off');
+	protected $position_val_arr=array('center row','center float','left float','right float','left float no next','right float no next','center float no next','Off Completely');
 	protected $table_prefix='table_';
 	static protected  $col_count=1;
-	static protected  $xyz=1;
 	static protected  $rangecount=0;
 	protected $col_num=0;
 	protected $styleoff=false;//turn off style editing
@@ -139,6 +139,11 @@ function backup(){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
 	}
      
 function edit_script(){if (Sys::Debug)  Sys::Debug(__LINE__,__FILE__,__METHOD__);  if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
+     if (isset($_POST['firstposttestjavascript'])){
+          $msg='Broken Javascript Bypassing beforeSubmit Allowing Non Changed Form Fields to Be Submitted';
+          mail::alert($msg);
+          exit($msg);
+          }
 	(Sys::Deltatime)&&$this->deltatime->delta_log(__LINE__.' @ '.__method__.'  ');
      $_SESSION['write_to_file']=array();
      $this->editpages_obj($this->master_page_table,'page_id,'.Cfg::Page_fields,'','page_ref',$this->pagename,'','','all','',",page_time=".time().",token='". mt_rand(1,mt_getrandmax())."', page_update='".date("dMY-H-i-s")."'");
@@ -158,9 +163,10 @@ function edit_script(){if (Sys::Debug)  Sys::Debug(__LINE__,__FILE__,__METHOD__)
 		if (isset($_POST[$port.'_export']))$this->process_export($port);
 		}
 	if (isset($_POST['regen_backup_table']))backup::regen_backup_table($this->backup_copies);
+     if (isset($_POST['tiny_image_quality'])&&isset($_FILES['file']))add_tiny_pic::submitted();
 	if (isset($_POST['copy_to_clipboard']))$this->copy_to_clipboard();
 	if (isset($_POST['paste_from_clipboard']))$this->paste_from_clipboard();
-	if (isset($_POST['page_iframe_all']))$this->page_iframe_all();
+	if (isset($_POST['page_iframe_all']))$this->java_page_iframe_all();
 	if (isset($_POST['page_iframe_all_website']))$this->page_iframe_all_website();
 	if (isset($_POST['cache_regenerate']))$this->cache_regenerate();
 	if (isset($_POST['cache_regenerate_flatfiles']))$this->cache_regenerate_flatfiles();
@@ -174,12 +180,14 @@ function edit_script(){if (Sys::Debug)  Sys::Debug(__LINE__,__FILE__,__METHOD__)
 		$addgallery->submitted();
 		}
 	if (isset($_POST['file_generate_site'])){
-		$msg=file_generator::file_generate(false,true,false);
-		if ($msg==='success')$this->success[]='files successfully generated';
+			if (isset($_POST['file_generate_local']))  
+				$msg=file_generator::file_generate(false,true,false,true);
+		else $msg=file_generator::file_generate(false,true,false);
+		if ($msg==='success')$this->success[]='common files successfully generated';
 		}
 	if (isset($_POST['page_class_generate'])){
 		$msg=file_generator::update_page_class();
-		if ($msg==='success')$this->success[]='files successfully generated';
+		if ($msg==='success')$this->success[]='page files successfully generated';
 		}
 	if (isset($_POST['page_opts_import']))$this->page_opts_import();
 	if (isset($_POST['page_opts_export']))$this->page_opts_export(); 
@@ -250,7 +258,7 @@ function edit_script(){if (Sys::Debug)  Sys::Debug(__LINE__,__FILE__,__METHOD__)
 	natcasesort($this->fonts_all); 
 	//editpages_obj was moved from here up
 	if (isset($_POST['page_cache']))$this->page_cache_update();//waited for page_cache to be rendered
-	$this->pre_render_data();
+	$this->pre_render_data();//empty function for customization
 	if (!empty($this->header_script_function)){  
 	   $javascript=new javascript($this->header_script_function,'', 'gen_Proc',$this->append_script);
 	   }
@@ -262,12 +270,9 @@ function edit_script(){if (Sys::Debug)  Sys::Debug(__LINE__,__FILE__,__METHOD__)
 	$this->render_header_open();
 	$this->edit_header();
 	$this->header_insert_edit();//for custom insert
-     $this->tool_man_init();
-	$this->tinymce();
-	$this->gen_Proc_init(); 
 	$this->header_close();
-     $this->column_lev_color=$this->color_arr_long[0]; 
-	$this->edit_body();  
+     $this->edit_body();  
+     $this->column_lev_color=$this->color_arr_long[0];
 	(Sys::Deltatime)&&$this->deltatime->delta_log('End Edit body '.__LINE__.' @ '.__method__.'  ');
 	if (isset($_POST['submitted'])){
 		$this->backupinst->backup_copies=$this->backup_copies;//configurable in page settings..
@@ -276,8 +281,9 @@ function edit_script(){if (Sys::Debug)  Sys::Debug(__LINE__,__FILE__,__METHOD__)
 		//$this->backupinst->backup_check_clone($this->backup_page_arr);//not necessary with new system
 		(Sys::Deltatime)&&$this->deltatime->delta_log('End backup check clone  '.__LINE__.' @ '.__method__.'  ');
 		}
-	 ($this->file_generate_css)&& file_generator::file_generate(true,false); 
 	$this->render_css();//after edit page has rendered.
+     //$this->js_render_file();//after edit page has rendered.
+	
 	(Sys::Deltatime)&&$this->deltatime->delta_log('End of '.__LINE__.' @ '.__method__.'  ');
 	$this->render_body_end();
 	(Sys::Deltatime)&&$this->deltatime->delta_log('End of '.__LINE__.' @ '.__method__.'  ');
@@ -299,7 +305,6 @@ function tool_man_init(){
      
 function edit_body(){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
 	$this->call_body();
-     $this->java_page_iframe_all();
      foreach ($this->express as $msg){
           echo NL.$msg;
           }
@@ -307,38 +312,37 @@ function edit_body(){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
 	$this->echo_msg();//will echo success msgs  //submit call in destructor to collect all mgs
 	echo <<<eol
      <script>
-	jQuery("document").ready(function(\$){
-		var scrollTimer='';
-	setTimeout(function(){	\$('#displaycurrentsize').css({'width':\$('#displaycurrentsize').width()*1.2+'px'});
+	jQuery("document").ready(function(jQuery){
+		var scrollHeadTimer='';
+	setTimeout(function(){	jQuery('#displaycurrentsize').css({'width':jQuery('#displaycurrentsize').width()*1.2+'px'});
        },50);
-	   \$(window).scroll(function () {
-		clearTimeout(scrollTimer);
-		scrollTimer = setTimeout(function(){ //this will limit no of scroll events responding but may delay appearance of down arrow
-               if (\$(this).scrollTop() > 30) {  
-				\$('#topmenu,#topoutmenu, #botmenu, #botoutmenu,#displayCurrentSize2').removeClass("hide");   
-										\$('#displayCurrentSize2').css({'position':'fixed','top':'0px','left':'30px','z-index':'100000'});
+	   jQuery(window).scroll(function () {
+		clearTimeout(scrollHeadTimer);
+		scrollHeadTimer = setTimeout(function(){ //this will limit no of scroll events responding but may delay appearance of down arrow
+               if (jQuery(this).scrollTop() > 30) {  
+				jQuery('#topmenu,#topoutmenu, #botmenu, #botoutmenu,#displayCurrentSize2').removeClass("hide");   
+										jQuery('#displayCurrentSize2').css({'position':'fixed','top':'0px','left':'30px','z-index':'100000'});
 				}
-			else if(\$(this).scrollTop() < 30) {
-				\$('#topmenu,#topoutmenu,#botoutmenu,#botmenu,#displayCurrentSize2').addClass("hide");    
+			else if(jQuery(this).scrollTop() < 30) {
+				jQuery('#topmenu,#topoutmenu,#botoutmenu,#botmenu,#displayCurrentSize2').addClass("hide");    
 				}
 				
-			},20);
+			},40);
         }); 
 });
 </script>
 eol;
 	echo '<div id="topconfig">
-	<div id="topoutmenu" title="Page Top" class="hide" onclick="window.scrollTo(0,0);return false;">&#9650;</div><div id="toprefresh"><a title="refresh page url  NO RESUBMIT" href="'.Sys::Self.'"><img  src="'.Cfg_loc::Root_dir.'refresh_button.png" alt="refresh button" width="15" height="15"></a></div><div id="topmenu" title="Page Top" class="hide"><p id="gotop" onclick="window.scrollTo(0,0);return false;">&#9650;</p><p id="topunder"><a title="refresh page url" href="'.Sys::Self.'"><img  src="'.Cfg_loc::Root_dir.'refresh_button.png" alt="refresh button" width="15" height="15"></a></p></div><!--close topmenu-->
+	<div id="topoutmenu" title="Page Top" class="hide" onclick="window.scrollTo(0,0);return false;">&#9650;</div><div id="toprefresh"><a title="refresh page url  NO RESUBMIT" href="'.Sys::Self.'"><img  src="'.Cfg_loc::Root_dir.'refresh_button.png" alt="refresh button" width="15" height="15"></a></div><div id="topmenu" class="hide"><p id="gotop" onclick="window.scrollTo(0,0);return false;">&#9650;</p><p id="topunder"><a title="refresh page url" href="'.Sys::Self.'"><img  src="'.Cfg_loc::Root_dir.'refresh_button.png" alt="refresh button" width="15" height="15"></a></p><p class="clear"><p><input id="fixedsubmit" class="rad5 tiny cursor button'.$this->column_lev_color.' mb10" type="submit" name="submit"   value="submit" ></p></div><!--close topmenu-->
 			<div id="botoutmenu" class="hide" title="Page bottom" onclick="window.scrollTo(0,100000);return false;">&#9660;</div><div id="botmenu" class="hide" title="Page bottom" onclick="window.scrollTo(0,100000);return false;">&#9660;</div>';
 	echo '<div id="top_contain" class="showclass">'; 
 	$this->uploads_spacer();
+     $this->display_anchor(); 
      $this->browser_size_display();
 	$this->top_submit();
-     $this->display_anchor(); 
 	$this->track_font_em($this->page_style);
-	$this->generate_cache();
 	$this->add_new_page();
-	$this->configure();
+	$this->configure();//configures certain values necessary for subsequent intits for tinymce gen_Proc..
      $this->body_defaults();//determine initial colors, fonts
      $this->page_import_export_options(); 
 	$this->display_nav(); 
@@ -350,7 +354,8 @@ eol;
      $this->debug_activate();
      $this->magnify_margins();
 	$this->leftover_view(); 
-	echo '</div><!--close topfix--></div><!--close contain configs-->';
+	echo '</div><!--close top_contain--></div><!--close contain configs-->';
+	 echo '<input name="firstposttestjavascript" style="visibility:hidden;height:20px;" type="text" value="true">';//this is too test if javascript is working!
 	printer::pclear(2);
      if (Sys::Pass_class&&strpos(Sys::Self,Cfg::Theme_dir)!==false){
           printer::alertx('<p class="underline orange whitebackground fsmredAlert italic"><a href="'.Cfg_loc::Root_dir.Cfg::PrimeEditDir.'index.php">Back to View Copy Theme Page<br></a><a href="'.Cfg_loc::Root_dir.Cfg::PrimeEditDir.'index.php?viewdboff"> OR Return to Normal Editpage mode</a></p>');
@@ -361,7 +366,10 @@ eol;
 		$this->auto_slide($this->pagename,'page');
 		print '</fieldset><!--End edit fieldset Configure Page slide show-->';
 		}
-	$this->is_page=false;//for styling 
+	$this->is_page=false;//for styling
+     $this->tool_man_init();
+	$this->tinymce();
+	$this->gen_Proc_init(); 
 	$this->render_body_main();
 	printer::pclear();
 	}//note gallery master has its own edit_body
@@ -379,7 +387,7 @@ function body_defaults(){
      
 function advanced_button(){return;
      ##################### advance off button
-	echo '<div class="inline floatleft"><!-- float buttons-->';
+	echo '<div class="floatbutton"><!-- float buttons-->';
 	$msg='Advanced Style Css refers to custom css manually added at the bottom of the style options. You can change the default status of whether advances css is expressed in editmode under configure settings then toggle on or off here as needed. Please note some editor default styles may overwrite advanced css so always check results in webpage mode';
 	if (!Sys::Advanced) 
 		printer::printx('<p class="click buttoninfo highlight editfont tiny" title="'.$msg.'"> <a style="color:inherit;" href="'.Sys::Self.'?advanced">Display Adv CSS in Editmode</a></p>');
@@ -389,18 +397,20 @@ function advanced_button(){return;
 
 function debug_activate(){
      ##################### advance off button
-	echo '<div class="inline floatleft"><!-- float buttons-->';
+	echo '<div class="floatbutton"><!-- float buttons-->';
 	$this->show_more('Debug Tools','',$this->column_lev_color.' smallest editbackground editfont button'.$this->column_lev_color,'','','','','asis');
 	printer::print_wrap('configure wrap',true); 
-     printer::alert('<a class="info" title="Turn off all active debug queries" href="'.Sys::Self.'?alloff">All Debug Queries off</a>');
-     printer::alert('<a class="info" title="Submitted Page refreshes to update css. Will prevent this to show submitted $_POST array and mysql queries and any error msg" href="'.Sys::Self.'?norefresh">Prevent Submitted Page Refresh</a><a href="'.Sys::Self.'?norefreshoff">&nbsp;&nbsp;<span class="underline cursor">Off</span></a>');
+     printer::alert('<a class="info" title="Turn off all active debug queries" href="'.Sys::Self.'?alloff">All Debug Options off</a>');
+     printer::alert('<a class="info" title="Submitted Page refreshes to update css. Will prevent this to show submitted $_POST array and mysql queries and any error msg" href="'.Sys::Self.'?norefresh">Display $_POST and query Info during Submit </a><a href="'.Sys::Self.'?norefreshoff">&nbsp;&nbsp;<span class="underline cursor">Off</span></a>');
      printer::alert('<a class="info" title="Show Request" href="'.Sys::Self.'?request&amp;#requested">Show Requests </a><a href="'.Sys::Self.'?requestoff">&nbsp;&nbsp;<span class="underline cursor">Off</span></a>');
+     printer::alert('<a class="info" title="Debug Messages" href="'.Sys::Self.'?debug">Debug Messages</a><a href="'.Sys::Self.'?debugoff">&nbsp;&nbsp;<span class="underline cursor">Off</span></a>');
      printer::alert('<a class="info" title="Show called methods" href="'.Sys::Self.'?methods&amp;#bottom">Show Methods Called </a><a href="'.Sys::Self.'?methodsoff">&nbsp;&nbsp;<span class="underline cursor">Off</span></a>');
      printer::alert('<a class="info" title="Show mysqli calls" href="'.Sys::Self.'?mysql">Show Mysql Calls </a><a href="'.Sys::Self.'?mysqlsoff">&nbsp;&nbsp;<span class="underline cursor">Off</span></a>');
      printer::alert('<a class="info" title="Show constants" href="'.Sys::Self.'?constants&amp;#bottom">Show constants</a><a href="'.Sys::Self.'?contantsoff">&nbsp;&nbsp;<span class="underline cursor">Off</span></a>');
      printer::alert('<a class="info" title="Show Session" href="'.Sys::Self.'?session&amp;#bottom">Show session info </a><a href="'.Sys::Self.'?sessionoff">&nbsp;&nbsp;<span class="underline cursor">Off</span></a>');
      printer::alert('<a class="info" title="Show included files" href="'.Sys::Self.'?includes&amp;#bottom">Show included files </a><a href="'.Sys::Self.'?includesoff">&nbsp;&nbsp;<span class="underline cursor">Off</span></a>');
-     printer::alert('<a class="info" title="Show delta time take for methods to run" href="'.Sys::Self.'?deltatime&amp;#bottom">Clock Method Rendering on Server </a><a href="'.Sys::Self.'?deltatimeoff">&nbsp;&nbsp;<span class="underline cursor">Off</span></a>'); 
+     printer::alert('<a class="info" title="Show delta time take for methods to run" href="'.Sys::Self.'?deltatime&amp;#bottom">Clock Time Rendering on Server </a><a href="'.Sys::Self.'?deltatimeoff">&nbsp;&nbsp;<span class="underline cursor">Off</span></a>'); 
+     printer::alert('<a class="info" title="Show delta time take for methods to run" href="'.Sys::Self.'?deltatimepost&amp;#bottom">Clock Time Rendering per Post type on Server </a><a href="'.Sys::Self.'?deltatimepostoff">&nbsp;&nbsp;<span class="underline cursor">Off</span></a>'); 
      printer::alert('<a class="info" title="display server variables" href="'.Sys::Self.'?server&amp;#bottom">Display Server Vals </a>
                     <a href="'.Sys::Self.'?serveroff">&nbsp;&nbsp;<span class="underline cursor">Off</span></a>'); 
 	printer::close_print_wrap('configure wrap',true);
@@ -434,10 +444,10 @@ use ?debug and/or ?methods
 ?mysql output of mysql queries,etc. individual requests may be turned off by appending off to the request ie ?queryoff  */   
 function magnify_margins(){
      ##################### advance off button
-	echo '<div class="inline floatleft"><!-- float buttons-->';
+	echo '<div class="floatbutton"><!-- float buttons-->';
 	$msg='Click Button to enlarge borders and add margin and padding spacing in order to better see column arrangement. In certain circumstance can cause a floated post to break to new line';
      if (!isset($_GET['magnify_margins']))
-          printer::printx('<p class="info click buttoneditcolor editfont smallest" title="'.$msg.'"> <a style="color:inherit;"  href="'.Sys::Self.'?magnify_margins">Enable Margin Magnify</a></p>');
+          printer::printx('<p class="info click buttoneditcolor editfont smallest" title="'.$msg.'"> <a style="color:inherit;"  href="'.Sys::Self.'?magnify_margins">Margin Magnify</a></p>');
      else 
           printer::printx('<p class="info click buttoneditcolor editfont smallest" title="'.$msg.'"> <a style="color:inherit;"  href="'.Sys::Self.'">Disable Margin Magnify</a></p>'); 
 	echo '</div><!-- float buttons-->';
@@ -455,7 +465,8 @@ function edit_header(){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__
 		  }
 	   }
     }
-     
+
+#editpages_obj     
 function editpages_obj($master_table,$field_data,$post_prepend,$ref1,$refval1,$ref2='',$refval2='',$do_all='all',$where3='',$update2=''){ #update# Updating posts in main process_blog function calling this function handles originals ie non-clones.. whereas updaing for local clone style and local clone data call this function in each repective section in the main blog_render function..  for the clones same parameters are passed cept has additional where blog_table_base='$this->pagename' clause  and instead of using master_post uses master_post_css or master_post_data for clone_local_style and  clone_local_data respectively
 	#the system uses the pagename and order instead of id  which allows for proper order information ie. placement to occur naturally
 	$print=($do_all!=='populate_data'&&isset($_POST['submitted'])&&(false))?true:false;    
@@ -475,14 +486,19 @@ function editpages_obj($master_table,$field_data,$post_prepend,$ref1,$refval1,$r
 				 	if (isset($_POST[$post_prepend.$field_array[$x].$check_suffix])){ ($print)&&printer::alert_neg('is post '.$post_prepend.$field_array[$x].$check_suffix); 
 						if (is_array($_POST[$post_prepend.$field_array[$x].$check_suffix])){
                                     ($print)&&printer::alert_pos('Is array ');
-							$q='select '.$field_array[$x]." from $master_table WhErE $ref1 ='$refval1' $where2 $where3";   ($print)&&printer::alert_pos("Select $q"); 
+							
+                                   $q='select '.$field_array[$x]." from $master_table WhErE $ref1 ='$refval1' $where2 $where3";   ($print)&&printer::alert_pos("Select $q"); 
 							$r=$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);  
 							list($c_val)=$this->mysqlinst->fetch_row($r,__LINE__);
 							 
 							${$field_array[$x]}=process_data::implode_retain_vals($_POST[$post_prepend.$field_array[$x].$check_suffix],$c_val,',','@@'); 
 							}
 						
-						else ${$field_array[$x]}=process_data::spam_scrubber($_POST[$post_prepend.$field_array[$x].$check_suffix]);//chdnged from blog_check.$field_array.$check_suffix
+						else {#check for tiny-mce submit from text post
+                                    if ($check_suffix==='_arrayed'&&strpos($field_array[$x].$check_suffix,'blog_text_arrayed')!==false)
+                                        ${$field_array[$x]}=process_data::pre_spam_scrubber($_POST[$post_prepend.$field_array[$x].$check_suffix]);
+                                   else ${$field_array[$x]}=process_data::spam_scrubber($_POST[$post_prepend.$field_array[$x].$check_suffix]);//chdnged from blog_check.$field_array.$check_suffix
+                                   }
 						$update.=" {$field_array[$x]}='${$field_array[$x]}',"; 
 						}
 					 }
@@ -518,14 +534,39 @@ function editpages_obj($master_table,$field_data,$post_prepend,$ref1,$refval1,$r
 			#regardless of affected or not backup
 			##remember css is generated whether submitted or not whereas otherwise backups must be submitted
 			}
-		}// if submitted  
+		}// if submitted
+		
+		
 	if ($do_all==='update')return; #job in blog_render is done...
 	$q = "SELeCT $field_data FROM $master_table  where $ref1 ='$refval1' $where2";    
 	$r=$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false); 
+	if ($refval1==='indexpage'&&$ref1==='page_ref'&&$where2==''&&!$this->mysqlinst->affected_rows()) {
+		$page_fields=Cfg::Page_fields;
+		$page_fields_all=Cfg::Page_fields_all;
+		$page_fields_arr=explode(',',$page_fields);
+		$this->mysqlinst->count_field($this->master_page_table,'page_id','',false,'');  
+		$page_id=$this->mysqlinst->field_inc;
+		$q="insert into $this->master_page_table ($page_fields_all) values (";
+		foreach ($page_fields_arr as $field){
+			if ($field==='page_id')$q.="'$page_id',";
+			elseif ($field==='page_ref')$q.="'indexpage',";
+			else if ($field==='page_title')$q.="'Home',"; 
+			else if ($field==='page_filename')$q.="'index',";
+			else if ($field==='page_style')$q.="',,0,0,0,0,0,0,0,0,Lucida Sans Unicode=> Lucida Grande=> sans-serif;,20@@@@@@@@@@@@@@2000@@250,0,0,444,0,0,0,0,0,0,ffffff@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@0@@no-repeat,0,0,0,0@@0@@0@@0@@0@@inset,0,8@@000@@0@@top',";
+			else if ($field==='page_options')$q.="'dark,0,0,0,0,,,,,,page_rem_scale_enable,,,,,,2,,2000,240,100,20.00,0,ffffff,000000,c82c1d,c82c1d,64C91D,64C91D,,turnon,,,disabled,,media_style_off',";
+			else if ($field==='page_dark_editor_value')$q.="'00ffff,0FCEA6,00bfff,FFFF00,ffefd5,afeeee,eee8aa,fdf5e6,dcdcdc,b0e0e6,8fbc8f,ffffff,1e90ff,800000,2B1DC9,C91B45,00ff00,ff4500,ff6600,c6a5a5,0075a0,816227,266a2e,a9a9a9,dccbcb,bdb76b,8b008b,556b2f,ff8c00,9932cc,8b0000,e9967a,483d8b,CDFFF5,2f4f4f,d87093,98fb98,9400d3,ff1493,696969,b22222,fffaf0,228b22,ff00ff,ffe4b5,ff00ff,808000,6b8e23,da70d6,ffdab9,00ced1,ffdead,cd853f,dda0dd,bc8f8f,4169e1,8b4513,fa8072,f4a460,2e8b57,ede5e5,000000,e5d805,7AFFE8,04B18D',";
+			else if ($field==='page_dark_editor_order')$q.="'aqua,darkaqua,deepskyblue,yellow,papayawhip,paleturquoise,palegoldenrod,oldlace,gainsboro,powderblue,darkseagreen,white,dodgerblue,maroon,navy,cherry,brightgreen,orangered,orange,lightmaroon,ekblue,brown,green,darkgrey,lightermaroon,darkkhaki,darkmagenta,darkolivegreen,darkorange,darkorchid,darkred,darksalmon,darkslateblue,lightlightaqua,darkslategray,palevioletred,palegreen,darkviolet,deeppink,dimgrey,firebrick,floralwhite,forestgreen,fuchsia,moccasin,magenta,olive,olivedrab,orchid,peachpuff,darkturquoise,navajowhite,peru,plum,rosybrown,royalblue,saddlebrown,salmon,sandybrown,seagreen,lightestmaroon,black,gold,lighteraqua,darkeraqua',";
+			
+			else $q.="'0',";
+			}
+		$q="$q '".date("dMY-H-i-s")."','".time()."','".$this->token_gen()."')";
+		$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false); 
+		$q = "SELeCT $field_data FROM $master_table  where $ref1 ='$refval1' $where2";    
+		$r=$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
+		}
 	try {
 		if (!$this->mysqlinst->affected_rows()) { 
 			if (Sys::Debug)echo NL.'failed '. $q. NL;
-                 
 			$msg=' in db '.Sys::Dbname.  " Edit Site Temporarily Down-  Check back later line: " .__LINE__.' in '.__method__;
 			$this->message[]=$msg .' with '.$q;
 			echo '<p style="font-weight: bold; font-size: 1.4em; color:#'.$this->redAlert.'">'.$msg.'</p>';
@@ -547,252 +588,32 @@ function editpages_obj($master_table,$field_data,$post_prepend,$ref1,$refval1,$r
 	if (Sys::Debug) echo 'leaving funct editpage entirely!!';  
 	}#end function edit pages_obj
 
-function scroll_height_fade(){
-      #this is for all posts including nested columns
-     $options=($this->is_column)?$this->col_options[$this->col_display_state_index]:$this->blog_options[$this->blog_display_state_index]; 
-	$options=explode('@@',$options);
-	$c_opts=count(explode(',',Cfg::Display_options));
-	for ($i=0;$i<$c_opts; $i++){
-		if (!array_key_exists($i,$options))$options[$i]=0;
-		}
-     $ok_arr=array('p','P','c','C');
-    // echo $options[$this->display_fade_id_index]. ' is id';  
-      $display_fade_id=$options[$this->display_fade_id_index];
-     //echo '<br>'.$display_fade_id. 'is dfi';
-     $active_element_follow=(array_key_exists($options[$this->display_fade_id_index],$this->sibling_id_arr))?$this->sibling_id_arr[$options[$this->display_fade_id_index]]:'none';
-     $display_fade_percent=($options[$this->display_fade_percent_index]>=10&&$options[$this->display_fade_percent_index]<=100)?$options[$this->display_fade_percent_index]:100; 
-     $fadeInval=($options[$this->display_fade_px_index]>=15&&$options[$this->display_fade_px_index]<=750)?$options[$this->display_fade_px_index]:'0';
-     $fadechoice=($options[$this->display_fade_choice_index]==='fadein'||$options[$this->display_fade_choice_index]==='fadeout')?$options[$this->display_fade_choice_index]:'none';
-     $fademode=($options[$this->display_fade_mode_index]==='display')?$options[$this->display_fade_mode_index]:'visible';
-     $basis=($options[$this->display_basis_index]==='px'||$options[$this->display_basis_index]==='percent')?$options[$this->display_basis_index]:'none';
-     if ($this->edit){
-          if ($this->edit&&($fadechoice ==='none'||empty($fadeInval))&&$basis==='px') 
-               printer::alert_neg('Youve chosen method 1. but need to both choose fadein/fadeout value and a px value');
-          if ($this->edit&&$active_element_follow ==='none'&&$basis==='percent') 
-               printer::alert_neg('Youve chosen method 2  but need to choose a valid element id include the prefix: p for post type and c for nested column. Current chosen '.$display_fade_id);
-          $display_name=($this->is_column)?$this->col_name.'_col_options['.$this->col_display_state_index.']':$this->data.'_blog_options['.$this->blog_display_state_index.']';
-          $mode_name=$display_name.'['.$this->display_fade_mode_index.']';
-          $value_name=$display_name.'['.$this->display_fade_px_index.']';
-          $choice_name=$display_name.'['.$this->display_fade_choice_index.']';
-          $basis_name=$display_name.'['.$this->display_basis_index.']';
-          $type=($this->blog_type==='nested_column')?'nested column':'post';
-          printer::print_wrap('scroll height fade');
-          printer::print_wrap('overall choice');
-          printer::print_tip('For <b>ScrollHeight Methods: </b> Choose one of two options to change the display property of this element:
-                             <br><br>0. No scrollHeight display control.
-                             <br><br>Method 1. Choose direct window scrollHeight in px units to fade in/out this element.  
-                             <br><br>Medthod 2. Instead choose id of any element and the scrollHeight percentage that element. For example choosing 100% would mean when that element has scrolled on the viewscreen to the point where the bottom of that element goes off the top of the viewscreen then this '.$type.' element will fade in/out as chosen.');
-          #######################
-          $checked1=($basis!=='px'&&$basis!=='percent')?'checked="checked"':'';
-          $checked2=($basis==='px')?'checked="checked"':'';
-          $checked3=($basis==='percent')?'checked="checked"':'';
-          printer::alert('<input type="radio" name="'.$basis_name.'" value="none" '.$checked1.'>0. Turn off');
-          printer::alert('<input type="radio" name="'.$basis_name.'" value="px" '.$checked2.'>1. Choose direct method based on window scrollHeight in px');
-          printer::alert('<input type="radio" name="'.$basis_name.'" value="percent" '.$checked3.'>2. Use Id of any element to base percentage scroll of that element to fade in this element.');
-          printer::close_print_wrap('overall choice');
-          ################
-          $checked1=($fadechoice!=='fadeout')?'checked="checked"':'';
-          $checked2=($fadechoice==='fadeout')?'checked="checked"':'';
-          printer::print_wrap('fade in or out display');
-          printer::alert('<input type="radio" name="'.$choice_name.'" value="fadein" '.$checked1.'>Choose fadein to initially hide this '.$type.' till specified scroll height is surpassed then make display/visible');
-          printer::alert('<input type="radio" name="'.$choice_name.'" value="fadeout" '.$checked2.'>Choose fadeout to initially display this '.$type.' till specified scroll height is surpassed then hide');
-          printer::close_print_wrap('fade in or out display');
-          $checked1=($fademode!=='display')?'checked="checked"':'';
-          $checked2=($fademode==='display')?'checked="checked"':'';
-          printer::print_wrap('hidden vs absolute fade display');
-          printer::print_tip('This choice works with both method1 and method2:');
-          printer::print_tip('Visibility:hidden changes the opacity &amp; visibility properties. display:none is emulated by additionally including absolute positioning on the element so it removes the occupied space as well. If the post types/nested columns to fade is already using <b>absolute  positioning</b> use the visibility option so that top left parameters are preserved!');
-          printer::alert('<input type="radio" name="'.$mode_name.'" value="visible" '.$checked1.'>Use Visibility:hidden (Preserves spacing affects visiblity only. Use if this '.$type.' to fade in/out is <b>absolutely positioned already</b> to preserve additional settings: top/left etc.)');
-          printer::alert('<input type="radio" name="'.$mode_name.'" value="display" '.$checked2.'>Emulate Display:none (Removes/Puts Back Spacing and Visibility)');
-          printer::close_print_wrap('hidden vs absolute fade display');
-          printer::print_wrap('choose display fade px');
-          printer::print_tip('This choice affects method 1 px value');
-          printer::print_tip('Choose the scroll height for the Visibility Transition');
-          $this->mod_spacing($value_name,$fadeInval,15,750,1,'px'); 
-          printer::close_print_wrap('choose display fade px');
-          
-          printer::print_wrap('display','editbackground editfont Os3salmon fsmaqua');
-          printer::print_tip('For Method 2 use the following two options to set the id of the element to follow the scroll height and set the percentage of the height of that element scrolled before which this element will display according to fade in/out chosen');
-          printer::alert('Enter the id (include c or p prefix) of the animated post or column you wish to complete before this animation starts:<input type="text" value="'.$display_fade_id.'" name="'.$display_name.'['.$this->display_fade_id_index.']">');
-          printer::print_tip('By default scroll height is 100%. <br>');
-          printer::alert('Change elements scrollHeight:');
-          $this->mod_spacing($display_name.'['.$this->display_fade_percent_index.']',$display_fade_percent,10,200,1,'%');
-           printer::close_print_wrap('display');
-          printer::close_print_wrap('scroll height fade');
-          }
-     //$('#someElementID').css('position');
-     if (!$this->edit&&($basis==='px'||$basis==='percent')){
-          $cb_data=($this->blog_type==='nested_column')?$this->col_dataCss:$this->dataCss;
-          $minheight='500px';
-          if($fadechoice==='fadein'){
-               if ($fademode!=='visible'){ 
-                    $inout='displayTransitionOn';
-                    $rev_inout='displayTransitionOff';
-                    $initclass='displayOff';
-                    }
-                    
-               else{ 
-                    $inout='visibleTransitionOn';
-                    $rev_inout='visibleTransitionOff';
-                    $initclass='visibleOff';
-                    }
-               }
-          else {
-               $initclass='';
-               if ($fademode!=='visible'){ 
-                    $inout='displayTransitionOff';
-                    $rev_inout='displayTransitionOn';
-                    }
-                    
-               else{ 
-                    $inout='visibleTransitionOff';
-                    $rev_inout='visibleTransitionOn';
-                    }
-               }
-          $initaddclass= ($fadechoice==='fadein')?"\$('#$cb_data').addClass('$initclass');":'';
-          }
-     if (!$this->edit&&!empty($fadeInval)&&$basis==='px'){
-                    echo <<<eol
-     <script>
-	jQuery("document").ready(function($){
-          $initaddclass                    
-          \$('body').css('min-height','$minheight');
-		var scrollTimer='';
-	   \$(window).scroll(function () {
-		clearTimeout(scrollTimer);
-		scrollTimer = setTimeout(function(){ //this will limit no of scroll events responding 
-               if (\$(this).scrollTop() >= $fadeInval) {  
-				\$('#$cb_data').addClass('$inout').removeClass('$rev_inout').removeClass('$initclass'); 
-				}
-			else if(\$(this).scrollTop() < $fadeInval) {
-				\$('#$cb_data').addClass('$rev_inout').removeClass('$inout');    
-				}
-				
-			},200);
-        }); 
-});
-</script>
-eol;
-          }
-     if (!$this->edit&&$basis==='percent'&&$active_element_follow!=='none'){
-          echo <<<eol
-     <script>
-	jQuery("document").ready(function($){
-          $initaddclass                    
-          \$('body').css('min-height','$minheight');
-          var elem = \$('#$cb_data');
-          elem.addClass('$initclass');
-          var helem=\$('#$active_element_follow');
-          var element_height = helem.outerHeight(true); 
-          var scrollTimer='';
-          \$(window).scroll(function () {
-               clearTimeout(scrollTimer);
-               scrollTimer = setTimeout(function(){ //this will limit no of scroll events responding 
-               var window_height = \$(window).height();
-               var window_top_position = \$(window).scrollTop();
-               var window_bottom_position = (window_top_position + window_height);
-               var hchange=parseInt($display_fade_percent);
-               var element_top_position = helem.offset().top;
-               var element_bottom_position = (element_top_position + element_height);
-               var height_change = (hchange * element_height/100);
-               if ((element_bottom_position * hchange/100 <= window_top_position ) && !elem.hasClass('$inout')) {
-                    elem.addClass('$inout'); 
-                    elem.removeClass('$rev_inout').removeClass('$initclass');
-                    }
-               else if ((element_bottom_position * hchange/100 > window_top_position ) && elem.hasClass('$inout')) {
-                    elem.addClass('$rev_inout'); 
-                    elem.removeClass('$inout'); 
-                    }
-              },200);
-          }); 
-     });
-     </script>
-eol;
-          }
-     }
 
      
-function color_populate(){ 
-     $this->page_options[$this->page_darkeditor_background_index]=(preg_match(Cfg::Preg_color,$this->page_options[$this->page_darkeditor_background_index]))?$this->page_options[$this->page_darkeditor_background_index]:'687867';
-	$this->page_options[$this->page_darkeditor_color_index]=(preg_match(Cfg::Preg_color,$this->page_options[$this->page_darkeditor_color_index]))?$this->page_options[$this->page_darkeditor_color_index]:'ffffff';
-	$this->page_options[$this->page_lighteditor_background_index]=(preg_match(Cfg::Preg_color,$this->page_options[$this->page_lighteditor_background_index]))?$this->page_options[$this->page_lighteditor_background_index]:'ECECEC';
-	$this->page_options[$this->page_lighteditor_color_index]=(preg_match(Cfg::Preg_color,$this->page_options[$this->page_lighteditor_color_index]))?$this->page_options[$this->page_lighteditor_color_index]:'687867';
-	$this->page_options[$this->page_darkeditor_info_index]=(preg_match(Cfg::Preg_color,$this->page_options[$this->page_darkeditor_info_index]))?$this->page_options[$this->page_darkeditor_info_index]:$this->page_options[$this->page_darkeditor_color_index];
-	$this->page_options[$this->page_lighteditor_info_index]=(preg_match(Cfg::Preg_color,$this->page_options[$this->page_lighteditor_info_index]))?$this->page_options[$this->page_lighteditor_info_index]:$this->page_options[$this->page_lighteditor_color_index];
-	$this->page_options[$this->page_darkeditor_red_index]=(preg_match(Cfg::Preg_color,$this->page_options[$this->page_darkeditor_red_index]))?$this->page_options[$this->page_darkeditor_red_index]:$this->redAlert; 
-	$this->page_options[$this->page_lighteditor_red_index]=(preg_match(Cfg::Preg_color,$this->page_options[$this->page_lighteditor_red_index]))?$this->page_options[$this->page_lighteditor_red_index]:$this->redAlert; 
-	$this->page_options[$this->page_darkeditor_pos_index]=(preg_match(Cfg::Preg_color,$this->page_options[$this->page_darkeditor_pos_index]))?$this->page_options[$this->page_darkeditor_pos_index]:$this->pos; 
-	$this->page_options[$this->page_lighteditor_pos_index]=(preg_match(Cfg::Preg_color,$this->page_options[$this->page_lighteditor_pos_index]))?$this->page_options[$this->page_lighteditor_pos_index]:$this->pos;
-     
-    if($this->page_options[$this->page_editor_choice_index]==='dark'){
-          $theme= 'dark';
-           $cfgorder=explode(',',Cfg::Dark_editor_color_order);
-           }
-     else {
-          $theme='light';
-          $cfgorder=explode(',',Cfg::Light_editor_color_order);
-          }
-     $this->info=$this->page_options[$this->{'page_'.$theme.'editor_info_index'}];
-     $page_order=(!empty($this->{'page_'.$theme.'_editor_order'}))?explode(',',$this->{'page_'.$theme.'_editor_order'}):array();
-     $this->{'page_'.$theme.'_editor_value'}=(empty($this->{'page_'.$theme.'_editor_value'}))?array():explode(',',$this->{'page_'.$theme.'_editor_value'});
-     $this->color_order_arr=(count($page_order)>5)?$page_order:$cfgorder;
-     if (count($page_order)<6){ 
-          $msg='You must maintain at least 5 column level colors or else the default column level colors and order will be used';
-          $this->message[]=$msg;
-          $collect='';
-          foreach($this->color_order_arr as $key =>$color){
-               $collect.="$color,";
-               }
-          $collect=substr_replace($collect,'',-1);
-          $q="Update $this->master_page_table set page_".$theme."_editor_order='$collect'";
-          $this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);
-          $this->success[]='Updated to default color level colors';
-          }
-     foreach($this->color_order_arr as $key =>$color){
-          if (!empty($color)){
-               $this->{$color.'_index'}=$key;  
-               }
-          if (array_key_exists($key,$this->{'page_'.$theme.'_editor_value'})&&preg_match(Cfg::Preg_color,$this->{'page_'.$theme.'_editor_value'}[$key]))
-               $this->$color=$this->{'page_'.$theme.'_editor_value'}[$key];
-          elseif (!isset($this->$color)){
-               $msg="Error: Unconfigured color value for  $color being temporarily set to black";
-               $this->message[]=$msg;
-               $this->$color='000000';
-               }
-          #You can add colors to default by setting up color value in global_master const then putting additional colors in Cfg_master list! uncomment here to auto print color and value
-          #if (isset($this->$color)&&strpos($color,'aqua')!==false)
-          #     echo 'protected $'."$color='".$this->$color."';
-          #     <br>";
-          }  
-     $this->editor_background=$this->page_options[$this->{'page_'.$theme.'editor_background_index'}];
-     $this->editor_color=$this->page_options[$this->{'page_'.$theme.'editor_color_index'}];
-	$this->color_arr_long=$this->color_order_arr;//explode(',',substr_replace(str_repeat($color_order.',',3),'',-1)); 
-	}//end function
-     
 function top_submit(){if(Sys::Custom)return;if (Sys::Quietmode||Sys::Pass_class) return;
-	echo '<div class="inline floatleft"><!-- float buttons-->';
+	echo '<div class="floatbutton"><!-- float buttons-->';
 	echo'  <p><input class="editbackground editfontfamily '.$this->column_lev_color.' shadowoff cursor  smallest buttoneditcolor"   type="submit" name="submit"   value="submit All" ></p>';
 	echo '</div><!--float buttons-->'; 
 	} 
  
 function editor_overview(){if (Sys::Quietmode) return;
-	$scaling='Responsive units are totally optional and often unnecessary to set up. However they can also be quite useful. There are 3 basic ways to set up responsize scaling of rem em and px units so that the widths paddings borders and font sizes they specify will smallerize on progressively smaller screen sizes. To make scaling more relevant you can choose the upper and lower widths over which scaling is to take place. Each scaling choice also allows for a modification of the one to one scaling. Smallerization is done  automatically through @media queries over the range of sizes of upper and lower screen widths you choose. <br><br>
-     The first scaling choice is for rem which is always linked to  font-size directly under the html tag and and found just below. If no scaling is chosen each rem unit choice specifies an original default value 16px per unit of size by default for any width, font, padding, or margin, etc. choice. However, you can increase or decrease this rem unit size directly affecting all rem unit values on the page. Moreso, by choosing to scale the value of a rem unit the absolute width value will decrease  proportionally to user view screen width. <br> However a one to one relationship between width and view screen doesnt suffice in all circumstances. This relationship is adjusted in the rem scaling (for rem units) and the rwd scale (for px units that also effect em size when done to font units.<br><br>Setting up  em scaling and customization is done similarly  except this option is tied to the font-size choices you make in the default page styles you make under page options, and under column font-styles settings. These choices will affect all em choices made in child posts. Please Note em settings are compoundable meaning em units themselves mulitply a parent em value if previously chosen.  <br><br>
+	$scaling='There are 3 basic ways to set up responsize scaling of rem em and px units so that the widths paddings borders and font sizes they specify will smallerize on progressively smaller screen sizes. To make scaling more relevant you can choose the upper and lower widths over which scaling is to take place. Each scaling choice also allows for a modification of the one to one scaling. Smallerization is done  automatically through @media queries over the range of sizes of upper and lower screen widths you choose. <br><br>
+		Rem which is always linked to  font-size directly under the html tag and and found just below. If no scaling is chosen each rem unit choice specifies an original default value 16px per unit of size by default for any width, font, padding, or margin, etc. choice. However, you can increase or decrease this rem unit size directly affecting all rem unit values on the page. Moreso, by choosing to scale the value of a rem unit the absolute width value will decrease  proportionally to user view screen width. <br> However a one to one relationship between width and view screen doesnt suffice in all circumstances. This relationship is adjusted in the rem scaling (for rem units) and the rwd scale (for px units that also effect em size when done to font units.<br><br>Setting up  em scaling and customization is done similarly  except this option is tied to the font-size choices you make in the default page styles you make under page options, and under column font-styles settings. These choices will affect all em choices made in child posts. Please Note em settings are compoundable meaning em units themselves mulitply a parent em value if previously chosen.  <br><br>
 So the actually scalability of em units is made through font-size choice as initially setup under the page options or in any column by choosing font-size px, then choose the rwd_scale option, the relavent upper and lower widths at which scaling takes place and any modification of one to one relationship that may better suit you needs. Note em compoundabilty ends when a new font-size  choice is made not directly in em units.<br><br>
 Lastly scaling may be set up directly in any width, padding, margin, border, and other options in any post or column for needs that are not met by currently scaled em or rem choices in much the same way,  by choosing font size and then rwd scale options.';   
-$instructions=' 
-Hover Over <span class="highlight" title="hovering over this color text having white background will reveal more info">Highlighted Text</span> for More Information on choosing Options. Each post may be edited for styles including background colors, text colors, text size, and many more.  Use an optional grid percentage system. Each grid is one percent by default. Or instead of choosing a grid system width restrictions on a post may be implemented for  "floating" multiple posts including nested columns of posts next to another instead of below. For example  align a text post next to an image posts if the width of both adds up to less than than the total width of the parent column. If your not using the grid system, Check the float checkbox in each post, whether image or text. Limit the width of the text, and if the overall width permits it will happen!';
-	printer::print_tip($scaling); 
-	printer::alert($instructions);
-     printer::print_tip('Configure a few general default styles in page options which  can be later changed as individiual columns and posts require.   
-	<br>  
+
+	printer::alert($scaling);
+     printer::print_tip('
 	To enable consistent navigation between pages it is a good idea to to set all your webpages to the same width, so that navigation menus line up in same place page to page. Use import and export page options to standardize pages if needed.  
 	<br> 
-	Make multiple changes on various posts, then Hit a Change All button below to submit them all at once.  
-	<br> 
-	-paste complex text from WORD or other editors into the post editor text box to retain spacing<br> 
 	');
 	}
+
+
+function isJson($string) {
+     json_decode($string);
+     return (json_last_error() == JSON_ERROR_NONE);
+    }
 
      
 function token_gen(){
@@ -800,48 +621,23 @@ function token_gen(){
 	}
          
 function view_page(){ if (Sys::Quietmode)return;  
-	echo '<div class="inline floatleft"><!-- float buttons-->';
+	echo '<div class="floatbutton"><!-- float buttons-->';
 	$this->navobj->return_url($this->pagename,'','white darkslatebluebackground rad5 smallest buttondarkslateblue');
 	echo '</div><!--float buttons-->';
 	}
 function leftover_view(){
-	echo '<div class="inline floatleft" id="handle_leftovers" ><!-- float buttons-->';
+	echo '<div class="floatbutton" id="handle_leftovers" ><!-- float buttons-->';
 	if(!isset($_SESSION[Cfg::Owner.'_'.$this->pagename.'_leftovers'])){
 		echo '</div>';
 		return;
 		} 
 	echo '</div><!--float buttons-->';
 	}
-function restore_backup(){if (Sys::Quietmode) return;  if (Sys::Pass_class)return;
-	echo '<div class="inline floatleft"><!-- float buttons-->';
-	echo '<p class="smallest  editbackground editfont buttoneditcolor click" title="View and restore saved backedup databases Here" onclick="gen_Proc.toggleClass2(\'#display_backups\',\'hide\');gen_Proc.use_ajax(\''.Sys::Self.'?display_backups\',\'handle_replace\',\'get\');" >Display Backup List</p>';
-	printer::pclear();
-	echo '<div id="display_backups" class="hide">'; 
-	$this->submit_button('Submit Backup choice');
-	echo'</div>'; 
-	echo '</div><!--float buttons-->';
-	}
+     
 
-     function display_themes($msg){if (Sys::Quietmode) return;  if (Sys::Pass_class)return;
-	echo '<div class="inline floatleft"><!-- float buttons-->';
-	echo '<p class="'.$this->column_lev_color.' smallest  editbackground editfont buttoneditcolor click" title="View and restore saved backedup databases Here" onclick="gen_Proc.toggleClass2(\'#theme_choice\',\'hide\');gen_Proc.use_ajax(\''.Sys::Self.'?theme_choice\',\'handle_replace\',\'get\');" >'.$msg.'</p>';
-	printer::pclear();
-	echo '<div id="theme_choice" class="hide">'; 
-	$this->submit_button('Submit Theme choice');
-	echo'</div>'; 
-	echo '</div><!--float buttons-->';
-	}
-     
-function display_nav(){if (Sys::Quietmode) return;  if (Sys::Pass_class)return;
-	echo '<div class="inline floatleft"><!-- float buttons-->';
-	echo '<p class="'.$this->column_lev_color.' smallest  editbackground editfont buttoneditcolor click"  onclick="gen_Proc.toggleClass2(\'#display_fullnav\',\'hide\');gen_Proc.use_ajax(\''.Sys::Self.'?display_fullnav\',\'handle_replace\',\'get\');" >Full Nav</p>';
-	echo '<div id="display_fullnav" class="hide small width100 left floatleft fsminfo editbackground editfont editcolor"></div>';  
-	echo '</div><!--float buttons-->';
-	}
-     
 function display_anchor(){if (Sys::Quietmode) return;  if (Sys::Pass_class)return; 
-	echo '<div class="inline floatleft"><!-- float buttons-->';
-	echo '<p class="'.$this->column_lev_color.' smallest  editbackground editfont buttoneditcolor click"  onclick="gen_Proc.toggleClass2(\'#display_anchor\',\'hide\');gen_Proc.use_ajax(\''.Sys::Self.'?display_anchor\',\'handle_replace\',\'get\');" >GoTo Anchors</p>';
+	echo '<div class="floatbutton"><!-- float buttons-->';
+	echo '<p class="'.$this->column_lev_color.' smallest  editbackground editfont buttoneditcolor click"  onclick="gen_Proc.toggleClass2(\'#display_anchor\',\'hide\');gen_Proc.use_ajax(\''.Sys::Self.'?display_anchor\',\'handle_replace\',\'get\');" >GoTo Posts</p>';
 	echo '<div id="display_anchor" class="hide small left floatleft fsminfo editbackground editfont editcolor"></div>';  
 	echo '</div><!--float buttons-->';
 	}
@@ -852,40 +648,61 @@ function browser_size_display(){if (!Sys::Info&&!$this->edit)return;
 	$style=(!$this->edit)?'style="position:fixed;top:0px; left:0px;z-index:1000000"':'';
 	$class1=(!$this->edit)?'hide':'';
 	$class2=($this->edit)?'hide':'';
-	echo '<div id="displayCurrentSize"  class="'.$class1.' editfontfamily floatleft smallest buttoneditcolor rad5 editbackground editcolor"><!-- float buttons-->
+	echo '<div class="floatbutton"><!-- float buttons-->
+	<div id="displayCurrentSize"  class="'.$class1.' editfontfamily smallest buttoneditcolor rad5 editbackground editcolor">
 	<div class="editfontfamily editcolor editbackground "><p id="clientw"></p>
+	</div>
 	</div>
 	</div><!--float buttons-->';
 	echo '<div id="displayCurrentSize2" '.$style.' class="'.$class2.' editfontfamily whitebackground "><p id="clientw2" class="rad5"></p>
 	</div>';
 	}
-function generate_cache($cache='',$resize=false){   
-		$this->page_cache=(empty($cache))?trim($this->page_cache):trim($cache);
-	if (!empty($this->page_cache)){
+     
+function generate_cache($cache='page_cache',$resize=false){ 
+     $name=$cache;
+	$cache=trim($this->$cache);
+     $page_cacheupdate_arr=array();
+	if (!empty($cache)){
 		$pattern='/\s+/';
-		$this->page_cache=preg_replace($pattern,'',$this->page_cache); 
-		$this->page_cache_arr=explode(',',$this->page_cache);
-		$page_cacheupdate_arr=array();
-		foreach($this->page_cache_arr as $ext){ 
+		$cache=preg_replace($pattern,'',$cache);
+          $cache=str_replace('@@',',',$cache);//taking into account page_option values which cannot have commas
+		$cache_arr=explode(',',$cache);
+		foreach($cache_arr as $ext){ 
 			if (is_numeric($ext)&&trim($ext) > 99&&trim($ext) < 2401){ 
 				$page_cacheupdate_arr[]=($ext); 
 				}
 			else {  
-				$msg='Error in Cache: '.$ext.' cache dir size must be greater than 99 and less than 2401';
-				$this->message[]=$msg; 
+				$msg='Error in Cache: '.$name.' for ext:'.$ext.'  cache dir size must be greater than 99 and less than 2401';
+				//$this->message[]=$msg; 
 				}
 			}//end foreach
-		$this->page_cache_arr=$page_cacheupdate_arr;
+          sort($page_cacheupdate_arr); 
+		($name==='page_cache')&&$this->page_cache_arr=$page_cacheupdate_arr;
 		}//not empty
-	else { 
-		$this->page_cache_arr=explode(',',Cfg::Image_response );
+           
+	if (empty($page_cacheupdate_arr)) { 
+          switch($name){
+               case 'page_cache':
+                    $this->page_cache_arr=explode(',',Cfg::Image_response );
+                    $this->page_cache=Cfg::Image_response;
+                    break;
+               case 'page_tiny_cache';
+                    $this->page_tiny_cache=Cfg::Tiny_image_cache;
+                    break;
+               case 'page_carousel_cache';
+                    $this->page_carousel_cache=Cfg::Tiny_image_cache;
+                    break;
+               }
 		}
-	sort($this->page_cache_arr);
+     else { 
+          $cache=implode(',',$page_cacheupdate_arr);
+          $this->$name=$cache;
+          }
 	if ($resize) return $this->page_cache_arr;
-	if (implode(',',$this->page_cache_arr)!==$this->page_cache){  
+	if ($name==='page_cache'&&implode(',',$this->page_cache_arr)!==$this->page_cache){  
 		$q="update $this->master_page_table set  page_update='".date("dMY-H-i-s")."', page_time=".time().",token='".mt_rand(1,mt_getrandmax()). "',page_cache='".implode(',',$this->page_cache_arr)."' where page_ref='$this->page_ref'";
 		$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);
-		} 
+		}  
 	}	
 
 function generate_bps(){ 
@@ -917,138 +734,17 @@ function generate_bps(){
 		}
 	}
 
-#pageimport
-function page_import_export_options(){
-     $page_configs='Rem Units, RWD bps, Image Cache Sizes, Default Primary Column Width, Editor Colors, Special Class Styles';
-	echo '<div class="inline floatleft"><!-- float buttons-->';
-     $this->show_more('Export Page Opts','noback',$this->column_lev_color.' smallest editbackground editfont button'.$this->column_lev_color,'Import  Page options from another page or export chosen option of this page to all other pages',600);
-	$this->print_wrap('import page options',true);
-	echo '<div class="fsmcolor Os3darkslategray editbackground editfont floatleft" ><!--import page defaults-->Import the Page Level Settings ie('.$page_configs.')  from Another Page (Will Not Import Page Slide show). ';  
-	printer::pclear(1);
-	$included_arr=array();
-	$q="select distinct page_ref, page_title, page_filename from $this->master_page_table";  
-	$r = $this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
-	while (list($page_ref,$title,$filename) = $this->mysqlinst->fetch_row($r,__LINE__)){
-		$included_arr[]=array($page_ref,$title);
-		}
-	echo'<p> <select class="editcolor editbackground editfont"  name="page_opts_import['.$this->page_ref.']">';       
-     echo '<option  value="none" selected="selected">Choose Page for full Page level opts/styles</option>';
-     for ($i=0;$i<count($included_arr);$i++){
-          echo '<option  value="'.$included_arr[$i][0].'">ref:'.$included_arr[$i][0].' &nbsp;&nbsp;&nbsp;title: '.$included_arr[$i][1].'</option>';
-          }
-     echo'	
-     </select></p>';
-     echo '</div><!--import page defaults-->';
-     printer::pclear(); 
-     echo '<div class="fsmcolor Os3darkslategray editbackground editfont left "><!--export-->Export All Page Settings ('.$page_configs.') from this Page to all other Pages';
-     printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="page_opts_export['.$this->page_ref.']"  type="checkbox" value="'.$this->page_ref.'">Export These Page Level Settings to other Pages</p>'); 
-     echo '</div><!--export-->';
-     printer::pclear();
-     echo '<div class="fsmcolor Os3darkslategray editbackground editfont left "><!--import-->Import Page Width from another page. ';
-     echo'<p> <select class="editcolor editbackground editfont"  name="page_width_import['.$this->page_ref.']">';       
-     echo '<option  value="none" selected="selected">Choose Page for Import of Page Width </option>';
-     for ($i=0;$i<count($included_arr);$i++){
-          echo '<option  value="'.$included_arr[$i][0].'">ref:'.$included_arr[$i][0].' &nbsp;&nbsp;&nbsp;title: '.$included_arr[$i][1].'</option>';
-          }
-     echo'	
-     </select></p>';
-     echo '</div>'; 
-     echo '<div class="fsmcolor Os3darkslategray editbackground editfont left "><!--export-->Export Page Width settings from this Page to all other Pages';
-     printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="page_width_export['.$this->page_ref.']"  type="checkbox" value="'.$this->page_ref.'">Export this Page Width to other Pages</p>'); 
-     echo '</div><!--export-->'; 
-     echo '<div class="fsmcolor Os3darkslategray editbackground editfont left "><!--import-->Import RWD Grid Break Points from another page. ';
-     echo'<p> <select class="editcolor editbackground editfont"  name="page_rwd_import['.$this->page_ref.']">';       
-     echo '<option  value="none" selected="selected">Choose Page for Import of RWD break point settings </option>';
-     for ($i=0;$i<count($included_arr);$i++){
-          echo '<option  value="'.$included_arr[$i][0].'">ref:'.$included_arr[$i][0].' &nbsp;&nbsp;&nbsp;title: '.$included_arr[$i][1].'</option>';
-          }
-     echo'	
-     </select></p>';
-     echo '</div>'; 
-     echo '<div class="fsmcolor Os3darkslategray editbackground editfont left "><!--export-->Export RWD Grid Break Points settings from this Page to all other Pages';
-     printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="page_rwd_export['.$this->page_ref.']"  type="checkbox" value="'.$this->page_ref.'">Export this Page RWD Grid Break Points to other Pages</p>'); 
-     echo '</div><!--export-->'; 
-     echo '<div class="fsmcolor Os3darkslategray editbackground editfont left "><!--export-->';
-     printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="page_grid_unit_export['.$this->page_ref.']"  type="checkbox" value="'.$this->page_ref.'">Export Number of Units in Grid from this Page to all other Pages</p>'); 
-     echo '</div><!--export-->'; 
-     echo '<div class="fsmcolor Os3darkslategray editbackground editfont left "><!--import-->Import HTag and Class Special Styles from another page. ';
-     echo'<p> <select class="editcolor editbackground editfont"  name="page_special_class_import['.$this->page_ref.']">';       
-     echo '<option  value="none" selected="selected">Choose Page for Import of HTag and Class Special Styles settings </option>';
-     for ($i=0;$i<count($included_arr);$i++){
-          echo '<option  value="'.$included_arr[$i][0].'">ref:'.$included_arr[$i][0].' &nbsp;&nbsp;&nbsp;title: '.$included_arr[$i][1].'</option>';
-          }
-     echo'	
-     </select></p>';
-     echo '</div>'; 
-     echo '<div class="fsmcolor Os3darkslategray editbackground editfont left "><!--export-->Export RWD Grid Unit setting from this Page to all other Pages';
-     printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="page_option['.$this->page_grid_units_index.']"  type="checkbox" value="'.$this->page_ref.'">Export this Page  RWD Grid Break Points to other Pages</p>'); 
-     echo '</div><!--export-->'; 
-     echo '<div class="fsmcolor Os3darkslategray editbackground editfont left "><!--export-->Export HTag and Class Special Styles from this Page to all other Pages';
-     printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="page_special_class_export['.$this->page_ref.']"  type="checkbox" value="'.$this->page_ref.'">Export this Page HTag and Class Special Styles to other Pages</p>'); 
-     echo '</div><!--export-->'; 
-     ######################################################
-     echo '<div class="fsmcolor Os3darkslategray editbackground editfont left "><!--import-->Import Editor Colors from another page. ';
-     echo'<p> <select class="editcolor editbackground editfont"  name="page_editor_color_import['.$this->page_ref.']">';       
-     echo '<option  value="none" selected="selected">Choose Page for Import of Editor Colors settings </option>';
-     for ($i=0;$i<count($included_arr);$i++){
-          echo '<option  value="'.$included_arr[$i][0].'">ref:'.$included_arr[$i][0].' &nbsp;&nbsp;&nbsp;title: '.$included_arr[$i][1].'</option>';
-          }
-     echo'	
-     </select></p>';
-     printer::pclear();
-     echo '</div>'; 
-     printer::pclear();
-     echo '<div class="fsmcolor Os3darkslategray editbackground editfont left "><!--export-->Export Editor Colors from this Page to all other Pages';
-     printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="page_editor_color_export['.$this->page_ref.']"  type="checkbox" value="'.$this->page_ref.'">Export this Page  Editor Colors to other Pages</p>');
-     printer::pclear();
-     echo '</div><!--export-->';
-     printer::pclear();
-     #######################################
-     echo '<div class="fsmcolor Os3darkslategray editbackground editfont left "><!--import-->Import Default Page styles from another page. ';
-     echo'<p> <select class="editcolor editbackground editfont"  name="page_style_import['.$this->page_ref.']">';       
-     echo '<option  value="none" selected="selected">Choose Page for Import of Default Page Style settings </option>';
-     for ($i=0;$i<count($included_arr);$i++){
-          echo '<option  value="'.$included_arr[$i][0].'">ref:'.$included_arr[$i][0].' &nbsp;&nbsp;&nbsp;title: '.$included_arr[$i][1].'</option>';
-          }
-     echo'	
-     </select></p>';
-     echo '</div>'; 
-     echo '<div class="fsmcolor Os3darkslategray editbackground editfont left "><!--export-->Export Default Page styles from this Page to all other Pages';
-     printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="page_style_export['.$this->page_ref.']"  type="checkbox" value="'.$this->page_ref.'">Export this Page  Default Page Styles to other Pages</p>'); 
-     echo '</div><!--export-->';
-     ################################################
-     echo '<div class="fsmcolor Os3darkslategray editbackground editfont left "><!--import-->Import Image Cache Sizes from another page. ';
-     echo'<p> <select class="editcolor editbackground editfont"  name="page_cache_import['.$this->page_ref.']">';       
-     echo '<option  value="none" selected="selected">Choose Page for Import of Image Cache Sizes </option>';
-     for ($i=0;$i<count($included_arr);$i++){
-          echo '<option  value="'.$included_arr[$i][0].'">ref:'.$included_arr[$i][0].' &nbsp;&nbsp;&nbsp;title: '.$included_arr[$i][1].'</option>';
-          }
-     echo'	
-     </select></p>';
-     echo '</div>'; 
-     echo '<div class="fsmcolor Os3darkslategray editbackground editfont left "><!--export-->Export Image Cache Sizes from this Page to all other Pages';
-     printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="page_cache_export['.$this->page_ref.']"  type="checkbox" value="'.$this->page_ref.'">Export this Page Image Cache Sizes to other Pages</p>'); 
-     echo '</div><!--export-->';
-     echo '<div class="fsmcolor Os3darkslategray editbackground editfont left "><!--export-->Export Image Quality Setting from this Page to all other Pages';
-     printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="page_image_quality_export['.$this->page_ref.']"  type="checkbox" value="'.$this->page_ref.'">Export this Page Export Image Quality to other Pages</p>'); 
-     echo '</div><!--export-->';
-     echo '<div class="fsmcolor Os3darkslategray editbackground editfont left "><!--export-->Export the number of Backup Db copies from this Page to all other Pages';
-     printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="page_dbbackups_export['.$this->page_ref.']"  type="checkbox" value="'.$this->page_ref.'">Export this Page Export the number of stored Backup Dbs to other Pages</p>'); 
-     echo '</div><!--export-->';
-	printer::close_print_wrap('import page options');
-	$this->submit_button();
-	printer::pclear(5);
-	$this->show_close('Import Page Options');
-	echo '</div><!-- float buttons-->';
-     }//end page import export
-     
+
 #pageconf #pageop
-function configure(){if(Sys::Custom)return; if (Sys::Quietmode) return; 
-	echo '<div class="inline floatleft"><!-- float buttons-->';
-	$this->show_more('Configure this Page','buffer_configure_page',$this->column_lev_color.' smallest editbackground editfont button'.$this->column_lev_color,'','','','','asis');
+function configure(){ 
+	echo '<div class="floatbutton"><!-- float buttons-->';
+	$this->show_more('Configure Page','buffer_configure_page',$this->column_lev_color.' smallest editbackground editfont button'.$this->column_lev_color,'','','','','asis');
 	$this->print_wrap('configure wrap',true);
      $this->submit_button();
      printer::alertx('<p class="info smaller floatleft clear">Cur Db: '.Sys::Dbname.'</p>');
+     printer::pclear();
+     $this->display_parse_options('page',$this->page_id);
+     printer::pclear(7);
      $this->show_more('Scale Units Overview &amp; Some Basic Pointers on the editor system','noback','','',800);
 	$this->print_redwrap('basic pointers');
      $this->editor_overview();
@@ -1058,20 +754,62 @@ function configure(){if(Sys::Custom)return; if (Sys::Quietmode) return;
 	$this->configure_editor();
 	printer::pclear();
 	$this->show_more('Set Image Dir Cache Sizes','noback','','',600);
-	$msg='Change the default cache directory sizes for responsive image sizes here. <br>Directory sizes needed are calculated for each image and larger than necessary directories not filled to minimize server space required. More directory sizes means served images are more efficiently downloaded and decreases bandwidth. However, more sizes also means more server disk space is used to cache the images. Adjust the default balance here.  Note: Quality level also affects download speed and server space used and can be adjusted for the ideal balance with page defaults, but also on the configuaration for images, slideshows and galleries';
-	$this->print_redwrap('cache sizes'); 
-	printer::printx('<p class="fsmnavy editbackground editfont editcolor smaller">'.$msg.'</p>');
-	printer::alertx('<p class="warnlite">Changes of this setting will apply to every page in the site and images will generated to fill any new cache directory sizes on all pages. This may take awhile, wait for all iframes to load before leaving this page.</p>',1.1);
-	echo '<div class="fsmnavy editbackground editfont highlight floatleft" title=" Be sure to enter numerical values separated by commas ie: '.Cfg::Image_response.'">Change Image Default Cache Dir Sizes <span class="editcolor small">(comma separate):</span> 
-	<input type="text" value="'.$this->page_cache.'" name="page_cache"   size="50" maxlength="65">
+	$msg='<b>Image Posts and Auto slide Posts Cache Sizes</b><br> More directory sizes means served images are more efficiently downloaded and decreases bandwidth. However, more sizes also means more server disk space is used to cache the images. Adjust the default balance here depending on limiting server space or bandwidth.  Note: Quality level also affects download speed and server space used and can be adjusted for the ideal balance with page defaults, but also on the configuaration for images, autoslide show and galleries';
+	$this->print_redwrap('cache sizes');
+     printer::print_wrap('page image cache');
+     printer::print_info('Separately set Cache sizes for image and autoslide posts, carousel posts, and images uploaded with tiny-mce in text posts');
+	printer::print_tip($msg);
+	printer::alertx('<p class="warnlight">Changes of this setting will apply to every page in the site and images will generated to fill any new cache directory sizes on all pages. This may take awhile, wait for all iframes to load before leaving this page.</p>');
+	echo '<p class="ramana" title=" Be sure to enter numerical values separated by commas ie: '.Cfg::Image_response.'">Change Image Default Cache Dir Sizes <span class="editcolor small">(comma separate):</span> 
+	<input type="text" value="'.$this->page_cache.'" name="page_cache" size="50" maxlength="65"></p>
+	';
+	printer::close_print_wrap('page image cache');
+    // $this->page_options[$this->page_tiny_cache_index]=str_replace('@@',',',$this->page_options[$this->page_tiny_cache_index]);
+     if (!is_dir(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir))
+          mkdir(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir,0775,1);
+     #ajax calls need to process this data for javascript update if file missing! they do not go pass through normal value processing from database but will retreive vale from file
+     file_put_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'tiny_cache.dat',$this->page_tiny_cache);
+     file_put_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'carousel_cache.dat',$this->page_carousel_cache);
+     printer::print_wrap1('tiny cache');
+     printer::print_tip('<b>Text Post Tiny-mce Uploaded Image Cache sizes</b><br>A default tiny-mce minimum width size is downloaded then automatically according to any width specification made through class or direct styling on the element using the cache image size that is the same or next size larger');
+      $this->mod_spacing('page_options['.$this->page_tiny_min_index.']',$this->page_tiny_cache_min,100,1000,10,'px');
+     $this->show_more('Min effective cache Info','','editbackground editcolor italic');
+     
+     printer::print_tip('Uploaded images smaller than '.$this->page_tiny_cache_min.' set here will be served without resizing at the original width and browser-sized as needed. Larger uploaded images will be cached to sizes smaller or equal to the uploaded image size.  Responsive sizing occurs on onloading to provide next optimum over or equal to size required up to largest cache size or original size whichever is smaller.'); 
+     $this->show_close('Min effective cache Info');
+	echo '<div class="fsmnavy editbackground editfont highlight floatleft" title=" Be sure to enter numerical values separated by commas ie: '.Cfg::Image_response.'">Change tiny-mce uploaded images in text type posts. Minimum effective cache: '.$this->page_tiny_cache_min.'. Current Cache Dir Sizes: <span class="editcolor small">(comma separate):</span> ';
+     
+     echo'
+	<input type="text" value="'.$this->page_tiny_cache.'" name="page_options['.$this->page_tiny_cache_index.']"   size="50" maxlength="65">
 	';
 	echo'</div>';
+     printer::close_print_wrap1('tiny cache');
 	printer::pclear();
+	#######################
+	printer::print_wrap1('carousel cache');
+     printer::print_tip('Change carousel default downloaded image size which Larger Sized images will be automatically replaced according to the width specification you make and the next largest cache size specified');
+      $this->mod_spacing('page_options['.$this->page_carousel_min_index.']',$this->page_carousel_cache_min,100,1000,10,'px');
+     
+     $msg='You can also change default cache sizes used in the text areas for carousel uploaded images';
+	printer::print_tip($msg);
+	printer::alertx('<p class="warnlight">Changes of this setting will apply to every page in the site and images will generated to fill any new cache directory sizes on all pages. This may take awhile, wait for all iframes to load before leaving this page.</p>',1.1);
+	$this->show_more('Min effective cache Info','','editbackground editcolor italic'); 
+     printer::print_tip('Uploaded images smaller than '.$this->page_carousel_cache_min.' set here may be served without resizing at the original width and browser-sized as needed. Larger uploaded images will be cached to sizes smaller or equal to the uploaded image size.  Responsive sizing occurs on onloading to provide next optimum over or equal to size required up to largest cache size or original size whichever is smaller.'); 
+     $this->show_close('Min effective cache Info');
+     echo '<div class="fsmnavy editbackground editfont highlight floatleft" title=" Be sure to enter numerical values separated by commas ie: '.Cfg::Image_response.'">Change carousel-mce uploaded images in text type posts. Minimum effective cache: '.$this->page_carousel_cache_min.'. Current Cache Dir Sizes: <span class="editcolor small">(comma separate):</span> ';
+      echo'
+	<input type="text" value="'.$this->page_carousel_cache.'" name="page_options['.$this->page_carousel_cache_index.']"   size="50" maxlength="65">
+	';
+	echo'</div>';
+     printer::close_print_wrap1('carousel cache');
+	printer::pclear();  
 	$this->close_print_wrap('cache sizes');
 	$this->show_close('Set Image Dir Cache Sizes');
 	#######################
-	$this->show_more('Edit RWD Grid Settings','noback','');
-	$this->print_redwrap('Edit RWD Grid Settings'); 
+	$this->show_more('Init Orig RWD Grid Settings','noback','');
+	$this->print_redwrap('Edit RWD Grid Settings');
+	printer::print_tip('Note: This original version Rwd system may be discontinued in the future. Configure the original RWD Grid Settings here. An easier to use more versatile RWD grid system is available under the main width options #3 choice with no pre-configuration necessary.');
+	printer::print_tip('This 100 grid unit RWD system tracks available full screen width at all break points being used through successful parent/child generations if used for easy percentage selections');
 	$this->show_more('Set RWD Breakpoints','noback','');
 	$msg='Breakpoints for the RWD grid set Here, otherwise Default values are presented<br><span class="editfont lightestmaroonbackground info "> Keeping this breakpoint setting consistent between pages enables using cloning moving and copying of rwd columns between pages without resetting the rwd chosen width percentages in posts on the receiving page and also keeps the width calculator accurate.</span><br>You can also choose page export/import option to keep RWD bps consistent between pages.';
      
@@ -1116,14 +854,14 @@ function configure(){if(Sys::Custom)return; if (Sys::Quietmode) return;
      printer::alert_neu('Resetting grid unit value should auto update current gu settings of rwd grid activated posts within this column to occupy close to the same % of row. (floor is used and could lower % when going to much smaller grid units)');
       echo '<p class="fsm'.$this->column_lev_color.'"><input type="radio" name="page_grid_unit_change" value="page" checked="checked">Change grid unit value this page<br>
 		<input type="radio" name="page_grid_unit_change" value="site"><span class="highlight" title="make this change on all pages to keep grid units consistent for cloning, copying and moving options">Change grid unit value on All Pages</span></p>'; 
-       printer::close_print_wrap('grid choices');
+     printer::close_print_wrap('grid choices');
      $this->show_close('Change default Grid Units');
-	$this->close_print_wrap('Edit RWD Grid Settings'); 
+	$this->close_print_wrap('RWD Grid Settings'); 
 	$this->show_close('Edit RWD Grid Settings','noback','');
      printer::pclear();
-     $msg=printer::print_info('Optionally Set up em scaling units using the font size choice below. Check out the overview under the Scale Units Overview button above',.9,1);
-	$msg.=printer::print_info('Borders and Box shadows will only affect the current element ie. never inherited whereas Text and Background Styles  are. <br>  Inherited styles set here mean that you do not have set them again in Columns and Posts unless you wish them to be different. Many more styling choices are available in each post. Border choices include choosing top border only',.9,1);
-	$this->edit_styles_close('body','page_style','html body.'.$this->pagename,'background,font_color,text_shadow,font_family,font_size,borders','Set Body Background and Default Text Styles','noback',$msg);
+     $msg='Optionally Set up em scaling units using the font size choice below'.NL.
+	'Borders and Box shadows will only affect the current element ie. never inherited whereas Text and Background Styles  are. <br> ';
+	$this->edit_styles_close('body','page_style','body.'.$this->pagename,'background,font_color,text_shadow,font_family,font_size,font_media_unit,borders','Set Body Background and Default Text Styles','noback',$msg);
      $this->show_more('Add Full Page background Slide Show');
 	$msg="Enable or disable a Full Page Background slide Show Here and make posts as required";
 	$this->print_wrap('Page background Slide Show');
@@ -1132,7 +870,6 @@ function configure(){if(Sys::Custom)return; if (Sys::Quietmode) return;
 	if (array_key_exists(3,$options_arr)&&$options_arr[3]==='enable_page_slideshow'){ 
           $this->page_slide_show=true;
 		printer::printx('<p class="editcolor"><input type="checkbox" name="page_tiny_data2[3]" value="0">Disable Page Auto Slide Show</p>'); 
-          
 		}
 	else {// 
           $this->page_slide_show=false;
@@ -1177,19 +914,19 @@ function configure(){if(Sys::Custom)return; if (Sys::Quietmode) return;
 	$this->close_print_wrap('Page Style Group, Date'); 
 	$this->show_close('Style Group,Date, and Comment Styles');
 	####################
-	$this->show_more('Style H-Tags and Special Classes','noback'); 
+	$this->show_more('Style Page level H-Tags &amp; Special Classes','noback'); 
 	 $this->print_wrap('special styles',true);
 	 if(is_file(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'css_data_sheet_'.$this->pagename.$this->passclass_ext)){
 		$this->render_view_css=unserialize(file_get_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'css_data_sheet_'.$this->pagename.$this->passclass_ext)); 
-		$this->show_more('View Current Tag and Class Styles');
+		$this->show_more('Current Page Level Tag/Class Styles','', $this->column_lev_color.' editbackground editfont italic ');
 		printer::array_print($this->render_view_css); 
 		$this->show_close('View Current Tag and Class Styles');
 		}
 	else $this->render_view_css='';
-	printer::printx('<p class="fsminfo editbackground editfont editcolor">Style H tags ad class styles here which will be in affect page wise.</p>');
+	printer::printx('<p class="fsminfo editbackground editfont editcolor">Style H tags and class styles here which will be in affect page wise.</p>');
 	$msg='Set style HR tags.  HR can be placed anywhere in text and the styles you set here will be expressed. HR are theme breaks, typically bordered lines with spacing. HR Styles may changed in individual column Settings';
-	$this->edit_styles_close('bodyview','page_hr','.'.$this->pagename.' hr','width_special,width_max_special,width_min_special,background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,borders,box_shadow,outlines,radius_corner','Set HR Tags','noback',$msg);
-	$htag_styles='width_special,width_max_special,width_min_special,float,background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,borders,box_shadow,outlines,radius_corner,font_color,text_shadow,font_family,font_size,font_weight,text_align,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline';
+	$this->edit_styles_close('bodyview','page_hr','.'.$this->pagename.' hr','width_special,width_max_special,width_min_special,background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,borders,box_shadow,outlines,radius_corner','Set HR Tags','noback',$msg);
+	$htag_styles='width_special,width_max_special,width_min_special,width_media_unit,float,background,padding_top,padding_bottom,padding_left,padding_right,margin_top,margin_bottom,margin_left,margin_right,borders,box_shadow,outlines,radius_corner,font_color,text_shadow,font_family,font_size,font_media_unit,font_weight,text_align,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline';
 	$msg='Set style H1 tags. H tags in general can be placed anywhere in text and the styles you set here will be expressed.';
      $this->edit_styles_close('bodyview','page_h1','.'.$this->pagename.' div h1',$htag_styles,'Set H1 Tags','noback',$msg);
      $msg='Set style H2 tags.  H tags in general can be placed anywhere in text and the styles you set here will be expressed.';
@@ -1228,7 +965,7 @@ function configure(){if(Sys::Custom)return; if (Sys::Quietmode) return;
 	$this->print_wrap('hover link');
 	$page_alink_hover_color=(preg_match(Cfg::Preg_color,$this->page_options[$this->page_alink_hover_color_index]))?$this->page_options[$this->page_alink_hover_color_index]:'inherit';
 	$palhc=($page_alink_hover_color==='inherit')?'color:inherit':'color:#'.$page_alink_hover_color.';';
-	$this->css.= "body div a:hover{ $palhc}";
+	$this->pagecss.= "body div a:hover{ $palhc}";
 	$span_color=(preg_match(Cfg::Preg_color,$this->page_options[$this->page_alink_hover_color_index]))?'<span class="fs1npred" style="background-color:#'.$this->page_options[$this->page_alink_hover_color_index].';">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>':''; 
 	printer::alert('Set Default Link Hover Color <input onclick="jscolor.installByClassName(\'colorhover_id\');" style="cursor:pointer;background:#'.$this->editor_background.';color:#'.$this->editor_color.';" type="text" name="page_options['.$this->page_alink_hover_color_index.']" id="colorhover_id" value="'.$page_alink_hover_color.'" size="12" maxlength="6" class="colorhover_id {refine:false}">'.$span_color.'<br>',false,'left editcolor editbackground editfont');
 	$this->close_print_wrap('hover link');
@@ -1238,52 +975,79 @@ function configure(){if(Sys::Custom)return; if (Sys::Quietmode) return;
 	$msg='Add links, tags, scripts to head';
 	$this->show_more($msg,'','','','700');
 	$this->print_wrap($msg);
+	printer::print_notice('Caution Advanced Use only. Script Mistakes may break editor function. Database removal under table: master_page table field: page_head');
 	printer::print_tip('Append Custom links to css and script files or additional meta tags and css or scripts to the head section');
+	$this->page_head=process_data::remove_line_break($this->page_head);
 	$this->textarea($this->page_head,'page_head','100','16');
 	$this->submit_button();
-	$this->css.=$this->page_custom_css;
 	printer::close_print_wrap($msg);
 	$this->show_close($msg);
 	printer::pclear(5);
 	$this->show_more('Custom Page CSS','','','','700');
 	$this->print_wrap('Custom Page CSS');
-	printer::print_tip('Add Custom CSS Must Include Classname or Id. Include CSS complete, Everything except the style Tags. CAUTION; Mistakes in this may likely affect all CSS');
+	printer::print_tip('Add Custom CSS Must Include Classname or Id. Include CSS complete, Everything except the style Tags. CAUTION; Advanced Use only. Mistakes in this may likely affect all CSS. uses table: master_page field: page_custom_css');
+	$this->page_custom_css=process_data::remove_line_break($this->page_custom_css);
 	$this->textarea($this->page_custom_css,'page_custom_css','100','16');
 	$this->submit_button();
-	$this->css.=$this->page_custom_css;
+	$this->pagecss.=$this->page_custom_css;
 	printer::close_print_wrap('Custom Page CSS');
 	$this->show_close('Custom Page CSS');
 	printer::pclear(5);
 	$this->show_more('Maintenance &amp; Uploads');
 	$this->print_redwrap('maintenance',true);
+     printer::print_tip('Recommended to Perform One Group Operation at a time');
      $this->submit_button();
-	$msg='Generate any missing icons &amp; all edit directory files, &amp; non-flat file folders, etc. for this website. <br> Will not overwrite custom class files. <br>Setting Override=true in config files will cause all icons to be overriden.'; 
-	$this->print_wrap('file gnerate');
-	printer::print_tip($msg);
-	echo '<p class="caution white fsmsalmon"><input type="checkbox" name="file_generate_site" value="1" >Generate Files</p>';
-	printer::close_print_wrap('file gnerate');
-	$msg='Generate/update any missing page class files. Caution: will overwrite any custom page class content';
-	$this->print_wrap('file gnerate');
-	printer::print_tip($msg);
-	echo '<p class="caution white fsmsalmon"><input type="checkbox" name="page_class_generate" value="1" >Re-generate Page Class Files</p>';
-	printer::close_print_wrap('file gnerate');
-	$this->print_wrap('regen_backup_table','fsmredAlert');
+	$msg='Generate any missing icons &amp; all edit directory files, &amp; non-flat file folders, etc. for this website. <br> Will not overwrite custom class files. <br>Setting Override=true in config files will cause all icons to be overriden.';
+	printer::print_wrap('file generate wrap');
+	printer::print_wrap('file generate stu;e','',false,'caution white fsmsalmon');
+	echo '<p class=""><input type="checkbox" name="file_generate_site" value="1" >Generate Files</p>';
+     printer::pclear(6);
+     $this->show_more('Info on Overwriting Common files','','italic tiny editcolor editbackground');
+     printer::print_wrap1('overwriting');
+     printer::print_tip('System files including default placeholder images, slippry next and prev gallery images, php.ini, .htaccess will not be overwritten if they exist unless you set Cfg::Overwrite to true in the Cfg_master.class.php or if Cfg::Overwrite is true in the Cfg.class.php file which supercedes Cfg_master.php.');
+	printer::close_print_wrap1('overwriting'); 
+     $this->show_close('Info on Overwriting Common files');
+	
+     printer::close_print_wrap('file generate style');
+	printer::print_wrap('file gnerate','',false,'caution white fsmsalmon');
+	echo '<p class=""><input type="checkbox" name="file_generate_local" value="1" >Also Re-Generate Local Class Overwrite if present</p>';
+	$this->show_more('Info on Overwriting local override files','','italic tiny editcolor editbackground');
+     printer::print_wrap1('overwriting');
+     printer::print_tip('site_master.class.php provides means for overwriting or adding to all system functions. Also provides convienant opportunity to include google analytic code expressed sitewide in production not development mode, adding js code, header code etc. This and additional *_loc.class.php files in the local includes file will be overwritten if you check this box.');
+	printer::close_print_wrap1('overwriting'); 
+     $this->show_close('Info on Overwriting Common files');
+     printer::close_print_wrap('file generate style');
+     printer::close_print_wrap('file generate wrap');
+	printer::print_wrap('page generate','',false,'caution white fsmsalmon');
+	echo '<p ><input type="checkbox" name="page_class_generate" value="1" >Re-generate Page Class Files. See info on overwriting</p>';
+     printer::pclear(6);
+     $this->show_more('Info on Overwriting Page class files','','italic tiny editcolor editbackground');
+     printer::print_wrap1('overwriting');
+     printer::print_tip('Page class files provide opportunity to manually override functions on a per page basis will not be overwritten if they exist unless you configure Cfg::Overwrite_page_class to true in local file Cfg.class.php settings or for all sites on system using Cfg_master.class.php.');
+	printer::close_print_wrap1('overwriting');
+     $this->show_close('Info on Overwriting Common files');
+	printer::close_print_wrap('page gnerate');
+	printer::print_wrap('regen_backup_table','',false,'caution white fsmredAlert'); 
 	$msg='Regenerates the backup database. Will recompile list of all stored backup gzipped sql files and delete old files in excess of '.$this->backup_copies. ' (Stored Db gz Copies Setting may be changed in the page_configurations or the setting default in the Cfg file';
-	printer::print_tip($msg);
-	echo '<p class="caution white fsmsalmon"><input type="checkbox" name="regen_backup_table" value="1">Re-Generate Backup database Files</p>';
+	echo '<p ><input type="checkbox" name="regen_backup_table" value="1">Re-Generate Backup database Files</p>';
+      $this->show_more('Info on Regenerating Backups','','italic tiny editcolor editbackground');
+     printer::print_wrap1('regen');
+     printer::print_tip($msg);
+	printer::close_print_wrap1('regen');
+     $this->show_close('regen');
 	printer::close_print_wrap('regen_backup_table');
 	$msg='Allowing for all pages to update any caches, style css files, or flat files that may have escapted proper updating. Runs all pages in editmode in iframes';
 	$this->print_wrap('iframe all','fsmredAlert');
 	printer::print_tip($msg);
 	echo '<p class="caution white fsmsalmon"><input type="checkbox" name="page_iframe_all" value="1" onchange="edit_Proc.oncheck(\'page_iframe_all\',\'Checking Here for Maintenance only. All edit-mode pages will be generated in Iframes and this will take a Long Time to Finish, Uncheck to Cancel\')" >Generate all Css,Page Flat Files, etc. for all Edit Mode Pages in Iframes</p>';
-	echo '<p title="Navigating to bottom of Iframe Quickly allows for a check of any error message" class="caution white fsmsalmon"><input type="checkbox" name="iframe_bottom" value="1">Nav to Iframe Bottom</p>';
+	echo '<p title="Navigating to bottom of Iframe Quickly allows for a check of any error message" class="caution white fsmsalmon"><input type="checkbox" name="iframe_bottom" value="1">Also Nav to Iframe Bottom</p>';
 	printer::close_print_wrap('iframe all');
 	$this->submit_button();
 	$msg='Generate all Webpages in iframes (non-edit mode) to quickly check for any errors or intitate custom query';
 	$this->print_wrap('iframe all_website');
 	printer::print_tip($msg);
-	echo '<p class="white goldbackground fsmsalmon"><input type="checkbox" name="page_iframe_all_website" value="1">Quick Check, etc. all web-mode pages in iframes</p>';
-	echo '<p title="Navigating to bottom of Iframe Quickly allows for a check of any error message" class="white goldbackground fsmsalmon"><input type="checkbox" name="iframe_bottom" value="1">Nav to Iframe Bottom</p>';
+	echo '<p class="white goldbackground white fsmsalmon"><input type="checkbox" name="page_iframe_all_website" value="1">Quick Check, etc. all web-mode pages in iframes</p>';
+	echo '<p title="Navigating to bottom of Iframe Quickly allows for a check of any error message" class="white goldbackground fsmsalmon"><input type="checkbox" name="iframe_bottom" value="1">Also Nav to Iframe Bottom</p>';
 	printer::close_print_wrap('iframe all');
 	$this->submit_button();
 	$msg='Remove all cached Images and flat files then Re-Generate. Will removed all Images from posts that have been deleted and save disk space.';
@@ -1297,7 +1061,7 @@ function configure(){if(Sys::Custom)return; if (Sys::Quietmode) return;
 	$this->print_wrap('cache regen','fsmredAlert');
 	printer::print_tip($msg);
 	echo '<p class="caution white fsmsalmon"><input type="checkbox" name="cache_regenerate_flatfiles" value="1"  >Remove and Re-Generate all Page Flat Files & Generate Css.  Utilizes Iframes</p>';
-	echo '<p title="Navigating to bottom of Iframe Quickly allows for a check of any error message" class="caution white fsmsalmon"><input type="checkbox" name="iframe_bottom" value="1">Nav to Iframe Bottom</p>';
+	echo '<p title="Navigating to bottom of Iframe Quickly allows for a check of any error message" class="caution white fsmsalmon"><input type="checkbox" name="iframe_bottom" value="1">Also Nav to Iframe Bottom</p>';
 	printer::close_print_wrap('cache regen');
      $this->color_reset();
 	$this->submit_button();
@@ -1312,7 +1076,7 @@ function configure(){if(Sys::Custom)return; if (Sys::Quietmode) return;
 	}
  		
 function full_nav(){ if (Sys::Quietmode) return;  
-	echo '<div class="inline floatleft"><!-- float buttons-->';
+	echo '<div class="floatbutton"><!-- float buttons-->';
 	$this->show_more('Full Pages Navigation','','button'.$this->column_lev_color.' navnavy smallest','',' ');
 	$this->print_wrap('full page navigation');
 	printer::alertx('<p class="tip">This is a full navigation list to edit created pages whether published yet or not. </p>');
@@ -1326,48 +1090,17 @@ function full_nav(){ if (Sys::Quietmode) return;
 	$this->show_close('full pages nav'); 
 	echo '</div><!-- float buttons--><!--full nav editbackground editfont-->'; 
 	}//end full nav
-	
-function left($style, $val, $field){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-	$this->spacing($style,$val,'left','left positioning','Adjust Position of absolute or relative positioned element/post/column','','','',$field);
-     }
-function right($style, $val, $field){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-	$this->abs_spacing($style,$val,'right','Right Spacing','Position from Right Relative Absolute positioned elements');
-	}
-function top($style, $val, $field){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-	$this->abs_spacing($style,$val,'top','Top Spacing','Position from Top Relative Absolute positioned elements. ');
-	}
-function bottom($style, $val, $field){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-	$this->abs_spacing($style,$val,'bottom','Bottom Spacing','Position from Bottom Relative Absolute positioned elements');
-	}
-	
-function abs_spacing($style,$val,$css_class,$msg,$title){
-	$maxspace=500;
-	$size=(is_numeric($this->{$style}[$val])&&$this->{$style}[$val]<=$maxspace&&$this->{$style}[$val]>=0)?$this->{$style}[$val]:'None'; 
-		#all values will be store as px
-	$sizepx=($size !=='None')?$this->{$style}[$val].'px':$size;
-	echo '
-	    <div class="floatleft editbackground editfont editcolor editfont fs1color  left"> <span class="highlight" title="'.$title.'" >'.$msg.'</span>: Currently '.$sizepx
-	    .'<br>';
-		$unit1='px';
-		$msgjava='Choose px Spacing:'; 
-		$factor=1;
-		$unit2='';  
-		$this->mod_spacing($style.'['.$val.']',$size,0,$maxspace,1,'%','none',$msgjava);   
-	echo'  </div>';
-	printer::pclear(1); 
-	$final=$sizepx.';';
-	$fstyle='final_'.$style; 
-     $this->{$fstyle}[$val]=($sizepx==='None')?'':$css_class.':'.$final;
-    }//end functio   
+
+    
 function uploads_spacer(){
-     echo '<div style="padding-left:15px;" class="inline hidden floatleft"><!-- float buttons-->';
+     echo '<div style="padding-left:15px;" class="floatbutton hidden "><!-- float buttons-->';
      #this is a spacer within the form for uploads function which cannot be in the form which absolute position of it.
      $this->show_more('uploads','','tiny button'.$this->column_lev_color,'','full' );
      $this->show_close('uploads_spacer');
      echo '</div><!-- float buttons-->';
      }
 function uploads(){ 
-     echo '<div id="top_upload"><!-- float buttons-->';
+     echo '<div id="top_upload" ><!-- float buttons-->';
 	$this->show_more('uploads','',$this->column_lev_color.'  smallest p10 editpages editbackground editfont button'.$this->column_lev_color,'','full' );
      printer::print_wrap('uploads');
      $msg='Image and video are uploaded through image and video posts to the uploads dir for images and the video directory for videos. However, additionally, images, video, and pdf files may be uploaded directly';
@@ -1399,9 +1132,10 @@ function uploads(){
      printer::alert('Upload an image file directly to root dir.',1.1,'navy');
      echo '<div id="upload_formation"></div>';
     echo '<form  id="imageform"  enctype="multipart/form-data" action="'.request::return_full_url().'" method="post" onsubmit="return edit_Proc.checkPicFiles(this,\''.$maxbytes.'\',\'fileinput1\'); return edit_Proc.beforeSubmit();">';
-     $folders=array('home','uploads');
+     $folders=array('home','uploads','background_images');
      printer::pclear(15);
-     printer::print_info('Choose your upload dir');
+     printer::print_info('Choose your upload dir<br><br>For normal images use the upload directory and appropriate copying to cache directories will automatically occur.<br><br> Use tinymce to upload images directly to text posts for special styling. <br><br>  Background_images are loaded through the styling background setting for each post and column. <br>But for special advanced styling you can choose background_image directly.');
+
      forms::form_dropdown($folders,false,'','','pic_folder_type',$selected,false,$this->column_lev_color);
      printer::pclear(15);
      echo '<p><input type="hidden" name="MAX_FILE_SIZE" value="'.$maxbytes.'"></p> 	
@@ -1458,2303 +1192,7 @@ function uploads(){
      echo '</div><!-- float buttons-->';
      }
 	
-function font_size($style,$val,$field,$directcss=false){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__); 
-     $font_arr=explode('@@',$this->{$style}[$val]);
-     for ($i=0; $i <4; $i++){
-          if (!array_key_exists($i,$font_arr)){
-               $font_arr[$i]=0;
-               }
-          }
-     $px='px';
-     $fontsize1=(!empty($font_arr[0])&&is_numeric($font_arr[0])&&$font_arr[0]<=100&&$font_arr[0]>=1)?$font_arr[0]:0; 
-     $msg= (empty($fontsize1))? 'none ': $fontsize1;  
-     $fontsize2=(!empty($font_arr[2])&&is_numeric($font_arr[2])&&$font_arr[2]>0&&$font_arr[2]<=10)?$font_arr[2]:0;
-     $msg2= (empty($fontsize2))? 'none ': $fontsize2;  
-     $scaleunit=(!empty($font_arr[1])&&$font_arr[1]==='em'||$font_arr[1]==='rem')?$font_arr[1]:'none'; 
-     if ($field==='return_val'){
-          if (!empty($fontsize1)){
-               $msgscale=$this->rwd_scale($this->{$style}[$val],'return_val',"",'font-size','font size px','px',0,7,true,1);
-               if (!empty($msgscale)){
-                    return "$fontsize1$px $msgscale";
-                    }
-               elseif (empty($fontsize2)||$scaleunit==='none')
-                    return "$fontsize1$px";
-               }
-          elseif(!empty($fontsize2)&&$scaleunit!=='none'){
-               return "$fontsize2$scaleunit";
-               }
-          return;
-          }
-     
-     echo '
-     <div class="fsminfo '.$style.'_hidefont" style="display:none;"><!-- font-->';
-     $this->show_more('Font-Size','',' highlight editbackground editfontfamily','In columns and posts, body font-size may be used to setup em units with or without scaling effect');
-     $this->print_wrap('Font-Size Choices','','highlight editbackground editfontfamily','Choose px or scalable font sizes');
-    
-     $this->show_more('Use font px units &amp; scaling px units');
-     printer::print_wrap('font px');
-     echo'<p class="'.$this->column_lev_color.' clear editbackground editfont">Font Size: Currently '.$msg.'px<br>';
-     $msgjava='Choose font-size:'; 
-     $this->mod_spacing($style.'['.$val.'][0] ',$fontsize1,0,100,1,'px','none',$msgjava); 
-     printer::print_tip('Optionally choose to Scale px font-size or choose alt units below ie. rem, em');
-     $msgscale=$this->rwd_scale($this->{$style}[$val],$style.'['.$val.']',"$this->pelement",'font-size','font size px','px',0,7,true,1);
-     printer::close_print_wrap('font px');
-     $this->show_close('Use font px units ');
-     if (!empty($msgscale))printer::print_notice($msgscale);
-     $final='';
-     if (!empty($fontsize2)&&$scaleunit!=='none'){
-          if ($scaleunit==='rem'){
-               $value=$this->rem_root*$fontsize2;
-               $scale=($this->rem_scale)?'on':'off';
-               }
-          else { 
-               $scale=($this->terminal_em_scale)?'on':'off';
-               $value=$this->terminal_font_em_px; 
-               $final="<br>giving value of 1em unit = {$this->terminal_font_em_px}px for padding/margins/widths/etc. in this post/col";
-               }
-          (!empty($fontsize2)&&strpos($fontsize2,'0.00')===false)&&printer::print_notice("Current Alt font-size  $fontsize2$scaleunit = {$value}px with scaling $scale");
-          }
-	$style1=(!empty($fontsize1))?'font-size:'.$fontsize1.'px;':'';
-	$style2=(is_numeric($fontsize2)&&$fontsize2<=10&&$scaleunit!=='none')?'font-size:'.$fontsize2.$scaleunit.';':''; 
-	
-     
-     if (!empty($style2)){
-		if ($this->is_page&&$directcss!==false){//use html body to give greater priority
-			$this->pagecss.="
-     $directcss".'{'.$style1.$style2.'}';
-			}
-		elseif ($directcss!==false){
-               $this->css.="
-	$directcss".'{'.$style1.$style2.'}
-	';
-			}
-		} 	
-	printer::pclear();
-	$this->show_more('Use other font-size units');
-	$this->print_redwrap('other fontsize units');
-     printer::print_notice("Equivalent of 1em for font-size: {$this->current_font_em_px}px $final"); 
-     ($this->is_page)&&printer::print_warn('Using em for the default page level font-size (body) multiplies with the html level font-size of '.$this->rem_root.'px including scaling if initiated for rem units.');
-      $more='';/*(!$this->is_page&&(!$this->col_primary||$this->is_blog))?'
-4. Choose VW units.':'';*/
-	printer::print_tip('AND/OR Choose a scalable font-size unit here.  <b>You can enable scaling for rem (appropriately between the upper and lower viewport size of your choice) in the page options under page options and spacing &amp; other values using rem will scale according to the settings you make there.
-<br>
-</b>There are different units available to enable font scaling ie font size relative to the viewport size:<br>
-1. Choose px value then enable rwd scaling in the options below. Be sure not to choose a rem or em value for this option or px values including scaling will be overriden<br>
-2. Use REM units with px scaling enabled in the page default settings option.<br>
-3. Use Em units here with font-size px scaling enabled in a parent column or in the body. ie: Em units are directly proportional to the current active inherited font-size.<br>'.$more);
-     printer::print_tip('Choose value and unit type.');
-     $checked=' checked="checked" ';
-     $checked1=($scaleunit==='none')?$checked:'';
-     $checked2=($scaleunit==='em')?$checked:'';
-     $checked3=($scaleunit==='rem')?$checked:'';  
-     printer::alert('Choose scale unit:');
-     printer::alert('<input type="radio" name="'.$style.'['.$val.'][1]" value="none" '.$checked1.'>None');
-     printer::alert('<input type="radio" name="'.$style.'['.$val.'][1]" value="em" '.$checked2.'>em units');
-     printer::alert('<input type="radio" name="'.$style.'['.$val.'][1]" value="rem" '.$checked3.'>rem units'); 
-     printer::pclear(5);
-     echo'<p class="'.$this->column_lev_color.' editbackground editfont">Alt. Unit Font Size: Currently '.$msg2.'<br>';
-     $msgjava='Choose Alt. font-size:'; 
-     $this->mod_spacing($style.'['.$val.'][2] ',$fontsize2,0,10,.01,'units','none',$msgjava); 
-	$this->submit_button();  
-	printer::close_print_wrap('other fontsize units');  
-	$this->show_close('Use other font-size units');  
-          printer::close_print_wrap('Font-Size Choices'); 
-          $this->show_close('Font-Size Choices'); 
-	echo'
-	    </div><!-- font-->'; 
-     if (!$directcss){  
-          $fstyle='final_'.$style;
-          if (!empty($style1)||!empty($style2))
-               $this->{$fstyle}[$val]=$style1.$style2;
-               //if ($this->is_page&&empty($style1)&&empty($style2))
-                  //  $this->{$fstyle}[$val]='font-size:16px';//insure value of default font size this will be for body not html..
-              // if (!empty($style1)&&!empty($style2)){//give redundant specificity priority
-              // $this->css.='
-      //html '.$this->pelement.'{'.$style2.'}';
-               //}
-               /*
-          if (!$this->is_blog&&!empty($style2)){
-               $this->current_font_source=($this->is_page)?'body':'c'.$this->col_id;
-               $this->current_font_size=$style2;
-               }
-          elseif(!$this->is_blog&&!empty($style1)){ 
-               $this->current_font_source=($this->is_page)?'body':'c'.$this->col_id; 
-               $this->current_font_size=$style1;
-               }
-               */
-          
-          } 
-    
-     }   
-	
-function width_special($style,$val,$field,$directcss=false,$norendercss=false){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-     $width= ($norendercss)?'none':'width';//if true no css 
-	$this->spacing($style,$val,$width,'Width','Straight forward Width option will not override a max-width or min-width property','','',false, $field,$directcss,0,'',array('auto'=>'width:auto;'));
-     }
-  
-function width_max_special($style,$val,$field,$directcss=false,$norendercss=false){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-     $width= ($norendercss)?'none':'max-width';//if true no css 
-	$this->spacing($style,$val,$width,'Max Width','Max-Width sets a maximum width and overrides width property','','',false, $field,$directcss,0,'',array('none'=>'max-width:none;'));
-     }
- 
-function width_min_special($style,$val,$field,$directcss=false,$norendercss=false){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-     $width= ($norendercss)?'none':'min-width';//if true no css 
-     $this->spacing($style,$val,$width,'Min-Width','Note: Media Query removing Minimum Width is automatically generated at viewports at or below the min-width value set! Minimum Width sets a minimum width and overrides width property','','',false, $field,$directcss,0,'',array('none'=>'min-width:none;'));
-     }
 
-function height_special($style,$val,$field,$directcss=false,$start=0){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-	$return=$this->spacing($style,$val,$field,'Height','Straight forward Height option will not override  a max-height or min-height property','','',false, $field,$directcss,$start,'',array('auto'=>'height:auto;'));
-     return $return;
-     }
-
-  
-function height_max_special($style,$val,$field,$directcss=false,$start=0){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-	$return=$this->spacing($style,$val,$field,'Max Height','Max-Height sets a maximum height and overrides height property','','',false, $field,$directcss,$start,'',array('none'=>'max-height:none;'));
-     return $return;
-     }
-
- 
-function height_min_special($style,$val,$field,$directcss=false,$start=0){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-     $return=$this->spacing($style,$val,$field,'Min-Height','Minimum Height sets a minimum height and overrides height property','','',false, '',$directcss,$start,'',array('none'=>'min-height:none;'));
-     return $return;
-     }
-
-function media_max_width($style,$val){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-	$this->show_more('Optionally Add @media max-width','','highlight editbackground editfont highlight editstyle','Adding a @media max-width will affect all values of this style grouping above except advanced styles');
-     $media_maxpx=($this->{$style}[$val]>=200&&$this->{$style}[$val]<=3000)?$this->{$style}[$val]:'none';
-     $max_name=$style.'['.$val.']';
-     printer::print_wrap('wrap @mediamax');
-     $this->submit_button();
-     printer::print_info('Optionally choose a max-width here or min-width below or both at which all the above grouping of custom styles will be expressed. (Except the advanced style option which has individual @media options for each css directive)');  
-     echo '<div class="fsminfo"><!--wrap max width-->';
-     printer::printx('<p class="smaller '.$this->column_lev_color.'">Chosen max-width: <span class="navybackground white">'.$media_maxpx.'</span><br></p>');   
-     printer::alert('Choose @media screen max-width px');
-     $this->mod_spacing($max_name,$media_maxpx,200,3000,1,'px','none');  
-     printer::printx('<p ><input type="checkbox" name="'.$max_name.'" value="0">Remove max-width</p>');
-     echo '</div><!--wrap max width-->';
-     printer::close_print_wrap('wrap @mediamax');
-	$this->show_close('Optionally Add @media max-width');
-	$fstyle='final_'.$style; 
-     $this->{$fstyle}[$val]=($media_maxpx==='none')?'':array('mediamax',$media_maxpx);
-     }
-     
-function media_min_width($style,$val){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-	$media_minpx=($this->{$style}[$val]>=200&&$this->{$style}[$val]<=3000)?$this->{$style}[$val]:'none'; 
-     $min_name=$style.'['.$val.']';
-	$this->show_more('Optionally Add @media min-width','','highlight editbackground editfont highlight editstyle','Adding a @media min-width will affect all values of this style grouping above except advanced styles');
-     printer::print_wrap('wrap @mediamin');
-     $this->submit_button();
-     printer::print_info('Optionally choose a min-width here or max-width below or both at which all the above grouping of custom styles will be expressed. (Except the advanced style option which has individual @media options for each css directive)');  
-     echo '<div class="fsminfo"><!--wrap min width-->';
-     printer::printx('<p class="smaller '.$this->column_lev_color.'">Chosen min-width: <span class="navybackground white">'.$media_minpx.'</span></p>');
-      printer::alert('Choose @media screen min-width px'); 
-     $this->mod_spacing($min_name,$media_minpx,200,3000,1,'px','none');
-     printer::printx('<p ><input type="checkbox" name="'.$min_name.'" value="0">Remove min-width</p>');
-     printer::close_print_wrap('wrap @mediamin');
-	$this->show_close('Optionally Add @media min-width');
-     echo '</div><!--wrap min width-->';
-	$fstyle='final_'.$style; 
-     $this->{$fstyle}[$val]=($media_minpx==='none')?'':array('mediamin',$media_minpx);
-     }    
-     
-function width($style,$val){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__); 
-     echo'  <div class="floatleft">'; 
-	$maxspace=$this->column_net_width[$this->column_level];
-	$wid=$this->{$style}[$val]=(!empty($this->{$style}[$val])&&is_numeric($this->{$style}[$val])&&$this->{$style}[$val]<=100)?$this->{$style}[$val]:'';
-	$widval=(!empty($wid)&&$this->use_blog_main_width)?$wid:0;
-	$percent =(empty($wid))?'':'&#40;'.(intval(ceil($wid*10)/10)).'%&#41;';
-	$px=(empty($wid))?'None Chosen':(intval(ceil($wid*$this->column_net_width[$this->column_level]/10)/10)).'px';
- 	(!$this->flex_enabled_twice)&&printer::alertx('<p class="highlight editbackground editfont" title="The Column Width less its margins and paddings sets the Upper Limit for Post Width. Optionally set a narrower Post Width if required (does not effect other posts in this Column). The total width Available for your actual content such as text or an images will be narrowed by values of padding and margin styles made in this post styles">Max Width Available: <span class="editcolor editbackground editfont">'.(intval(ceil($this->column_net_width[$this->column_level]*10)/10)).'px</span></p>');
-     
-     if ($this->use_blog_main_width&&$this->flex_enabled_twice)
-          printer::print_warn('Previous activation of Flex Box in column tree means that max-width chosen here is not longer accurate. Instead you can select mode 2 for percent or 2 for alt rwd grid percent choices below. Alternatively, you can  Use Alt width units to set a direct width or for flex-item use basis specific width is now recommended');
-     elseif ($this->use_blog_main_width)
-          printer::alertx('<p class="highlight editbackground editfont" title="The Post width + spacing, borders,etc. will take up  to 100% of the available parent column width if no limiting width value is chosen! Limit the width if required. Both the percentage available of the parent column width and the px value that your selection represents will be shown">This Post Amount Used: <span class="editcolor editbackground editfont">: '.$px.'   '.$percent.'</span></p>');
-     else
-          printer::alertx('<p class="editcolor editbackground editfont" >Main Width Mode not used. px value of alt width units used  and percent of total available for this Post: <span class="editcolor editbackground editfont">: '.$px.'   '.$percent.'</span></p>'); 
-	printer::alertx('<p class="editcolor editbackground editfont" ></p>');  
-	printer::pclear();
-	printer::print_tip('Choose width value percent/px and choose below that whether the width is expressed as max-width (default) or percent  <b>Or Alternatively, use the alt rwd percentages @mediawidths below which overwrites the main width setting if made.</b>');
-		$msgjava='Set Custom Width:';
-		$factor=($this->flex_enabled_twice)?1:$this->column_net_width[$this->column_level]/100;
-          $unit2=($this->flex_enabled_twice)?'':'px';
-          $this->mod_spacing($style.'['.$val.']',$widval,0,100,.05,'%','',$msgjava,$factor,$unit2);
-     printer::print_info('Choosing a main width value overrides any choice made  from option under em, rem, %, px & px scale opt for min-width, max-width, & width choices');
-	$this->submit_button();		 
-     echo '</div><!--width-->'; 
-     }
-
-function check_spacing($spacing_arr,$type){  
-	if (empty($spacing_arr))return '';
-	$spacing_arr=explode('@@',$spacing_arr);
-	for ($i=0; $i<12; $i++){
-		if (!array_key_exists($i,$spacing_arr)){
-			$spacing_arr[$i]=0;
-			}
-		}
-	$return='';
-	$maxspace=($this->is_page)?4000:$this->column_total_width[0];//limit width
-	$current_px=$spacing_arr[0];
-	$current_px=(is_numeric($current_px)&&$current_px<=$maxspace&&$current_px>=1)?$current_px:0;
-	if (!empty($current_px))   
-		$return.='<br>The Alternative '.$type.' px unit choice <b>Is Chosen</b>'; 
-	if (is_numeric($spacing_arr[2])&&$spacing_arr[2]<=100&&$spacing_arr[2]>=.05)$return.='<br>The Alternative Percent Units for '.$type.' <b>Is Chosen</b>.'; 
-	if (is_numeric($spacing_arr[3])&&$spacing_arr[3]<=100&&$spacing_arr[3]>=.05)$return.='<br>The Alternative em Units for '.$type.' <b>Is Chosen</b>';   
-	if (is_numeric($spacing_arr[4])&&$spacing_arr[4]<=100&&$spacing_arr[4]>=.05)$return.='<br>Alternative rem Units for '.$type.' <b>Is Chosen</b>';
-     if (!empty($return))$this->scale_width_enabled=true;
-	return $return;
-	}
-	
-function spacing($style,$val,$css_style,$msg,$title,$hide='',$ifempty='',$showpercent=false,$field='',$directcss=false,$start=0,$msg2='',$radio='',$pxmaxwidth='4000'){ if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-#10-11 indexes  7 + 3
-#field is not currently used here
-	#show_percent true for mar/pad left/right
-	#css style none means no css property chosen yet ie left vs. right top vs. bottom but number can be chosen!
-	$type=($this->is_page)?'page':(($this->is_column)?'column':'blog'); 
-	$use_percent=false;
-     $start=(is_numeric($start))?$start:0;
-	$spacing_arr=explode('@@',$this->{$style}[$val]);
-	for ($i=0; $i<12+$start; $i++){
-		if (!array_key_exists($i,$spacing_arr)||$spacing_arr[$i]==='00'||$spacing_arr[$i]==='0.0'||$spacing_arr[$i]==='0.00'){
-			$spacing_arr[$i]=0;
-			}
-		}
-         
-	$maxspace=($this->is_page&&$showpercent)?$this->page_width:(($showpercent)?$this->column_total_width[$this->column_level]:4000);//limit width
-     $maxspace=min($maxspace,$pxmaxwidth);
-	$current_px=$spacing_arr[$start];//index key  of first value
-	$current_px=(is_numeric($current_px)&&$current_px<=$maxspace&&$current_px>=0)?$current_px:0;  
-	$current_percent=$spacing_arr[$start+2];
-	$current_percent=(is_numeric($current_percent)&&$current_percent<=100&&$current_percent>=.05)?$current_percent:0;
-	$current_em=$spacing_arr[$start+3];
-	$current_em=(is_numeric($current_em)&&$current_em<=200&&$current_em>=.05)?$current_em:0; 
-	$current_rem=$spacing_arr[$start+4];
-	$current_rem=(is_numeric($current_rem)&&$current_rem<=200&&$current_rem>=.01)?$current_rem:0;  
-	$current_vw=$spacing_arr[$start+5];
-	$current_vw=(is_numeric($current_vw)&&$current_vw<=100&&$current_vw>=.02)?$current_vw:0; 
-	$current_vh=$spacing_arr[$start+6];
-	$current_vh=(is_numeric($current_vh)&&$current_vh<=100&&$current_vh>=.02)?$current_vh:0; 
-		#all values will be store as px
-		#percent will be calculated for overall post size using post width...
-	$scaleunit=(!empty($spacing_arr[1])&&$spacing_arr[1]!=='%'&&$spacing_arr[1]!=='em'&&$spacing_arr[1]!=='rem'&&$spacing_arr[1]!=='vw'&&$spacing_arr[1]!=='vh')?'none':$spacing_arr[1];
-	$pos_neg=($spacing_arr[$start+1]==='-')?'-':''; 
-     //used for locally comparing this value to another then expressing the css ie not here.
-     $returnval='';
-  foreach (array('rem','em','percent','px') as $ext){ 
-          if (!empty(${'current_'.$ext})){
-               $empty=false;
-               
-               if ($ext==='rem'){
-                     $returnval=$pos_neg.${'current_'.$ext}.'rem';
-                     }
-               elseif ($ext==='em'){
-                    $returnval=$pos_neg.${'current_'.$ext}.'em';
-                    }
-               elseif ($ext==='percent'){
-                    $returnval=$pos_neg.${'current_'.$ext}.'%';
-                    }
-               elseif ($ext==='px'){
-                    $returnval=$pos_neg.${'current_'.$ext}.'px';
-                    $msgscale=$this->rwd_scale($this->{$style}[$val],'return_val',"",'font-size','font size px','px',0,7,true,1);
-                    if (!empty($msgscale)){
-                         $returnval.=$msgscale;
-                         }
-                    }
-               break;
-               }
-          }
-     if ($css_style==='display_style'){//used for parsing style values for displaying values...
-          if (is_array($radio)){ 
-               $overridevalue='';
-               foreach ($radio as $value=>$rvar){ 
-                    if($spacing_arr[$start]===$value){
-                         $overridevalue=$rvar;
-                         }
-                    }
-               if (!empty($overridevalue))return 'Override: '.$overridevalue;
-               }
-          return $returnval;
-          }
-	($this->is_page)&&$showpercent=false;	 
-	$sizepx=$current_px.'px'; 
-	$percent=($showpercent&&is_numeric($this->{$style}[$val]))?(ceil($this->{$style}[$val]*100/$this->column_total_width[$this->column_level]*10)/10):''; 
-	$current=($showpercent)?$sizepx.'  ('.$percent.'%)':$sizepx;
-	$size=$sizepx; 
-	$class=(!empty($hide))?$hide:'';
-	$negmsg=($pos_neg==='-')?' &amp; chosen value expressed as negative value':''; 
-	$this->show_more($msg,'',$class.' editbackground editfont italic info',$title);
-	$this->print_redwrap('spacing funct wrap');
-	(!empty($msg2))&& printer::print_info($msg2);	 
-	echo '<div class="floatleft editbackground editfont editcolor editfont fs1color '.$class.' left"><!--funct spacing choose other units-->';
-     printer::alertx('<p class="tip center">Choose units/value for '.$msg.'.<br><b>Last chosen will override other units.</b></p>');
-	(!empty($title))&&printer::print_tip($title);
-	if (strpos($css_style,'width')===false&&strpos($css_style,'height')===false){
-          $this->show_more('Negative Value Option','','highlight click editbackground editfont smaller');
-		$checked1=($pos_neg!=='-')?'checked="checked"':'';
-		$checked2=($pos_neg!=='-')?'':'checked="checked"';
-          printer::print_wrap('wrap neg');
-		printer::alert_size('<input name="'.$style.'['.$val.']['.($start+1).']" '.$checked1.' type="radio"  value="">Use Positive Value',1);
-		printer::alert_size('<input name="'.$style.'['.$val.']['.($start+1).']" type="radio" '.$checked2.' value="-">Set to Negative Value',1);
-          printer::close_print_wrap('wrap neg');
-          $this->show_close('Negative Val Option');
-		} 
-	printer::pclear(7);
-	printer::print_wrap('wrap px choice');
-     $pxpercent=(!$this->is_page&&$showpercent)?'&nbsp;&nbsp;('.$current_px*100/$this->current_total_width.'% Avail Parent Wid)':'';
-	echo '<span class="highlight" title="'.$title.'" >px '.$msg.'</span>: Currently '.$sizepx.$negmsg.$pxpercent.'<br>';
-     $this->show_more('Choose Px Units'); 
-     $this->print_redwrap('px units'); 
-	$unit1='px';
-	$msgjava='Choose px '.$msg.':';
-	$factor=(!$this->is_page)?100/$this->current_total_width:1;
-	$unit2=(!$this->is_page&&$showpercent)?'%':'';  
-	$this->mod_spacing($style.'['.$val.']['.$start.']',$current_px,0,$maxspace,1,$unit1,'',$msgjava,$factor,$unit2);
-      printer::print_tip('Optionally create px viewport proportional units (uses media queries) or choose scalable units ie em,rem,% below');
-     $pass_element=($directcss!==false&&!empty($directcss))?$directcss:$this->pelement;
-	 if (strpos($css_style,'return')===false)$msgscale=$this->rwd_scale($pos_neg.$this->{$style}[$val],$style.'['.$val.']'," $pass_element",$css_style,$msg.' px','px',$start,7,true,1);
-      else $msgscale='';
-	$this->submit_button();
-     printer::close_print_wrap('px units'); 
-     $this->show_close('Choose Px Units');
-	printer::close_print_wrap('wrap px choice'); 
-     if (!empty($msgscale))printer::print_notice($msgscale);
-	printer::pclear();
-     $overridecss=false;#override css is passed on as checkable value ie none or auto..
-     if (is_array($radio)){ 
-          $overridecss=false;
-          foreach ($radio as $value=>$rvar){
-               if($spacing_arr[$start]===$value){
-                    $overridecss=true;
-                    printer::alertx('<p class="clear floatleft smallest whitebackground black fs1salmon">Active Override Css Value checked for: <b>'.$rvar.'</b></p>');
-                    }
-               }
-          }
-      
-    	printer::print_wrap('funct spacing choose other units');
-     if (!$overridecss){ //checked value options expressing the css ie not here.
-          foreach (array('rem','em','percent') as $ext){ 
-               if (!empty(${'current_'.$ext})){
-                    $empty=false;
-                    if ($ext==='rem'){
-                         $remscale=($this->rem_scale)?'px scaling on':'px scaling off';
-                         $pxequiv='&nbsp;&nbsp; = '.round($this->rem_root*${'current_'.$ext},1).$remscale;
-                        // $pxequiv='&nbsp;&nbsp; = '.$this->rem_root.$remscale;
-                          }
-                    elseif ($ext==='em'){
-                         $emscale=($this->terminal_em_scale)?'px scaling on':'px scaling off';
-                         $pxequiv='&nbsp;&nbsp; = '.round($this->terminal_font_em_px*${'current_'.$ext},1).$emscale;
-                         }
-                    else $pxequiv=''; 
-                    $scaleunit=($ext==='percent')?'%':$ext;
-                    printer::alertx('<p class="clear floatleft smallest whitebackground black fs1salmon">Active '.$msg.': <b>'.$pos_neg.${'current_'.$ext}.$scaleunit.$pxequiv.'</b></p>');
-                    break;
-                    }
-               }
-          } 
-     
-     printer::pclear();
-	$this->show_more('Use Other '.$msg.' Units');
-	$this->print_redwrap('funct spacing more other spacing units');
-     $emscale=($this->terminal_em_scale)?'px scaling on':'px scaling off';
-     $remscale=($this->rem_scale)?' px scaling on':' px scaling off';
-     printer::print_info("each em unit (if used) has current equivalent = $this->terminal_font_em_px$emscale");
-     printer::print_info("1 rem equivalent to $this->rem_root$remscale");
-     $this->show_more('Setting up em rem info','','info editbackground tiny','Click for important info on em rem');
-	printer::print_tip('Choose an alternative spacing unit here.  <b>You can enable rwd scaling for rem (appropriately related to content-size at different viewports) in the page options under configure setting defaults and spacing values using rem will scale according to the settings you make there and the rem value you set here.</b> Em rwd scaling is determined by font-size scaling on the nearest font-size selection. See font-size unit choices for more info. <br> Choose value and unit type.  You can choose more than one unit type but rem will overrides em which overrides % which ovrrides px.');
-     $this->show_close('Setting up em rem info');
-	printer::alert(' <b> The following value types will override px setting on browsers that support it.</b>');
-     printer::print_wrap('percent');
-	printer::alert('Currently: '.$current_percent.'%  Choose Percent Value:');
-	$this->mod_spacing($style.'['.$val.']['.($start+2).']',$current_percent,0,100,.05,'%','none');
-     printer::close_print_wrap('percent');
-     printer::print_wrap('em');
-     $pxpercent=(!$this->is_page&&$showpercent)?'&nbsp;&nbsp;('.$current_em*$this->terminal_font_em_px*100/$this->current_total_width.'% Avail Parent Wid)':''; 
-	$factor=(!$this->is_page)?$this->terminal_font_em_px*100/$this->current_total_width:1;
-	$unit2=(!$this->is_page&&$showpercent)?'%':''; 
-	printer::alert('Currently: '.$current_em.'em'.$pxpercent.'<br> Choose em value: ');
-	$this->mod_spacing($style.'['.$val.']['.($start+3).']',$current_em,0,200,.05,'em','none','',$factor,$unit2);
-     printer::close_print_wrap('em');
-     printer::print_wrap('rem');
-     $pxpercent=(!$this->is_page&&$showpercent)?'&nbsp;&nbsp;('.$current_rem*$this->rem_root*100/$this->current_total_width.'% Avail Parent Wid)':''; 
-	$factor=(!$this->is_page)?$this->rem_root*100/$this->current_total_width:1;
-	$unit2=(!$this->is_page&&$showpercent)?'%':''; 
-	printer::alert('Currently: '.$current_rem.'rem'.$pxpercent.'<br> Choose rem value: '); 
-	$this->mod_spacing($style.'['.$val.']['.($start+4).']',$current_rem,0,200,.01,'rem','none','',$factor,$unit2);
-     printer::close_print_wrap('rem');
-     #vw currently not enabled
-     /*printer::print_wrap('vw');
-	printer::alert('Currently: '.$current_vw.'vw Choose vw Value:');
-	$this->mod_spacing($style.'['.$val.']['.($start+5).']',$current_vw,0,100,.02,'vw','none');
-     printer::close_print_wrap('vw'); 
-	if (strpos($css_style,'top')||strpos($css_style,'bottom')||strpos($css_style,'height')){ 
-          printer::print_wrap('vh');
-		printer::alert('Currently: '.$current_vh.'vh Choose vh Value:');
-		$this->mod_spacing($style.'['.$val.']['.($start+6).']',$current_vh,0,100,.02,'vh','none');
-          printer::close_print_wrap('vh'); 
-		}*/
-	
-	$this->submit_button();
-	printer::close_print_wrap('funct spacing  other spacing units'); 
-	$this->show_close('funct spacing  Use other spacing units'); 
-    	printer::close_print_wrap('funct spacing  wrap other units');
-	if (is_array($radio)){ 
-          printer::print_wrap1('radio spacing'); 
-          printer::print_tip('Checking This Css Option overrides all other chosen values.'); 
-          $overridecss=false;
-          $overridevalue='';
-          foreach ($radio as $value=>$rvar){
-               if($spacing_arr[$start]===$value){ 
-                    $checked='checked="checked"';
-                    $overridecss=true; 
-                    $returnval=$overridevalue=$rvar;
-                    }
-               else $checked='';
-               printer::alert('<input name="'.$style.'['.$val.']['.($start).']" type="radio" value="'.$value.'" '.$checked.'">Use '.$rvar);
-               }
-          ($overridecss)&&printer::alert('<input name="'.$style.'['.$val.']['.$start.']" type="radio" value="0"><span class="orange">Remove</span> Override Option: '.$overridevalue);
-          printer::close_print_wrap1('funct spacing  radio spacing');
-          }
-	echo'  </div><!--spacing hide-->';
-     
-     printer::pclear();
-	$this->submit_button(); 
-	printer::close_print_wrap('funct spacing  spacing wrap');
-	$this->show_close($msg); 
-     if (strpos($css_style,'return')!==false){
-          return $returnval;
-          } 
-	printer::pclear(); 
-     $empty=true;
-     $directReturn='';
-	if ($css_style!=='none'){//
-          $csstype=($this->is_page)?'pagecss':'css';
-           if ($directcss!==false&&!empty($directcss)){//direct css is css expressed directly with this->css.=   instead of collected and aggregrated with other css that is expressed under same classname through the main style editor
-               if (!$overridecss){ 
-                    foreach (array('rem','em','percent','px') as $ext){ 
-                         if (!empty(${'current_'.$ext})){
-                              $empty=false;
-                              if ($ext==='rem'){
-                                   $remscale=($this->rem_scale)?'px scaling on':'px scaling off';
-                                   $pxequiv='&nbsp;&nbsp; = '.round($this->rem_root*${'current_'.$ext}).$remscale;
-                                   }
-                              elseif ($ext==='em'){
-                                   $emscale=($this->terminal_em_scale)?'px scaling on':'px scaling off'; 
-                                   $pxequiv='&nbsp;&nbsp; = '.round($this->terminal_font_em_px*${'current_'.$ext}).$emscale;
-                                   }
-                              else $pxequiv='';
-                              $scaleunit=($ext==='percent')?'%':$ext;
-                              $this->$csstype.=$directReturn="
-          $directcss".'{'.$css_style.':'.$pos_neg.${'current_'.$ext}.$scaleunit.';}';
-                              printer::print_notice('Active '.$msg.': '.$pos_neg.${'current_'.$ext}.$scaleunit.$pxequiv);
-                              break;
-                              } 
-                         printer::pclear();
-                         }//end foreach
-                    if(!empty($ifempty)&&$empty) { //is empty 
-                         $this->$csstype.=$directReturn=$directcss.'{'.$ifempty.'}';  
-                         } 
-                    }//if directcss not false or !empty
-               else {//use cssoverride value
-                    $this->$csstype.=$directReturn=$directcss.'{'.$overridevalue.'}';
-                    } 
-               } 
-          else  {// direct css is false
-               $fstyle='final_'.$style;
-               $this->{$fstyle}[$val]='';
-               $empty=true; 
-               if (!$overridecss){ 
-                    foreach (array('rem','em','percent','px') as $ext){
-                         if (!empty(${'current_'.$ext})){ 
-                              $empty=false; 
-                              $scaleunit=($ext==='percent')?'%':$ext; 
-                              $this->{$fstyle}[$val].=$css_style.':'.$pos_neg.${'current_'.$ext}.$scaleunit.';'; 
-                             /*if (!empty($current_px)&&$ext!=='percent'){// when px is used it will be overriden by other units .
-                                   $this->$csstype.='
-html '.$this->pelement.'{'.$css_style.':'.$pos_neg.${'current_'.$ext}.$scaleunit.';}';//this is backup only
-                                   }*/
-                              if (strpos($css_style,'min-width')!==false){//if device width is less than min-width cancel min-width;
-                                   $this->$csstype.='
-          @media screen and (max-width: '.${'current_'.$ext}.$scaleunit.'){
-               html '.$this->pelement.'{min-width:0px;}
-               }';
-                                   } 
-                              break;
-                              }//if !empty
-                         }//foreach 
-                   if ($empty&&!empty($ifempty)){
-                         $this->{$fstyle}[$val]=$ifempty;
-                         }  
-                    }//!cssovverride
-               else {
-                    $this->{$fstyle}[$val]=$overridevalue;
-                    }
-               }//directcss is false 
-           }//if css_style !none
-     if(!empty($directReturn))return $directReturn;
-     return (!empty($returnval))?true:false;
-	} #end spacing  //end
-   
- 
-function padding_bottom($style, $val, $field){ if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-	$this->spacing($style,$val,'padding-bottom','Padding Bottom Spacing','Adding bottom padding-spacing creates space below this post, column, etc. Augments the background color and spacing within borders if either used!','hidepad','','','','','','Default Value 0 Check padding-bottom:0 to insure',array('zero'=>'padding-bottom:0;'));
-	}
-
-function padding_right($style, $val, $field){ if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-	$this->spacing($style,$val,'padding-right','Padding Right Spacing','Adding right padding-spacing creates space on the right of this post, column, etc. Augments the background color and spacing within borders if either used!','hidepad','',true, '','','','Default Value 0 Check padding-right:0 to insure',array('zero'=>'padding-right:0;'));
-	}
-
-
-function padding_left($style, $val, $field){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-     $this->spacing($style,$val,'padding-left','Padding Left Spacing','Creates space on the left of this post, column, etc. Augments the background color and spacing within borders if either used!','hidepad','',true, $field,'','','Default Value 0. Check padding-left:0 to insure',array('zero'=>'padding-left:0;'));
-	}
-     
-function padding_top($style, $val, $field){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-	if ($this->is_page|| ($this->is_blog&&!$this->is_clone)||($this->is_column&&!$this->is_clone||$this->clone_local_style)){  
-		static $topinc=0; $topinc++; 
-          echo '<p class="highlight click  left floatleft" id="padding'.$topinc.'" title="Padding Spacing choices add spacing to your post, column, etc. If borders are used the space will be within the border. If backgrounds are used it will extend the background space."  onclick="edit_Proc.getTags(\'hidepad\',\'showhide\',id);return false;">Spacing by Padding</p>';
-		printer::pclear();
-		}
-    $this->spacing($style,$val,'padding-top','Padding Top Spacing' ,'Creates space on the top of this post, column, etc. Augments the background color and spacing within borders if either used.','hidepad',false,'','','','','Default Value typically 0 check padding:0 to insure',array('zero'=>'padding-top:0;'));
-	}
-
-function margin_top($style, $val, $field){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-	if ($this->is_page|| ($this->is_blog&&!$this->is_clone)||($this->is_column&&!$this->is_clone||$this->clone_local_style)){ 
-		static $marginc=0; $marginc++; 
-		echo '<p class="highlight click left floatleft" id="margin'.$marginc.'" title=" Margin Spacing also adds spacing to your post, column, etc. However, if borders are used the space will be outside of it and if a  background color is used  the spacing will be outside the background color!"  onclick="edit_Proc.getTags(\'hidemar\',\'showhide\',id);return false;">Spacing by Margin</p>';
-		printer::pclear();
-		}
-	$this->spacing($style,$val,'margin-top','Margin top Spacing','Creates space on the top of this post, column, etc. The Space will be outside of borders or Background Colors if either is used!!','hidemar','','','','','','Default Value typically 0',array('auto'=>'margin-top:auto;','zero'=>'margin-top:0;'));  
-	}  
-function margin_bottom($style, $val, $field){ if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-     $this->spacing($style,$val,'margin-bottom','Margin Bottom Spacing','Creates space on the bottom of this post, column, etc. The Space will be outside of borders or Background Colors if either is used!!','hidemar','','','','','','Default Value typically 0',array('auto'=>'margin-bottom:auto;','zero'=>'margin-bottom:0;')); 
-     }
-
-function margin_right($style, $val, $field){ if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-	if ($this->rwd_post&&strpos($style,'style')!==false)return; 
-     $this->spacing($style,$val,'margin-right','Margin Right Spacing','Creates space to the right of this post, column, etc. that will be outside of borders or Background Colors if either is used!!','hidemar','',true,$field,'','','Typical Default Value: margin-right:auto; (for centering).',array('zero'=>'margin-right:0;','auto;'=>'margin-right:auto;'));
-	}
-     
-function margin_left($style, $val, $field){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-	if ($this->is_page|| ($this->is_blog&&!$this->is_clone)||($this->is_column&&!$this->is_clone||$this->clone_local_style)){ 
-		if ($this->rwd_post&&strpos($style,'style')!==false){
-			$this->show_more('RWD Margin Left Right Info','noback','info underline italic');
-			printer::printx('<p class="fsminfo '.$this->column_lev_color.' editbackground editfont">When in RWD mode set left and right Spaces as options when choosing pos Grid units. The spaces will also be added as information in the total grid unit tracker!</p>'); 
-			$this->show_close('RWD Margin Left Right Info');
-			
-			return;
-			}
-		}
-	$this->spacing($style,$val,'margin-left','Margin Left Spacing','Creates space on the left of this post, column, etc. that  will be outside of borders or Background Colors if either is used!!','hidemar','',true,$field,'','','Default Value: margin-left:auto; (for centering)',array('zero'=>'margin-left:0;','auto;'=>'margin-left:auto;'));  
-	}
-	
-function font_family($style, $val, $field,$show_style=false){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__); 
-	$showstyle=($show_style)?'':' hide';
-	if ($this->is_page|| ($this->is_blog&&!$this->is_clone)||($this->is_column&&!$this->is_clone||$this->clone_local_style)){  
-		$msg= (empty($this->{$style}[$val]))? 'Default Value': str_replace(';','',str_replace('=>',',',$this->{$style}[$val]));  
-		echo'<div class="fsminfo editcolor editbackground editfont '.$style.'_hidefont '.$showstyle.'" ><!--font family-->';
-		$this->show_more('Font Family ', 'noback','editbackground editfont '.$this->column_lev_color.' italic info',' Choose the Font Family Style for this post here','500');
-		$this->print_redwrap('font family');
-          $this->submit_button();
-          echo'<div class="fsminfo editbackground editfont"><!--font family-->';
-		echo '<p class="fs1red"><span class="highlight" title="Select a new text style (font-family) for this post from the dropdown menu. View a image of how the text style looks, click the link below. Choose None to return to the inherited font-family value.  &#40;Inherited Parent Values are the most recent values that have been set in the parent Columns and if not set there then in the body or the default browser font if none has been chosen in any parent!!">Text Font Style: </span>Currently:<br><span class="'.$this->column_lev_color.'"> '.$msg.'</span></p>';
-               $mod_val=str_replace(';','',$this->{$style}[$val]);
-               $init= ($mod_val=='inherit')?'checked="checked"':'';
-		   echo  "\n".'<p style="font-family:inherit" ><input type="radio" name="'.$style.'['.$val.']" '.$init.' value="inherit">inherit</p>';
-             foreach ($this->fonts_all as $family){
-			$mod_family=str_replace(',','=>',$family);
-			$checked=(trim($mod_family)===trim($mod_val))?'checked="checked"':'';
-			echo  "\n".'<p style="font-family:'.$family.';" ><input type="radio" name="'.$style.'['.$val.']" '.$checked.' value="'.$mod_family.';">'.$family.'</p>';
-			}
-		$this->submit_button();
-		echo'</div><!--font family-->';
-		printer::close_print_wrap('font family');
-          $this->show_close('Font Family');
-		echo'</div><!--font family-->';
-		}
-	$value=str_replace('=>',',',$this->{$style}[$val]);
-	$v=str_replace(';','',$value);
-	if (in_array($v,$this->fonts_extended)){
-		$this->at_fonts[]=$v;
-		}
-	$value=rtrim(trim($value),';');
-	$fstyle='final_'.$style;
-	$this->{$fstyle}[$val]=(!empty($value))?'font-family: '.$value.';':'0';
-	} 
- 
-function font_weight($style, $val, $field){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-	if ($this->is_page|| ($this->is_blog&&!$this->is_clone)||($this->is_column&&!$this->is_clone||$this->clone_local_style)){  
-		$msg= (empty($this->{$style}[$val]))? 'None ': $this->{$style}[$val];
-		$selected=(!empty($this->{$style}[$val]))?$this->{$style}[$val]:400;
-		echo '
-		<div class="fsminfo editbackground editfont '.$style.'_hidefont hide"><!--font_weight--><p class="highlight" title="Select new Font Weight &#40;the thickness or relative boldness of the font&#41; from dropdown menu list. The normal default font-weight is 400 whereas the traditional bold font-weight is 700.">Font Weight: Currently '.$msg.'<br>
-		<select class="editcolor editbackground editfont"  name="'.$style.'['.$val.']" id="'.$style.'_'.$val.'">        
-		<option  value="'.$this->{$style}[$val].'" selected="selected">'.$selected.'</option>
-		<option  value="0">Choose None</option>
-		<option  value="100">100-Super Light Font</option>
-		<option  value="200">200</option> 
-		<option  value="300">300-slightly fainter</option>  
-		<option  value="400">400-normal</option>  
-		<option  value="500">500-slightly bold</option>
-		<option  value="600">600</option>
-		<option  value="700">700-bold</option>
-		<option  value="800">800</option>
-		<option  value="900">900-Super Bold</option>   
-		</select>';
-		echo'
-		</p></div><!--font_weight-->';
-		}
-     $fstyle='final_'.$style;
-     $this->{$fstyle}[$val]=(empty($this->{$style}[$val]))?'0':'font-weight: '.$this->{$style}[$val].'; ';
-    }
-
-function float($style,$val){
- 	if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-     $msg= ($this->{$style}[$val]==='center'||$this->{$style}[$val]==='right'||$this->{$style}[$val]==='left')?  $this->{$style}[$val]:'Full Row (margin-right:auto;margin-left:auto;';
-     $this->show_more('Float Right/Left/Center', 'noback','editbackground editfont highlight',' Choose to Position Next to instead of full Space',500);
-	printer::print_tip('Use  no previous options to prevent floating with previous post and and then center, go left, go right depending on your choice');
-     $current=($this->{$style}[$val]==='center'||$this->{$style}[$val]==='right'||$this->{$style}[$val]==='left')?$this->{$style}[$val]:'none';
-     echo '
-        <fieldset class="sfield"><legend></legend><p class="'.$this->column_lev_color.' editbackground editfont  Os3salmon fsminfo float">Float: Currently '.$msg.'<br>
-    Float (positions along side) setting:<br>
-         <select class="editcolor editbackground editfont"  name="'.$style.'['.$val.']" id="'.$style.'_'.$val.'">        
-    <option  value="'.$this->{$style}[$val].'" selected="selected">'.$current.'</option>
-    <option  value="center">Center Width</option> 
-    <option  value="right">Float Right</option>
-    <option  value="left">Float Left</option>
-    <option  value="center no previous">Center Width No Previous</option> 
-    <option  value="right no previous">Float Right No Previous</option>
-    <option  value="left no previous">Float Left No Previous</option>
-    <option value="none">None</option>
-    </select>';
-    echo $this->{$style}[$val]. ' is style val';
-    switch ($this->{$style}[$val]){
-          case 'center' :
-               $floatstyle='margin-right:auto;margin-left:auto;';
-               break;
-          case 'right' :
-               $floatstyle='float:right;';
-               break;
-          case 'left' :
-               $floatstyle='float:left;';
-               break;
-          case 'center no previous' :
-               $floatstyle='margin-right:auto;margin-left:auto;clear:both;';
-               break;
-          case 'right no previous' :
-               $floatstyle='float:right;clear:both;';
-               break;
-          case 'left no previous' :
-               $floatstyle='float:left;clear:both;';
-               break; 
-          case 'none' :
-               $floatstyle='';
-               break; 
-          default :
-               $floatstyle='';
-               break;
-          }
-     echo'
-    </p></fieldset>';
-     $this->show_close('Float Right/Left');
-     $fstyle='final_'.$style;
-	$this->{$fstyle}[$val]=$floatstyle;
-	}
-function radius_corner($style, $val,$field){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-	if (arrayhandler::is_empty_array($this->{$style}[$val])){//default may be set to 1
-		$radius_array=array();
-		for ($i=0; $i<18;$i++){ 
-			$radius_array[$i]=0;
-			}
-		}
-	else	{ //note that input type text will give 0value for defaults...
-		$radius_array=explode('@@',$this->{$style}[$val]);
-		for ($i=0; $i<18;$i++){ 
-			if (!array_key_exists($i,$radius_array)){
-				$radius_array[$i]=0;
-				}
-			}
-		} 
-	if ($this->is_page|| ($this->is_blog&&!$this->is_clone)||($this->is_column&&!$this->is_clone||$this->clone_local_style)){  
-          $this->show_more('Radius Background', 'noback','editbackground editfont highlight',' Radius a Colored Post Background if in use Here!',500);
-          $this->print_redwrap('wrap radius',false);
-          echo '<p class="fsminfo editbackground editfont rad10 '.$this->column_lev_color.' editfont">As an Example we have used a radius around this text with a border to show the radius effect. A value of 10px was selected for each corner<br> <span class="italic"> Note that your Radius will only show up when background colors, box shadows, and borders are used</span> <br> Radius the stylized corners of Column, Posts, and Menu-Link Button Area, and Images directly.</p>'; 
-          $check='checked="checked"';
-          $checked1=($radius_array[4]!=='individual')?$check:'';
-          $checked2=($radius_array[4]==='individual')?$check:'';
-          printer::print_wrap('radio choice radius');
-          printer::alert('<input type="radio" '.$checked1.' value="all" name="'.$style.'['.$val.'][4]">1.Activate Using one value choice for all four corners. Select from range of unit types. Note percentage units will round entire sides');
-          printer::alert('<input type="radio" '.$checked2.' value="individual" name="'.$style.'['.$val.'][4]">2.Choose size for individual corner values using px units');
-          printer::close_print_wrap('radio choice radius');
-          $css_type=($radius_array[4]!=='individual')?'border-radius':'none';
-          $this->spacing($style,$val,$css_type,'Radius All Corners','Creates Radius on all four background corners using one value &amp; multiple unit choices','','','','','',8);//allowing three xtra for incorporation of px radius scale units..
-          $size1= (empty($radius_array[0])||!is_numeric($radius_array[0]))? '0':$radius_array[0];
-          $this->show_more('or choose value for each corner in px');
-          printer::print_wrap('individual radius');
-          echo '<fieldset class="sfield"><legend></legend>
-             <p class="'.$this->column_lev_color.' editbackground editfont">Choose: Top Left Radius:
-              <select class="editcolor editbackground editfont"  name="'.$style.'['.$val.'][0]" >        
-              <option  value="'.$radius_array[0].'" selected="selected">'.$radius_array[0].'</option>';
-               for ($i=0; $i<95; $i+=1){
-                  echo '<option  value="'.$i.'">'.$i.'</option>';
-                  }
-             
-          echo'	
-              </select></p>';
-              printer::pclear(1);
-               $size2= (empty($radius_array[1])||!is_numeric($radius_array[1]))? '0':$radius_array[1];
-             echo '
-             <p class="'.$this->column_lev_color.' editbackground editfont">Choose: Top Right Radius:
-              <select class="editcolor editbackground editfont"  name="'.$style.'['.$val.'][1]" >        
-              <option  value="'.$radius_array[1].'" selected="selected">'.$radius_array[1].'</option>';
-          for ($i=0; $i<95; $i+=1){
-               echo '<option  value="'.$i.'">'.$i.'</option>';
-               }
-          echo'	
-              </select></p>';
-               $size3= (empty($radius_array[2])||!is_numeric($radius_array[2]))? '0':$radius_array[2];
-             echo '
-             <p class="'.$this->column_lev_color.' editbackground editfont"> Choose: Bottom Right Radius:
-              <select class="editcolor editbackground editfont"  name="'.$style.'['.$val.'][2]" >        
-              <option  value="'.$radius_array[2].'" selected="selected">'.$radius_array[2].'</option>';
-          for ($i=0; $i<95; $i+=1){
-               echo '<option  value="'.$i.'">'.$i.'</option>';
-               }
-          echo'	
-              </select></p>';
-          $size4= (empty($radius_array[3])||!is_numeric($radius_array[3]))? '0':$radius_array[3];
-             echo '
-               <p class="'.$this->column_lev_color.' editbackground editfont">Choose: Bottom Left Radius:
-               <select class="editcolor editbackground editfont"  name="'.$style.'['.$val.'][3]" >        
-               <option  value="'.$radius_array[3].'" selected="selected">'.$radius_array[3].'</option>';
-               for ($i=0; $i<95; $i+=1){
-                    echo '<option  value="'.$i.'">'.$i.'</option>';
-                    }
-          echo'	
-              </select></p>';
-          echo'</fieldset>';
-          printer::close_print_wrap('individual radius'); 
-          $this->show_close('or choose value for each corner in px');
-          $this->submit_button();
-          printer::close_print_wrap('wrap radius');
-          $this->show_close('radius');
-		}// if page or clone and not local style 
-	if ($css_type==='none'&&(!empty($size1)||!empty($size2)||!empty($size3)||!empty($size4))){
-          $radiuscss='
-		-webkit-border-radius: '.$size1.'px '.$size2.'px '.$size3.'px '.$size4.'px;
-	border-radius: '.$size1.'px '.$size2.'px '.$size3.'px '.$size4.'px;
-		';
-          $fstyle='final_'.$style;
-          $this->{$fstyle}[$val]=$radiuscss;
-          } 
-	}//end fuc radius
-
-function transform($style, $val,$field){ 
-	if (arrayhandler::is_empty_array($this->{$style}[$val])){//default may be set to 1
-		$transform_array=array();
-		 for ($i=0; $i<3;$i++){ 
-			$transform_array[$i]=0;
-			}
-		}
-	else	{ //note that input type text will give 0value for defaults...
-		$transform_array=explode('@@',$this->{$style}[$val]);
-		for ($i=0; $i<3;$i++){ 
-			if (!array_key_exists($i,$transform_array)||empty($transform_array[$i])){
-				$transform_array[$i]=0;
-				}
-			}
-		}   
-	if ($this->is_page|| ($this->is_blog&&!$this->is_clone)||($this->is_column&&!$this->is_clone||$this->clone_local_style)){   
-		$this->show_more('Rotate/Skew', 'noback','highlight editbackground editfont',' Rotate or Skew the Content of this post!',500);
-		//echo '<div class="fs2moccasin editbackground editfont editcolor"><!--tranform border-->';
-		$this->print_redwrap('transform',false);
-		echo '<p class="fsminfo editbackground editfont rad5 skewx3 '.$this->column_lev_color.' editfont">we have demonstrated a skew Xdirection of 4 degrees around this text to show the transform option in practice.  Be sure to allow enough width for your final effect! For more info on using the css3 transform feature and examples see <a href="http://www.w3schools.com/cssref/css3_pr_transform.asp"> Column Examples</a></p>'; 
-          $size= (empty($transform_array[0]))? '0':$transform_array[0];
-		echo '
-		<p class="'.$this->column_lev_color.' editbackground editfont">Degrees of Rotation: Currently '.$size.'<br>
-		 <span class="editcolor editbackground editfont">Choose Rotation Degrees:</span>
-		 <select class="editcolor editbackground editfont"  name="'.$style.'['.$val.'][0]" >        
-		 <option  value="'.$transform_array[0].'" selected="selected">'.$transform_array[0].'</option>';
-		for ($i=-90; $i<-15; $i+=5){
-			echo '<option  value="'.$i.'">'.$i.'&#176;</option>';
-			}
-		for ($i=-15; $i<15; $i+=1){
-			echo '<option  value="'.$i.'">'.$i.'&#176;</option>';
-			}
-		for ($i=15; $i<90; $i+=5){
-			echo '<option  value="'.$i.'">'.$i.'&#176;</option>';
-			}
-		echo'	
-		 </select></p>';
-		$size= (empty($transform_array[1]))? '0':$transform_array[1];
-		echo'<p class="'.$this->column_lev_color.' editbackground editfont">Skew Xdirection  Degrees: Currently '.$size.'<br>
-		 <span class="editcolor editbackground editfont">Choose Skew Xdirection Degrees:</span>
-		 <select class="editcolor editbackground editfont"  name="'.$style.'['.$val.'][1]" >        
-		 <option  value="'.$transform_array[1].'" selected="selected">'.$transform_array[1].'</option>';
-		for ($i=-45; $i<-15; $i+=5){
-			echo '<option  value="'.$i.'">'.$i.'&#176;</option>';
-			}
-		for ($i=-15; $i<15; $i+=1){
-			echo '<option  value="'.$i.'">'.$i.'&#176;</option>';
-			}
-		for ($i=15; $i<50; $i+=5){
-			echo '<option  value="'.$i.'">'.$i.'&#176;</option>';
-			}
-		echo'	
-		 </select></p>';
-		$size= (empty($transform_array[2]))? '0':$transform_array[2];
-		echo'<p class="'.$this->column_lev_color.' editbackground editfont">Skew Ydirection Degrees: Currently '.$size.'<br>
-		 <span class="editcolor editbackground editfont">Choose Skew Ydirection Degrees:</span>
-		 <select class="editcolor editbackground editfont"  name="'.$style.'['.$val.'][2]" >        
-		 <option  value="'.$transform_array[2].'" selected="selected">'.$transform_array[2].'</option>';
-		for ($i=-45; $i<-15; $i+=5){
-			echo '<option  value="'.$i.'">'.$i.'&#176;</option>';
-			}
-		for ($i=-15; $i<15; $i+=1){
-			echo '<option  value="'.$i.'">'.$i.'&#176;</option>';
-			}
-		for ($i=15; $i<50; $i+=5){
-			echo '<option  value="'.$i.'">'.$i.'&#176;</option>';
-			}  
-		echo'	
-		 </select></p>';
-          $this->submit_button();
-		printer::close_print_wrap('transform');
-		$this->show_close('tranform border');
-		}
-	$transformcss='
-	-moz-transform: rotate('.$transform_array[0].'deg) skewX('.$transform_array[1].'deg) skewY('.$transform_array[2].'deg);
-	-webkit-transform: rotate('.$transform_array[0].'deg) skewX('.$transform_array[1].'deg) skewY('.$transform_array[2].'deg);
-	-o-transform: rotate('.$transform_array[0].'deg) skewX('.$transform_array[1].'deg) skewY('.$transform_array[2].'deg);
-	-ms-transform: rotate('.$transform_array[0].'deg) skewX('.$transform_array[1].'deg) skewY('.$transform_array[2].'deg);
-	transform: rotate('.$transform_array[0].'deg) skewX('.$transform_array[1].'deg) skewY('.$transform_array[2].'deg);
-	';
-	 
-	$transformcss= (empty($transform_array[0])&&empty($transform_array[1])&&empty($transform_array[2]))?'':$transformcss;
-	$fstyle='final_'.$style;
-	$this->{$fstyle}[$val]=$transformcss;
-	}
-
-function columns($style, $val,$field){ 
-	if (arrayhandler::is_empty_array($this->{$style}[$val])){//default may be set to 1
-		$column_array=array();
-		for ($i=0; $i<3;$i++){ 
-			$column_array[$i]=1;
-               }
-		}
-	else	{ //note that input type text will give 0value for defaults...
-		$column_array=explode('@@',$this->{$style}[$val]);
-		for ($i=0; $i<3;$i++){ 
-			if (!array_key_exists($i,$column_array)||$column_array[$i]==1){
-				$column_array[$i]=1;
-					}
-			}
-		}
-	if ($this->is_page|| ($this->is_blog&&!$this->is_clone)||($this->is_column&&!$this->is_clone||$this->clone_local_style)){  
-		$this->show_more('Multiple Columns', 'noback','highlight editbackground editfont',' turn this text into 2 or more columns',300);
-		$this->print_redwrap('multiple cols');
-		echo '<p class="column2 '.$this->column_lev_color.' fsminfo editbackground editfont rad3 editfont">This text you are reading was set up with 2 columns and a space of 16px between the columns with no divider line showing. The columns will be split between the available width.<br>For quick overview of using the css3 column feature and examples see <a href="http://css-tricks.com/snippets/css/css-box-column/"> Column Examples.</a><br> </p>';
-		printer::pclear(8);
-		   $size= (empty($column_array[0]))? 'One':$column_array[0];
-		echo '
-		<p class="'.$this->column_lev_color.' editbackground editfont">Choose the number of columns: Currently '.$size.'<br>
-		<span class="editcolor editbackground editfont">Choose # of Columns:</span>
-		<select class="editcolor editbackground editfont"  name="'.$style.'['.$val.'][0]" >        
-		<option  value="'.$column_array[0].'" selected="selected">'.$column_array[0].'</option>';
-		for ($i=1; $i<6; $i+=1){
-			echo '<option  value="'.$i.'">'.$i.'</option>';
-			}
-		 echo'	
-		 </select></p>';
-		$size= (empty($column_array[1]))? 'None':$column_array[1];
-		echo'<p class="'.$this->column_lev_color.' editbackground editfont">Choose the spacing between columns Currently '.$size.' px <br>
-		<span class="editcolor editbackground editfont">Choose Spacing between columns:</span>
-		<select class="editcolor editbackground editfont"  name="'.$style.'['.$val.'][1]" >        
-		<option  value="'.$column_array[1].'" selected="selected">'.$column_array[1].'</option>';
-		for ($i=0; $i<200; $i+=1){
-			 echo '<option  value="'.$i.'">'.$i.'px</option>';
-			}
-		echo'	
-		</select></p>'; 
-		$column_array[2]=($column_array[2]==='Line Separator True')?$column_array[2]:'Line Separator False';
-		echo'<p class="'.$this->column_lev_color.' editbackground editfont">Show  line Separator Between Columns: Currently '.$column_array[2].'<br>
-		<span class="editcolor editbackground editfont">Choose Show Divider:</span>
-		<select class="editcolor editbackground editfont"  name="'.$style.'['.$val.'][2]" >        
-		<option  value="'.$column_array[2].'" selected="selected">'.$column_array[2].'</option>';
-		echo '<option  value="Line Separator False">Line Separator False</option> 
-			<option  value="Line Separator True">Line Separator True</option> 
-               </select></p>';
-          $this->submit_button(); 
-		printer::close_print_wrap('multiple cols');
-		$this->show_close('multiple columns');
-		}   
-	$col=(!empty($this->{$style}[$this->font_color_index]))?$this->{$style}[$this->font_color_index]:$this->editor_color;
-	 //color was transformed by color funct so need to replace
-	$col=trim(str_replace(array('color',':','#',';'),'',$col));
-	$line=($column_array[2]==='Line Separator True')?'-moz-column-rule: 1px solid #'.$col.'; -webkit-column-rule: 1px solid #'.$col.';  column-rule: 1px solid #'.$col.';':'';
-	$columncss='
-	-moz-column-count: '.$column_array[0].';
-	-moz-column-gap: '.$column_array[1].'px;
-	-webkit-column-count: '.$column_array[0].';
-	-webkit-column-gap: '.$column_array[1].'px;
-	column-count: '.$column_array[0].';
-	column-gap: '.$column_array[1].'px;
-	'.$line;
-	$columncss= (empty($column_array[0])||$column_array[0]<2)?'':$columncss;
-	$fstyle='final_'.$style;
-	$this->{$fstyle}[$val]=$columncss;
-	}
-
-function borders($style, $val,$field){ 
-	static $inc=0; $inc++; 	
-	$border_sides=$this->border_sides;
-     $css_id=$this->pelement;
-	//array('No Border','top bottom left right','top bottom','top','bottom','left','right','top left','top right','bottom left','bottom right','left right','Force No Border');
-	if (arrayhandler::is_empty_array($this->{$style}[$val])){//default may be set to 1
-		$parr=$border_array=array();
-		for ($i=0; $i<8;$i++){ 
-			$border_array[$i]=0;
-			}
-		}
-	else	{ //note that input type text will give 0value for defaults...
-		$parr=$border_array=explode('@@',$this->{$style}[$val]);
-		for ($i=0; $i<8;$i++){ 
-			if (!array_key_exists($i,$border_array)){
-				$border_array[$i]=0;
-				}
-			}
-		}  
-     $border_opacity=(!empty($border_array[4])&&$border_array[4]<100&&$border_array[4]>0)?$border_array[4]:100;
-	$blog_border_sides=$border_array[3]=(!empty($border_array[3])&&in_array($border_array[3],$border_sides))?$border_array[3]:'No Border';
-	$border_line=$border_array[0]= (is_numeric($border_array[0])&&$border_array[0]>0)? $border_array[0]:0;
-     $border_line=round($border_line,1);
-	$px='px ';
-     $scaleunit=(!empty($border_array[7])&&$border_array[7]==='em'||$border_array[7]==='rem')?$border_array[7]:'none'; 
-	$border_value2=(!empty($border_array[8])&&is_numeric($border_array[8]))?$border_array[8]:0;
-     if ($scaleunit!=='none'&&!empty($border_value2)){
-          $msginfo=printer::print_notice('em/rem unit active: '.$border_value2.$scaleunit,.9,1);
-          $border_line=$border_value2;
-          $px=$scaleunit;
-          }
-     else $msginfo=printer::print_notice('No active em/rem unit',.9,1);
-	switch ($border_array[3]) { 
-          case $border_sides[1]:# all
-               $border_width="$border_line$px $border_line$px $border_line$px $border_line$px";
-               $barr=$border_line.'x@x@x'.$border_line.'x@x@x'.$border_line.'x@x@x'.$border_line;
-               break;
-          case $border_sides[2]:# top bottom
-               $border_width=" $border_line$px 0 $border_line$px 0";
-                $barr=$border_line.'x@x@x0x@x@x'.$border_line.'x@x@x0';
-               break; 
-          case $border_sides[3]:# top
-               $border_width="$border_line$px 0 0 0";
-                $barr=$border_line.'x@x@x0x@x@x0x@x@x0';
-               break;
-          case $border_sides[4]:# bottom
-               $border_width="0 0 $border_line$px 0";
-                $barr='0x@x@x0x@x@x'.$border_line.'x@x@x0';
-               break;
-          case $border_sides[5]:# left
-               $border_width="0 0 0 $border_line$px";
-                $barr='0x@x@x0x@x@x0x@x@x'.$border_line;
-               break;
-          case $border_sides[6]:# right
-               $border_width="0 $border_line$px 0 0";
-                $barr='0x@x@x'.$border_line.'x@x@x0x@x@x0';
-               break;
-          case $border_sides[7]:# top left
-               $border_width="$border_line$px 0 0 $border_line$px";
-                $barr=$border_line.'x@x@x0x@x@x0x@x@x'.$border_line;
-               break;
-          case $border_sides[8]:# top right
-               $border_width="$border_line$px $border_line$px 0 0";
-               $barr=$border_line.'x@x@x'.$border_line.'x@x@x0x@x@x0';
-               break;
-          case $border_sides[9]:# bottom left
-               $border_width="0 0 $border_line$px $border_line$px";
-               $barr='0x@x@x0x@x@x'.$border_line.'x@x@x'.$border_line;
-               break;
-          case $border_sides[10]:# bottom right
-               $border_width="0 $border_line$px $border_line$px  0";
-                $barr='0x@x@x'.$border_line.'x@x@x'.$border_line.'x@x@x0';
-               break;
-          case $border_sides[11]:# left right
-               $border_width="0 $border_line$px 0 $border_line$px";
-                $barr='';
-               break;
-          case $border_sides[12]:# force no border
-               $border_width='0';
-                $barr='';
-               break;
-          default:
-          $border_width=0;
-          $barr='';	 
-          }//end switch 
-     if ($scaleunit!=='none'&&!empty($border_value2))$barr=0;
-	$blog_border_color=$border_array[1]=(preg_match(Cfg::Preg_color,$border_array[1]))?$border_array[1]:'';
-	if (!empty(trim($blog_border_color))){
-		if ($border_opacity <100) 
-			$br_color=process_data::hex2rgba($blog_border_color,$border_opacity);
-		else $br_color='#'.$blog_border_color;
-		$border_color='border-color: '.$br_color.';'; 
-		}
-	else $border_color='';
-     $border_types=array('dotted','dashed','solid','double','groove','ridge','inset','outset');
-	$border_value=(is_numeric($border_array[0])&&$border_array[0]<=100)?$border_array[0]:0; 
-     $blog_border_type=$border_array[2]=(!empty($border_array[2])&&in_array($border_array[2],$border_types))?$border_array[2]:'solid';
-	if ($this->is_page|| ($this->is_blog&&!$this->is_clone)||($this->is_column&&!$this->is_clone||$this->clone_local_style)){  
-		$this->show_more('Border styling','noback','editfont highlight editbackground editfont', 'For Information on Borders and to Choose Border Type, Colors, and Edges click Here',500);
-		$this->print_redwrap('border styling wrap');
-		echo '<div class="Os2maroon fs1color  editbackground editfont"><!--Border sides-->';
-		echo '<p style="margin:13px; padding:13px;border-width: 3px 0 3px 0; border-style:double; border-color:#'.$this->aqua.';" class="'.$this->column_lev_color.' editbackground editfont"><!--End function border style-->We have used a light blue border selecting top and bottom around this text with a border type: double and a border thickness of 4'.$px.'. Borders are lines dashes dots,etc. stylize around columns, posts, groups of posts or menu link &#34;buttons&#34; depending on which of these you are currently styling! <br></p>'; 
-		printer::spanclear(5);
-          printer::print_wrap('choose sides');
-		echo'<p class="'.$this->column_lev_color.' editbackground editfont">Choose Border Profile (Top Bottom Sides) Currently: '.$border_array[3].'<br></p>';
-          printer::print_tip('Use the Force No Border Option for explicit border-width:0; if necessary in navigation menus (ie sub menu vs top menu');
-		echo '<p class="editcolor editbackground editfont" title="For Example Choose top bottom left right for a normal box border around the entire column, or if wish to show a border only around one or two sides for expample, the top and right, choose the top right option instead">Border Sides Info';
-		echo '<select class="editcolor editbackground editfont"  name="'.$style.'['.$val.'][3]" >        
-		<option  value="'.$border_array[3].'" selected="selected">'.$border_array[3].'</option>'; 
-		foreach ($border_sides as $type){
-			echo'<option  value="'.$type.'">'.$type.'</option> ';
-			}
-		echo '</select></p>';
-		printer::close_print_wrap('choose sides');
-          printer::print_wrap('px border');
-		echo'<p class="editfont editcolor left5 editbackground editfont"> Border Line Thickness:';
-          $this->mod_spacing($style.'['.$val.'][0]',$border_value,0,100,1,'px');
-		$css_style=(!empty($barr)&&$border_array[3]!=='No Border'&&!empty($blog_border_color))?'border-width':'none'; 
-          $parr[0]=$barr;
-          $parr=implode('@@',$parr);
-          $this->rwd_scale($parr,$style.'['.$val.']',$css_id,$css_style,'border-width','px',0,5,true); 
-          printer::close_print_wrap('px border'); 
-		printer::spanclear(5);
-          #############
-          echo $msginfo;
-          printer::pclear(5);
-          $this->show_more('Use other border-size units');
-          $this->print_redwrap('other bordersize units');
-          $more='';/*(!$this->is_page&&(!$this->col_primary||$this->is_blog))?'
-4. Choose VW units.':'';*/
-          printer::print_tip('OR Choose alt border-size units here.  <b>You can optionally enable scaling (responive size according to viewport) for rem (appropriately between the upper and lower viewport size of your choice) and similarly for em under font-size choice.'); 
-          printer::print_tip('Choose value and unit type.');
-	     $checked=' checked="checked" ';
-          $checked1=($scaleunit==='none')?$checked:'';
-          $checked2=($scaleunit==='em')?$checked:'';
-          $checked3=($scaleunit==='rem')?$checked:'';   
-          printer::alert('Choose scale unit:');
-          printer::alert('<input type="radio" name="'.$style.'['.$val.'][7]" value="none" '.$checked1.'>None');
-          printer::alert('<input type="radio" name="'.$style.'['.$val.'][7]" value="em" '.$checked2.'>em units');
-          printer::alert('<input type="radio" name="'.$style.'['.$val.'][7]" value="rem" '.$checked3.'>rem units'); 
-          // (!$this->is_page&&(!$this->col_primary||$this->is_blog))&&printer::alert('<input type="radio" name="'.$style.'['.$val.'][1]" value="vw" '.$checked4.'>vw units'); 
-          printer::pclear(5);
-          echo'<p class="'.$this->column_lev_color.' editbackground editborder">Scalable border Size: Currently '.$border_value2.'<br>
-          Choose:';
-          $this->mod_spacing($style.'['.$val.'][8]',$border_value2,0,10,.1,'unit');
-		echo'	
-	    </select></p>';
-          $this->submit_button();  
-          printer::close_print_wrap('other bordersize units');  
-          $this->show_close('Use other border-size units');
-          printer::pclear(5);
-          printer::print_wrap('border color');
-          $span_color=(!empty($border_array[1]))?'<span class="fs1npred" style="background-color:#'.$border_array[1].';">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>':''; 
-		printer::alert('Set border Color <input onclick="jscolor.installByClassName(\'border_id'.$inc.'_'.self::$xyz.'\');" style="cursor:pointer;background:#'.$this->editor_background.';color:#'.$this->editor_color.';" type="text" name="'.$style.'['.$val.'][1]" id="border_id'.$inc.'_'.self::$xyz.'" value="'.$border_array[1].'" size="12" maxlength="6" class="border_id'.$inc.'_'.self::$xyz.' {refine:false}">'.$span_color.'<br>',false,'left editcolor editbackground editfont');
-          printer::close_print_wrap('border color');
-          printer::print_wrap1('border opacity');
-          echo '<p class="editcolor editbackground editfont ">Change Border  Opacity: '.$border_opacity.'% </p>';
-		$this->mod_spacing($style.'['.$val.'][4]',$border_opacity,0,100,1,'%');
-          printer::close_print_wrap1('border opacity');
-		echo'<p class="left '.$this->column_lev_color.'">Set Border Type Currently: '.$border_array[2].'<br>
-		<span class="editcolor editbackground editfont">Border Type:</span>
-		<select class="editcolor editbackground editfont"  name="'.$style.'['.$val.'][2]" >        
-		<option  value="'.$border_array[2].'" selected="selected">'.$border_array[2].'</option>'; 
-		foreach ($border_types as $type){
-			echo'<option  value="'.$type.'">'.$type.'</option> ';
-			}
-		echo '</select></p>';
-		echo '</div><!--End function border style-->';
-		printer::spanclear(5); 
-          $this->submit_button();
-		printer::close_print_wrap('border styling wrap');
-		$this->show_close('Border styling');
-		}//if !clone || local style
-     $fstyle='final_'.$style;
-     $this->{$fstyle}[$val]=($border_array[3]=='Force No Border'||($border_array[3]!='No Border'&&!empty($blog_border_color)))?$this->{$style}[$val]='border-width: '.$border_width.'; border-style:'. $blog_border_type.';'.$border_color:'';//this 
-     }//end   borders
-
-function outlines($style, $val,$field){ 
-	static $inc=0; $inc++; 
-	$px='px'; 
-	if (arrayhandler::is_empty_array($this->{$style}[$val])){//default may be set to 1
-		$outline_array=array();
-		 for ($i=0; $i<3;$i++){ 
-			$outline_array[$i]=0;
-			}
-		}
-	else	{ //note that input type text will give 0value for defaults...
-		$outline_array=explode('@@',$this->{$style}[$val]);
-		for ($i=0; $i<3;$i++){ 
-			if (!array_key_exists($i,$outline_array)){
-				$outline_array[$i]=0;
-				}
-			}
-		}
-	$outline_width=(is_numeric($outline_array[0])&&$outline_array[0]<81)?$outline_array[0]:0;
-	$blog_outline_color=$outline_array[1]=(preg_match(Cfg::Preg_color,$outline_array[1]))?$outline_array[1]:'';
-	$outline_types=array('dotted','dashed','solid','double','groove','ridge','inset','outset');
-	$blog_outline_type=$outline_array[2]=(!empty($outline_array[2])&&in_array($outline_array[2],$outline_types))?$outline_array[2]:'solid';
-	if ($this->is_page|| ($this->is_blog&&!$this->is_clone)||($this->is_column&&!$this->is_clone||$this->clone_local_style)){  
-          $this->show_more('Outline Styling','noback','editfont highlight editbackground editfont', 'For Information on outlines and to Choose outline Type, Colors, and Edges click Here',500);
-          $this->print_redwrap('outline style');
-		echo '<div class="fsminfo editcolor editbackground editfont"><!--  outline style-->';
-		printer::alertx('<p class="Os4ekblue">We have used a blue outline around this text with a outline type: single and a outline thickness of 4px. Outlines are similar to borders except 4 sides always. They wrap around outside of borders (if used). Create and stylize these around columns, posts, groups of posts or menu links as needed<br></p>'); 
-		printer::spanclear(5);
-		echo'<p class="editfont left5 editbackground editfont"> outline Line Thickness:
-		<select class="editcolor editbackground editfont"  name="'.$style.'['.$val.'][0]" >        
-		<option  value="'.$outline_array[0].'" selected="selected">'.$outline_array[0].$px.'</option>';
-		for ($i=0; $i< 81; $i+=1){
-			echo '<option  value="'.$i.'">'.$i.$px.'</option>';
-			}
-		 echo'	
-		</select></p>';
-		printer::spanclear(5);
-		$span_color=(!empty($outline_array[1]))?'<span class="fs1npred" style="background-color:#'.$outline_array[1].';">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>':''; 
-		printer::alert('Set outline Color Here.  Use 0 or non color to remove outline<input onclick="jscolor.installByClassName(\'outline_id'.$inc.'_'.self::$xyz.'\');" style="cursor:pointer;background:#'.$this->editor_background.';color:#'.$this->editor_color.';" type="text" name="'.$style.'['.$val.'][1]" id="outline_id'.$inc.'_'.self::$xyz.'" value="'.$outline_array[1].'" size="12" maxlength="6" class="outline_id'.$inc.'_'.self::$xyz.' {refine:false}">'.$span_color.'<span style="font-size: 1.1em; color: yellow;" id="outline_id'.$inc.'_'.self::$xyz.'instruct"></span><br>',false,'left editcolor editbackground editfont'); 
-		echo'<p class="left '.$this->column_lev_color.'">Set outline Type Currently: '.$outline_array[2].'<br>
-		<span class="editcolor editbackground editfont">outline Type:</span>
-		<select class="editcolor editbackground editfont"  name="'.$style.'['.$val.'][2]" >        
-		<option  value="'.$outline_array[2].'" selected="selected">'.$outline_array[2].'</option>'; 
-		foreach ($outline_types as $type){
-			echo'<option  value="'.$type.'">'.$type.'</option> ';
-			}
-          $this->submit_button();
-		echo '</select></p>';
-		echo '</div><!--  outline style-->';
-		printer::spanclear(5);
-          printer::close_print_wrap('outline style');
-		$this->show_close('Style Table params');//<!--Show More outline Style Table params-->'; 
-		}//if editable
-	$fstyle='final_'.$style; 
-	$this->{$fstyle}[$val]=(preg_match(Cfg::Preg_color,$blog_outline_color))?$this->{$style}[$val]='outline-width: '.$outline_width.'px; outline-style:'. $blog_outline_type.'; outline-color:  #'.$blog_outline_color.';':'';//this
-	}//end fun outlines
-
-function box_shadow($style, $val,$field){
-	static $inc=0;  $inc++;   
-	if (arrayhandler::is_empty_array($this->{$style}[$val])){ 
-		$shadow_array=array();
-		for ($i=0; $i<6;$i++){ 
-			$shadow_array[$i]=0;
-			}
-		}
-	else	{ //note that input type text will give 0value for defaults...
-		$shadow_array=explode('@@',$this->{$style}[$val]);
-		for ($i=0; $i<6;$i++){ 
-			if (!array_key_exists($i,$shadow_array)){
-				$shadow_array[$i]=0;
-				}
-			}
-		}
-	$shadow_array[$this->shadowbox_blur_radius_index]= (empty($shadow_array[$this->shadowbox_blur_radius_index]))? 0:$shadow_array[$this->shadowbox_blur_radius_index];
-	$shadow_array[$this->shadowbox_spread_radius_index]= (empty($shadow_array[$this->shadowbox_spread_radius_index]))? 0:$shadow_array[$this->shadowbox_spread_radius_index];
-	$shadow_array[$this->shadowbox_horiz_offset_index]= (empty($shadow_array[$this->shadowbox_horiz_offset_index]))? 0:$shadow_array[$this->shadowbox_horiz_offset_index];
-	$shadow_array[$this->shadowbox_insideout_index]= ($shadow_array[$this->shadowbox_insideout_index]!=='inset')? '':'inset';	
-	$shadow_array[$this->shadowbox_vert_offset_index]= (empty($shadow_array[$this->shadowbox_vert_offset_index]))? 0:$shadow_array[$this->shadowbox_vert_offset_index];
-	if (!preg_match(Cfg::Preg_color,$shadow_array[$this->shadowbox_color_index]))$shadow_array[$this->shadowbox_color_index]="0";
-	if ($this->is_page|| ($this->is_blog&&!$this->is_clone)||($this->is_column&&!$this->is_clone||$this->clone_local_style)){  
-		$this->show_more('Box Shadow', 'noback','editfont highlight editbackground editfont',' add a Shadow around this text or image post',500);  
-		$this->print_redwrap('Box shadow',false);
-		echo '<p class="fbs1info '.$this->column_lev_color.' editbackground editfont">We have used a maroon box shadow effect on the bottom right of this text. <span class="highlight" title="Blur Radius: 7px; Spread Radius -6px; Horizontal Offset: 4px; Vertical Offset: 4px; Color:#f7f2a8;">See Settings</span> for this box shadow!<br>Like Borders, Box Shadows provide styling around a Column Post or Menu Link Area, though providing a customizable shadow instead. For a quick overview  and examples see <a href="http://css-tricks.com/snippets/css/css-box-shadow/">Shadow Examples.</a>  </p>';
-		printer::pclear(8);
-		echo '<p class="fsminfo editbackground editfont rad3 floatleft '.$this->column_lev_color.' editfont">Shadow may be an outside box shadow (recommended for styling directly around images or an inside box shadow :<br> ';
-          $checked2=($shadow_array[$this->shadowbox_insideout_index]==='inset')?'checked="checked"':''; 
-          $checked1=($shadow_array[$this->shadowbox_insideout_index]!=='inset'&&$shadow_array[$this->shadowbox_insideout_index]!=='forceoff')?'checked="checked"':'';
-          $checked3=($shadow_array[$this->shadowbox_insideout_index]==='forceoff')?'checked="checked"':''; 
-          printer::alertx('<span class="editcolor editbackground editfont"><input type="radio" value="outset" '.$checked1.' name="'.$style.'['.$val.'][5]">Choose Outside Box Shadow</span><br>');
-          printer::alertx('<span class="editcolor editbackground editfont"><input type="radio" value="inset" '.$checked2.' name="'.$style.'['.$val.'][5]">Choose Inside Box Shadow</span>');
-          if(($this->is_blog&&$this->blog_type==='navigation_menu')||$shadow_array[$this->shadowbox_insideout_index]==='forceoff')
-               printer::alertx('<br><span class="editcolor editbackground editfont"><input type="radio" value="forceoff" '.$checked3.' name="'.$style.'['.$val.'][5]">Turn off Box Shadow (ie. if necesary in Nav Sub Menu)</span></p>');
-          else printer::alertx('</p>');
-          printer::pspace(4); 
-		echo ' <p class="fsminfo editbackground editfont rad3 '.$this->column_lev_color.' editfont">The blur radius: 
-		If set to 0 the shadow will be sharp, the higher the number, the more blurred it will be: ';
-		echo ' <span class="'.$this->column_lev_color.' left5 editbackground editfont">Currently '.$shadow_array[$this->shadowbox_blur_radius_index].'</span><br>
-		<span class="editcolor editbackground editfont">Choose Blur Radius:</span>
-	    <select class="editcolor editbackground editfont"  name="'.$style.'['.$val.'][2]" >        
-	    <option  value="'.$shadow_array[$this->shadowbox_blur_radius_index].'" selected="selected">'.$shadow_array[$this->shadowbox_blur_radius_index].'</option>';
-	    for ($i=0; $i<30; $i+=1){
-		   echo '<option  value="'.$i.'">'.$i.'px</option>';
-		   }
-          echo '</select></p>';
-		echo ' <p class="fsminfo editbackground editfont rad3 '.$this->column_lev_color.' editfont">The spread radius gives all sides even shadow width: A positive values increase the size of the shadow
-		 whereas negative values decrease the size: ';
-		echo ' <span class="'.$this->column_lev_color.' left5 editbackground editfont">Currently '.$shadow_array[$this->shadowbox_spread_radius_index].'</span><br>
-	    <span class="editcolor editbackground editfont">Choose New Spread Radius:</span>
-	    <select class="editcolor editbackground editfont"  name="'.$style.'['.$val.'][3]" >        
-	    <option  value="'.$shadow_array[$this->shadowbox_spread_radius_index].'" selected="selected">'.$shadow_array[$this->shadowbox_spread_radius_index].'</option>';
-          for ($i=-5; $i<30; $i+=1){
-               echo '<option  value="'.$i.'">'.$i.'px</option>';
-               }
-          echo '</select></p>';
-		echo '<p class="fsminfo editbackground editfont rad3 '.$this->column_lev_color.' editfont">Box Shadow Horizonal offet, more negative value  means more on left side of the box, positive right: '; 
-          echo '<span class="'.$this->column_lev_color.' left5 editbackground editfont">Currently '.$shadow_array[$this->shadowbox_horiz_offset_index].'</span><br> 
-	    <span class="editcolor editbackground editfont left">Choose: Horizontal offset:</span>
-	    <select class="editcolor editbackground editfont"  name="'.$style.'['.$val.'][0]" >        
-	    <option  value="'.$shadow_array[$this->shadowbox_horiz_offset_index].'" selected="selected">'.$shadow_array[$this->shadowbox_horiz_offset_index].'</option>';
-          for ($i=-30; $i<30; $i+=1){
-               echo '<option  value="'.$i.'">'.$i.'px</option>';
-               }
-          echo'	
-	    </select></p>';
-		echo '<p class="fsminfo editbackground editfont rad3 '.$this->column_lev_color.' editfont">Box Shadow Vertical offet, more negative value means more above the box, more positive more below: ';
-		echo '   <span class="'.$this->column_lev_color.' left5  editbackground editfont">Currently '.$shadow_array[$this->shadowbox_vert_offset_index].'</span><br>
-		<span class="editcolor editbackground editfont">Choose: Vertical offset:</span>
-	    <select class="editcolor editbackground editfont"  name="'.$style.'['.$val.'][1]" >        
-	    <option  value="'.$shadow_array[$this->shadowbox_vert_offset_index].'" selected="selected">'.$shadow_array[$this->shadowbox_vert_offset_index].'</option>';
-	    for ($i=-30; $i<30; $i+=1){
-               echo '<option  value="'.$i.'">'.$i.'px</option>';
-               }
-          echo'	
-		 </select></p>';
-		echo '<p class="fsminfo editbackground editfont rad3 '.$this->column_lev_color.' editfont">Use 0 to remove box shadow<br>You Color Choice Can Also Produce a More or Less Subtle Shadow Effect!:</p> ';
-		$span_color=(!empty($shadow_array[$this->shadowbox_color_index]))?'<span class="fs1npred" style="background-color:#'.$shadow_array[$this->shadowbox_color_index].';">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>':''; 
-		if (preg_match(Cfg::Preg_color,$shadow_array[$this->shadowbox_color_index])){
-			$msg="Change the Current Shadow Color: #";
-			}
-		else {
-			$msg= (!empty($shadow_array[$this->shadowbox_color_index]))?$shadow_array[$this->shadowbox_color_index] . ' is not a valid color code. Enter a new shadow color code: #':'Enter a box-shadow color code: #';
-			}
-		printer::alert($msg.'<input onclick="jscolor.installByClassName(\''.$style.'-'.$val.$inc.'\');" style="cursor:pointer;background:#'.$this->editor_background.';color:#'.$this->editor_color.';" type="text" name="'.$style.'['.$val.'][4]" id="'.$style.'-'.$val.$inc.'" value="'. $shadow_array[$this->shadowbox_color_index].'" size="6" maxlength="6" class="'.$style.'-'.$val.$inc.' {refine:false}">'.$span_color); 
-		$this->submit_button();
-		printer::close_print_wrap('Box shadow');
-		$this->show_close('edit shadow');//'edit shadow'
-		}
-	$shadowcss='-moz-box-shadow:'.$shadow_array[$this->shadowbox_insideout_index].' '.$shadow_array[$this->shadowbox_horiz_offset_index].'px '.$shadow_array[$this->shadowbox_vert_offset_index].'px '.$shadow_array[$this->shadowbox_blur_radius_index].'px '.$shadow_array[$this->shadowbox_spread_radius_index].'px '. '#'. $shadow_array[$this->shadowbox_color_index].';  
-	-webkit-box-shadow:'.$shadow_array[$this->shadowbox_insideout_index].'  '.$shadow_array[$this->shadowbox_horiz_offset_index].'px '.$shadow_array[$this->shadowbox_vert_offset_index].'px '.$shadow_array[$this->shadowbox_blur_radius_index].'px '.$shadow_array[$this->shadowbox_spread_radius_index].'px '. '#'. $shadow_array[$this->shadowbox_color_index].';   
-	box-shadow:'.$shadow_array[$this->shadowbox_insideout_index].'  '.$shadow_array[$this->shadowbox_horiz_offset_index].'px '.$shadow_array[$this->shadowbox_vert_offset_index].'px '.$shadow_array[$this->shadowbox_blur_radius_index].'px '.$shadow_array[$this->shadowbox_spread_radius_index].'px '. '#'. $shadow_array[$this->shadowbox_color_index].';';  
-	$intial='-moz-box-shadow:initial; -webkit-box-shadow: initial; box-shadow:initial;';//initial for default none
-	$shadowcss= (!preg_match(Cfg::Preg_color,$shadow_array[$this->shadowbox_color_index]))?'':(($shadow_array[$this->shadowbox_insideout_index]==='forceoff')?'box-shadow:none;':$shadowcss); 
-	$fstyle='final_'.$style;
-	$this->{$fstyle}[$val]=$shadowcss;
-	}
-function text_shadow($style, $val,$field){
-	static $inc=0;  $inc++;if (arrayhandler::is_empty_array($this->{$style}[$val])){//default may be set to 1
-		$shadow_array=array();
-		for ($i=0; $i<4;$i++){ 
-			$shadow_array[$i]=0;
-			}
-		}
-	else	{ //note that input type text will give 0value for defaults...
-		$shadow_array=explode('@@',$this->{$style}[$val]);
-		for ($i=0; $i<4;$i++){ 
-			if (!array_key_exists($i,$shadow_array)){
-				$shadow_array[$i]=0;
-				}
-			}
-		}
-	$shadow_array[0]= (empty($shadow_array[0]))? 0:$shadow_array[0];
-	$shadow_array[1]= (empty($shadow_array[1]))? 0:$shadow_array[1];
-	$shadow_array[2]= (empty($shadow_array[2]))? 0:$shadow_array[2];
-	if ($this->is_page|| ($this->is_blog&&!$this->is_clone)||($this->is_column&&!$this->is_clone||$this->clone_local_style)){  
-		echo'<div class="fsminfo '.$style.'_hidefont hide floatleft" ><!--text shadow-->';
-          $this->show_more('Text Shadow','noback','highlight editbackground editfont','Add a Shadow to the text fonts',500);
-          $this->print_redwrap('shadow group wrapper');
-		 echo '
-		<p class="fsminfo aqua textshadow">We have used a blue shadow color with this lighter blue text. <span class="highlight" title="Horizontal Offset: -1.4px; Vertical Offset: -1.4px; Blur Radius .8px;">Hover for View Settings</span> for this Text Shadow! For quick overview of using the css3 shadow feature and examples see <a target="_blank" href="http://css-tricks.com/snippets/css/css-box-shadow/">Shadow Examples</a> </p>';
-		printer::pclear(8);
-		echo' <div class="fsminfo editbackground editfont rad3 '.$this->column_lev_color.' editfont"><!--leftrightoffset-->Text Shadow Left/Right offet, more negative value  means more left, positive right:';
-          echo'<p class="'.$this->column_lev_color.' left5 editbackground editfont">Currently '.$shadow_array[0].'<br>
-		<span class="editcolor editbackground editfont">Choose: Horizontal offset:</span>
-	    <select class="editcolor editbackground editfont"  name="'.$style.'['.$val.'][0]" >        
-	    <option  value="'.$shadow_array[0].'" selected="selected">'.$shadow_array[0].'</option>';
-          for ($i=-3; $i<3.1; $i+=.1){
-			($i < .01&& $i > -.01)&&$i=0;
-               echo '<option  value="'.$i.'">'.$i.'px</option>';
-               }
-          echo' </select>  
-	   </div><!--leftrightoffset-->';
-		echo'<div class="fsminfo editbackground editfont rad3 '.$this->column_lev_color.' editfont"><!--vert offset-->Text Shadow Above/Below offet 
-		More negative value  means more above the text 
-		More positive value  more below:<br>';
-		echo'<p class="'.$this->column_lev_color.' rad3 editbackground editfont">Currently '.$shadow_array[1].'<br>
-		<span class="editcolor editbackground editfont">Choose Vertical offset:</span>
-	    <select class="editcolor editbackground editfont"  name="'.$style.'['.$val.'][1]" >        
-	    <option  value="'.$shadow_array[1].'" selected="selected">'.$shadow_array[1].'</option>';
-          for ($i=-3; $i<3; $i+=.1){
-			($i < .01&& $i > -.01)&&$i=0;
-               echo '<option  value="'.$i.'">'.$i.'px</option>';
-               }
-          echo' </select></p>
-	   </div><!--vert offset-->';	
-		echo'<div class="'.$this->column_lev_color.' fsminfo editbackground editfont rad3 editfont"><!--Blur length-->Set Shadow Blur Length: Currently '.$shadow_array[2].'<br>
-		<span class="editcolor editbackground editfont">Choose New blur radius:</span>
-	    <select class="editcolor editbackground editfont"  name="'.$style.'['.$val.'][2]">        
-	    <option  value="'.$shadow_array[2].'" selected="selected">'.$shadow_array[2].'</option>';
-          for ($i=0; $i<6; $i+=.1){
-               echo '<option  value="'.$i.'">'.$i.'px</option>';
-               }
-		echo' </select>
-		  </div><!--Blur length-->';
-          
-		if (preg_match(Cfg::Preg_color,$shadow_array[3])){ 
-			$msg="Change the Current Box-Shadow Color:<br> #";
-			}
-		else {
-			$msg= (!empty($shadow_array[3]))?$shadow_array[3] . ' is not a valid color code. Enter a new shadow color code:<br> #':'Enter a box-shadow color code:<br> #';
-			}
-          
-          $msg=$msg.printer::print_info('Use 0 to remove box-shadow',.9,1);
-		$span_color=(!empty($shadow_array[3]))?'<span class="fs1npred" style="background-color:#'.$shadow_array[3].';">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>':'';   
-		echo '<div class="'.$this->column_lev_color.' fsminfo editbackground editfont">Edit the Text Shadow color <br><span class="editcolor editbackground editfont"><!--shadow text color-->'.$msg.'</span><input onclick="jscolor.installByClassName(\''.$style.'-'.$val.$inc.'\');" style="cursor:pointer;background:#'.$this->editor_background.';color:#'.$this->editor_color.';"   type="text" name="'.$style.'['.$val.'][3]" id="'.$style.'-'.$val.$inc.'" value="'. $shadow_array[3].'" size="6" maxlength="6" class="'.$style.'-'.$val.$inc.' {refine:false}">'.$span_color;
-		echo'</div><!--shadow text color-->';
-          $this->submit_button();
-          printer::close_print_wrap('shadow group wrapper');
-		$this->show_close('text shadow');
-		echo'</div><!--text shadow-->';
-		}
-	$shadowcss='text-shadow: '.$shadow_array[0].'px '.$shadow_array[1].'px '.$shadow_array[2].'px #'. $shadow_array[3].';'; 
-	$shadowcss= (empty($shadow_array[3])||(empty($shadow_array[0])&&empty($shadow_array[2])&&empty($shadow_array[1])))?'':$shadowcss;
-	$fstyle='final_'.$style;
-	$this->{$fstyle}[$val]=$shadowcss;
-	}//end text shadow
-     
-function overflow($type,$data){
-     $this->show_more('Set '.$type.' Overflow Property');
-     printer::print_redwrap('overflow');
-     printer::print_tip('Choose overflow property. By default height is will automatically adjust to content and most width options will automatically adjust to available width. Hoever, Setting a direct height or width property may overflow the parent element and byfault overflow will be visible. But you can set overflow of content to scroll or be hidden for the post.  Note: Images in responsive mode automatically resize image image so no scroll bars used there.<br>');
-     printer::print_wrap1('overflowx');
-     printer::alert('Choose overflow-x direction for width');
-     $overflow_arr=array('hidden','visible','scroll','auto');
-     $overflowx=(in_array($this->{$type.'_options'}[$this->{$type.'_overflowx_index'}],$overflow_arr))?$this->{$type.'_options'}[$this->{$type.'_overflowx_index'}]:'';
-     $overflowy=(in_array($this->{$type.'_options'}[$this->{$type.'_overflowy_index'}],$overflow_arr))?$this->{$type.'_options'}[$this->{$type.'_overflowy_index'}]:'';
-	$checked='checked="checked"';
-	$check1=($overflowx==='hidden')?$checked:'';
-	$check2=($overflowx==='scroll')?$checked:'';
-	$check3=(empty($overflowx)||$overflowx==='visible')?$checked:'';	
-	$check4=($overflowx==='auto')?$checked:'';	  
-	printer::alert('<input type="radio"  name="'.$data.'_'.$type.'_options['.$this->{$type.'_overflowx_index'}.']" value="hidden" '.$check1.'>hidden');
-	printer::alert('<input type="radio"  name="'.$data.'_'.$type.'_options['.$this->{$type.'_overflowx_index'}.']" value="scroll" '.$check2.'>scroll');
-	printer::alert('<input type="radio"  name="'.$data.'_'.$type.'_options['.$this->{$type.'_overflowx_index'}.']" value="visible" '.$check3.'>visible');
-	printer::alert('<input type="radio"  name="'.$data.'_'.$type.'_options['.$this->{$type.'_overflowx_index'}.']" value="auto" '.$check4.'>auto');
-     printer::close_print_wrap1('overflowx');
-     printer::print_wrap1('overflowy'); 
-     printer::alert('Choose overflow-y direction for height');
-     $check1=($overflowy==='hidden')?$checked:'';
-	$check2=($overflowy==='scroll')?$checked:'';
-	$check3=(empty($overflowy)||$overflowy==='visible')?$checked:'';	
-	$check4=($overflowy==='auto')?$checked:'';	  
-	printer::alert('<input type="radio"  name="'.$data.'_'.$type.'_options['.$this->{$type.'_overflowy_index'}.']" value="hidden" '.$check1.'>hidden');
-	printer::alert('<input type="radio"  name="'.$data.'_'.$type.'_options['.$this->{$type.'_overflowy_index'}.']" value="scroll" '.$check2.'>scroll');
-	printer::alert('<input type="radio"  name="'.$data.'_'.$type.'_options['.$this->{$type.'_overflowy_index'}.']" value="visible" '.$check3.'>visible');
-	printer::alert('<input type="radio"  name="'.$data.'_'.$type.'_options['.$this->{$type.'_overflowy_index'}.']" value="auto" '.$check4.'>auto');
-     $css_id=($type==='blog')?$this->dataCss:$this->col_dataCss;
-     printer::close_print_wrap1('overflowy');  
-     $css='';
-     if(!empty($overflowx)||!empty($overflowy)){
-          $overflowx=(!empty($overflowx))?'overflow-x:'.$overflowx.';':'';
-          $overflowy=(!empty($overflowy))?'overflow-y:'.$overflowy.';':'';
-		$this->css.=$css.= '.'.$css_id.'{'.$overflowx.$overflowy.'}';
-		}
-     $this->show_more('Style info','','info italic smaller');
-     printer::print_wrap1('techinfo');
-     printer::print_info('Current setting Css: '.$css);
-     $msg='Changes default css overflow x direction and y direction properties.';
-     printer::print_info($msg);
-     printer::close_print_wrap1('techinfo');
-     $this->show_close('Tech info');
-     
-     printer::close_print_wrap('overflow');
-     $this->show_close('Set Post Overflow Property');
-     }
-     
-function custom_style($style, $val,$field=''){
-     #note: display property and advanced styles use css #id to override normal styles which use distinct classnames
-	static $topinc=0; $topinc++;
-	$serial_data=$this->{$style}[$val];  
-	$idref=($this->is_column)?$this->col_dataCss:(($this->is_blog)?$this->dataCss:$this->pagename);
-	$localprefix='';  
-	if($this->is_page) 
-		$db_table=$this->master_page_table;
-	elseif ($this->is_column&&!$this->clone_local_style)
-		$db_table=$this->master_col_table;
-	elseif ($this->is_column){
-		$localprefix='c';
-		$db_table=$this->master_col_css_table;
-		}
-	elseif ($this->is_blog&&!$this->clone_local_style)
-		$db_table=$this->master_post_table;
-	else {
-		$db_table=$this->master_post_css_table;
-		$localprefix='p';
-		}
-	$ref_id=($this->is_page)?'page_id':(($this->is_column)?'col_id':'blog_id');
-	if (!empty($serial_data)&&$this->isSerialized($serial_data)){ 
-		$media_added_style_arr=unserialize($serial_data);//for correct storage in style field value..
-		$count=count($media_added_style_arr);
-		}
-	else {
-		if (strlen($this->{$style}[$val]>6))echo serial_data. ' is not recognized as serialized';
-		if (strpos($field,'tiny')!==false&&strlen($this->$field)>253){ 
-               printer::print_warn("Tiny field  $field only holds limited data and your advanced styling most likely contains too many characters, was truncated, will not render properly and will be removed.");
-               }
-          $count=0;
-		$media_added_style_arr=array();
-		} 
-	//update submitted posts to database
-	if (isset($_POST['media_added_style_'.$this->clone_ext.$field.'_'.$this->$ref_id])){
-		foreach($_POST['media_added_style_'.$this->clone_ext.$field.'_'.$this->$ref_id] as $index => $array){
-			if (array_key_exists(0,$array)) 
-				$media_added_style_arr[$index][0]=str_replace('<br>','break',process_data::spam_scrubber($array[0],false,false));
-			if (array_key_exists(1,$array)) 
-				$media_added_style_arr[$index][1]=str_replace('<br>','break',process_data::spam_scrubber($array[1]));
-			if (array_key_exists(2,$array)) 
-				$media_added_style_arr[$index][2]=$array[2];
-			if (array_key_exists(3,$array)) 
-				$media_added_style_arr[$index][3]=$array[3]; 
-			}
-		$arrhold=array();
-		foreach ($media_added_style_arr as $index => $array){
-			if (array_key_exists(1,$array)&&strlen($array[1]) > 5) //here we omit empties..
-				$arrhold[]=$array;
-			}
-		$media_added_style_arr=$arrhold;
-		$update_val=str_replace(',','=>',serialize($arrhold));
-		$style_arr=explode(',',$this->$field);
-		for ($i=0; $i<count(explode(',',Cfg::Style_functions)); $i++){ 
-			if (!array_key_exists($i,$style_arr)){  
-				$style_arr[$i]='';
-				}
-			} 
-		$style_arr[$this->custom_style_index]=$update_val; 
-		$implode_style_arr=implode(',',$style_arr);
-		$ref=($this->is_page)?'page_':(($this->is_column)?'col_':'blog_');
-		$q="update $db_table set $field='$implode_style_arr',{$ref}time='".time()."',{$ref}update='".date("dMY-H-i-s")."', token='".mt_rand(1,mt_getrandmax()). "' where $ref_id='$localprefix{$this->$ref_id}'"; 
-		$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);
-		}//if submitted
-	//now generate css
-	foreach ($media_added_style_arr as $index => $array){//$array[1]=str_replace('<br>',"\n",str_replace('=>',',',$array[1]));
-		$class_suffix=(array_key_exists($index,$media_added_style_arr)&&array_key_exists(0,$media_added_style_arr[$index])&&strlen($array[0])>1&&!is_numeric($array[0]))?str_replace('=>',',',$array[0]):'';
-		$customcss=(array_key_exists($index,$media_added_style_arr)&&array_key_exists(1,$media_added_style_arr[$index]))?str_replace('<br>',"\n",str_replace('=>',',',$array[1])):'';
-		$media_maxpx=(array_key_exists($index,$media_added_style_arr)&&array_key_exists(2,$media_added_style_arr[$index])&&$media_added_style_arr[$index][2]>199&&$media_added_style_arr[$index][2]<2001)?$media_added_style_arr[$index][2]:'';
-		$media_minpx=(array_key_exists($index,$media_added_style_arr)&&array_key_exists(3,$media_added_style_arr[$index])&&$media_added_style_arr[$index][3]>199&&$media_added_style_arr[$index][3]<3001)?$media_added_style_arr[$index][3]:'';
-		$data=str_replace('=>',',',str_replace('break',"\n",$array[1]));//for correct storage in style field value..
-		$newref=(!$this->is_page)?str_replace('.'.$idref,'#'.$idref,$this->pelement):$this->pelement;//so here we switch class to ids. same name diff prefix is all!//
-          $css_class_id= $newref.$class_suffix;
-		$mediacss='';
-		if (empty($media_minpx)&&empty($media_maxpx)){ 
-			$mediacss.=
-			$css_class_id.'{'.$data.'}';
-			}
-		elseif (!empty($media_minpx)&&!empty($media_maxpx)) {
-			$mediacss.='
-			@media screen and (max-width:'.$media_maxpx.'px) and (min-width:'.$media_minpx.'px){'.  	
-				$css_class_id.'{'.$data.'}
-				}
-				';
-			}
-		elseif (!empty($media_maxpx)){
-			$mediacss.='
-			@media screen and (max-width: '.$media_maxpx.'px){'.  	
-				$css_class_id.'{'.$data.'}
-			}';
-			}
-		else {
-			$mediacss.='
-			@media screen and (min-width: '.$media_minpx.'px){'.  	
-				$css_class_id.'{'.$data.'}
-			}';
-			}
-		$this->advancedmediacss.=$mediacss;
-		$this->advancedstyles[$this->pelement]=$mediacss; 
-		}//end foreach css
-	if ($this->is_page|| ($this->is_blog&&!$this->is_clone)||($this->is_column&&!$this->is_clone||$this->clone_local_style)){
-		 $this->show_more('Advanced Styling Options','','highlight editbackground editfont highlight editstyle','Manually enter Css &amp; Css @media Rules Here');
-		$ptype=($this->is_page)?' body&#123;&#125;':(($this->is_column)?'this column':'this post');
-     $this->print_redwrap('advanced style');
-	echo '<div><!--custom style-->';
-	echo '<div class="Od2olivedrab fsminfo editbackground editfont '.$this->column_lev_color.' "><!--custom style inner-->';
-		printer::printx('<span class="warn1 redAlert ">Caution: Adding curly brackets {} can potentially Break all following CSS Styling</span>');
-		printer::print_tip('Custom Css Rules Specific For this <b>'.$ptype.'</b> can be manually entered here. Append any further css specificity under suffix. Additionally Choose to add @media screen max-width and min-width media query-css entries for each grouping of custom css properties you add. New  Fields will appear as needed if additional entries are required. Removing Custom Css will delete the field. <br><span class="whitebackground green">Additionally you can change the behavior so the system generates a series of media queries spanning the max-width and min-width values you selected. See the option below!</span><br><br><span style="background: rgba(255,255,255,.33)"> <b>Media Query, Classname and {} will be entered automatically</b></span>');
-		$count=$count+4;
-		#mediafor
-		for ($i=0; $i < $count; $i++){
-			$class_suffix=(array_key_exists($i,$media_added_style_arr)&&array_key_exists(0,$media_added_style_arr[$i])&&!is_numeric($media_added_style_arr[$i][0]))?$media_added_style_arr[$i][0]:'';
-			$newref=(!$this->is_page)?str_replace('.'.$idref,'#'.$idref,$this->pelement):$this->pelement;//so here we switch class to ids. same name diff prefix is all!
-               $css_class_id=$newref.$class_suffix;// ($newref===$this->pelement)?$this->pelement.$class_suffix:$this->pelement.$class_suffix.','.$newref;
-			$customcss=(array_key_exists($i,$media_added_style_arr)&&array_key_exists(1,$media_added_style_arr[$i]))?str_replace('=>',',',str_replace('break',"\n",$media_added_style_arr[$i][1])):'';   
-			$media_maxpx=(array_key_exists($i,$media_added_style_arr)&&array_key_exists(2,$media_added_style_arr[$i])&&$media_added_style_arr[$i][2]>199&&$media_added_style_arr[$i][2]<2001)?$media_added_style_arr[$i][2]:0;
-			$media_minpx=(array_key_exists($i,$media_added_style_arr)&&array_key_exists(3,$media_added_style_arr[$i])&&!empty($media_added_style_arr[$i][3]))?$media_added_style_arr[$i][3]:0;
-			echo '<div class="editbackground editfont"><!--media array wrap-->';
-			echo '<div class="fs2orange editbackground editfont"><!--array wrapper media inner-->';
-			echo '<div class="fs1green editbackground editfont editcolor"><!--array wrapper media css-->';
-			printer::printx('<p class="info floatleft">'.$css_class_id.'</p>'); 
-			echo '<div class="floatleft"><!--floatwrap css suffix-->';
-			if (empty($class_suffix))$this->show_more('Selector Suffix Option','','tiny info','Add a class suffix');
-			$msg=(empty($class_suffix))?'Add optional additional class specifier Here: ':'';
-			echo '<p class="editbackground editfont editcolor">'.$msg.'<input type="text" name="media_added_style_'.$this->clone_ext.$field.'_'.$this->$ref_id.'['.$i.'][0]" value="'.$class_suffix.'" size="30" maxlength="100"></p>';
-			printer::pclear();
-			if (empty($class_suffix))$this->show_close('suffix');
-			printer::pclear();
-			echo '</div><!--floatwrap css suffix-->';
-			printer::pclear();
-			printer::printx('<p>&#123;</p>');
-			printer::pclear();
-			$this->textarea($customcss,'media_added_style_'.$this->clone_ext.$field.'_'.$this->$ref_id.'['.$i.'][1]','600','16');
-			printer::spanclear();
-			printer::printx('<p>&#125;</p>');
-			echo '</div><!--array wrapper media css-->';
-			$cur_maxpx=($media_maxpx>199&&$media_maxpx<2001)?$media_maxpx.'px':'none';
-			$cur_minpx=($media_minpx>199&&$media_minpx<2001)?$media_minpx.'px':'none'; 
-			echo '<div class="fsminfo"><!--wrap max width-->';
-			printer::printx('<p class="smaller '.$this->column_lev_color.'">Chosen max-width: <span class="navybackground white">'.$cur_maxpx.'</span><br></p>');
-			$msgjava='Choose @media screen max-width px:';  
-			printer::alert('Choose @media screen max-width px'); 
-			$this->mod_spacing('media_added_style_'.$this->clone_ext.$field.'_'.$this->$ref_id.'['.$i.'][2]',$media_maxpx,200,2000,1,'px','',$msgjava);
-               printer::printx('<p ><input type="checkbox" name="media_added_style_'.$this->clone_ext.$field.'_'.$this->$ref_id.'['.$i.'][2]" value="0">Remove max-width</p>');
-			echo '</div><!--wrap max width-->';
-			echo '<div class="fsminfo"><!--wrap min width-->';
-			printer::printx('<p class="smaller '.$this->column_lev_color.'">Chosen min-width: <span class="navybackground white">'.$cur_minpx.'</span></p>');
-			 $msgjava='Choose @media screen min-width:';   
-			printer::alert('Choose @media screen min-width px'); 
-			$this->mod_spacing('media_added_style_'.$this->clone_ext.$field.'_'.$this->$ref_id.'['.$i.'][3]',$media_minpx,200,2000,1,'px','',$msgjava);
-               printer::printx('<p ><input type="checkbox" name="media_added_style_'.$this->clone_ext.$field.'_'.$this->$ref_id.'['.$i.'][3]" value="0">Remove min-width</p>');
-			echo '</div><!--wrap min width-->';
-			printer::print_wrap('generate advanced media query');
-			printer::print_tip('By default you can add a max-width and min_width media screen query to this option. Alternatively, by checking the create media query series option here a series of max-width queries will be created');
-			printer::close_print_wrap('generate advanced media query');
-			echo '</div><!--array wrapper media inner-->';
-			$this->submit_button();
-			echo '</div><!--array wrapper media-->';
-			printer::pclear();
-			}// end for loop
-		printer::printx('<p class="fsminfo tip smaller">Note: Page Related Css &amp; Modified Custom functions affecting  this page only may be made in: <b>includes/'.$this->pagename.'.class.php</b><br>Custom css and functions affecting pages site-wide may be made in: <b>includes/site_master.class.php</b></p>');
-		echo '</div><!--custom style inner-->'; 
-		printer::pclear();
-		echo '</div><!--custom style-->';
-          printer::close_print_wrap('advanced style');
-		$this->show_close('Advanced Styling Options');
-		}//if editable 
-	printer::pclear();
-	}//end custom style
-
-function background($style, $val,$field='',$msg='Background color'){  
-	static $inc=0;  $inc++;
-	$opacitybackground=false;//set default otherwise creates :after
-	$imagepx=(isset($this->background_img_px)&&$this->background_img_px>4)? $this->background_img_px:(($this->is_page)?$this->page_width:$this->current_net_width);   
-	$backindexes=explode(',',Cfg::Background_styles);
-	foreach($backindexes as $key =>$index){
-		if (!empty($index)) ${$index.'_index'}=$key;
-		}  
-	if (empty($this->{$style}[$val])){ 
-		$background_array=array();
-		 for ($i=0; $i<count($backindexes);$i++){ 
-			$background_array[$i]=0;
-			}
-		}
-	else	{   
-		$background_array=explode('@@',$this->{$style}[$val]);
-		for ($i=0; $i<count($backindexes);$i++){ 
-			if (!array_key_exists($i,$background_array)){
-				$background_array[$i]=0;
-				}
-			 }
-		}
-	if ($this->is_blog){// determine the name of the field for adding new background image!!
-		if(!empty($field)){  
-			$maxwid=$this->current_net_width;
-			$background_image_field=$field.'-blog-'.$val.'-'.$this->blog_order;
-			$table=$this->blog_table;
-			}
-		else{//fields currently always present.
-               mail::alert('background image upload field missing');
-			$maxwid=$this->current_net_width;
-			$background_image_field='blog_style-blog-' .$val.'-'.$this->blog_order;
-			$table=$this->blog_table;
-			}
-		}
-	elseif ($this->is_column) {
-		$maxwid=$this->current_net_width;
-		$background_image_field=$field.'-column-'. $val;
-		$table=$this->col_name;
-		}
-	elseif ($this->is_page) { 
-		$background_image_field=$field.'-page-'.$val;
-		$maxwid=Cfg::Default_background_image_width;
-		$table=$this->pagename;
-		}
-	else {
-	echo '</div><!--background issue-->';
-		mail::alert('background function issue');
-		return;
-		}
-	(empty($width))&&$width=$maxwid;
-	#the above is for uploading background image below...
-	$background_color_off=($background_array[$background_color_off_index]==='coloroff')?true:false;
-	$background_image_off=($background_array[$background_image_off_index]==='imageoff')?true:false;
-	$background_color_opacity=(!empty($background_array[$background_opacity_index])&&$background_array[$background_opacity_index]<100&&$background_array[			$background_opacity_index]>0)?$background_array[$background_opacity_index]:100;
-	$back_color=(preg_match(Cfg::Preg_color,$background_array[$background_color_index]))?$background_array[$background_color_index]:'';
-	if (!empty(trim($back_color))){
-		if ($background_color_opacity <100) 
-			$back_color=process_data::hex2rgba($back_color,$background_color_opacity);
-		else $back_color='#'.$back_color;
-		$background_color='background-color: '.$back_color.';'; 
-		}
-	else $background_color='';
-	$background_image_used= ($background_array[$background_image_use_index]==1&&is_file(Cfg_loc::Root_dir.Cfg::Background_image_dir.$background_array[$background_image_index]))?true:false; 
-	$background_gradient_type_array=array('none','vertical','repeating vertical','horizontal','repeating horizontal','diagonal top left','repeating diagonal top left','diagonal top right','repeating diagonal top right','radial ellipse','repeating radial ellipse','radial circle','repeating radial circle');
-	$background_gradient_type= (!empty($background_array[$background_gradient_type_index])&&in_array($background_array[$background_gradient_type_index],$background_gradient_type_array))?$background_array[$background_gradient_type_index]:'';
-	if (!empty($background_gradient_type)&&$background_gradient_type!=='none'){   
-		$gradient_color_arr=array();
-		$gradient_colors='';
-		for ($i=1; $i<7; $i++){
-			$mycolor= (preg_match(Cfg::Preg_color,$background_array[${'background_gradient_color'.$i.'_index'}]))?$background_array[${'background_gradient_color'.$i.'_index'}]:'';   
-			$opacity=$background_array[${'background_gradient_transparency'.$i.'_index'}];  
-			if(empty($mycolor)&&$opacity!=='transparent')continue;
-			$color_stop=($background_array[${'background_gradient_color_stop'.$i.'_index'}]>2)?' '.$background_array[${'background_gradient_color_stop'.$i.'_index'}].'%':'';
-			$gradient_color_arr[]=array($mycolor,$opacity,$color_stop);
-			} 
-		if (count($gradient_color_arr)>1){
-			foreach($gradient_color_arr as $colors){
-				if ($colors[1]==='transparent'){
-					$gradient_colors.='rgba(255,255,255,0)'.$colors[2].',';
-					}
-				elseif ($colors[1]<100){
-					$gradient_colors.=process_data::hex2rgba($colors[0],$colors[1]).$colors[2].',';
-					}
-				else $gradient_colors.='#'.$colors[0].$colors[2].',';
-				}
-				
-			}
-			$gradient_colors=substr_replace($gradient_colors, '',-1); 
-		}
-	$background_gradient_position_keyword=(!empty($background_array[$background_gradient_position_keyword_index]))?$background_array[$background_gradient_position_keyword_index]:'farthest-corner';
-	$background_gradient_position1=(!is_numeric($background_array[$background_gradient_position1_index]))?'50':$background_array[$background_gradient_position1_index];
-	$background_gradient_position2=(!is_numeric($background_array[$background_gradient_position2_index]))?'50':$background_array[$background_gradient_position2_index];
-	$background_gradient_percent=$background_gradient_position1.'% '.$background_gradient_position2.'%,';
-	$at=' at ';
-	$comma=', ';
-	//   https://developer.mozilla.org/en-US/docs/Web/CSS/radial-gradient
-	switch ($background_array[$background_gradient_type_index]){
-		case('none'):
-			$gradient_css='';
-			break;
-		case('vertical'):
-			$gradient_css='
-				background: -webkit-linear-gradient('.$gradient_colors.'); /* For Safari 5.1 to 6.0 */
-				background: -o-linear-gradient('.$gradient_colors.'); /* For Opera 11.1 to 12.0 */
-				background: -moz-linear-gradient('.$gradient_colors.'); /* For Firefox 3.6 to 15 */
-				background: linear-gradient('.$gradient_colors.');
-				';
-			break;
-		case('repeating vertical'):
-			$gradient_css='
-				background: -webkit-repeating-linear-gradient('.$gradient_colors.'); /* For Safari 5.1 to 6.0 */
-				background: -o-repeating-linear-gradient('.$gradient_colors.'); /* For Opera 11.1 to 12.0 */
-				background: -moz-repeating-linear-gradient('.$gradient_colors.'); /* For Firefox 3.6 to 15 */
-				background: repeating-linear-gradient('.$gradient_colors.');
-				';
-			break;
-		case('horizontal'):
-			$gradient_css='
-			background: -webkit-linear-gradient(left, '.$gradient_colors.'); /* For Safari 5.1 to 6.0 */
-			background: -o-linear-gradient(right, '.$gradient_colors.'); /* For Opera 11.1 to 12.0 */
-			background: -moz-linear-gradient(right, '.$gradient_colors.'); /* For Firefox 3.6 to 15 */
-			background: linear-gradient(to right, '.$gradient_colors.'); /* Standard syntax */
-			';
-			break;
-		
-		case('repeating horizontal'):
-			$gradient_css='
-			background: -webkit-repeating-linear-gradient(left, '.$gradient_colors.'); /* For Safari 5.1 to 6.0 */
-			background: -o-repeating-linear-gradient(right, '.$gradient_colors.'); /* For Opera 11.1 to 12.0 */
-			background: -moz-repeating-linear-gradient(right, '.$gradient_colors.'); /* For Firefox 3.6 to 15 */
-			background: repeating-linear-gradient(to right, '.$gradient_colors.'); /* Standard syntax */
-			';
-			break;
-		case('diagonal top left'):
-			$gradient_css='
-			background: -webkit-linear-gradient(left top, '.$gradient_colors.'); /* For Safari 5.1 to 6.0 */
-			background: -o-linear-gradient(bottom right, '.$gradient_colors.'); /* For Opera 11.1 to 12.0 */
-			background: -moz-linear-gradient(bottom right, '.$gradient_colors.'); /* For Firefox 3.6 to 15 */
-			background: linear-gradient(to bottom right,'.$gradient_colors.');
-			';
-			break;
-		case('repeating diagonal top left'):
-			$gradient_css='
-			background: -webkit-repeating-linear-gradient(left top, '.$gradient_colors.'); /* For Safari 5.1 to 6.0 */
-			background: -o-repeating-linear-gradient(bottom right, '.$gradient_colors.'); /* For Opera 11.1 to 12.0 */
-			background: -moz-repeating-linear-gradient(bottom right, '.$gradient_colors.'); /* For Firefox 3.6 to 15 */
-			background: repeating-linear-gradient(to bottom right,'.$gradient_colors.');
-			';
-			break;
-		
-		case('diagonal top right'):
-			$gradient_css='
-			background: -webkit-linear-gradient(right top, '.$gradient_colors.'); /* For Safari 5.1 to 6.0 */
-			background: -o-linear-gradient(bottom left, '.$gradient_colors.'); /* For Opera 11.1 to 12.0 */
-			background: -moz-linear-gradient(bottom left, '.$gradient_colors.'); /* For Firefox 3.6 to 15 */
-			background: linear-gradient(to bottom left, '.$gradient_colors.');
-			';
-			break;
-		case('repeating diagonal top right'):
-			$gradient_css='
-			background: -webkit-repeating-linear-gradient(right top, '.$gradient_colors.'); /* For Safari 5.1 to 6.0 */
-			background: -o-repeating-linear-gradient(bottom left, '.$gradient_colors.'); /* For Opera 11.1 to 12.0 */
-			background: -moz-repeating-linear-gradient(bottom left, '.$gradient_colors.'); /* For Firefox 3.6 to 15 */
-			background: repeating-linear-gradient(to bottom left, '.$gradient_colors.');
-			';
-			break;
-		case('radial ellipse'): 
-			$gradient_css='
-			background: -webkit-radial-gradient('.$background_gradient_percent.$background_gradient_position_keyword.$comma.$gradient_colors.'); /* Safari 5.1 to 6.0 */
-			background: -o-radial-gradient('.$background_gradient_percent.$background_gradient_position_keyword.$comma.$gradient_colors.'); /* For Opera 11.6 to 12.0 */
-			background: -moz-radial-gradient('.$background_gradient_percent.$background_gradient_position_keyword.$comma.$gradient_colors.'); /* For Firefox 3.6 to 15 */
-			background: radial-gradient('.$background_gradient_position_keyword.$at.$background_gradient_percent.$gradient_colors.'); /* Standard syntax */
-			';
-			break;
-		case('repeating radial ellipse'): 
-			$gradient_css='
-			background: -webkit-repeating-radial-gradient('.$background_gradient_percent.$background_gradient_position_keyword.$comma.$gradient_colors.'); /* Safari 5.1 to 6.0 */
-			background: -o-repeating-radial-gradient('.$background_gradient_percent.$background_gradient_position_keyword.$comma.$gradient_colors.'); /* For Opera 11.6 to 12.0 */
-			background: -moz-repeating-radial-gradient('.$background_gradient_percent.$background_gradient_position_keyword.$comma.$gradient_colors.'); /* For Firefox 3.6 to 15 */
-			background: repeating-radial-gradient('.$background_gradient_position_keyword.$at.$background_gradient_percent.$gradient_colors.'); /* Standard syntax */
-			';
-			break;
-		case('radial circle'): 
-			$gradient_css='
-			background: -webkit-radial-gradient(circle '.$background_gradient_percent.$background_gradient_position_keyword.$comma.$gradient_colors.'); /* Safari 5.1 to 6.0 */
-			background: -o-radial-gradient(circle '.$background_gradient_percent.$background_gradient_position_keyword.$comma.$gradient_colors.'); /* For Opera 11.6 to 12.0 */
-			background: -moz-radial-gradient(circle '.$background_gradient_percent.$background_gradient_position_keyword.$comma.$gradient_colors.'); /* For Firefox 3.6 to 15 */
-			background: radial-gradient(circle '.$background_gradient_position_keyword.$at.$background_gradient_percent.$gradient_colors.'); /* Standard syntax */
-			';
-			break;
-		case('repeating radial circle'): 
-			$gradient_css='
-			background: -webkit-repeating-radial-gradient(circle '.$background_gradient_percent.$background_gradient_position_keyword.$comma.$gradient_colors.'); /* Safari 5.1 to 6.0 */
-			background: -o-repeating-radial-gradient(circle '.$background_gradient_percent.$background_gradient_position_keyword.$comma.$gradient_colors.'); /* For Opera 11.6 to 12.0 */
-			background: -moz-repeating-radial-gradient(circle '.$background_gradient_percent.$background_gradient_position_keyword.$comma.$gradient_colors.'); /* For Firefox 3.6 to 15 */
-			background: repeating-radial-gradient(circle '.$background_gradient_position_keyword.$at.$background_gradient_percent.$gradient_colors.'); /* Standard syntax */
-			';
-		
-			break;
-		default:
-			$gradient_css='';
-		}  
-	$invalid='';//(!empty($gradient_css)||!empty($back_image_used))?'<img class="floatleft" src="'.Cfg_loc::Root_dir.'invalid.gif" height="25" width="25" alt="background color is overridden">':'';
-	$opacity=($background_color_opacity<100&&$background_color_opacity>0)?'@'.$background_color_opacity.'%&nbsp;Opacity ':''; 
-	$span_color=(!empty($background_color))?'<span class="fs1npred floatleft" style="height:25px;width:25px; '.$background_color.'">'.$invalid.'&nbsp;&nbsp;</span>'.$opacity:''; 
-	if (!preg_match(Cfg::Preg_color,$background_array[$background_color_index]))$background_array[$background_color_index]="0";
-     $gradcolor='navy';
-	$colorprint=(!empty($back_image_used))?'red':$gradcolor;
-	$background_gradient_type=(!empty($background_array[$background_gradient_type_index])&&in_array($background_array[$background_gradient_type_index],$background_gradient_type_array))?$background_array[$background_gradient_type_index]:'none';
-	$background_video_ratio=(!empty($background_array[$background_video_ratio_index])&&is_numeric($background_array[$background_video_ratio_index])&&$background_array[$background_video_ratio_index]>.1&&$background_array[$background_video_ratio_index]<10)?$background_array[$background_video_ratio_index]:1.333;
-	$background_image_opacity=(empty($background_array[$background_image_opacity_index]))?100:$background_array[$background_image_opacity_index];
-	if (is_numeric($background_array[$background_horiz_index])&&$background_array[$background_horiz_index]<101&&$background_array[$background_horiz_index]>-1){
-          $bhval=$background_array[$background_horiz_index];
-          $poshclass='';
-          }
-     else {
-          $bhval=0;
-          $poshclass='allowthis';
-          }
-     if (is_numeric($background_array[$background_vert_index])&&$background_array[$background_vert_index]<101&&$background_array[$background_vert_index]>-1){
-          $bvval=$background_array[$background_vert_index];
-          $posvclass='';
-          }
-     else {
-          $bvval=0;
-          $posvclass='allowthis';
-          }
-	if ($this->is_page|| ($this->is_blog&&!$this->is_clone)||($this->is_column&&!$this->is_clone||$this->clone_local_style)){ 
-          $this->show_more('Background Styling','main2','highlight click editbackground editfont','Edit Colors, Gradient   Background Image','300');
-		echo '<div class="0s2dodgerblue fsminfo floatleft editbackground editfont"  ><!--background style -->';
-		printer::pclear(1);
-		echo '<div class="editbackground editfont floatleft"><!--show background color floatwrap-->';
-		$this->show_more('Background Color', 'noback','highlight  editbackground editfont','A background Color and Color Opacity May be Chosen Here',500); 
-		$colorprint=(!empty($gradient_css)||!empty($back_image_used))?'red':$this->column_lev_color;
-		$this->print_redwrap('wrap background color');
-		printer::printx( '<div class="fs1black editbackground editfont rad3 '.$colorprint.' editfont"><!--background color-->Background colors will be overridden by valid Background Images or Background Gradients!<br>');
-		if (preg_match(Cfg::Preg_color,$background_array[$background_color_index])){
-			$msg="Change the Current Background Color, Use 0 to remove: #";
-			}
-		else {
-			$msg= (!empty($background_array[$background_color_index]))?$background_array[$background_color_index] . ' is not a valid color code. Enter or choose a new background color code: #':'Enter or Click to choose a  background color code: #';
-			}
-		printer::alertx('<span class="highlight left5" title="Add a background color 3 or 6 digit color code or click in the entry box to open the Color finder tool! Enter any blank or 0 to go back to the parent default">'.$msg.'</span><br>');  
-		printer::printx('<p class="floatleft"><input style="cursor:pointer;background:#'.$this->editor_background.';color:#'.$this->editor_color.';" onclick="jscolor.installByClassName(\''.$style.'-'.$val.'_'.$inc.'\');" type="text" name="'.$style.'['.$val.']['.$background_color_index.']" id="'.$style.'-'.$val.'_'.$inc.'" value="'. $background_array[$background_color_index].'" size="6" maxlength="6" class="'.$style.'-'.$val.'_'.$inc.' {refine:false}">' .$span_color.'</p>');
-		printer::pclear();
-		echo '</div><!--background color-->';
-		printer::pclear();
-		echo '<div class="editbackground editfont fs1color"><!--border opacity-->';
-		//echo '<p class="fsminfo  rad3   editfont" style="color:rgba(0,0,255,1); background:rgba(0,0,255,.25);">Background color of this text is set at blue,   the same hexcode blue as the text except the blue background color has been set  with a 25% opacity. The parent background color is the editbackground editfont color which bleeds through. Change the opacity of your background color by choosing an opacity near 0% for very transparent allowing most of the parent background color or image to bleed through. At 50% opacity we see ~ half background color half parent background and at 100% opacity the parent background is colored over completely! </p>';
-		echo '<p class="editcolor editbackground editfont ">Change Background Color Opacity:  </p>';
-		$this->mod_spacing($style.'['.$val.']['.$background_opacity_index.']',$background_color_opacity,0,100,1,'%');
-		echo '</div><!--border opacity-->'; 
-          $this->submit_button();
-		printer::close_print_wrap('wrap background color');
-		$this->show_close('back colors');echo '<!--show back colors-->';
-		echo '</div><!--show background color floatwrap-->';
-		echo $span_color;
-		printer::pclear();
-		printer::pclear(1);
-		echo '<div class="floatleft"><!--show background gradient floatwrap-->';
-		$this->show_more('Background Gradients', 'noback','highlight editbackground editfont','A background Color Gradient of 2 or more colors may be  used instead of a single color',500);echo '<!--show gradients-->';
-		$this->print_redwrap('gradient wrap' );
-		echo '<div class="fsmblack whitebackground"><!--show gradients-->';
-		echo '<div class=" rad3 utilitygrad '.$gradcolor.' editfont floatleft"><div style="margin: 30px auto; width:80%; padding:10px;  background:rgba(255,255,255,.65);">We have used a background gradient behind this info box using the diagonal top left  option and using six colors  to demonstate how a  page or column background effect can be used together along with a post having a white background set at 65% opacity which allows some of the background to bleed through.  When making a gradient Use from two to six colors when making a background gradient  effect. Set any degree on your gradient color choices which will allow the parent background color to bleed through to the degree of the percentage chosen.  Selecting the transparent option without a valid color is still a valid choice and will display 100% background. Otherwise a valid color option must be selected.';
-		printer::pclear();	
-		$this->show_more(' more gradient info', 'cnoback','click floatleft editbackground editfont');
-		printer::printx('Gradient options include none, vertical (top to bottom),  horizontal (left to right gradient),  diagonal top left (a diagonal gradient from top left to bottom  right), repeating diagonal top left,  diagonal top right (a diagonal gradient from top right to bottom left),  radial ellipse (elliptical from inner to outer) and radial circle (circlular from inner to outer).  In additon each choice has a corresponding <b>repeating</b> option. Set how many times the gradient should repeat by setting a colorstop on the last valid color/transparent option of the gradient.  If its set to 50% the gradient can repeat twice, if it is set to 33.3% the gradient will repeat 3 times, 25% and the gradient can repeat 4 times, 40% and the gradient will repeat 2.5 times and so on!!.<span class="'.$colorprint.'">Note: Background Images Will Override Background Gradients</span>');
-		$this->show_close('utilitygrad');
-		echo '</div></div><!--end utilitygrad-->';
-		printer::printx('<p class="'.$this->column_lev_color.' editbackground editfont">Choose Which Gradient Type: Currently: '.$background_gradient_type.'<br>');
-		echo '<select class="editcolor editbackground editfont"  name="'.$style.'['.$val.']['.$background_gradient_type_index.']" >        
-		<option  value="'.$background_gradient_type.'" selected="selected">'.$background_gradient_type.'</option>'; 
-		foreach ($background_gradient_type_array as $type){
-			echo'<option  value="'.$type.'">'.$type.'</option> ';
-			}
-		echo '</select></p>';
-		printer::printx('<p class="highlight editbackground editfont" title="By default opacity is 100%.  If you choose the transparent option which is 0% opacity, Skip choosing a color if you wish!">Choose Your Background Gradient Colors and Opacity:<br></p>');
-		for ($i=1; $i<7; $i++){
-			echo '<div class="fs2black editbackground editfont floatleft"><!--choose grad color-->';
-			$opacity=(empty($background_array[${'background_gradient_transparency'.$i.'_index'}]))?100:$background_array[${'background_gradient_transparency'.$i.'_index'}];
-			$span_color=(preg_match(Cfg::Preg_color,$background_array[${'background_gradient_color'.$i.'_index'}]))?'<span class="fs1npred" style="background:#'. $background_array[${'background_gradient_color'.$i.'_index'}].'">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>':'';
-			printer::printx('<p class="editcolor editbackground editfont">Enter Color Hexcode or Choose Color# '.$i.'&nbsp;<input style="cursor:pointer;background:#'.$this->editor_background.';color:#'.$this->editor_color.';" type="text" name="'.$style.'['.$val.']['.${'background_gradient_color'.$i.'_index'}.']" id="'.$style.'-'.$val.'_'.$inc.$i.'"  value="'. $background_array[${'background_gradient_color'.$i.'_index'}].'" size="6" maxlength="6"  onclick="jscolor.installByClassName(\''.$style.'-'.$val.'_'.$inc.$i.'\');" class="'.$style.'-'.$val.'_'.$inc.$i.' {refine:false}">'.$span_color.'</p>');
-               printer::printx('<p class="editcolor editbackground editfont">Set an opacity:</p>');
-			$this->mod_spacing($style.'['.$val.']['.${'background_gradient_transparency'.$i.'_index'}.']',$opacity,0,100,1,'%',false,'transparent');
-			$this->show_more('Optional Colorstop for Color#'.$i,'noback','click editbackground editfont smaller '.$this->column_lev_color);
-			echo '<div class="fsminfo editbackground editfont '.$this->column_lev_color.'"><!--color stop-->Gradient Colors will normally blend evenly spaced, however specifying a Colorstop percentage  determines at which point along the gradient the color will stop blending';
-			$colorstop=(empty($background_array[${'background_gradient_color_stop'.$i.'_index'}]))?'none':$background_array[${'background_gradient_color_stop'.$i.'_index'}];
-               $this->mod_spacing($style.'['.$val.']['.${'background_gradient_color_stop'.$i.'_index'}.']',$colorstop,0,100,1,'%','none');
-			echo '</div><!--color stop-->';
-			$this->show_close('color stop');
-			echo '</div><!--choose grad color-->';
-			}
-		echo '<div class="editcolor editbackground editfont"><!--wrap position radial-->';
-		$this->show_more('Optionally Position Radial Gradient','noback','click editbackground editfont smaller '.$this->column_lev_color);
-          $this->print_redwrap('pos radial grad');
-		echo '<p class="fsminfo editbackground editfont '.$this->column_lev_color.'">Radial Gradients (ellipses and circles) will Normally Be Centered Positioned. Its also possible Choose To Custom Size and Position Your Gradient Here. See http://gradientcss.com/radial-gradient for a detailed explanation of the gradient options!</p>';
-		printer::printx('<p class="'.$this->column_lev_color.' editbackground editfont">Change Radial Horizontal Position (default:50%) Currently: '.$background_gradient_position1.'%<br></p>');
-		$this->mod_spacing($style.'['.$val.']['.${'background_gradient_position1_index'}.']', $background_gradient_position1,0,100,1,'%');
-		printer::printx('<p class="'.$this->column_lev_color.' editbackground editfont">Change Radial Vertical Position (default:50%) Currently: '.$background_gradient_position2.'%<br></p>');
-		$this->mod_spacing($style.'['.$val.']['.${'background_gradient_position2_index'}.']',$background_gradient_position2,0,100,1,'%');
-		printer::printx('<p class="'.$this->column_lev_color.' editbackground editfont">Optionally Change Radial Sizing Keyword: Currently: '.$background_gradient_position_keyword.'<br></p>');
-		$background_gradient_keyword_array=array('closest-side','closest-corner','farthest-side','farthest-corner');
-		echo '<select class="editcolor editbackground editfont"  name="'.$style.'['.$val.']['.$background_gradient_position_keyword_index.']" >        
-		<option  value="'.$background_gradient_position_keyword.'" selected="selected">'.$background_gradient_position_keyword.'</option>'; 
-		foreach ($background_gradient_keyword_array as $type){
-			echo'<option  value="'.$type.'">'.$type.'</option> ';
-			}
-		echo '</select>'; 
-          printer::close_print_wrap('pos radial grad');
-		$this->show_close('Position radial gradient');//Position radial gradient
-		echo '</div><!--wrap position radial-->';
-		$this->submit_button();
-		echo '</div><!-- show gradients-->';	
-		printer::close_print_wrap('gradient wrap');
-		$this->show_close('show gradients');echo '<!--show gradients-->';
-		echo '</div><!--show background gradient floatfloatwrap-->';
-		$invalid='';//(!empty($back_image_used))?'<img src="'.Cfg_loc::Root_dir.'invalid.gif" height="25" width="25" alt="background color is overridden">':'';
-		$span_color='<span class="fs1npred floatleft" style="width:25px; height:25px; '. $gradient_css.'">'.$invalid.'</span>';
-		(!empty($gradient_css))&&printer::printx($span_color);
-		printer::pclear(1);
-		################Background Image Begin	
-		echo '<div class="floatleft"><!--background floatwrap-->';
-		 $this->show_more('Background Image', 'noback','highlight editbackground editfont',' Use a Background Image  instead of color or color gradients.  Use them in posts, columns and menu link buttons',500);
-		if(!empty($background_array[$background_video_index]))
-			printer::print_caution('Note: Background image may be overriden by working background video',.7); 
-		$this->print_redwrap('wrap background image');
-		echo '<div class="fsminfo editbackground editfont rad3 '.$this->column_lev_color.' editfont"><!--background image enter-->A background image behaves similar to background color.  It may also be positioned if necessary<br>'; 
-		if (is_file(Cfg_loc::Root_dir.Cfg::Background_image_dir.$background_array[$background_image_index])){    
-               $msg2='Change the current Background Image to another previously uploaded image or click the image below to upload a new one:';
-               $size	= GetImageSize(Cfg_loc::Root_dir.Cfg::Background_image_dir.$background_array[$background_image_index]);
-               $width 			= $size[0];
-               $height 		= $size[1];
-               }
-	    else {
-			$width=0;
-			$msg2=(empty($background_array[$background_image_index]))?'No Background Image in Use:  Enter a previously uploaded Image or click the link below to upload a new one:':'The Current Background Image is Not a Valid file: Enter a previously Uploaded Image or click the link below to upload a new one:';
-			$background_image="";
-			}
-		echo '</div><!--background image enter-->';
-		echo '<div class="'.$this->column_lev_color.' fsminfo editbackground editfont"><!--Upload background image-->Upload a Larger than Needed Background Image Size and the Size Will Always Be Updated to Match the Current Width   + any Padding Left &amp; Right Space Added. Margin Spacings Are Always Outside of Background Effects. Repeating images horizontally, and Uploaded Images smaller than the spaces provided will remain their original sizes!!<br>';
-		$clone_local_style=($this->clone_local_style)?'&amp;clone_local_style=1':'';
-		printer::alert('<a href="add_page_pic.php?wwwexpand=0&amp;www='.$imagepx.'&amp;ttt='.$table.'&amp;fff='.$background_image_field.'&amp;postreturn='.Sys::Self.'&amp;pgtbn='.$this->pagename.'&amp;bbb=background_image_style'.$clone_local_style.'&amp;css='.$this->roots.Cfg::Style_dir.$this->pagename.'&amp;sess_override&amp;sess_token='.$this->sess->sess_token.'"><u> Upload a new background image ...</u></a>');
-		echo '</div><!--Upload background image-->';
-		echo '<div class="fsminfo editbackground editfont rad3 '.$this->column_lev_color.'"><!--configure background image -->Configure Your Background Image:<br>';
-		$background_image_render=true; 
-		if(!empty($background_array[$background_image_index])&&!empty($background_array[$background_image_use_index])){
-			printer::print_info("Background Image is enabled: ".$background_array[$background_image_index]);
-			$quality=(!empty($this->page_options[$this->page_image_quality_index])&&$this->page_options[$this->page_image_quality_index]<101&&$this->page_options[$this->page_image_quality_index]>9)?$this->page_options[$this->page_image_quality_index]:Cfg::Pic_quality;
-			if (!is_file(Cfg_loc::Root_dir.Cfg::Background_image_dir.$background_array[$background_image_index])){
-				if (is_file(Cfg_loc::Root_dir.Cfg::Upload_dir.$background_array[$background_image_index])){
-					if ($background_array[$background_image_noresize_index]){
-						if (copy(Cfg_loc::Root_dir.Cfg::Upload_dir.$background_array[$background_image_index],Cfg_loc::Root_dir.Cfg::Background_image_dir.$background_array[$background_image_index])){
-							($this->edit)&&printer::alert_pos('Missing Background Image has been copied to background directory');
-							}
-						else mail::alert('Failure to copy background image');
-						}
-					else {//copy resize image to background image folder
-						image::image_resize($background_array[$background_image_index],$imagepx,0,0,Cfg_loc::Root_dir.Cfg::Upload_dir,Cfg_loc::Root_dir.Cfg::Background_image_dir,'file','',$quality,NULL);
-						}
-					}
-				else {
-					$tid=($this->is_blog)?$this->blog_id:(($this->is_column)?$this->col_id:'pageback '.$this->pagename);
-					$msg='Missing Background image: '.$background_array[$background_image_index]. ' in Ref:'.$tid ;
-					printer::alert_neg($msg);
-					(Sys::Web)&&mail::alert($msg);
-					$background_image_render=false;
-					}
-				}
-			if (is_file(Cfg_loc::Root_dir.Cfg::Background_image_dir.$background_array[$background_image_index])){ 
-				echo '<p class="fsmredAlert rad3 '.$this->column_lev_color.' editbackground editfont">Note: A background image is in use which overlays the background color.: '.Cfg_loc::Root_dir.Cfg::Background_image_dir.$background_array[$background_image_index].'</p>';
-			    echo '<p class="left5 editcolor editbackground editfont">Edit your background image here:</p>';
-			    list($width,$height)=$this->get_size($background_array[$background_image_index], Cfg_loc::Root_dir.Cfg::Background_image_dir);
-			    $size=($width/$height >1)?' width="150"':' height="150"'; 
-			    printer::printx('<img  src="'.Cfg_loc::Root_dir.Cfg::Background_image_dir.$background_array[$background_image_index].'" '.$size.' alt="background-images">');
-			    }
-			}
-		printer::pclear();
-		if (!is_file(Cfg_loc::Root_dir.Cfg::Background_image_dir.$background_array[$background_image_index])&&$background_array[$background_image_use_index]==1){
-			printer::alert('<input name="'.$style.'['.$val.']['.$background_image_use_index.']" type="checkbox" value="0" >Turn off Background Image<br>');
-			}
-		else if (is_file(Cfg_loc::Root_dir.Cfg::Background_image_dir.$background_array[$background_image_index])&&$background_array[$background_image_use_index]==1){
-			if ($this->edit&&(empty($background_array[$background_repeat_index])||$background_array[$background_repeat_index]==='no-repeat'||$background_array[$background_repeat_index]==='repeat-y')&&!$background_array[$background_image_noresize_index]){  
-				list($width,$height)=$this->get_size($background_array[$background_image_index],Cfg_loc::Root_dir.Cfg::Background_image_dir);
-				if ($imagepx > $width*1.03 || $imagepx < $width * .97){
-					$return=$this->resize($background_array[$background_image_index],$imagepx,0,0,Cfg_loc::Root_dir.Cfg::Upload_dir,Cfg_loc::Root_dir.Cfg::Background_image_dir,'backgroundimage field: '.$field.' style:'.$style,'file','Background Image',NULL,'95','center',false );
-					($return)&&$this->success[]="image px is $imagepx and required width is $width ".'<div><img src="'.Cfg_loc::Root_dir.Cfg::Background_image_dir.$background_array[$background_image_index].'" class="floatleft" height="50" ><p class="pl10 maxwidth400 small floatleft">This Background Image photo '.$background_array[$background_image_index].' in Post Id'.$this->blog_id.' was resized to width '. $imagepx.'</p></div>';
-					} 
-				}
-			printer::alert('<input name="'.$style.'['.$val.']['.$background_image_use_index.']" type="checkbox" value="0" >Turn off Background Image<br>');
-			}
-		else if (is_file(Cfg_loc::Root_dir.Cfg::Background_image_dir.$background_array[$background_image_index]))
-			printer::alert('<input name="'.$style.'['.$val.']['.$background_image_use_index.']" type="checkbox" value="1" >Turn on Previously Loaded Background Image<br>');			 
-		else {
-			if ($background_array[$background_image_none_index]==1)
-				printer::alert('<input name="'.$style.'['.$val.']['.$background_image_none_index.']" type="checkbox" value="0" >Allow Background Image<br>');
-			else printer::alert('<input name="'.$style.'['.$val.']['.$background_image_none_index.']" type="checkbox" value="1" >Prevent Background Image<br>');
-			}
-		$repeatclass='';
-		$a1='no-repeat'; $a2='repeat-x'; $a3='repeat-y'; $a4='repeat';
-		$b1=$b2=$b3=$b4='';$flag=false;
-		for ($i=1;$i<5;$i++){
-			if(!empty($background_array[$background_repeat_index])&&$background_array[$background_repeat_index]===${'a'.$i}){ ${'b'.$i}=' checked="checked" ';$flag=true; }
-			}
-		if(!$flag){
-			$b1=' checked="checked" ';
-			$repeatclass='class="allowthis"';
-			}
-		printer::alert('
-	    <input name="'.$style.'['.$val.']['.$background_repeat_index.']" '.$repeatclass.' type="radio" value="no-repeat" '.$b1.' >Do Not Repeat this image<br>
-	    <input name="'.$style.'['.$val.']['.$background_repeat_index.']" type="radio" value="repeat-x" '.$b2.'>Repeat this image horizontally only<br>
-	    <input name="'.$style.'['.$val.']['.$background_repeat_index.']" type="radio" value="repeat-y" '.$b3.'>Repeat this image vertically only<br>
-	    <input name="'.$style.'['.$val.']['.$background_repeat_index.']" type="radio" value="repeat" '.$b4.'>Repeat this image vertically and horizontally<br>');
-          printer::pclear(7);
-          printer::print_wrap('Opac pos tweak');
-          printer::print_tip('Optional Tweak Image Position If Using opacity < 98% ');
-		printer::printx('<p class="'.$posvclass.' editcolor editbackground editfont">Image Position left (0) to right (100) Change:</p>');
-          $msgjava = 'Choose horizontal Positioning:';
-		$this->mod_spacing($style.'['.$val.']['.$background_horiz_index.']',$bhval,0,100,1,'%','',$msgjava);
-          printer::pclear(7);
-		printer::printx('<p class="'.$posvclass.' editcolor editbackground editfont">Image Position top (0) to bottom (100) Change:'); 
-          $msgjava = 'Choose vertical Positioning:'; 
-		$this->mod_spacing($style.'['.$val.']['.$background_vert_index.']',$bvval,0,100,1,'%','',$msgjava);
-          
-          printer::close_print_wrap('Opac pos tweak');
-          printer::pclear(7); 
-		echo '</div><!--configure background image -->';
-          echo '<div class="fsminfo editbackground editfont rad3 '.$this->column_lev_color.' editfont"><!--Background Image Size-->Choose Background Image Size:<br>';
-          $a1='auto'; $a2='cover'; $a3='contain'; $a4='hundred';$a5='custom';
-		$b1=$b2=$b3=$b4=$b5='';$flag=false;
-		for ($i=1;$i<6;$i++){
-			if(!empty($background_array[$background_size_index])&&$background_array[$background_size_index]===${'a'.$i}){ ${'b'.$i}=' checked="checked" ';$flag=true; }
-			}
-		(!$flag)&&$b1=' checked="checked" ';
-		printer::alertx('
-	    <p class="highlight" title="Use Original Uploaded Image Size" ><input name="'.$style.'['.$val.']['.$background_size_index.']" type="radio" value="auto" '.$b1.' >Use As Is Image Size</p>
-	    <p class="highlight" title="Image resized to 100% width and height scaled to maintain width/height ratio"><input  name="'.$style.'['.$val.']['.$background_size_index.']" type="radio" value="cover" '.$b2.'>Cover to Full Width</p>
-	    <p class="highlight" title="Image is proportionally scaled to maximum size without exceeding full width or full height" ><input name="'.$style.'['.$val.']['.$background_size_index.']" type="radio" value="contain" '.$b3.'>Contain Width</p>
-	    <p class="highlight" title="Image width and height each independenly stretched to occupy 100% of the available space."><input  name="'.$style.'['.$val.']['.$background_size_index.']" type="radio" value="hundred" '.$b4.'>Image to Fill 100% width and 100% height</p>'); 
-		//echo '<div class="fs1npinfo floatleft"><!--wrap background size-->';
-		printer::alertx('<p onclick="edit_Proc.displaythis(\''.$style.'_displaypercent\',this,\'#fdf0ee\')"  class="highlight" title="Enter Percentage of Width to Fill, Percentage of Height to Fill" ><input class="myinput" name="'.$style.'['.$val.']['.$background_size_index.']" type="radio" value="custom" '.$b5.' >Use Custom Percentage for width and height&nbsp;</p>');
-		$display=($background_array[$background_size_index]===$a5)?'block':'none'; 
-		echo'<p style="display:'.$display.'" id="'.$style.'_displaypercent" class="editcolor editbackground editfont ">
-		Image Size Fill Percentage of Available Width: ';
-          $msgjava = 'Choose Percentage:'; 
-		$this->mod_spacing($style.'['.$val.']['.$background_pos_width_index.']',$background_array[$background_pos_width_index],0,100,1,'%','',$msgjava);
-          printer::pclear(7); 
-		$this->mod_spacing($style.'['.$val.']['.$background_pos_height_index.']',$background_array[$background_pos_height_index],0,100,1,'%','',$msgjava); 
-          printer::pclear(7);
-          echo '</div><!--Background Image Size-->';
-          echo '<div class="fsminfo editbackground editfont"><!--Image opacity-->';
-          echo '<p class="editcolor editbackground editfont ">Change Background Image Opacity:  </p>';
-          $this->mod_spacing($style.'['.$val.']['.$background_image_opacity_index.']',$background_image_opacity,1,100,1,'%');
-          echo '</div><!--image opacity-->';
-          echo '<div class="fsminfo"><!--wrap resize fixed-->';
-          if (empty($background_array[$background_fixed_index])){
-			printer::alertx('<p class="highlight editbackground editfont" title="When you Scroll Down the Page The Background Image Normally Scrolls Also But with a Checked Box Here the Background Image will Remain Stationary"><input type="checkbox"  name="'.$style.'['.$val.']['.$background_fixed_index.']"  value="1">Check for a Stationary Background Image</p>');
-			}
-		else {
-			printer::alertx('<p class="highlight editfont  editbackground editfont" title="When you Scroll Down the Page The Background Image Normally Scrolls Also But with a Checked Box Here The Body Background Image is currently Set to Remain Fixed and Not Scroll Down As You Scroll Down."><input type="checkbox"  name="'.$style.'['.$val.']['.$background_fixed_index.']"  value="1">Check to Scroll the Body Background Image</p>');
-			}
-		if ($background_array[$background_image_noresize_index]==1)
-			printer::alertx('<p class="highlight smallest" title="Allow Background Images to be resized when post is resized according to available width and image size"><input name="'.$style.'['.$val.']['.$background_image_noresize_index.']" type="checkbox" value="0" >Allow Background Image Resizing<br></p>');
-		else printer::alertx('<p class="highlight smallest" title="Prevent Background Images from being resized (and image resize messages when updating) "><input name="'.$style.'['.$val.']['.$background_image_noresize_index.']" type="checkbox" value="1" >Prevent Background Images from resizing<br></p>');
-		echo '</div><!--wrap resize fixed-->'; 
-		printer::pclear(2);
-          $this->submit_button();
-		printer::close_print_wrap('wrap background image');
-		$this->show_close('Background Image');//background
-		#########videoback
-               /*
-                *Background Video is not mobile compatabile as written
-                *if ($field==='blog_style'||$field==='col_style'||$field==='page_style'){
-               $this->show_more('Upload Background Video','noback','infoclick editbackground editfont',' Videos can be used instead of a background color! Use them in posts, columns and menu link buttons',800);
-               this->print_wrap('Upload Background Video','Os3aqua fsminfo editcolor editbackground editfont');
-			
-			$this->show_more('More Config Info','','small info click');
-			$msg='For animated Gifs upload like ordinary background images. But Here its possible to upload mp4 videos for responsive background effect and best support with recommended codec H264. Also accepted for upload: webm, ogg and m4v';
-			$id=($this->is_page)?$this->page_id:(($this->is_column)?$this->col_id:$this->blog_id);
-			$id_ref=($this->is_page)?'page_id':(($this->is_column)?'col_id':'blog_id');
-			printer::print_tip($msg);
-			$this->show_close('More Config Info'); 
-			#videoback
-			echo'<p class="editcolor editbackground editfont"> <a href="add_page_vid.php?ttt='.$this->pagename.'&amp;type=background&amp;fff='.$field.'&amp;id='.$id.'&amp;id_ref='.$id_ref.'&amp;pgtbn='.$this->pagename.'&amp;postreturn='.Sys::Self.'&amp;css='.$this->roots.Cfg::Style_dir.$this->pagename.'&amp;sess_override&amp;sess_token='.$this->sess->sess_token.'"><u>Upload New Background Video</u></a></p>';
-			$checked1=($background_array[$background_video_display_index]==='no_display')?'':'checked="checked"'; 
-			$checked2=($background_array[$background_video_display_index]!=='no_display')?'':'checked="checked"'; echo $background_array[$background_video_display_index].' is display';
-			$this->print_wrap('display','fs1salmon editcolor editbackground editfont');
-			printer::alert('<input type="radio" name="'.$style.'['.$val.']['.$background_video_display_index.']" '.$checked1.' value="display" >Display background video');
-			printer::alert('<input type="radio" name="'.$style.'['.$val.']['.$background_video_display_index.']" '.$checked2.' value="no_display" >No background video');
-			printer::close_print_wrap('display');
-			printer::print_tip('Videos will resize automatically to fill the available width and height completely.  Enter the width/height ratio of your video for proper proportions');
-			printer::alert('Change the ratio of width over height to get the proper video aspect ratio<input type="text" name="'.$style.'['.$val.']['.$background_video_ratio_index.']" value="'.$background_video_ratio.'" size="5" maxlength="5">');
-			printer::close_print_wrap('Upload Background Video');
-			$this->show_close('Upload Background Video');
-			}#End backvideo*/
-		echo '</div><!--  show more background floatwrap-->';
-		if(!empty($background_array[$background_image_index])&&!empty($background_array[$background_image_use_index])&&is_file(Cfg_loc::Root_dir.Cfg::Background_image_dir.$background_array[$background_image_index])){
-			$opacitybackground=true;
-			$size=($width/$height >1)?'width="25"':'height="25"'; 
-			printer::printx('<img  class="fs1npred mt5" src="'.Cfg_loc::Root_dir.Cfg::Background_image_dir.$background_array[$background_image_index].'" '.$size.' alt="background image">');
-			}
-          $this->show_more('Background Toggle Off','','highlight  editbackground editfont');
-          printer::print_wrap('Background Toggle off');
-          printer::print_info('Quickly Toggle on/off background color or  a background Gradients/Image without changing configs here. Can also be used in nav submenus to disable particlular styles made in main menu.<br> Specifies background-color:transparent;<br>or background-image:none; for images or gradient'); 
-          $checked=' checked="checked" ';
-          $checked1=($background_array[$background_color_off_index]==='coloroff')?$checked:''; 
-          $checked2=($background_array[$background_color_off_index]!=='coloroff')?$checked:'';    
-          printer::alert('<input type="radio" name="'.$style.'['.$val.']['.$background_color_off_index.']" '.$checked1.' value="coloroff" >Display background color OFF');
-          printer::alert('<input type="radio" name="'.$style.'['.$val.']['.$background_color_off_index.']" '.$checked2.' value="1" >Display background color ON');
-          $checked1=($background_array[$background_image_off_index]==='imageoff')?$checked:''; 
-          $checked2=($background_array[$background_image_off_index]!=='imageoff')?$checked:'';    
-          printer::alert('<input type="radio" name="'.$style.'['.$val.']['.$background_image_off_index.']" '.$checked1.' value="imageoff" >Display background image or gradient OFF');
-          printer::alert('<input type="radio" name="'.$style.'['.$val.']['.$background_image_off_index.']" '.$checked2.' value="1" >Display background image or gradient ON');
-          printer::close_print_wrap('Background Toggle off');
-          $this->show_close('Background Toggle off');     
-		echo '</div><!--background style border -->';
-		$this->show_close('background');//<!--show close background-->';
-		printer::pclear();
-		}//if editable
-	$background_fixed=(!empty($background_array[$background_fixed_index]))?'
-	background-attachment: fixed; ':'';
-	switch ($background_array[$background_size_index]){
-		case 'auto' :
-			$background_size='background-size:auto;';
-			break;
-		case 'cover' :
-			$background_size='background-size:cover;';
-			break;
-		case 'contain' :
-			$background_size='background-size:contain;';
-			break; 
-		case 'hundred' :
-			$background_size='background-size:100% 100%;';
-			break;
-		case 'custom' :
-			$background_size='background-size:'.
-$background_array[$background_pos_width_index].'% '.$background_array[$background_pos_height_index].'%;';
-			break;
-		default:
-			$background_size='background-size:auto;';
-		}
-     $background_repeat=($background_array[$background_repeat_index]==='repeat-x'||$background_array[$background_repeat_index]==='repeat-y') ?' background-repeat: '.$background_array[$background_repeat_index].';':' background-repeat:no-repeat;'; 
-	$background_position='background-position: '.$bhval.'% '.$bvval.'%;';
-	$video_css='';//currently not used (!empty($background_array[$background_video_index])&&strlen($background_array[$background_video_index])>30&&($field==='blog_style'||$field==='col_style'))?'position:relative;z-index:1;':''; 
-	$fstyle='final_'.$style; 
-	if (strpos($style,'page_style')!==false&&!empty($gradient_css)&&!empty($background_image_off)){
-          //hack to use body:before for background gradient.
-          $this->pagecss.='
-body:before {
-	content:"";
-	position:fixed;
-	left:0;
-	top:0;
-	right:0;
-	bottom:0;
-	z-index:-1;'  
-	.$gradient_css.' 
-     }'; 
-          $gradient_css='';
-          }
-     $gradient_css=($background_image_off)?'':$gradient_css;
-     $background_color=($background_color_off)?'':$background_color;
-	if ($background_image_opacity>96||!$opacitybackground){
-		$background_image=($background_image_off)?'background:none;':((is_file(Cfg_loc::Root_dir.Cfg::Background_image_dir.$background_array[$background_image_index])&&!empty($background_array[$background_image_use_index]))?$background_fixed.' background-image:url('.Cfg_loc::Root_dir.Cfg::Background_image_dir.$background_array[$background_image_index].'); '.$background_repeat . $background_position.$background_size :(($background_array[$background_image_none_index])?'background-image:none;':''));  
-		$fstyle='final_'.$style;
-		$this->{$fstyle}[$val]=$background_color.$gradient_css.$background_image.$video_css; 
-		}
-	else{ 
-		$fstyle='final_'.$style; 
-		$this->{$fstyle}[$val]='position:relative;z-index:1;'.$background_color.$gradient_css;
-		$background_image=$background_image=($background_image_off)?'background:none;':((is_file(Cfg_loc::Root_dir.Cfg::Background_image_dir.$background_array[$background_image_index])&&!empty($background_array[$background_image_use_index]))?$background_fixed.' background-image:url('.Cfg_loc::Root_dir.Cfg::Background_image_dir.$background_array[$background_image_index].'); '.$background_repeat .' left: '.$bhval.'%; top:'.$bvval.'%;'.$background_size :(($background_array[$background_image_none_index])?'background-image:none;':''));
-	$background_opacity='opacity:'.($background_image_opacity/100).';';
-	if (strpos($background_image.$background_opacity,'@@')!==false)return;
-		$pelement=str_replace(',',':after,',trim($this->pelement,','));
-		$this->css.="\n".trim($pelement).':after { 
-    content : "";
-    width: 100%;
-    height: 100%;
-    display: block;
-    position: absolute;
-    z-index: -1;
-    '.
-$background_image.'
-   '.$background_opacity.'}'; 
-          $css_id=($this->is_column)?$this->col_dataCss:$this->dataCss;
-          $this->editoverridecss.='#'.$css_id.' {position:relative !important;}';
-          $this->overlapbutton=true; 
-		}//end opacity
-	}//end background#end background 
-	
-function text_align($style, $val, $field){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-	//show_text_style is a hack to enable display of only the text-align option when display menu general styles which actually affects menu link position justificcation. is false for other applications ie display none until main text style link is clicked in styling options
-	$display=($this->show_text_style)?'':' style="display:none;"';
-	$class=($this->show_text_style)?'':'fsminfo';
-	$txtmsg=(($this->is_blog&&$this->blog_type==='navigation_menu')&&$field==='blog_style')?'Link Align: ':'Text Align: ';
-	$title=(($this->is_blog&&$this->blog_type==='navigation_menu')&&$field==='blog_style')?'This setting will change the positioning of Links within Navigation Menus':'Select Left right or Center Align the text widthin this post/Can also Effect Image. If none is selected it will inherit the value from the parent &#40;Which may be a Column or the Body Setting&#41;';
-	if ($this->is_page|| ($this->is_blog&&!$this->is_clone)||($this->is_column&&!$this->is_clone||$this->clone_local_style)){  
-		$textalign= (empty($this->{$style}[$val]))? 'Inherited': $this->{$style}[$val];
-		echo '<div class="'.$class.' editbackground editfont floatleft '.$style.'_hidefont"'.$display.'><!--text align border-->';
-		echo'<p class="highlight" title="'.$title.'">'.$txtmsg.' Currently '.$textalign.'</p>';
-		echo '<p>
-		<select class="editcolor editbackground editfont"  name="'.$style.'['.$val.']" id="'.$style.'_'.$val.'">        
-		<option  value="'.$this->{$style}[$val].'" selected="selected">'.$textalign.'</option>
-		<option  value="0">Choose None</option>
-		<option  value="left">Left Align</option>
-		<option  value="center">Center Align</option> 
-		<option  value="right">Right align</option> 
-		</select>';
-		echo'
-		</p></div><!--text align border-->';
-		printer::pclear(2);
-		}
-	$fstyle='final_'.$style;
-	$this->{$fstyle}[$val]=(!empty($this->{$style}[$val]))?' text-align: '.$this->{$style}[$val].';':'0';
-    }
-    
-//italics-font,small-caps,line-height,letter-spacing';
-function line_height($style,$val){   if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-	$sval=(!empty($this->{$style}[$val])&&$this->{$style}[$val]>29&&$this->{$style}[$val]<251)?$this->{$style}[$val]:100;
-	if ($this->is_page|| ($this->is_blog&&!$this->is_clone)||($this->is_column&&!$this->is_clone||$this->clone_local_style)){  
-		echo '<div class="fs1color floatleft '.$style.'_hidefont" style="display:none;"><!--Edit line height-->';  
-		echo '<p class="'.$this->column_lev_color.' editfont ">Adjust line height between lines:</p>';
-		$arr=array(30,40,50,60,70,80,90,100,150,200,250,300);
-		$arr2=array('30%','40%','50%','60%','70%','80%','90%','100% normal','150%','200%','250%','300%');
-		forms::form_dropdown($arr,$arr2,'','',$style.'['.$val.']',$sval,false,'editcolor editbackground editfont left');
-		echo '</div><!--Edit line height-->';
-          }
-	$fstyle='final_'.$style;
-	$this->{$fstyle}[$val]=($sval!==100)?'line-height:'.$sval.'%;':'';
-	}//end function
-
-function letter_spacing($style,$val){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-    $letter_arr=explode('@@',$this->{$style}[$val]);
-    for ($i=0; $i<2;$i++){
-          if(!array_key_exists($i,$letter_arr))$letter_arr[$i]=0;
-          }
-    $letter_unit=($letter_arr[1]==='rem'||$letter_arr[1]==='em')?$letter_arr[1]:'em';
-    $sval=(!empty($letter_arr[0])&&$letter_arr[0]>=-.3&&$letter_arr[0]<=5)?$letter_arr[0]:0;
-	if ($this->is_page|| ($this->is_blog&&!$this->is_clone)||($this->is_column&&!$this->is_clone||$this->clone_local_style)){  
-          echo '<div class="fs1color floatleft pt10 pb10 '.$style.'_hidefont" style="display:none;"><!--Edit letter spacing-->';
-          $this->show_more('Letter Spacing','',' highlight editbackground editfontfamily','Change default letter-spacing of 0 by adding or subtracting space between leters');
-          printer::print_redwrap('letter spacing');
-		echo '<p class="'.$this->column_lev_color.' editfont ">Add or Subtract space between letters</p>'; 
-		 printer::alert('Choose unit:');
-          $checked=' checked="checked" ';
-          $checked1=($letter_unit!=='rem')?$checked:'';
-          $checked2=($letter_unit==='rem')?$checked:'';     
-          printer::alert('<input type="radio" name="'.$style.'['.$val.'][1]" value="em" '.$checked1.'>em units');
-          printer::alert('<input type="radio" name="'.$style.'['.$val.'][1]" value="rem" '.$checked2.'>rem units'); 
-          printer::pclear(5);
-          $msg=(empty($sval))?'default':$sval;
-          echo'<p class="'.$this->column_lev_color.' editbackground editfont">Letter-spacing: Currently '.$msg.'<br>';
-          $msgjava='Choose letter spacing:'; 
-          $this->mod_spacing($style.'['.$val.'][0] ',$sval,-.3,5,.01,'units','none',$msgjava); 
-          printer::close_print_wrap('letter spacing');
-		$this->show_close('Letter Spacing');
-          echo '</div><!--Edit letter spacing-->';
-          }
-	$fstyle='final_'.$style;
-	$this->{$fstyle}[$val]=(!empty($sval)&&is_numeric($val))?'letter-spacing:'.$sval.$letter_unit.';':'';
-     }//end function
-	 
-function italics_font($style,$val){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-     $var='font-style:italic;';  
-     $this->font_effects($style,$val,$var);
-     }//end function
-	 
-function small_caps($style,$val){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-    $var='font-variant: small-caps;';
-    $this->font_effects($style,$val,$var);
-     }//end function 
-
-function text_underline($style, $val, $field){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-     $var='text-decoration:underline;';
-     $this->font_effects($style,$val,$var);
-     }//end function
-	 	 
-function font_effects($style,$val,$var){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);  
-     if ($this->is_page|| ($this->is_blog&&!$this->is_clone)||($this->is_column&&!$this->is_clone||$this->clone_local_style)){
-		$functions=explode(',',Cfg::Style_functions);
-		if (array_key_exists($val,$this->$style)&&$this->{$style}[$val]) :
-			echo '<p class="'.$this->column_lev_color.' editfont '.$style.'_hidefont" style="display:none; text-align: left;"><input type="checkbox"  name="'.$style.'['. $val .']"   value="0">Turn Off '. $functions[$val].'</p>';
-		else :
-			echo '<p class="'.$this->column_lev_color.' editfont '.$style.'_hidefont" style="display:none;text-align: left;"><input type="checkbox"  name="'.$style.'['. $val .']"  value="1">Turn On '. $functions[$val].'</p>';
-		endif;
-		}
-	$fstyle='final_'.$style; 
-	$this->{$fstyle}[$val]=($this->{$style}[$val])?$var:'';
-	}
-  
-function font_color($style, $val, $field ,$msg=''){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-	if ($this->is_page|| ($this->is_blog&&!$this->is_clone)||($this->is_column&&!$this->is_clone||$this->clone_local_style)){  
-		static $fontcinc=0; $fontcinc++;
-		(empty($msg))&&print '<p class="highlight click   floatleft" title="edit various text styles" id="font'.$fontcinc.'"  onclick="edit_Proc.getTags(\''.$style.'_hidefont\',\'showhide\',id);return false;">Text Styles</p>';
-		if (!empty($msg)) {
-			$hidefont='';
-			$bordercolor='';
-			$styledisplay='';
-			}
-		else {
-			$msg='Enter/Choose Font Color';
-			$hidefont=$style.'_hidefont';
-			$bordercolor='fsminfo editbackground editfont';
-			$styledisplay='style="display:none"';
-			} 
-		printer::pclear();  
-		$background=(preg_match(Cfg::Preg_color,$this->{$style}[$val]))?'background: #'.$this->{$style}[$val].';':'background: #'.$this->current_color.';';
-          $currentcolor=(preg_match(Cfg::Preg_color,$this->{$style}[$val]))?$this->{$style}[$val]:'inherited';
-		$span_color='<span class="fs1npred" style="'.$background.' color:#'.$this->current_background_color.';">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>';
-		echo'
-		<div class="'.$bordercolor.' floatleft '.$hidefont.'" '.$styledisplay.'> <p class="highlight" title="Change the text color (font) of this post by Entering a valid font color 3 or 6 digit color code or clicking in the entry box which opens the Color Selector tool! Enter any blank or 0 to go back to the inherited parent color &#40;Inherited Parent Values are the most recent values that have been set in the parent Columns and if not set there then in the body or the default black!!">'.$msg.' : #<input onclick="jscolor.installByClassName(\''.$style.'_'.$val.'\');"  style="cursor:pointer;background:#'.$this->editor_background.';color:#'.$this->editor_color.';"  class="'.$style.'_'.$val.' {refine:false}"   name="'.$style.'['.$val.']"  id="'.$style.'_'.$val.'" value="'.$currentcolor.'"
-		size="6" maxlength="6"  >'.$span_color.'</p>  
-		';
-		printer::pclear(1); 
-		echo'
-		</div>';
-		}
-	$fstyle='final_'.$style;
-	$this->{$fstyle}[$val]=(!empty($this->{$style}[$val])&&preg_match(Cfg::Preg_color,$this->{$style}[$val]))?'color: #'.$this->{$style}[$val].';':0;//'color: #'.$this->current_color.';';   
-     }
  
   
   
@@ -3873,19 +1311,19 @@ function total_float($prime_col=false,$return=false){
 	$this->track_font_em($styles);
 	list($border_width,$border_height)=$this->border_calc($styles);   
 	if ($prime_col){
-		$this->col_width=(is_numeric($this->col_width)&&$this->col_width > 5 &&$this->col_width <= Cfg::Col_maxwidth)?$this->col_width:0;
-          if (empty($this->col_width)){
+		$this->col_width=(is_numeric($this->col_width)&&$this->col_width > 5 )?$this->col_width:0;//&&$this->col_width <= Cfg::Col_maxwidth   we removed so that column_width ie max-width set in main width settings can override page settings
+          if (empty($this->col_width)){//here we will use alternative width if is set otherwise page width..
                $this->current_total_width=$this->column_total_width[$this->column_level]= (!empty($this->page_width))?$this->page_width:Cfg::Page_width;// page_width setting passes to create new page. 
-               $mxw=$this->alt_width_calc($this->col_options[$this->col_max_width_opt_index]);
+               $mxw=$this->alt_width_calc($this->col_options[$this->col_max_width_alt_opt_index]);
                $this->col_width_info.='Column alt max-width: '.$this->width_info; 
-               $minw=$this->alt_width_calc($this->col_options[$this->col_min_width_opt_index]);
+               $minw=$this->alt_width_calc($this->col_options[$this->col_min_width_alt_opt_index]);
                $this->col_width_info.='Column alt min-width: '.$this->width_info;
-               $w=$this->alt_width_calc($this->col_options[$this->col_width_opt_index]);
+               $w=$this->alt_width_calc($this->col_options[$this->col_width_alt_opt_index]);
                $col_width=($w >9&&$mxw>9)?min($mxw,$w):max($mxw,$w);//takes the smaller of the two if both widths exist
                $col_width=max($col_width,$minw);//takes the larger of the two
                $this->col_width_info.='Column alt width: '.$this->width_info;
                if (empty($col_width)){
-                    $this->use_col_main_width=false;
+                    $this->use_col_main_width=true;
                     $col_width=$this->page_width; 
                     }
                else $this->use_col_main_width=false;
@@ -3894,7 +1332,8 @@ function total_float($prime_col=false,$return=false){
                $this->use_col_main_width=true;
                $col_width=$this->col_width;
                }
-          $this->track_col_width=$col_width;
+		
+          $this->col_width=$this->track_col_width=$col_width;
           $this->current_total_width=$this->column_total_width[$this->column_level]= (!empty($col_width))?$col_width:((!empty($this->page_width))?$this->page_width:Cfg::Page_width);// page_width setting passes to create new page. 
 		list($padding_total,$margin_total)=$this->pad_mar_calc($styles,$this->column_total_width[$this->column_level]);
           if ($this->column_total_width[$this->column_level]-($border_width+$padding_total)<10)    
@@ -3905,15 +1344,15 @@ function total_float($prime_col=false,$return=false){
 		}
 	
      $widmax=$this->column_net_width[$this->column_level];
-	 $mode=($this->blog_width_mode[$this->blog_width_mode_index]==='maxwidth'||$this->blog_width_mode[$this->blog_width_mode_index]==='compress_full_width'||$this->blog_width_mode[$this->blog_width_mode_index]==='compress_to_percentage'||$this->blog_width_mode[$this->blog_width_mode_index]==='off')?$this->blog_width_mode[$this->blog_width_mode_index]:'maxwidth'; 
+	$mode=($this->blog_width_mode[$this->blog_width_mode_index]==='maxwidth'||$this->blog_width_mode[$this->blog_width_mode_index]==='compress_full_width'||$this->blog_width_mode[$this->blog_width_mode_index]==='compress_to_percentage'||$this->blog_width_mode[$this->blog_width_mode_index]==='off')?$this->blog_width_mode[$this->blog_width_mode_index]:'maxwidth'; 
      if ($this->blog_type==='nested_column'){  
 		$this->col_width= ($mode!=='off'&&!empty($this->col_width)&&is_numeric($this->col_width)&&$this->col_width>0&&$this->col_width<=100)?$this->col_width:0; 
 		if (empty($this->col_width)){  
-               $mxw=min($widmax,$this->alt_width_calc($this->col_options[$this->col_max_width_opt_index]));
+               $mxw=min($widmax,$this->alt_width_calc($this->col_options[$this->col_max_width_alt_opt_index]));
                $this->col_width_info.='Column alt max-width: '.$this->width_info; 
-               $minw=min($widmax,$this->alt_width_calc($this->col_options[$this->col_min_width_opt_index]));
+               $minw=min($widmax,$this->alt_width_calc($this->col_options[$this->col_min_width_alt_opt_index]));
                $this->col_width_info.='Column alt min-width: '.$this->width_info;
-               $w=min($widmax,$this->alt_width_calc($this->col_options[$this->col_width_opt_index]));
+               $w=min($widmax,$this->alt_width_calc($this->col_options[$this->col_width_alt_opt_index]));
                $col_width=($w >9&&$mxw>9)?min($mxw,$w):max($mxw,$w);//takes the smaller of the two if both widths exist
                $col_width=max($col_width,$minw);//takes the larger of the two
                $this->use_col_main_width=false;
@@ -3951,11 +1390,11 @@ function total_float($prime_col=false,$return=false){
 	else  {// is blog 
 		$this->blog_width=($mode!=='off'&&!empty($this->blog_width)&&is_numeric($this->blog_width)&&$this->blog_width>0)?$this->blog_width:0;
 		if (empty($this->blog_width)){ 
-               $mxw=$this->alt_width_calc($this->blog_options[$this->blog_max_width_opt_index]); 
+               $mxw=$this->alt_width_calc($this->blog_options[$this->blog_max_width_alt_opt_index]); 
                $this->blog_width_info.='Blog alt max-width: '.$this->width_info; 
-               $minw=$this->alt_width_calc($this->blog_options[$this->blog_min_width_opt_index]);
+               $minw=$this->alt_width_calc($this->blog_options[$this->blog_min_width_alt_opt_index]);
                $this->blog_width_info.='Blog alt min-width: '.$this->width_info;
-               $w=$this->alt_width_calc($this->blog_options[$this->blog_width_opt_index]);
+               $w=$this->alt_width_calc($this->blog_options[$this->blog_width_alt_opt_index]);
                $this->blog_width_info.='Blog alt width: '.$this->width_info;
                $blog_width=($w >9&&$mxw>9)?min($mxw,$w):max($mxw,$w);//takes the smaller of the two if both widths exist
                $blog_width=max($blog_width,$minw);//takes the larger of the two
@@ -4062,7 +1501,7 @@ function blog_new($data,$tablename,$blog_order, $msg='', $msg_open_prefix='Inser
 	
 function submit_button($value=''){ if(Sys::Custom)return;if  (Sys::Pass_class||Sys::Quietmode)return;
 	(empty($value))&& $value='SUBMIT All';//:'SUBMIT ALL CHANGES'; 
-	echo'  <p class="clear"><input  type="hidden" name="submitted"  value="1" ></p><p><input class="editbackground editfont rad5 smallest cursor button'.$this->column_lev_color.' '.$this->column_lev_color.' mb10" type="submit" name="submit"   value="'.$value.'" ></p>';
+	echo'  <p class="clear"><input  type="hidden" name="submitted"  value="1" ></p><p><input class="editbackground editfont rad5 smallest cursor buttoneditcolor editcolor mb10" type="submit" name="submit"   value="'.$value.'" ></p>';
 	}
      	
 function format_date($date=''){
@@ -4094,923 +1533,6 @@ function format_date($date=''){
 	return array($fdate,$val,$i);
 	}//end function format_date
 
-#alt_resp
-function width_options($type,$data){ 
-	$this->show_more('em, rem, %, px &amp; px scale opt for  min-width, max-width, &amp; width choices');
-	$this->print_redwrap('more width');
-     printer::print_info('Note: Choosing a main width mode value (or using RWD Grid) overrides any choices made from options here. To deactivate main width use mode 1 with main value 0');
-	if ($this->is_column)
-		printer::print_tip('As rem em and px choices made here may be tied directly to viewport rwd scaling, the width tracking information for rwd grid and the main max-width choices will not be available for subsequent posts within this column. RWD grid w/o width calc however will still be usuable if needed.',.7);
-     printer::print_tip('Alt scaling width units  ie. em, rem,  %, px may be used instead of the main width mode without width tracking and is compatible with active flex-items initial sizing');
-     if ($this->{'use_'.$type.'_main_width'})printer::print_info('Main width choice is activated and will override these options.');
-	$css_id=($this->is_column)?$this->col_dataCss:$this->dataCss;
-     $this->show_more('Style info','','info italic smaller');
-     printer::print_wrap1('techinfo');
-     printer::print_info('Width choices made here are directly applied to '.$type.' main div class: .'.$css_id .' (unless overriden as outlined above)');
-     printer::close_print_wrap1('techinfo');
-     $this->show_close('Tech info');
-	$this->width_max_special($data.'_'.$type.'_options',$this->{$type.'_max_width_opt_index'},'','.'.$css_id,$this->{'use_'.$type.'_main_width'});
-	$this->width_special($data.'_'.$type.'_options',$this->{$type.'_width_opt_index'},'','.'.$css_id,$this->{'use_'.$type.'_main_width'});
-	$this->width_min_special($data.'_'.$type.'_options',$this->{$type.'_min_width_opt_index'},'','.'.$css_id,$this->{'use_'.$type.'_main_width'});
-	printer::close_print_wrap('more width');	
-	$this->show_close('em, rem, px with scale, min-width, max-width, &amp; width choices');
-	}
-     
-function isSerialized($s){//from stackoverflow
-     if(stristr($s, '{' ) != false &&
-          stristr($s, '}' ) != false &&
-          stristr($s, ';' ) != false &&
-          stristr($s, ':' ) != false){
-          return true;
-          } 
-     return false;
-     }
-
-function position(){
-	$options=($this->is_column)?$this->col_options[$this->col_position_index]:$this->blog_options[$this->blog_position_index];
-     $type=($this->is_column)?'Column':'Post';
-	$prefix=($this->is_column)?'col':'blog'; 
-	$options=explode('@@',$options);
-	$opacity_index=($this->is_column)?$this->col_opacity_index:$this->blog_opacity_index;
-	//see Cfg::Position_options for keys to $options array.
-	$c_opts=count(explode(',',Cfg::Position_options));
-     $count=3;//number of @media position options
-	$mcount=$count*$c_opts;
-     for ($i=0;$i<$mcount; $i++){
-		if (!array_key_exists($i,$options))$options[$i]=0;
-		}  
-	$pos_horiz_vals_arr=array('none','left','right','center horizontally');
-	$pos_vert_vals_arr=array('none','top','bottom','center vertically'); 
-	$pos_arr=array('static','relative','absolute','fixed','sticky','none'); 
-	#note: pos property, pos property, and advanced styles use css 	#id to override normal styles which use distinct classnames
-	$msg='Responsive positioning option for this '.$type;
-	$this->show_more('Position & Opacity Option','','',$msg,'800');
-	$this->print_redwrap('wrap advanced position',true);
-     printer::print_info('Choosing relative or absolute elements activates left right positioning choices and z-index stacking order. Choosing an opacity also changes z-index value of element.');
-     $css_id=($this->is_column)?$this->col_dataCss:$this->dataCss;
-     for ($i=0; $i<3; $i++){
-          $k=$i*$count;//
-          if ($i>0){
-               $this->show_more('Add additional @media query controlled option tweak for position options');
-               $this->print_redwrap('additional media wrap #'.$i);
-               printer::print_tip('Relative or Aboslute value again required for activation of top or left values');
-               }
-          $name=($this->is_column)?$this->col_name.'_col_options['.$this->col_position_index.']':$this->data.'_blog_options['.$this->blog_position_index.']';
-          $pos_horiz_val_name=($this->is_column)?$this->col_name.'_col_options':$this->data.'_blog_options';
-          $pos_vert_val_name=($this->is_column)?$this->col_name.'_col_options':$this->data.'_blog_options'; 
-          $max_name=$name.'['.($this->position_max_index+$k).']';
-          $min_name=$name.'['.($this->position_min_index+$k).']';
-          $pos_name=$name.'['.($this->position_index+$k).']';
-          $pos_vert_name=$name.'['.($this->position_vert_index+$k).']';
-          $pos_horiz_name=$name.'['.($this->position_horiz_index+$k).']';
-          $pos_zindex_name=$name.'['.($this->position_zindex_index+$k).']';
-          $opacity_name=$name.'['.($this->position_opacity_index+$k).']';
-          $opacity_val=(is_numeric($options[$this->position_opacity_index+$k])&&$options[$this->position_opacity_index+$k]>=6&&$options[$this->position_opacity_index+$k]<=100)?$options[$this->position_opacity_index+$k]:'none';
-          $pos_horiz_val=$options[$this->position_horiz_val_index+$k];
-          $pos_vert_val=$options[$this->position_vert_val_index+$k];
-          $pos_horiz=(!empty($options[$this->position_horiz_index+$k])&&in_array($options[$this->position_horiz_index+$k],$pos_horiz_vals_arr))?$options[$this->position_horiz_index+$k]:'none'; 
-          $pos_vert=(!empty($options[$this->position_vert_index+$k])&&in_array($options[$this->position_vert_index+$k],$pos_vert_vals_arr))?$options[$this->position_vert_index+$k]:'none';
-          $pos_type=(!is_numeric($options[$this->position_index+$k])&&in_array($options[$this->position_index+$k],$pos_arr))?$options[$this->position_index+$k]:'none';  
-          $ifemptyvert=($pos_type!='static'&&$pos_type!='none'&&$pos_vert==='top'||$pos_vert==='bottom')?$pos_vert.':0;':'';
-          $ifemptyhoriz=($pos_type!='static'&&$pos_type!='none'&&$pos_horiz==='right'||$pos_horiz==='left')?$pos_horiz.':0;':'';
-          $pos_zindex=($pos_type!='static'&&$pos_type!='none'&&is_numeric($options[$this->position_zindex_index+$k]))?$options[$this->position_zindex_index+$k]:'none';
-          $val_max=$options[$this->position_max_index+$k];
-          $val_min=$options[$this->position_min_index+$k];
-          $pos_maxpx=($val_max>=200&&$val_max<=3000)?$val_max:'none'; 
-          $pos_minpx=($val_min>=200&&$val_min<=3000)?$val_min:'none';
-          $mediacss='';
-          $pos_zindex_style=(is_numeric($pos_zindex))?'z-index:'.(int)$pos_zindex.';':'';
-          if ($pos_type!='static'&&$pos_type!='none'&&$pos_horiz==='center horizontally')
-               $pos_horiz_style='left: 0;  right: 0;  margin-left: auto; margin-right: auto;'; 
-          else $pos_horiz_style='';
-          if ($pos_type!='static'&&$pos_type!='none'&&$pos_vert==='center vertically') 
-               $pos_vert_style='top: 50%;transform: translateY(-50%); -ms-transform: translateY(-50%);-webkit-transform: translateY(-50%);';
-          else $pos_vert_style='';
-          $opacity= ($opacity_val!=='none')?'opacity:'.($opacity_val/100).';':'';
-          $pos_css=($pos_type!=='none')?'position:'.$pos_type.';':'';
-          $this->show_more('Style info','','info italic smaller');
-          printer::print_wrap1('techinfo');
-          printer::print_info('Current setting Css: '.$mediacss);
-          $msg='The following position/opacity css is applied to the main div class '.$css_id.' of this '.$prefix;
-          printer::print_info($msg);
-          printer::close_print_wrap1('techinfo');
-          $this->show_close('Tech info');
-          $this->editoverridecss.='#'.$css_id.',.'.$css_id.'{opacity:1;position:static !important; transform: none;-ms-transform: none;-webkit-transform: none;z-index:0 !important;}';
-          //$this->editoverridecss.='.'.$css_id.'{opacity:1; }';  
-          $this->submit_button();
-          printer::print_tip('Set Advanced  Options for Position and Opacity Here with optional max-width and min-width for responsive design. Changes to position and opacity will NOT EFFECT EDIT MODE display. View changes in webpage mode!');
-          printer::print_wrap1('opacity value');  
-          printer::print_tip('Change Opacity will affect entire '.$type.'. To affect the opacity of background color, gradients or images use the opacity options for those under the background styling options. Note: Opacity changes here may also Modify the Stacking Order of positioned posts <b>otherwise the opacity option functions independently of the postion options</b>');
-          printer::alert('Choose opacity Value.');
-          $this->mod_spacing($opacity_name,$opacity_val,6,100,1,'%','none');
-          printer::close_print_wrap1('opacity value'); 	
-          printer::pclear(5);
-          printer::alertx('<div class="'.$this->column_lev_color.' fsminfo  floatleft editbackground editfont">Choose Advanced Position Option');
-          printer::print_tip('Normal layout displays use static. Choose it to turn off advanced position option. Fixed position will lock the post or column from scrolling down the page and useful for anchor menus. Relative and Absolute may be use to overlap posts and or columns relative to a parent column "set to relative" or absolute to the body. Position Top Bottom Left and Right, or center only work with Fixed, Relative, or Absolute Positioning enabled.');
-          forms::form_dropdown($pos_arr,'','','',$pos_name,$pos_type,false,'editcolor editbackground editfont left');
-          printer::alertx('</div>');
-          printer::print_wrap1('horiz value');  
-          printer::print_tip('If Position is Set to Relative or Absolute Choose to Modify the left right alignment of this '.$type.' by selecting the option type and value<br>');
-          printer::pclear();
-          printer::alertx('<div class="'.$this->column_lev_color.' fsminfo maxwidth500 floatleft editbackground editfont">Choose Right or Left, None (As is), or use Center Horizonally.'); 
-          forms::form_dropdown($pos_horiz_vals_arr,'','','',$pos_horiz_name,$pos_horiz,false,'editcolor editbackground editfont left');
-          printer::alertx('</div>');
-          printer::pclear();
-          printer::print_wrap('Choose pos units');
-          printer::print_tip('Choose px, em, rem, units. Otherwise a default value of 0 will be used');
-          printer::pclear(); 
-          $horizpass=($pos_horiz==='left'||$pos_horiz==='right')?$pos_horiz:'none';
-          $horiz_val=$this->spacing($pos_horiz_val_name,$this->{$prefix.'_pos_horiz_val'.$i.'_index'},'return','Choose left or right positioning value','Adjust Horiz Position of absolute or relative positioned element/post/column','',$ifemptyhoriz,'','');
-          
-          $final_horiz_val=($horizpass!=='none')?$horizpass.':'.$horiz_val.';':'';
-          printer::close_print_wrap('Choose pos units');
-          printer::close_print_wrap1('horiz value');
-          printer::pclear(5);
-          printer::print_wrap1('vert value');  
-          printer::print_tip('If Position is Set to Relative or Absolute Choose to Modify the Top Bottom alignment of this '.$type.' by selecting the option type and value<br>');
-          printer::alertx('<div class="'.$this->column_lev_color.' fsminfo maxwidth500 floatleft editbackground editfont">Choose to position using Top or Bottom, None (As is), or use Center Vertically. <b>Note using both Center Vertically and an animation on this same post can change the animation path ie. on sliding animations</b>'); 
-          forms::form_dropdown($pos_vert_vals_arr,'','','',$pos_vert_name,$pos_vert,false,'editcolor editbackground editfont left'); 
-          printer::alertx('</div>');
-          printer::pclear(); 
-          printer::alertx('<div class="fs1black editcolor editbackground editfont">If Position is Set to Relative or Absolute and you also Choose a position Top or Bottom  choose a numeric value here in percent, px, em, rem, vw, or vh units. Otherwise a default value of 0 will be used');
-          printer::pclear();
-          $vertpass=($pos_vert==='top'||$pos_vert==='bottom')?$pos_vert:'none';
-          $vert_val=$this->spacing($pos_vert_val_name,$this->{$prefix.'_pos_vert_val'.$i.'_index'},'return','top or bottom positioning value','Adjust Vert Position of absolute or relative positioned element/post/column','',$ifemptyvert,'','');
-          $final_vert_val=($vertpass!=='none')?$vertpass.':'.$vert_val.';':'';
-          printer::alertx('</div>');
-          printer::close_print_wrap1('vert value'); 	
-          printer::pclear(5);  
-          printer::print_wrap1('zindex value');  
-          printer::print_tip('Change Zindex to Modify the Stacking Order of this '.$type.'. Higher numbers overlap lower numbers');
-          printer::alert('Choose z-index Value.');
-          $this->mod_spacing($pos_zindex_name,$pos_zindex,-100,1000,.5,'','none');
-          printer::close_print_wrap1('zindex value'); 	
-          printer::pclear(5); 
-          printer::print_info('Optionally choose a @media screen size min-width or max-width or both at which this '.$type.' will Position to custom setting.');  
-          echo '<div class="fsminfo"><!--wrap max width-->';
-          printer::printx('<p class="smaller '.$this->column_lev_color.'">(0 = none)Current Max-width: <span class="navybackground white">'.$pos_maxpx.'</span><br></p>');   
-          printer::alert('Choose @media screen max-width px');
-          $this->mod_spacing($max_name,$pos_maxpx,200,3000,1,'px','none');  
-          printer::printx('<p ><input type="checkbox" name="'.$max_name.'" value="0">Remove max-width</p>');
-          echo '</div><!--wrap max width-->';
-          echo '<div class="fsminfo"><!--wrap min width-->';
-          printer::printx('<p class="smaller '.$this->column_lev_color.'">(0 = none) Chosen Min-width: <span class="navybackground white">'.$pos_minpx.'</span></p>');
-          printer::alert('Choose @media screen min-width px'); 
-          $this->mod_spacing($min_name,$pos_minpx,200,3000,1,'px','none');
-          printer::printx('<p ><input type="checkbox" name="'.$min_name.'" value="0">Remove min-width</p>');
-          echo '</div><!--wrap min width-->';	 
-          $this->submit_button();
-          if ($i>0){
-               $this->submit_button( );
-               printer::close_print_wrap('additional positon media wrap #'.$i);
-               $this->show_close('Add additional @media query controlled option tweak for position/option options'); 
-               } 
-          if ($pos_minpx!=='none'&&$pos_maxpx!=='none') {
-          $mediacss='
-          @media screen and (max-width:'.$pos_maxpx.'px) and (min-width:'.$pos_minpx.'px){
-          .'.$css_id.'{'
-          .$pos_css.$pos_zindex_style.$pos_vert_style.$pos_horiz_style.$final_horiz_val.$final_vert_val.$opacity.'}
-               }
-               ';
-               }
-          elseif ($pos_maxpx!=='none'){
-               $mediacss='
-               @media screen and (max-width: '.$pos_maxpx.'px){
-               .'.$css_id.'{'.$pos_css.'
-               '.$pos_zindex_style.$pos_vert_style.$pos_horiz_style.$final_horiz_val.$final_vert_val.$opacity.'}
-               }';
-               }
-          elseif ($pos_minpx!=='none') {
-               $mediacss='
-               @media screen and (min-width: '.$pos_minpx.'px){
-               .'.$css_id.'{'.$pos_css.'
-               '.$pos_zindex_style.$pos_vert_style.$pos_horiz_style.$final_horiz_val.$final_vert_val.$opacity.'}
-               }';
-               }
-          elseif ($pos_type==='static') {
-               $mediacss=' 
-               .'.$css_id.'{position:static;'.$opacity.'}';
-               }
-          elseif (!empty($pos_zindex_style.$pos_vert_style.$pos_horiz_style.$final_horiz_val.$final_vert_val.$opacity)) {
-               $mediacss=' 
-               .'.$css_id.'{'.$pos_css.'
-               '.$pos_zindex_style.$pos_vert_style.$pos_horiz_style.$final_horiz_val.$final_vert_val.$opacity.'}';
-               }
-          $this->css.=$mediacss;
-          }//end for 
-     printer::pclear();  
-     printer::close_print_wrap('wrap advanced position');
-     $this->show_close('wrap advanced position'); 
-     printer::pclear();
-	}//end position
-      
-function height_style($type,$data){  
-	static $topinc=0; $topinc++;
-	$this->show_more('Post Height Option');
-	$this->print_redwrap('Uniform Post Height Option');
-     if ($type==='blog')
-          printer::print_tip('Normally Heights are automatically set and setting a height is unnecessary. However you can set heights here for effects such as having all posts in a column the same height for a tile effect.</em> <br>');
-     else 
-          printer::print_notice('Setting a Column Height specifies the overall Column Height not the height of individual posts within.');
-     printer::print_wrap1('height style');
-	printer::print_tip('Height is generally determined automatically from Content height but can be custom specified here. Choose from height, max-height, min-height and units');
-     if ($type=='blog'&&$this->blog_type==='image')
-          printer::print_warn('Images have an image specific config to set the image height identical to post height and an optional mediaq query to revert to width:auto;  You can also choose a sufficiently large max-width option to limit the download width and the correct image ratio w/h will still be maintained by the height you choose.'); 
-	printer::pclear(4); 
-	printer::close_print_wrap1('height style');
-	$this->height_options($type,$data);
-     printer::close_print_wrap('image height');
-	$this->show_close('Post Height Option');
-     $css_id=($type==='col')?$this->col_dataCss:$this->dataCss;
-     if($type==='blog'&&($this->blog_type==='image'||$this->blog_type==='auto_slide')) 
-          $this->editoverridecss.='#'.$css_id.' img{height:auto;}
-          ';
-     $this->editoverridecss.='#'.$css_id.'{min-height:0px;height:100%;overflow:visible;}';
-	}//end height_style
-	
-     
-function height_options($type,$data){
-     $index_arr=array('mediamax0','mediamin0','mediamax1','mediamin1','mediamax2','mediamin2');
-     $blog_media_arr=explode('@@',$this->{$type.'_options'}[$this->{$type.'_height_media_index'}]);
-     for ($i=0;$i<18;$i++){# 3 iterations* 6 values
-          if (!array_key_exists($i,$blog_media_arr))
-               $blog_media_arr[$i]=0;
-          }
-     foreach ($index_arr as $key=>$value){
-          ${$value.'_index'}=$key;
-          }
-     $name=$data.'_'.$type.'_options['.$this->{$type.'_height_media_index'}.']';
-     $css_id=($this->is_column)?$this->col_dataCss.'.webmode':$this->dataCss.'.webmode';
-     if ($this->is_blog&&$this->blog_type==='image'){
-          $css_id.=',.'.$css_id.' img';//style image as well if image_height_set
-          }
-     if ($this->is_blog&&$this->blog_type==='auto_slide'){
-          $css_id.=',html .'.$css_id.' img';
-          }
-     $count=12;//number of @media position options
-	for ($i=0; $i<3; $i++){
-          $k=$i*$count;//
-          if ($i>0){
-               $this->show_more('Add additional @media query controlled option tweak for height options');
-               $this->print_redwrap('additional media wrap #'.$i);
-               }
-     $this->show_more('em, rem, px with scale opt for  min-height, max-height, &amp; height choices'); 
-	printer::print_wrap('more height');
-     $max_name=$name.'['.(${'mediamax'.$i.'_index'}).']';
-	$min_name=$name.'['.(${'mediamin'.$i.'_index'}).']';
-	$mediamax=(is_numeric($blog_media_arr[${'mediamax'.$i.'_index'}])&&$blog_media_arr[${'mediamax'.$i.'_index'}]>=200&&$blog_media_arr[${'mediamax'.$i.'_index'}]<=3000)?$blog_media_arr[${'mediamax'.$i.'_index'}]:0;
-     $mediamin=(is_numeric($blog_media_arr[${'mediamin'.$i.'_index'}])&&$blog_media_arr[${'mediamin'.$i.'_index'}]>=200&&$blog_media_arr[${'mediamin'.$i.'_index'}]<=3000)?$blog_media_arr[${'mediamin'.$i.'_index'}]:0;
-     #here we making compatible for spacing function name="" input options..
-	 if (!empty($mediamin)||!empty($mediamax)) 
-          $fieldmin=$field=$fieldmax='return';
-     else {
-          $fieldmin='min-height';
-          $fieldmax='max-height';
-          $field='height';
-          }
-     $this->{$data.'_'.$type.'_options'}[$this->{$type.'_max_height_opt_index'}]=$this->{$type.'_options'}[$this->{$type.'_max_height_opt_index'}];//here we are setting up the use of for double duty as obj value and name as in styling functions
-      
-     $hmax=$this->height_max_special($data.'_'.$type.'_options',$this->{$type.'_max_height_opt_index'},$fieldmax,'.'.$css_id,$k);
-	$this->{$data.'_'.$type.'_options'}[$this->{$type.'_height_opt_index'}]=$this->{$type.'_options'}[$this->{$type.'_height_opt_index'}];
-	$h=$this->height_special($data.'_'.$type.'_options',$this->{$type.'_height_opt_index'},$field,'.'.$css_id,$k);
-	$this->{$data.'_'.$type.'_options'}[$this->{$type.'_min_height_opt_index'}]=$this->{$type.'_options'}[$this->{$type.'_min_height_opt_index'}];  
-	$hmin=$this->height_min_special($data.'_'.$type.'_options',$this->{$type.'_min_height_opt_index'},$fieldmin,'.'.$css_id,$k);
-     $mediacss=$css='';
-      $appendcss=($type==='blog'&&($this->blog_type==='image'||$this->blog_type==='auto_slide'))?' width:auto;max-width:none;':''; 
-     if ((!empty($mediamin)||!empty($mediamax))&&(!empty($hmax)||!empty($hmin)||!empty($h))){ 
-          $hmax=(!empty($hmax))?' max-height:'.$hmax.';':'';
-          $hmin=(!empty($hmin))?' min-height:'.$hmin.';':'';
-          $h=(!empty($h))?' height:'.$h.';':'';
-          if (!empty($mediamin)&&!empty($mediamax)) {
-              $mediacss.='
-     @media screen and (max-width:'.$mediamax.'px) and (min-width:'.$mediamin.'px){
-     html .'.$css_id.'{'.$hmax.$hmin.$h.$appendcss.'}
-          }
-          ';
-               }
-          elseif (!empty($mediamax)){
-               $mediacss.='
-     @media screen and (max-width: '.$mediamax.'px){
-     html .'.$css_id.'{'.$hmax.$hmin.$h.$appendcss.'}
-          }
-          ';
-               }
-          elseif (!empty($mediamin)) {
-               $mediacss.='
-     @media screen and (min-width: '.$mediamin.'px){
-     
-     html .'.$css_id.'{'.$hmax.$hmin.$h.$appendcss.'}
-          }
-          ';
-               }
-          $this->mediacss.=$mediacss;
-          }
-     else if (!empty($hmax)||!empty($hmin)||!empty($h)){ //css expressed already expressed in ion style but lets append
-         $this->css.=$mediacss='
-     html .'.$css_id.'{'.$appendcss.'}
-          ';
-          $mediacss='
-     html .'.$css_id.'{'.$hmax.$hmin.$h.$appendcss.'}
-          ';
-          }
-	printer::close_print_wrap('more height');
-     
-     $this->show_more('Style info','','info italic smaller');
-     printer::print_wrap1('techinfo');
-     printer::print_info('Current setting Css: '.$mediacss);
-     $msg='Direct height, max-height, or min-height applied to main div of '.$type.' with optional media queries';
-     printer::print_info($msg);
-     printer::close_print_wrap1('techinfo');
-     $this->show_close('Tech info');
-     
-	 printer::print_info('Optionally choose a @media screen size min-width or max-width or both at which this '.$type.' will specify custom Height setting.');  
-     echo '<div class="fsminfo"><!--wrap max width-->';
-     printer::printx('<p class="smaller '.$this->column_lev_color.'">(0 = none) Chosen Height max-width: <span class="navybackground white">'.$mediamax.'</span><br></p>');   
-     printer::alert('Choose @media screen max-width px');
-     $this->mod_spacing($max_name,$mediamax,200,3000,1,'px','none');  
-     printer::printx('<p ><input type="checkbox" name="'.$max_name.'" value="0">Remove max-width</p>');
-     echo '</div><!--wrap max width-->';
-     echo '<div class="fsminfo"><!--wrap min width-->';
-     printer::printx('<p class="smaller '.$this->column_lev_color.'">Chosen min-width: <span class="navybackground white">'.$mediamin.'</span></p>');
-      printer::alert('Choose @media screen min-width px'); 
-     $this->mod_spacing($min_name,$mediamin,200,3000,1,'px','none');
-     printer::printx('<p ><input type="checkbox" name="'.$min_name.'" value="0">Remove min-width</p>');
-     echo '</div><!--wrap min width-->';	
-     $this->show_close('em, rem, px with scale, min-height, max-height, &amp; height choices');
-	
-      if ($i>0){
-               $this->submit_button( );
-               printer::close_print_wrap('additional positon media wrap #'.$i);
-               $this->show_close('Add additional @media query controlled option tweak for position options'); 
-               } 
-          }//end for
-     }
-     
-function width_mode(){//uses blog altwidth value for nested columns also
-     $type='blog';//
-	if ($this->is_clone&&!$this->clone_local_style)return;
-	$check0=$check1=$check2=$check3=$check4=$check5='';
-	$checked=' checked="checked"';
-	$data=$this->data; 
-	$name='name="'.$data.'_blog_width_mode['.$this->blog_width_mode_index.']" ';
-     switch ($this->blog_width_mode[$this->blog_width_mode_index]) {
-          case  'off':
-               $check0=$checked;
-               break;
-          case  'maxwidth':
-               $check1=$checked;
-               break;
-          case 'compress_full_width':
-               $check2=$checked;
-               break; 
-          case 'compress_to_percentage': 
-               $check3=$checked;
-               break;
-          default:
-          $this->blog_width_mode[$this->blog_width_mode_index]='maxwidth';
-          $check1=$checked; 
-          }//end switch
-          $altype=($this->blog_type==='nested_column')?'nested column post':'post';
-		$colmsg=($this->blog_type==='nested_column')?'<b>Note: Setting alternative width on a nested column directly affects the column sizing itself</b>':'';
-		echo '<div class="fsminfo editbackground editfont '.$this->column_lev_color.'"><!--alt width wrapper1-->';
-		
-     $default_mode=Cfg::Default_width_mode; 
-     $msg=($this->flex_enabled_twice)?'Max-Width option not available following flex box previous activation':'Using this main width response mode is a simple but effective means for responsive design  and also keeps track of width px sizes in nested column structures and other post types. Is sutiable  when using the RWD Grid break point Medthod or Flex Box is not necessary for more complicated layouts. It works in conjuction with the float left, right, or float center mode when two or more posts (including a nested column post) occupy a row in a column. The full size screen width value chosen above can then respond to smaller viewports according to the following 3 choices which have different behavior for how post sharing a row will behave</p>';
-     printer::printx('<p class="tip">'.$msg);
-          if(!$this->flex_enabled_twice)$msg='Recommended for a single post which occupies a whole Column Row or shared posts in row that you wish to maximized individual posts by breaking to new row (ie smaller viewports) instead of compressing to some degree first</b><br>Chosen Floated Posts will not compress beyond thier initial sizing as viewports becoming limiting and origin size will be maintained by breaking to new a row as space permits.(default mode).';
-          else $msg=printer::print_warn('Previous Flex Box Activation renders this max-width option innaccurate due to width tracking off. Use another option ie. option mode 2 or 3 below or alt width units or flex basis for flex items',1); 
-          echo '<p class="fsmcolor editbackground editfont editcolor">
-     <input type="radio" '.$name.$check0.' value="off">0.<span class="orange"> Turn Off </span> Main Width Option. Use Alt width Units Instead: </span> 
-     <br></p>';
-    echo '<p class="fsmcolor editbackground editfont editcolor">
-     <input type="radio" '.$name.$check1.' value="maxwidth">1. Choose max-width option:  '.$msg.'
-     <br><input type="radio" '.$name.$check2.' value="compress_full_width">2. Choose percent option : All floated posts with this setting will continue compressing without minimum size<br>
-     <div class="fsmcolor editbackground editfont editcolor"><!--wrap percentage choices to option3-->
-     <br><input type="radio" '.$name.$check3.' value="compress_to_percentage">3. Choose alt rwd percentage option. Works similar to RWD grid system except is simpler to implement and works well when fewer break points are necessary. Each post acts independently and does not require parent column activation or matching break points with other posts however works best when media widths are syncronized with other posts that are in the same row so they respond at the same time. <b>Does not utilize width tracking. <br><br>
-     ';
-     printer::pclear(5);
-     
-    
-     printer::print_info('Margins: Leave Blank to specify no margin declaration. 0 will specify margin left or right 0');
-     $mediapercent=(is_numeric($this->blog_width_mode[$this->{'blog_percent_init_index'}])&&$this->blog_width_mode[$this->{'blog_percent_init_index'}]>0&&$this->{$type.'_width_mode'}[$this->{'blog_percent_init_index'}]<=100)?$this->{$type.'_width_mode'}[$this->{'blog_percent_init_index'}]:'';
-     $marginleft=(is_numeric($this->blog_width_mode[$this->{'blog_marginleft_init_index'}])&&$this->{$type.'_width_mode'}[$this->{'blog_marginleft_init_index'}]>=0&&$this->{$type.'_width_mode'}[$this->{'blog_marginleft_init_index'}]<=100)?$this->{$type.'_width_mode'}[$this->{'blog_marginleft_init_index'}]:'';
-     $marginright=(is_numeric($this->blog_width_mode[$this->{'blog_marginright_init_index'}])&&$this->{$type.'_width_mode'}[$this->{'blog_marginright_init_index'}]>=0&&$this->{$type.'_width_mode'}[$this->{'blog_marginright_init_index'}]<=100)?$this->{$type.'_width_mode'}[$this->{'blog_marginright_init_index'}]:'';
-     $name2=$data.'_'.$type.'_width_mode['.$this->{'blog_percent_init_index'}.']';
-     $name3=$data.'_'.$type.'_width_mode['.$this->{'blog_marginleft_init_index'}.']';
-     $name4=$data.'_'.$type.'_width_mode['.$this->{'blog_marginright_init_index'}.']';
-     printer::print_tip('Enter Initial width and margin settings for large view screens. Will override the main width value if set.'); 
-     echo '<table class="rwdmedia">
-     <tr><th>Set Initial % Width</th><th>% left-margin</th><th>% right-margin</th></tr>';
-     echo '<tr><td><input name="'.$name2.'" type="text" value="'.$mediapercent.'" ></td><td><input name="'.$name3.'" type="text" value="'.$marginleft.'" ></td><td><input name="'.$name4.'" type="text" value="'.$marginright.'" ></td></tr>
-     </table>';
-      echo '<div class="fsmnavy"><!--wrap percentage alt rwd-->';
-     printer::print_tip('Enter up to eight break point max-widths as between 250-3000 px (without the units) in any order and specify percentages width/margin-left/margin-right required between 0 and 100 included');
-     echo '<table class="rwdmedia">
-     <tr><th>Media max-width bp</th><th>% Width</th><th>% left-margin</th><th>% right-margin</th></tr>';
-     for ($i=1; $i<9;$i++){ 
-          $mediawidth=(is_numeric($this->blog_width_mode[$this->{'blog_media_'.$i.'_index'}])&&$this->{$type.'_width_mode'}[$this->{'blog_media_'.$i.'_index'}]>=250&&$this->{$type.'_width_mode'}[$this->{'blog_media_'.$i.'_index'}]<=3000)?$this->{$type.'_width_mode'}[$this->{'blog_media_'.$i.'_index'}]:'';
-          $mediapercent=(is_numeric($this->blog_width_mode[$this->{'blog_percent_'.$i.'_index'}])&&$this->{$type.'_width_mode'}[$this->{'blog_percent_'.$i.'_index'}]>0&&$this->{$type.'_width_mode'}[$this->{'blog_percent_'.$i.'_index'}]<=100)?$this->{$type.'_width_mode'}[$this->{'blog_percent_'.$i.'_index'}]:'';
-           $marginleft=(is_numeric($this->blog_width_mode[$this->{'blog_marginleft_'.$i.'_index'}])&&$this->{$type.'_width_mode'}[$this->{'blog_marginleft_'.$i.'_index'}]>=0&&$this->{$type.'_width_mode'}[$this->{'blog_marginleft_'.$i.'_index'}]<=100)?$this->{$type.'_width_mode'}[$this->{'blog_marginleft_'.$i.'_index'}]:'';
-           $marginright=(is_numeric($this->blog_width_mode[$this->{'blog_marginright_'.$i.'_index'}])&&$this->{$type.'_width_mode'}[$this->{'blog_marginright_'.$i.'_index'}]>=0&&$this->{$type.'_width_mode'}[$this->{'blog_marginright_'.$i.'_index'}]<=100)?$this->{$type.'_width_mode'}[$this->{'blog_marginright_'.$i.'_index'}]:'';
-          $name1=$data.'_'.$type.'_width_mode['.$this->{'blog_media_'.$i.'_index'}.']';
-          $name2=$data.'_'.$type.'_width_mode['.$this->{'blog_percent_'.$i.'_index'}.']';
-          $name3=$data.'_'.$type.'_width_mode['.$this->{'blog_marginleft_'.$i.'_index'}.']';
-          $name4=$data.'_'.$type.'_width_mode['.$this->{'blog_marginright_'.$i.'_index'}.']';
-          echo '<tr><td><input name="'.$name1.'" type="text" value="'.$mediawidth.'" ></td><td><input name="'.$name2.'" type="text" value="'.$mediapercent.'" ></td><td><input name="'.$name3.'" type="text" value="'.$marginleft.'" ></td><td><input name="'.$name4.'" type="text" value="'.$marginright.'" ></td></tr>';
-          }
-     
-     echo '</table>';
-     printer::print_tip('The total width, margin-left, margin-right % of all posts combined sharing row space at a given @media bp will need to be less than or equal to 100%');
-    echo '</div><!--wrap percentage again-->
-     </div><!--wrap percentage choices to option3-->';
-     $this->submit_button();
-     echo ' </div><!--alt width wrapper1-->';	
-	}// end alt width response
-
-function advanced_width_mode(){//uses blog altwidth value for nested columns also
-     $type='blog';//
-	if ($this->is_clone&&!$this->clone_local_style)return;
-	$check1=$check2=$check3=$check4=$check5='';
-	$checked=' checked="checked"';
-	$data=$this->data; 
-          $altype=($this->blog_type==='nested_column')?'nested column post':'post';
-		$colmsg=($this->blog_type==='nested_column')?'<b>Note: Setting alternative width on a nested column directly affects the column sizing itself</b>':'';
-		echo '<div class="fsminfo editbackground editfont '.$this->column_lev_color.'"><!--alt width wrapper1-->';
-     printer::print_info('Margins: Leave Blank to specify no margin declaration. 0 will specify margin left or right 0');
-    
-      echo '<div class="fsmnavy"><!--wrap percentage alt rwd-->';
-     printer::print_tip('Enter up to eight @media tweaks setting a max-width between 250-3000 px (without the units) in any order and optionally specify one or more width/margin-left/margin-right/paddding-left/paddding-right values with units.');
-     printer::print_info('All @media widths will automatically be in px. Included width value followed by one of px,rem,em or % for tweak value @media width supplied');
-     echo '<table class="rwdmedia">
-     <tr><th>Media max-width bp</th><th>Width</th><th>left-margin</th><th> right-margin</th><th>left-padding</th><th> right-padding</th></tr>';
-     for ($i=1; $i<9;$i++){
-          //blog_adv_media_1,blog_adv_width_1,blog_adv_marginleft_1
-          $mediawidth=(is_numeric($this->blog_adv_media[$this->{'blog_media_'.$i.'_index'}])&&$this->blog_adv_media[$this->{'blog_media_'.$i.'_index'}]>=250&&$this->blog_adv_media[$this->{'blog_media_'.$i.'_index'}]<=3000)?$this->blog_adv_media[$this->{'blog_media_'.$i.'_index'}]:'';
-          $mediapercent=(is_numeric($this->blog_adv_media[$this->{'blog_percent_'.$i.'_index'}])&&$this->blog_adv_media[$this->{'blog_percent_'.$i.'_index'}]>0&&$this->blog_adv_media[$this->{'blog_percent_'.$i.'_index'}]<=100)?$this->blog_adv_media[$this->{'blog_percent_'.$i.'_index'}]:'';
-           $marginleft=(is_numeric($this->blog_adv_media[$this->{'blog_marginleft_'.$i.'_index'}])&&$this->blog_adv_media[$this->{'blog_marginleft_'.$i.'_index'}]>=0&&$this->blog_adv_media[$this->{'blog_marginleft_'.$i.'_index'}]<=100)?$this->blog_adv_media[$this->{'blog_marginleft_'.$i.'_index'}]:'';
-           $marginright=(is_numeric($this->blog_adv_media[$this->{'blog_marginright_'.$i.'_index'}])&&$this->blog_adv_media[$this->{'blog_marginright_'.$i.'_index'}]>=0&&$this->blog_adv_media[$this->{'blog_marginright_'.$i.'_index'}]<=100)?$this->blog_adv_media[$this->{'blog_marginright_'.$i.'_index'}]:'';
-          $name1=$data.'_'.$type.'_width_mode['.$this->{'blog_media_'.$i.'_index'}.']';
-          $name2=$data.'_'.$type.'_width_mode['.$this->{'blog_percent_'.$i.'_index'}.']';
-          $name3=$data.'_'.$type.'_width_mode['.$this->{'blog_marginleft_'.$i.'_index'}.']';
-          $name4=$data.'_'.$type.'_width_mode['.$this->{'blog_marginright_'.$i.'_index'}.']';
-          echo '<tr><td><input name="'.$name1.'" type="text" value="'.$mediawidth.'" ></td><td><input name="'.$name2.'" type="text" value="'.$mediapercent.'" ></td><td><input name="'.$name3.'" type="text" value="'.$marginleft.'" ></td><td><input name="'.$name4.'" type="text" value="'.$marginright.'" ></td></tr>';
-          }
-     
-     echo '</table>';
-     printer::print_tip('The total width, margin-left, margin-right % of all posts combined sharing row space at a given @media bp will need to be less than or equal to 100%');
-    echo '</div><!--wrap percentage again-->
-     </div><!--wrap percentage choices to option3-->';
-     $this->submit_button();
-     echo ' </div><!--alt width wrapper1-->';	
-	}// end alt width response
-     
-#rwdbuild  #rwdop  #grid
-function rwd_scale($numbers,$name,$css,$style,$type,$unit='px',$index,$after_index,$tiny=false,$convert=1,$incs='auto'){
-     $notice='';//return notice
-     if ($this->is_page){//add to css specificty
-          if (!strpos($css,'html'))$css='html '.$css;
-          }
-     else if ($this->is_column){
-          if (!strpos($css,'html'))$css='html '.$css;
-          elseif (!strpos($css,'body'))$css=str_replace('html','html body',$css);
-          elseif ($this->column_level>0)$css='div '.$css;
-          }
-     else{
-          if (!strpos($css,'html'))$css='html '.$css;
-          elseif (!strpos($css,'body'))$css=str_replace('html','html body',$css);
-          else $css='div '.$css;
-          }
-	if (!$this->edit)return;  
-	$beforeindexes='';
-	$afterindexes='';   
-	for ($i=0; $i<$index; $i++) $beforeindexes.=',';
-	for ($i=$index+1; $i<$index+$after_index; $i++) $afterindexes.=',';
-	$indexes=$beforeindexes.'scale_val,'.$afterindexes.'bp1,bp2,mod_percent'; 
-	$index_arr=explode(',',$indexes);
-	$bp_arr=explode('@@',$numbers);
-	for ($i=0; $i<count($index_arr);$i++){ 
-		if (!array_key_exists($i,$bp_arr)){
-			$bp_arr[$i]=0;
-			}
-		 }
-	foreach($index_arr as $key =>$index){
-		if (!empty($index)) {
-			${$index.'_index'}=$key;  
-			}
-		}	
-	$upper_width=4000;
-	$mod_percent=(is_numeric($bp_arr[$mod_percent_index])&&$bp_arr[$mod_percent_index]<=400&&$bp_arr[$mod_percent_index]>=24)? $bp_arr[$mod_percent_index]:100;  
-	$value=(is_numeric($bp_arr[$scale_val_index])&&is_numeric($convert))?$bp_arr[$scale_val_index]*$convert:'';  
-	$sort_arr=array();
-	$bp1 = ($bp_arr[$bp1_index]>=300 && $bp_arr[$bp1_index] <=$upper_width)?$bp_arr[$bp1_index]:0;
-	$bp2 = ($bp_arr[$bp2_index]>=250 && $bp_arr[$bp2_index] <=$upper_width)?$bp_arr[$bp2_index]:0;
-     if ($name==='return_val'){ 
-          if(!empty($value)&&is_numeric($bp1)&&is_numeric($bp2)&&($bp1-$bp2)>=50){
-               return "<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;scale enabled <br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;upper-vp: $bp1 <br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lower-vp: $bp2 <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;linear mod percent: $mod_percent";
-               }
-          return;
-          }
-	$fsize=($tiny)?'tiny':'small';
-	$this->show_more('RWD Scale '.$type,'','highlight floatleft editfont '.$fsize.' editbackground buttoninfo','Choose bps to further RWD scale the size value you choose here'); 
-	$this->print_wrap('break points');
-	printer::print_tip('The above  size choice for this '.$type.' can change according to the user viewport width.  Choose the relevant upper and lower widths at which to scale down your chosing value.  Media queries will be generated to  linearly scale down the chosen px starting at the viewport width  you wish this '.$type.' to begin to smallerize  and finshing at a minimum vp width that you choose, ie 320px. Rwd scaling down will start for uppermax value through the  lower max setting  at which px is no longer resized. By default the scaling will be proportional to the difference in screen size, however you can <em>adjust the rate of change</em> using the third option below.'); 
-	printer::print_tip('Note: A handy means of creating custom scaled em units is to scale the font-size px in the parent column or even a particlar post and em will scale accordingly!'); 
-	printer::print_wrap('Choose scale break point');
-	$upper_msg=($this->is_page)?'Page width in default page settings':'Primary Column Width';
-	printer::alert('Choose Upper viewport break point Width to begin Scaling '.$type.' the upper limit is set by the '.$upper_msg);
-	$this->mod_spacing($name.'['.$bp1_index.']',$bp1,300,$upper_width,1,'px','none'); 
-	printer::alert('Choose lower viewport Point to end Scaling '.$type);
-	$this->mod_spacing($name.'['.$bp2_index.']',$bp2,250,$upper_width,1,'px','none');
-	 if ($mod_percent!==100){
-               printer::print_notice('Linear Scaling @100% modified to: '.$mod_percent.'%');
-              }
-     $this->show_more('Modify default Linear Scaling','','smaller editcolor editfont editbackground');
-	printer::print_wrap('linear modify');
-	printer::alert('By default size change will scale one to one with changes in viewport size between the max and min viewport sizes you choose.  You can change this default behavior which occurs at a setting 100% to either speed up to 400% increase the rate of change (ie. 4x smaller) or decrease  down to 25% the rate of change to minimizing the final size change to get the exact rate change you need. <b>However Keep in mind much a smaller percentage of change makes bigger differences in the final unit value of the lower screen width setting for larger differences between upper and lower viewport sizes.</b> ');
-     $msgjava='Choose percent adjust rate of change';
-	$this->mod_spacing($name.'['.$mod_percent_index.']',$mod_percent,24,400,.1,'%','none',$msgjava);
-     $this->submit_button();
-	printer::close_print_wrap('linear modify');
-	$this->show_close('Modify default One to One Scaling','','smaller editcolor editfont editbackground');
-	printer::close_print_wrap('Choose scale break point');   
-	printer::pclear(); 
-     $this->submit_button();
-	$this->close_print_wrap('break points'); 
-	$this->show_close('Set RWD Breakpoints');
-	if ($style==='none')  return; //ie. proper top bottom left right position not chosen
-     $arr='';
-	if (strpos($bp_arr[$scale_val_index],'x@x@x')!==false){
-          $arr=explode('x@x@x',$bp_arr[$scale_val_index]); 
-          } 
-		##############
-	
-     if (!is_numeric($bp1)||!is_numeric($bp2)||($bp1-$bp2)<=50){
-          //printer::print_warn('Insufficient Size Difference upper to lower width');
-          return;
-          }
-     printer::print_notice('Activated Scaling on Px');
-     $notice=true;
-     if (!empty($value)){
-          $this->scale_render($arr,$value,$mod_percent,$incs,$css,$style,$bp1,$bp2,$unit);
-          return 'Scaled Px units Activated! Typically overrides other unit settings';
-          }
-     
-	}//end rwd_scale
-              
-function scale_render($arr,$value,$mod_percent,$incs,$css,$style,$bp1,$bp2,$unit){
-     //the $arr is for border,radius with 4 values not 1
-     if (!is_numeric($bp1)||!is_numeric($bp2)||($bp1-$bp2)<=50)return;
-     $diff=$bp1-$bp2;
-     #right now incs used to adjust the factor and not used for the >100% mod_percent
-     if ($incs==='auto')
-          $incs=$diff/10;
-     $incs=100;
-     $adjust=($mod_percent-100)/$incs;
-    $typecss=($this->is_page)?'pagecss':'mediacss';
-     $factor=$mod_percent;
-     $increment = $bp1/100; //increments will gradulal decrease  proportional to current @media width.
-     $this->$typecss.='
-@media screen and (min-width:'.($bp1+1).'px){'
-     .$css.' {'.$style.':'.$value.$unit.';}
-     }';
-     $keytrack=0;
-     $flag=true;
-     for ($i=$bp1; $i >= $bp2; $i-=$increment){
-          $j=($i-$increment);
-          if ($mod_percent>100){ 
-               $factor-=$adjust; 
-              $ratio=($j/$bp1)*($factor/$mod_percent);#factor starts out at mod_percent then gradually decreases..
-              } 
-          else $ratio=  1 - ((($bp1-$j)*($mod_percent/100))/$bp1);      //@100 ratio is linear to width change
-          $increment=$i/100;          //as $mod_percent grows the $ratio decreases faster so the size decrease speeds up..
-          
-          if (!is_array($arr)){
-               $finalcss=$css.' {'.$style.':'.($ratio*$value).$unit.'}'; 
-               
-               }
-          else {
-               $finalcss=$css.' {'.$style.':';
-               foreach($arr as $val){
-                    $finalcss.=($ratio*$val).$unit.' ';
-                    }
-               $finalcss.=';}';
-               }
-          #here we are going to store inarray the value for all scaling px size units @ the primary column width for width reference which takes into acount all pading and margins.  Also will tablulate font-size scaling which is directly related to em units which are valid units for paddings and widths... this mirrors the check_data key_down_check function ...
-          $minbp=$i-$increment;
-          $minw=($minbp>$bp2)?' and (min-width:'.$minbp.'px)':''; 
-          $this->$typecss.='
-          @media screen and (max-width:'.$i.'px)'.$minw.'{
-               '.$finalcss.' 
-          }'; //i/bp1 =
-          }
-     if ($this->is_page)return;
-     $id=($this->is_column)?'c'.$this->col_id:'b'.$this->blog_id;
-     if ($flag&&$i>=$this->max_width_limit) 
-          $keytrack=$ratio*$val; 
-     elseif ($flag&&!empty($keytrack)){
-          $flag=false;
-          }
-     elseif ($flag) {
-          $flag=false;
-          }
-     }
-#rwdbuild  #build     
-function rwd_build($type,$data){
-     $width_enabled=true;
-     if ($this->flex_enabled_twice){
-          printer::print_notice('RWD grid width calc. off following parent tree activation of flexbox');
-          $width_enabled=false;//turn off width calculator
-          }
-	if ($this->is_blog&&$this->blog_type==='gallery'&&$this->blog_tiny_data2==='master_gall')printer::printx('<p class="tip"> Master Galleries are fully responsive and perfom best at 100% of available width for each break point. directly set a maximum availble width in the configuration</p>');
-	if ($type==='col'&&$this->column_level <1) return;  
-	$cid=($this->blog_type==='nested_column')?$this->column_id_array[$this->column_level-1]:$this->col_id;
-     $bc_id=($this->is_column)?'col_'.$this->col_id:'blog_'.$this->blog_id;
-   
-    if($this->edit&&!$this->is_clone){
-         if ($type==='col'){
-              $new_colgc="{$this->current_grid_units}@@$this->page_br_points";///col_grid_clone used as reference for use of configured page  grid units and bps and serve as a reference for cloned posts that if not matching throws error 
-              if ($new_colgc !== $this->col_grid_clone){
-                   $q="update $this->master_col_table set col_grid_clone='$new_colgc' where col_id=$this->col_id";
-                   $this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
-                   }
-              }
-         else {
-              $new_bloggc="{$this->current_grid_units}@@$this->page_br_points";
-              if ($new_bloggc !== $this->blog_grid_clone){
-                   $q="update $this->master_post_table set blog_grid_clone='$new_bloggc' where blog_id=$this->blog_id";
-         
-                   $this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false);
-                   }
-              }
-         }
-   
-    if($this->is_clone&&!$this->clone_local_style){ //col_grid_clone used as reference for use of configured page  grid units and bps and serve as a reference for cloned posts that if not matching throws error
-         $msg=''; 
-         if (!empty($this->{$type.'_grid_clone'})){
-               $c=explode('@@',$this->{$type.'_grid_clone'});
-               if (count($c)>1){
-                    $tarr=explode('@@',$this->{$type.'_grid_clone'});
-                    if ($tarr[0]!=$this->current_grid_units){ 
-                         $msg='Current Grid Units Mismatch & ';
-                         }
-                    if ($tarr[1]!=implode(',',$this->page_break_arr)){
-                         $msg.='Page Break Point Mismatch';
-                         }
-                    if (!empty($msg)){
-                         $msg.=NL.'RWD Mismatch of clone with this page setting for bps.  If   necessary you can choose the local style and cofig settings to reset! or match with the original parent settings: Grid Units: '.$tarr[0].' ; Page Grid Units: '.$tarr[1];
-                         printer::alertx('<p class="neg supersmall floatleft">'.$msg.'</p>');
-                        }
-                   }
-              }//count 2
-         else{
-              $msg="If Parent of Clone page setting for Break Points or Grid Units Differ From this page Current Break Points or Grid Settings enable clone local style and configure for proper width response";
-              printer::alertx('<p class="neg whitebackground supersmall floatleft">'.$msg.'</p>');
-              }
-         }
-     $bp_arr=$this->page_break_arr;
-     rsort($bp_arr);//
-     array_unshift($bp_arr,'max'.$bp_arr[0]); //insert @ beggining of array
-     $gu=$this->current_grid_units;
-     $countbp=count($bp_arr); 
-     $current_calc=array();
-      //new local version will be append class version
-     $setup_arr=array('wid'=>$type.'_grid_width','left'=>$type.'_gridspace_left','right'=>$type.'_gridspace_right');
-     if(!isset($this->grid_width_record[$cid]))
-          $this->grid_width_record[$cid]=array();
-     foreach($setup_arr as $prefix=>$field){ 
-          if(!isset($this->{'column_total_gu_arr'}))$this->{'column_total_gu_arr'}=array();
-          if(!array_key_exists($cid,$this->{'column_total_gu_arr'}))$this->{'column_total_gu_arr'}[$cid]=array();
-          ${$field.'_arr'}=explode(',',$this->{$field});
-          ${$prefix.'_grid_width'}=array();
-          foreach ($bp_arr as $bp){
-               ${$prefix.'_grid_width'}[$bp]=0;//set default
-               }
-          $x=0;
-          foreach  (${$field.'_arr'} as $pgrid){//override default
-               $pgrid_arr=explode('-',$pgrid);
-               if (count($pgrid_arr)>4&&count($pgrid_arr)<7){
-                    $bp=$pgrid_arr[2];
-                    ${$prefix.'_grid_width'}[$bp]=$pgrid;//this is actual  previoulsy  chosen value and setting to wid lefet or right_grid_width value
-                    }
-               }//end foreach grid type array... 
-          ${'select_'.$prefix.'_arr'}=array();
-          ${$prefix.'_grid_unit'}=array();
-          /*if ((!$this->is_clone||$this->clone_local_style)&&count(${$field.'_arr'})>$countbp){
-              //class grid styles for columns and blogs are subbed out individually using the master updating mechanism..  Because of this if the number of break points decrease there will be too many classes and they are removed here!
-              $newval=implode(',',array_slice(${$field.'_arr'},0,$countbp));
-              $this->hidden_array[]='<input type="hidden" name="'.$data.'_'.$field.'" value="'.$newval.'">';//cut off xtra classes if bps for column less than previous
-              } */
-#rwd
-         //here we pre-generating select choice array options for each bp and wid, left or right
-         for ($i=0; $i<$countbp; $i++){
-              $bp=$bp_arr[$i];
-              $bp_class_specify=(substr($bp,0,3)==='max')?'':(($i<$countbp-1)?'-'.$bp_arr[$i+1]:'-'.$bp);  
-              if(!array_key_exists($bp,$this->{'column_total_gu_arr'}[$cid]))$this->{'column_total_gu_arr'}[$cid][$bp]=0;
-              if(!array_key_exists($bp,$current_calc))$current_calc[$bp]=0;
-              ${'select_'.$prefix.'_arr'}[$bp]=array();
-              $match=false;
-              if($prefix==='wid'){
-                   for ($ii=0; $ii<$gu+1; $ii++){
-                         $ch=${'select_'.$prefix.'_arr'}[$bp][$ii]=$prefix.'-bp-'.$bp.$bp_class_specify.'-'.$ii.'-'.$gu;//creating full select arr for editor dropdown choice...
-                         if ($ch===${$prefix.'_grid_width'}[$bp]){
-                             // column_total_gu_arr is used as record for augmenting running tally on column_total_gu_array for this column wid units and breakpoint for displaying current row fill percentage 
-                             $this->{'column_total_gu_arr'}[$cid][$bp]+=$ii;
-                             // the selected grid unit is used to build the current class and populate in this case the wid_array  which is used to populate...$this->grid_width_record[$cid] for display
-                             ${$prefix.'_grid_unit'}[$bp]=$ii;
-                             //the prefix grid unit for breakpoints furthe go on to populated the grid class selected array used directly in css generation in global_master.class.php
-                             //and of course in used for selected="selected"
-                             $match=true;
-                             $current_calc[$bp]+=$ii;
-                             }
-                        } 
-                   }
-              else{
-                    for ($ii=0; $ii<$gu; $ii+=.5){//$prefix here refers to non wid type
-                         $ii2=(strpos($ii,'.5')===false)?$ii:str_replace('.5','',$ii).'x5';
-                         $ch=${'select_'.$prefix.'_arr'}[$bp][$ii2]=$prefix.'-bp-'.$bp.$bp_class_specify.'-'.$ii2.'-'.$gu;
-                         if ($ch===${$prefix.'_grid_width'}[$bp]){
-                              $this->{'column_total_gu_arr'}[$cid][$bp]+=$ii;
-                              ${$prefix.'_grid_unit'}[$bp]=$ii;
-                              $match=true;
-                              $current_calc[$bp]+=$ii; 
-                              }
-                         }
-                    ${'select_'.$prefix.'_arr'}[$bp][0]='';//do not write 0 gu classname to element...
-                    if(empty(${$prefix.'_grid_width'}[$bp])){//for non widths
-                         ${$prefix.'_grid_unit'}[$bp]=0;
-                         $match=true;
-                         }
-                    elseif (${$prefix.'_grid_width'}[$bp]===$prefix.'-bp-'.$bp.$bp_class_specify.'-0-'.$gu)
-                         $match=false;//it will be set to empty class instead.
-                    }
-               if (!$match){//fill default class values for rendering classes... ie. not immed plugin values
-                    $default_calc=($prefix==='wid')?$gu:0;
-                    ${$prefix.'_grid_width'}[$bp]=($prefix==='wid')?$prefix.'-bp-'.$bp.$bp_class_specify.'-'.$default_calc.'-'.$gu:'';
-                    ${$prefix.'_grid_unit'}[$bp]=$default_calc;
-                    $this->{'column_total_gu_arr'}[$cid][$bp]+=$default_calc;
-                    $current_calc[$bp]+=$default_calc; //gu tracker...
-                    //$this->hidden_array[]='<input type="hidden" name="'.$data.'_'.$field.'" value="'.$finalarr.'">';//
-                    //$this->instruct[]=('ReHit A SUBMIT Button For THIS TO UPDATE rwd break points of this m '.$type.' id:'.$bc_id.' so that it updates to  match with new bp settings on this current page. Check for  appropriate bps settings.');
-                    }
-               $id=($this->blog_type==='nested_column')?'c'.$cid:'p'.$this->blog_id;	
-               $this->{'grid_class_selected_'.$prefix.'_array'}=(isset($this->{'grid_class_selected_'.$prefix.'_array'}))?array_merge($this->{'grid_class_selected_'.$prefix.'_array'},array(${$prefix.'_grid_width'}[$bp])):array(${$prefix.'_grid_width'}[$bp]);
-               }//end for  bp 
-         }//foreach  field
-#gridarray
-    $bpcalc_arr=array(); 
-    $bptotalcalc_arr=array();
-    $msgcurr='';
-    $msgtot='';
-    for ($i=0; $i<count($bp_arr); $i++){
-         $bp=$bp_arr[$i];
-         if (!isset($bpcalc_arr))$bpcalc_arr=array();
-         foreach($setup_arr as $prefix=>$field){  
-              if (!isset(${$prefix.'_array'}))${$prefix.'_array'}=array(); 
-              ${$prefix.'_array'}[substr($prefix,0,3).' @bp '.$bp]=${$prefix.'_grid_unit'}[$bp];
-              }
-         //prefix ie  wid left right 
-         $bpcalc_arr['Cur Tot '.$bp]=$current_calc[$bp];
-         $msgcurr.=$id.' @bp '.$bp.': '.$current_calc[$bp].'gu or '.(floor(($current_calc[$bp]/$gu)*10000)/100).'% of row<br>';
-         $bptotalcalc_arr['Tot Tot '.$bp]=$this->{'column_total_gu_arr'}[$cid][$bp];
-         $msgtot.='Tot Tot @bp '.$bp.': '.$this->{'column_total_gu_arr'}[$cid][$bp].'gu or '.(round($this->{'column_total_gu_arr'}[$cid][$bp]/$gu,4)).' full row(s)<br>';
-         }
-    $colpost=($type==='col')?'Column':'Posted Content';
-    if((!$this->is_clone||$this->clone_local_style)){   
-         printer::printx('<p class="fsm'.$this->column_lev_color.' '.$this->column_lev_color.' editbackground editfont">Posts and Columns within the Parent Column of this '.$colpost.' are enabled as a responsive Grid to share the total width of the column parent. Choose the relative width percentage display for this '.$colpost.'  for each break point which correspond to viewer device width values!.</p>');	
-         $this->grid_width_record[$cid][]=array_merge(array('id:'=>$id),$wid_array,$right_array,$left_array,$bpcalc_arr,$bptotalcalc_arr);
-         printer::printx('<p class="fsm'.$this->column_lev_color.' '.$this->column_lev_color.' editbackground editfont"><span class="bold center">'.$gu.'gu/row in use</span><br>'.$msgcurr.'</p>'); 
-         $this->show_more('View Complete Grid Unit Use Table & Info','noback','italic editbackground editfont '.$this->column_lev_color.' underline','','600');
-         printer::printx('<p class="fsm'.$this->column_lev_color.' '.$this->column_lev_color.' editbackground editfont"><span class="bold center">Tot# Rows Used For Posts Up to Current Post</span>in Col Id C'.$cid.'<br>'.$msgtot.'</p>');
-         printer::printx('<p class="fsm'.$this->column_lev_color.' '.$this->column_lev_color.' editbackground editfont">Table below shows values in Grid Units. You are configured for '.$gu.'gu per row. Each row has values for a single Post up to the post your curently viewing for each break point class.<br><span class="info">"max"</span>  value refers to Device Screen Width greater than the largest break point.
-<br>
-<span class="info">"@bp"</span> or break point values target maximum screem width between its value and that greater than the next lowest value break point.<br> <span class="info">"wid"</span> refers to content width at the specified break point.<br><span class="info">"Rig"</span> or <span class="info">"Lef"</span> refer  to right or left (margin) spacing selected between posts; <br><span class="info">"Cur Tot"</span> refers to the total (wid+lef+rig) of each post at the particlar break point specified.<br> <span class="info">"Tot Tot"</span>  calculates the running total adding together all Cur Tot up to the current post.</p>');
-         printer::horiz_print($this->grid_width_record[$cid],'','','','',false,false,'editcolor editbackground editfont smallest');
-    $this->show_close('Show Grid Unit Use Table');
-         }
-    else {
-         printer::print_tip('Note that RWD Grid Width Tracking is currently disabled following Activation of flex box, or other width units such em width, rem width, or  px scaled widths, also Alt Width with Min Width set in the parent column tree');
-         }
-    #rwdupdate  #gridupdate	#gridwid			  
-     $grid_width='';//used for updating col_width and blog_width
-     $column_level=($type==='col')?($this->column_level-1):$this->column_level;
-     $this->grid_width_chosen_arr=array();
-     $this->grid_post_percent_arr=array();
-     $grid_width_arr=array();
-     ### All the following pertains only to calculating physical px which does not in any way affect the normal column flow ....but provides information px and enables correct image rendering...
-     // $this->column_bp_width_arr[$this->column_level]=array();
-     foreach ($bp_arr as $bp){ 
-          $grid_width.= (floor($wid_grid_unit[$bp]/$gu*10000)/100).',';//used for updating col_width and blog_width   
-     if ($type==='col'){
-          $maxlimit=(substr($bp,0,3)==='max')?$this->column_bp_width_arr[$this->column_level-1][$bp][1]:min($bp,$this->column_bp_width_arr[$this->column_level-1][$bp][1]);
-          if($this->column_bp_width_arr[$this->column_level-1][$bp][1]>$bp) 
-               $percentlimit=$wid_grid_unit[$bp]/$gu*$this->column_bp_width_arr[$this->column_level-1][$bp][0];
-          else 
-               $percentlimit=$wid_grid_unit[$bp]/$gu*$this->column_bp_width_arr[$this->column_level-1][$bp][0]*$wid_grid_unit[$bp]/$gu;
-          $grid_temp=$this->column_bp_width_arr[$this->column_level][$bp][1]= $maxlimit* $wid_grid_unit[$bp]/$gu;//set new column_bp_width_arr for current by multipling parent value by current percent
-          $this->column_bp_width_arr[$this->column_level][$bp][0]=$percentlimit;
-          $this->grid_width_chosen_arr[$bp]=$grid_temp;//chosen width px
-          $this->grid_width_available[$this->column_level][$bp]=$maxlimit;  
-          }//end type = col
-     else {  //post type
-          $maxlimit=(substr($bp,0,3)==='max')?$this->column_bp_width_arr[$this->column_level][$bp][1]:min($bp,$this->column_bp_width_arr[$this->column_level][$bp][1]);
-          $grid_temp= $this->grid_post_percent_arr[$bp]=$maxlimit*$wid_grid_unit[$bp]/$gu;//multiply parent value by current percent
-          $this->grid_width_chosen_arr[$bp]=$grid_temp; //(substr($bp,0,3)==='max')?$this->max_width_limit*$grid_temp/100:$grid_temp*$maxlimit/100; 
-          $this->grid_width_available[$this->column_level][$bp]=(substr($bp,0,3)==='max')?$this->column_net_width[0]*$this->column_total_net_width_percent[$this->column_level]/100:$this->column_total_net_width_percent[$this->column_level]*$maxlimit/100;
-          $this->grid_width_available[$this->column_level][$bp]=$maxlimit;
-          }//endelse post
-     }//end foreach...
-     # update the total bp array
-     #Track and Update width according to max break point percentage value
-     if ($this->edit&&!$this->is_clone&&isset($_POST['submitted'])){//this is more relaxed
-          $grid_width=substr_replace($grid_width,'',-1);
-          if($type==='col'){
-               $new_col_width= floor($wid_grid_unit[$bp_arr[0]]/$gu*10000)/100;  
-               if ($this->track_col_width!=$new_col_width){ 
-                    $q="update $this->master_col_table set col_width='$new_col_width', col_update='".date("dMY-H-i-s")."',col_time='".time()."',token='".mt_rand(1,mt_getrandmax()). "' where col_id=$this->col_id";
-                   $this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);
-                    }
-               }
-          else{
-               $new_blog_width=floor($wid_grid_unit[$bp_arr[0]]/$gu*10000)/100;
-               if($this->blog_width!=$new_blog_width){
-                    $q="update $this->master_post_table set blog_width='$new_blog_width', token='".mt_rand(1,mt_getrandmax()). "',blog_update='".date("dMY-H-i-s")."',blog_time='".time()."' where blog_id=$this->blog_id";//this is how we   keep current_net_width and current_net_width_percent current... with use of rwd...
-                    $this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,true);
-                    }
-               }
-          } 
-     if($this->is_clone&&!$this->clone_local_style){
-         return;
-         }
-    printer::printx('<p class="floatleft editbackground editfont left '.$this->column_lev_color.'">RWD Grid Set the % Width  of this '.$colpost.' Display For Device Width Conditions (break points)</p>');
-    printer::pclear();
-    $this->show_more('Style info','','info italic smaller');
-     printer::print_wrap1('techinfo');
-     printer::print_info('Current Grid Classes Applied to main div: '.$this->dataCss.':<br><br> Grid Width: '.$this->{$type.'_grid_width'}.'<br>
-     Grid  margin left Spacing: '.$this->{$type.'_gridspace_left'}.'<br>Grid  margin right Spacing: '.$this->{$type.'_gridspace_right'});
-      $msg='Class names are generated from  chosen grid percentage values and applied as supplemental class names to main div post type or  column. Corresponding css is generated only for each class name that is generated';
-     printer::print_info($msg);
-     printer::close_print_wrap1('techinfo');
-     $this->show_close('Style info');
-     printer::pclear();
-    for ($i=0; $i<count($bp_arr); $i++){
-          $bp=$bp_arr[$i];
-          $curwid= ($width_enabled)?floor($this->grid_width_chosen_arr[$bp]):'';  
-          $cur_wid_avail=($width_enabled)?floor($this->grid_width_available[$this->column_level][$bp]):'';
-          $curleft=($width_enabled)?floor($left_grid_unit[$bp]/$gu*$cur_wid_avail):'';
-          $curright=($width_enabled)?floor($right_grid_unit[$bp]/$gu*$cur_wid_avail):'';
-          $px=($width_enabled)?'px':'';
-          echo '<div class="fsminfo editcolor editbackground editfont" ><!--wrap bp line of choices-->';
-           $msg=(substr($bp,0,3)==='max')?'View Screen Up to &amp; Over: '.$this->max_width_limit.'px':'Max Wid Screen:'.$bp.':';
-          echo '<span class="bold">'.$msg."</span> total {$gu} gu/row<br>";
-          echo '<p class="floatleft navybackground white .pl10"><!--Bp class choice-->     
-          Width:
-          <select class="editcolor editbackground editfont"  name="'.$data.'_'.$type.'_grid_width['.$i.']">        
-          <option   value="'.$wid_grid_width[$bp].'" selected="selected">'.(floor($wid_grid_unit[$bp]/$gu*10000)/100).'% &nbsp;: &nbsp;'.$wid_grid_unit[$bp].' gu : '. $curwid.$px.'</option>';
-          
-          for ($num=0; $num<$gu+1; $num++){
-               $swid=($width_enabled)?$cur_wid_avail*$num/$gu:'';
-             echo '<option  value="'.$select_wid_arr[$bp][$num].'">'.(floor($num/$gu*10000)/100).'% &nbsp;: &nbsp;'.$num.' gu&nbsp;:&nbsp;'.$swid.$px.'</option>';
-             }
-          echo'	
-          </select> </p><!--Bp class choice-->';
-          printer::pclear(15);
-                         #&&&&&&&&&&&&&&&&&&& Begin  Left  
-         $msg2='Left Space:';
-         echo '<p class=" smallest" title="Add Spacing To The Left of This Post For The Given Breakpoint . Useful for tweaking Post Width For Different Size Groupings. Space added is Outside of Borders and Background Features if used. Analogous to Margins"><!--Bp class choice-->     
-         '.$msg2.'
-         <select class="editcolor editbackground editfont"  name="'.$data.'_'.$type.'_gridspace_left['.$i.']">        
-         <option   value="'.$left_grid_width[$bp].'" selected="selected">'.(floor($left_grid_unit[$bp]/$gu*10000)/100).'% :'.$left_grid_unit[$bp].'gu : '. $curleft.$px.'</option>';
-         for ($num=0; $num<$gu; $num+=.5){
-               $num2=(strpos($num,'.5')===false)?$num:str_replace('.5','',$num).'x5';
-               $slef=($width_enabled)?$cur_wid_avail*$num/$gu:'';
-               echo '<option  value="'.$select_left_arr[$bp][$num2].'">'.(floor($num/$gu*10000)/100).'% &nbsp;: &nbsp;'.$num.' gu/'.$gu.'gu :&nbsp;'.($slef).$px.'</option>';
-               }
-          echo'	
-          </select> </p><!--Bp class choice-->';
-          printer::pclear();
-          #&&&&&&&&&&&&&&&&&&&		end left spacing
-          #&&&&&&&&&&&&&&&&&&&  begin  Right 
-         $msg2='Right Space:';
-         echo '<p class=" smallest" title="Add Spacing To The Left or Right of This Post For The Given Breakpoint. Space added is Outside of Borders and Background Features if used. Will add to total gu use. See gu table for totals.  Analogous to Margins"><!--Bp class choice--><span class="info center">Add Left/Right Spacing (between posts)</span><br>      
-         '.$msg2.'
-         <select class="editcolor editbackground editfont"  name="'.$data.'_'.$type.'_gridspace_right['.$i.']">        
-         <option   value="'.$right_grid_width[$bp].'" selected="selected">'.(floor($right_grid_unit[$bp]/$gu*10000)/100).'% &nbsp;: &nbsp;'.$right_grid_unit[$bp].' gu : '. $curright.$px.'</option>';
-         for ($num=0; $num<$gu; $num+=.5){
-               $num2=(strpos($num,'.5')===false)?$num:str_replace('.5','',$num).'x5';
-               $srig=($width_enabled)?$cur_wid_avail*$num/$gu:'';
-               echo '<option   value="'.$select_right_arr[$bp][$num2].'">'.(floor($num/$gu*10000)/100).'% &nbsp;: &nbsp;'.$num.' gu :&nbsp;'.($srig).$px.'</option>';
-               }
-          echo'	
-          </select> </p><!--Bp class choice-->';
-          #&&&&&&&&&&&&&&&&&&&&&&&  End Right
-          printer::pclear();
-          //echo '</div><!--Spacing Rwd Wrap-->';
-          //$this->show_close('Add Spacing'); 
-          echo '</div><!--wrap bp line of choices-->';
-          $countbp--;
-          }//for bp 
-	#&&&&&&&&&&&&&&&&&&&&&&&&&&  END CLASS QUERY FOR  ACTIVE RWD POSTS  &&&&&&&&&&&&&&&&&&
-	}//end ion rwd_build
 #style#
 #$style_field is the name of the sql field holding raw style data
 #$this->style_field is the raw data itself
@@ -5019,11 +1541,11 @@ function rwd_build($type,$data){
 #the show list is the particlar style functions to render in order they written. If show list is empty the default function order from Cfg::Style_functions_order is used
 #   the function iteself retrieves the css functions  and depending on the key sort order provided or by using the default order, it determines from the relative key value of the function needed to pipe the relevant style array value to.  ie  func  background will receive the style array value from the index ['background'].. The background function and others are where the styling editing for each style takes place and a css rule  generated for the particular values sent. These final css rules   are stored as final_style class variables  named in the general format of the particular "element_style_field_arrayed" format. Reference to the name of returned css value is passed to render_array using the element and css class reference. It also passes the class name reference  The render array is called upon at the close of the page by the method css_generate. Css_generate serves the purpose of collecting the various individual css rules for a given css class name and compiling them in one css statement. To do this the render array is then passed through foreach. Each resulting array provides Reference to a class name   and reference to the style array the gives the collected css values ie;   background:#ffffff;  and color:#aaaaa; All css values for a give classname are collected and rule applied.   the css name may be further modified according to $css_ext if used 
 	
-function edit_styles_close($element,$style_field,$css_classname,$show_list='',$mod_msg="Edit styling",$show_option='',$msg='',$mainstyle=false,$clone_option=true){  
-	//$mainstyle main class style relates to show_more and javascript to toggle static style so show_more isn't visually overlapped ie overrides stacking order...   
-	$this->pelement=$css_classname;
+function edit_styles_close($element,$style_field,$css_classname,$show_list='',$mod_msg="Edit styling",$show_option='',$msg='',$mainstyle=false,$clone_option=true,$global=true){  
+	//$mainstyle main class style relates to show_more and javascript to toggle static style so show_more isn't visually overlapped ie overrides stacking order...
+     $this->pelement=$css_classname;
 	if(!$this->edit||Sys::Printoff||Sys::Styleoff||Sys::Quietmode||$this->styleoff|| Sys::Custom)return;
-	if ($this->is_clone&&!$this->clone_local_style)return; 
+     if ($this->is_clone&&!$this->clone_local_style)return; 
 	(Sys::Deltatime)&&$this->deltatime->delta_log('begin edit styles close line:'.__LINE__.' @ '.__method__);   
 	self::$styleinc++;
 	if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
@@ -5033,13 +1555,15 @@ function edit_styles_close($element,$style_field,$css_classname,$show_list='',$m
 	if ($element==='body'||$element==='bodyview'){
 		$style=$style_field.'_arrayed';
 		$this->$style=$this->$style_field;
-		$this->render_array[]=array($element,'final_'.$style,$css_classname);
+		$this->render_array[]=array($element,'final_'.$style,$css_classname,'body');
 		}
 	elseif (!empty($style_field)){   
 		$style=$element.'_'.$style_field.'_arrayed';#for blog array:::: this leaves the orginal $this->blog_style alone...
 		$this->$style=$this->$style_field;#this is object to refer to actual current value in syle functions..
 		#set both  as element will define    render_array for css_generate and style for style functions
-		$this->render_array[]=array($element,'final_'.$style,$css_classname);//or css_generate all elements called will generate css..
+		$idref = ($this->is_column)?'c'.$this->col_id:(($this->is_blog)?'b'.$this->blog_id:'body');
+		$this->render_array[]=array($element,'final_'.$style,$css_classname,$idref);//or css_generate all elements called will generate css..
+		
 		}
 	else {
 		 $msgx='Array key does not exist'.$element. ' is element'.Sys::error_info(__LINE__,__FILE__,__METHOD__);
@@ -5051,8 +1575,8 @@ function edit_styles_close($element,$style_field,$css_classname,$show_list='',$m
 		$globalstyle=($this->is_blog&&$this->blog_global_style==='global')?$this->column_lev_color.' floatleft border9 borderinfo shadowoff editbackground editfont glowbutton'.$this->column_lev_color:'';
           $show_option='buffer_'.self::$styleinc;
 		$this->show_more($mod_msg,$show_option,$globalstyle,'',550,'','',$mainstyle);#mainshow
-		$this->print_redwrap('mainstyle wrap',true); 
-		if(isset($this->render_view_css)&&is_array($this->render_view_css)&&count($this->render_view_css)>0){
+		$this->print_redwrap('mainstyle wrap',true);
+          if (isset($this->render_view_css)&&is_array($this->render_view_css)&&count($this->render_view_css)>0){
 			if ($this->is_page){
 				$type='page';
 				$id=$this->page_id;
@@ -5066,8 +1590,8 @@ function edit_styles_close($element,$style_field,$css_classname,$show_list='',$m
 				$id=$this->blog_id; 
 				}
 			$this->submit_button();
-               $this->display_style($type,$style_field,$id);	
-			$this->show_more('Special Tag and Class Styles','','highlight tiny editbackground editfont floatleft','Style text through the use of tags and classes with Styles set in page options');
+               $this->display_parse_style($type,$style_field,$id,$show_list);
+			$this->show_more('Page Level Tag and Class Styles','','highlight tiny editbackground editfont floatleft','Style text through the use of tags and classes with Styles set in page options');
 			printer::array_print($this->render_view_css); 
 			$this->show_close('View Current Tag and Class Styles');
 			}
@@ -5085,21 +1609,23 @@ function edit_styles_close($element,$style_field,$css_classname,$show_list='',$m
                }
           $class=($this->pelement==='body')?'body':$this->pelement;
 		$type_ref=($this->is_page)?'Page Ref: "'.$this->pagename.'"':(($this->is_column)?'Col Id: "C'.$this->col_id.'"':'Post Id: "P'.$this->blog_id.'"');
-		printer::printx('<p class="fsminfo smaller editbackground editfont editcolor">Class Name: <span class="'.$this->column_lev_color.'">'.$class.'</span><br>'.$type_ref.' Style Field: <span class="'.$this->column_lev_color.'"> '.$style_field.'</span></p>');
-		(!empty($msg))&&printer::print_tip($msg,.7);
+               $count=strlen($this->$style_field);
+          $cmsg = (strpos($style_field,'tiny')!==false)?"Tiny data field use: <span class='$this->column_lev_color'>$count</span>/255":''; 
+		printer::printx('<p class="fsminfo smaller editbackground editfont editcolor">Class Name: <span class="'.$this->column_lev_color.'">'.$class.'</span><br>'.$type_ref.' Style Field: <span class="'.$this->column_lev_color.'"> '.$style_field.'</span><br>'.$cmsg.'</p>');
+		(!empty(trim($msg)))&&printer::print_tip($msg,.7);
           printer::pclear(10);
           printer::alert('<input type="checkbox" name="'.$ndata.'" value="0" onchange="edit_Proc.oncheck(\''.$ndata.'\',\'Delete all styles within this style grouping for '.$type.' when YOU HIT CHANGE, UNCHECK TO CANCEL\')">Delete all styles for this Style grouping');
           printer::pclear(10);
 		if ($this->is_blog&&($this->blog_type==='text'||$this->blog_type==='float_image_right'||$this->blog_type==='float_image_left'||$this->blog_type==='image'||$this->blog_type==='video')){
-			if (isset($_POST[$this->data.'_blog_global_style'])&&$_POST[$this->data.'_blog_global_style']==='global'){
+			if ($global&&isset($_POST[$this->data.'_blog_global_style'])&&$_POST[$this->data.'_blog_global_style']==='global'){
 				$q="update $this->master_post_table set blog_global_style='0' where blog_col='$this->col_id' and blog_id!='$this->blog_id' and blog_type='$this->blog_type'";  //remove anothe current global setting if exists
 				$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false); 
 				}
-			if (isset($_POST['delete_global_styles_'.$this->data.'_'.$style_field])&&$_POST['delete_global_styles_'.$this->data.'_'.$style_field]==='delete'){
+			if ($global&&isset($_POST['delete_global_styles_'.$this->data.'_'.$style_field])&&$_POST['delete_global_styles_'.$this->data.'_'.$style_field]==='delete'){
 				$q="update $this->master_post_table set $style_field='0' where blog_col='$this->col_id' and blog_id!='$this->blog_id' and blog_type='$this->blog_type'";   
 				$this->mysqlinst->query($q,__METHOD__,__LINE__,__FILE__,false); 
 				}
-			 if ($this->blog_global_style!=='global'){
+			 if ($global&&$this->blog_global_style!=='global'){
 				$this->show_more('Globalize this style grouping');
 				echo '<div class="fsminfo editbackground editfont editcolor"><!--globalize style wrap-->';
                     printer::printx('<p class="tip ">These styles made here will be applied to all '.$this->blog_type.' posts within this column.  Styles made in the individual posts will override these. Any Previous Globalized '.$this->blog_type.' styles will be removed.</p>');
@@ -5108,7 +1634,7 @@ function edit_styles_close($element,$style_field,$css_classname,$show_list='',$m
 				echo '</div><!--globalize style wrap-->';
 				$this->show_close('Globalize this '.$this->blog_type.' within Column');
 				}// option not global
-			else {
+			else if ($global){
 				$this->show_more('Undo Globalize these styles');
 				echo '<div class="fsminfo editbackground editfont editcolor"><!--globalize style wrap-->';
                     printer::printx('<p class="tip ">Undo globalization means styles made here will longer be applied to all '.$this->blog_type.' posts within this column. </p>');
@@ -5136,16 +1662,17 @@ function edit_styles_close($element,$style_field,$css_classname,$show_list='',$m
 	#stylefunction 
 	if (!empty(trim($show_list)))$function_order=explode(',',str_replace(' ','',$show_list));
 	else  $function_order=explode(',',Cfg::Style_functions_order);
-	$function_order[]='custom_style';//enable for all 
-	$function_order[]='media_max_width';//enable for all 
-	$function_order[]='media_min_width';//enable for all 
+	array_unshift($function_order , 'media_styler');//enclose non- function css_generated css in the media queries as set forth herein 
 	foreach ($function_order as $index){  
 		$i=$this->{$index.'_index'};
-		(Sys::Deltatime)&&$this->deltatime->delta_log('Begin EditStyle function:    ele: '.$element.'  css:  '.$css_classname .' funct: '.$functions[$i]);
-		$this->{$functions[$i]}($style,$i,$style_field);  #this calls the functions.... 
+		(Sys::Deltatime)&&$this->deltatime->delta_log('Begin EditStyle function:    ele: '.$element.'  css:  '.$css_classname .' funct: '.$functions[$i+1]);
+		$this->{$functions[$i]}($style,$i,$style_field);  #this calls the functions....
+		
 		(Sys::Deltatime)&&$this->deltatime->delta_log('End Function : '.$functions[$i]);
 		printer::pclear();
-		} 
+		}
+	$this->media_styler($style,$this->media_styler_index,'display');//here we display the media_styler settings options and close the media query tag if chosen!  media query opened above by using array_unshift($function_order , 'media_styler'); 
+	$this->custom_style($style,$this->custom_style_index,$style_field);
 	 #styleclone #stylecopy
           if  ($this->is_blog&&$this->is_clone&&$this->clone_local_style){
                $this->show_more('Blog Copy Style','','highlight click editbackground editfont');
@@ -5164,11 +1691,23 @@ function edit_styles_close($element,$style_field,$css_classname,$show_list='',$m
           printer::pclear(); 
           if ($this->is_page|| ($this->is_blog&&!$this->is_clone)||($this->is_column&&!$this->is_clone||$this->clone_local_style)){  
                $this->submit_button();
-               if ($style_field==='blog_style'||$style_field==='col_style'){
+               if ($style_field==='page_style'||$style_field==='blog_style'||$style_field==='col_style'){
+			 printer::print_tip("Additional @media control Optionally Enable to Add a second and third main @media width $style_field of grouped styles except for advanced styles and any animation/effects options"); 
+			$media_name=($this->is_page)?'page_options['.$this->page_enable_media_style_index.']':(($this->is_column)?$this->col_name.'_col_options['.$this->col_enable_media_style_index.']':$this->data.'_blog_options['.$this->blog_enable_media_style_index.']');
                     #add another main style field for media@ width rules
-                    printer::print_tip("For @media control Optionally Add a second main @media width $style_field of grouped posts"); 
-                    $this->edit_styles_close($element,$style_field.'2',$css_classname,$show_list,"@media$mod_msg",$show_option,$msg='Secondary for Re Styling @mediawidth ',$mainstyle,$clone_option);
+			$type=($this->is_page)?'page':(($this->is_column)?'col':'blog');   
+				$media_style= ($this->{$type.'_options'}[$this->{$type.'_enable_media_style_index'}]==='media_style_on')?true:false;
+			 if ($media_style) 
+				  printer::alert('<input type="checkbox" value="media_style_off" name="'.$media_name.']">Disable additional @media Style Groups if not used to save editmode render time.');
+			 else 
+				  printer::alert('<input type="checkbox" value="media_style_on" name="'.$media_name.'">Enable Additional @media Main Style Grouping Tweaks');
+			 if ($media_style){
+                    
+                    $this->edit_styles_close($element,$style_field.'2',$css_classname,$show_list,"Add Additional @media$mod_msg{2}",$show_option,$msg='Secondary for Re-Styling @mediawidth.',$mainstyle,$clone_option);
+				
+                    $this->edit_styles_close($element,$style_field.'3',$css_classname,$show_list,"Add Additional @media$mod_msg{3}",$show_option,$msg='Third for Re-Styling @mediawidth ',$mainstyle,$clone_option);
                     }
+			}
                printer::close_print_wrap('mainstyle wrap');
                $this->show_close($mod_msg,$show_option);//<!--end plus more class="white relative hide" for Edit Styles Close-->';
                printer::pclear(2);   
@@ -5417,7 +1956,7 @@ function clipboard($type,$id,$field){
      printer::close_print_wrap1('techinfo');
      $this->show_close('Style info');
 	printer::alert('Current Clipboard styles: <br>');
-	$this->display_style('page','page_clipboard',$this->page_id);
+	$this->display_parse_style('page','page_clipboard',$this->page_id);
 	printer::alert('<input type="text" value=""  size="6" maxlength="6" name="paste_from_clipboard['.$type.']['.$field.'@x@x'.$id.'][]">Type the word "paste" into into box to paste the current clipboard replacing these styles');
 	printer::alert('<input type="checkbox" value="'.$field.'@x@x'.$id.'" name="copy_to_clipboard['.$type.']">Check here to copy these styles to current clipboard (Only one copy event will be registered)');
 	$this->submit_button();
@@ -5425,7 +1964,7 @@ function clipboard($type,$id,$field){
 	}
      
  function css_generate(){
-	 if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);  
+	if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);  
  (Sys::Deltatime)&&$this->deltatime->delta_log(__LINE__.' @ '.__method__.'  '); 
     //what this will do is generate a css element and then the style for each element automatically!! 
 	if (!isset($this->render_array)||empty($this->render_array)){
@@ -5436,66 +1975,62 @@ function clipboard($type,$id,$field){
 		if (is_array($elem)) {
 			$css_classname=trim($elem[2]);
 			$style=trim($elem[1]);
-			$element = trim($elem[0]);    
+			$element = trim($elem[0]);
+			$idref = trim($elem[3]);
 			}
 		else {
 			$msg='Array Error'; 
 			mail::alert($msg);
 			$this->message[]=$msg;
 			}
-	     if (!isset($this->$style)||!is_array($this->$style)||count($this->$style)<2){  
+			
+		if (!isset($this->$style)||!is_array($this->$style)||count($this->$style)<1){  
 			$msg='improper array formation with element '.$element.Sys::error_info(__LINE__,__FILE__,__METHOD__);
-			$message[]=$msg;
-			(Sys::Loc)&&print NL.$msg;
+			
 			continue;
-			}   
-		$style_css=$css_classname; 
-		$csstype=($element==='bodyview'||$element==='body')?'pagecss':'css';
-	     //$this->{$csstype}.="\n".'  '.$style_css .'{';
-	     $css="\n".'  '.$style_css .'{'; 
+			}    
+		
 		$count=count(explode(',',Cfg::Style_functions)); 
 		array_splice($this->$style, $count);//trim appendages..
-          $maxwidth=$minwidth=0;
+          $mediastyler='';
+		$collect='';
+		
 		foreach ($this->$style as $genstyle){
                if (is_array($genstyle)) {
-                    if ($genstyle[0]==='mediamax')$maxwidth=$genstyle[1];
-                    elseif($genstyle[0]==='mediamin')$minwidth=$genstyle[1];
+                    if ($genstyle[0]==='mediastyler')$mediastyler=$genstyle[1];
                     continue;
                     }
 			if (strpos($genstyle,'@@')!==false)continue;
 			if (!empty(trim($genstyle))) {
-				$css.=$genstyle.' ';   
+				$collect.=$genstyle.' ';   
 				}
-			} //end foreach  
+			} //end foreach
+		if (empty($collect))continue;
+		$style_css=$css_classname; 
+		$csstype=($element==='bodyview'||$element==='body')?'pagecss':'css';
+	     $css="\n".'  '.$style_css .'{'.$collect; 
 		$css.='}
           ';
-          if (!empty($maxwidth)&&!empty($minwidth)) {
-		$mediaopen='
-@media screen and (max-width:'.$maxwidth.'px) and (min-width:'.$minwidth.'px){
+		 
+          if (!empty($mediastyler)) { 
+			$mediaopen='
+'.$mediastyler.'{
 ';
                $mediaclose='
      }';
                }
-          elseif (!empty($maxwidth)){
-               $mediaopen='
-@media screen and (max-width: '.$maxwidth.'px){
-';
-               $mediaclose='
-     }';
-               }
-          elseif (!empty($minwidth)) {
-		$mediaopen='
-@media screen and (min-width: '.$minwidth.'px){
-';
-               $mediaclose='
-     }';
-               }
+         
           else {
                $mediaopen='';
                $mediaclose='';
                }
-		$this->{$csstype}.=$mediaopen.$css.$mediaclose;
-          $this->id_class=false;//set back to false: set true if you wish to use # instead of .
+		
+		if ($csstype==='css'){
+			$this->css=$mediaopen.$css.$mediaclose;  
+			$this->handle_css_edit($idref,'cssgen');
+			}
+		else $this->{$csstype}.=$mediaopen.$css.$mediaclose;
+          $this->id_class=false;//set back to false: was set true if you wish to use # instead of.
 		$advanced= (array_key_exists($css_classname,$this->advancedstyles)&&!empty($this->advancedstyles[$css_classname]))?NL.$this->advancedstyles[$css_classname]:''; 
 		($element==='bodyview')&&$this->css_view[]=$css. $advanced;//for previewing special tags and classes styling only
 		(Sys::Deltatime)&&$this->deltatime->delta_log('After Insert '.__LINE__.' @ '.__method__.'  ');
@@ -5504,15 +2039,19 @@ function clipboard($type,$id,$field){
 	(Sys::Deltatime)&&$this->deltatime->delta_log('End of '.__LINE__.' @ '.__method__.'  ');
 	}
 
-function display_style($type,$field,$id){
+function display_parse_style($type,$field,$id,$showlist=''){
 	static $inc=0; $inc++;
 	$show_msg='Display Styles';
-	$this->show_more($show_msg,'','highlight editbackground editfont left floatleft smallest','Sent request for Styling Info breakdown of this current style');
-	echo '<p class="highlight Os3darkslategray fsmyellow editbackground editfont click floatleft" title="View Chosen Styles" onclick="gen_Proc.use_ajax(\''.Sys::Self.'?display_styles='.$type.'@@'.$id.'@@'.$field.'&amp;display_id=display_styles_'.$inc.'\',\'handle_replace\',\'get\');" >Click to display Parsed Styles</p>';
-	echo '<div id="display_styles_'.$inc.'"></div>'; 
-	$this->show_close($show_msg);
-	printer::pclear();
-	} 
+	echo '<div id="display_styles_'.$inc.'"><p class="smallest italic editbackground editfont click floatleft" title="View Chosen Styles" onclick="gen_Proc.use_ajax(\''.Sys::Self.'?display_styles='.$type.'@@'.$id.'@@'.$field.'&amp;style_list='.$showlist.'&amp;display_id=display_styles_'.$inc.'\',\'handle_replace\',\'get\');" >Click to display Parsed Styles</p></div>'; 
+	printer::pclear(5);
+    }
+
+function display_parse_options($type,$id){ 
+	static $inc=0; $inc++;
+	$show_msg='Quick View Current Settings';
+     printer::pclear(5);
+     echo '<div id="display_options_'.$inc.'"><p class="smaller italic editbackground editfont click floatleft" title="View Chosen Settings Options" onclick="gen_Proc.use_ajax(\''.Sys::Self.'?display_options='.$type.'@@'.$id.'&amp;display_id=display_options_'.$inc.'\',\'handle_replace\',\'get\');" >Click to display Parsed options</p></div>';
+	}
 		 
 function globalize_text_post($dataname){ if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
     static $x=0;
@@ -5541,7 +2080,7 @@ function edit_styles_open(){if(Sys::Custom)return;if (Sys::Methods) Sys::Debug(_
 	($this->blog_unstatus==='unclone')&&printer::alert('Mirror release Post','','orange left ');
 	printer::alert($a.NL.$b,'',$this->column_lev_color.' left ');
 	printer::alertx('<p class="highlight left" title="The Unique '.$c.' Would Be Used for Copying/Cloning/Moving this Post Elsewhere. For Styles look for '.$this->data.' For Advanced Styles look for #post_'.$this->blog_id.'. Parent column has Id:'.$this->col_id.'">'.$c.'</p>');
-	$this->show_more('info','','info smaller');
+	$this->show_more('info','noclear','info smaller floatleft');
 	$this->print_wrap('primal');
 	printer::alert('Post Css &amp; ID/CLASS: '.$this->dataCss);
 	printer::alert('Parent Col Id: '.$this->col_id);
@@ -5565,19 +2104,18 @@ function edit_styles_open(){if(Sys::Custom)return;if (Sys::Methods) Sys::Debug(_
           if ($this->flex_box_item){
                $flexMode='&#x2713;';
                printer::print_info('Flex Box Item Active. Use along with Main Width Modeor Alt width Units. Overrides Masonry assist');
-               
                }  
           if($this->use_blog_main_width){
                $widthSetting=($this->blog_width_mode[$this->blog_width_mode_index]!=='compress_full_width'&&$this->blog_width_mode[$this->blog_width_mode_index]!=='compress_to_percentage')?'&#x2713;':'&#x2715;';    
               $altGridFull=($this->blog_width_mode[$this->blog_width_mode_index]==='compress_full_width')?'&#x2713;':'&#x2715;';
                $altGridPercent=($this->blog_width_mode[$this->blog_width_mode_index]==='compress_to_percentage')?'&#x2713;':'&#x2715;'; 
-               $scale=($widthSetting==='&#x2713;')?'using max-width':(($widthSetting==='compress_full_width')?'using  % scale':'using % scale to a min-width');
+               $scale=($widthSetting==='&#x2713;')?'using max-width':(($widthSetting==='compress_full_width')?'using fully compressable by percent':'using percent with set media width percent tweaks.');
                printer::print_info('Main Width Set '.$scale);
                }
           else {  
-               $info=$this->check_spacing($this->blog_options[$this->blog_max_width_opt_index],'max-width');
-               $info.=$this->check_spacing($this->blog_options[$this->blog_width_opt_index],'width');
-               $info.=$this->check_spacing($this->blog_options[$this->blog_min_width_opt_index],'min-width');
+               $info=$this->check_spacing($this->blog_options[$this->blog_max_width_alt_opt_index],'max-width');
+               $info.=$this->check_spacing($this->blog_options[$this->blog_width_alt_opt_index],'width');
+               $info.=$this->check_spacing($this->blog_options[$this->blog_min_width_alt_opt_index],'min-width');
                if (empty($info))
                     printer::print_info('<b>No Active</b> alt width units em, rem,  %, px  sizing this '.$this->blog_typed);
                     
@@ -5604,8 +2142,6 @@ function edit_styles_open(){if(Sys::Custom)return;if (Sys::Methods) Sys::Debug(_
           printer::print_info('right and left padding and margin info:<br>'.$blog_pad_info);
           }
      else printer::print_info('No right or left padding or margin set');
-     
-	
      (!empty($this->left_border_info))&&printer::print_info($this->left_border_info);
      (!empty($this->right_border_info))&&printer::print_info($this->right_border_info);
      printer::print_tip('In the parent column of posts RWD grid may be enabled which enables choosing the RWD Grid Percentages to lay out this post as a percentage of the available column width at different break points which correspond to different viewer screen sizes. <br><br>Similarly, Flex Box or Masonry may be enabled in the parent column which assists layouts of the posts.',.8);
@@ -5616,18 +2152,19 @@ function edit_styles_open(){if(Sys::Custom)return;if (Sys::Methods) Sys::Debug(_
 	<tr><td>&nbsp; '.$float.'</td><td>Active Float Setting</td></tr>  
 	<tr><td> &nbsp; '.$widthSetting.'</td><td>Active Main Width max-width Setting</td></tr>
 	<tr><td>&nbsp; '.$altGridFull.'</td><td>Main Width Full Percentage Compress</td></tr>  
-	<tr><td>&nbsp; '.$altGridPercent.'</td><td>Main Width Percentage Compress to Min Width</td></tr>
+	<tr><td>&nbsp; '.$altGridPercent.'</td><td>Main Width Percentage with set media width tweaks</td></tr>
 	<tr><td>&nbsp; '.$scaleMode.'</td><td>Alt Width Units (em rem % px)</td></tr> 
 	<tr><td>&nbsp; '.$enableMasonry.'</td><td>Masonry Assist Enabled<br></td></tr></table>';
 	$this->close_print_wrap('primal'); 	
 	$this->show_close('info','','info fs1info');
+     echo '<a title="go to post bottom" href="#pbot_'.$this->blog_id.'" style="color:#'.$this->editor_color.'" class="cursor pr15 editcolor editbackground tiny italic underline floatright">Go pBot</a>';
 	echo '</div><!--end edit style open-->'; 
 	printer::pclear(2);
 	}
  
-function misc($data){ return;  //outdated option
+function misc($data){return;  //outdated option
 	 ($this->edit)&&    
-			$this->blog_options($data,$this->blog_table);
+		$this->blog_options($data,$this->blog_table);
 	if ($this->edit){
 		printer::print_tip('100% length width or height line separators between posts may be created when styling borders in each Post styling options.   Choose top bottom left or right side.<br>  Here, create a horizontal svg line  and choose  percentage of available width  to begin or end the line');
 		$startx=$endx=$colorx=$widthx=0;
@@ -5795,23 +2332,24 @@ function comment_display($data){
 		$upper_maxwidth=500*$this->current_font_px/16;//upper contact form max width
 		$current_net_width=($this->current_net_width<$upper_maxwidth)?$this->current_net_width:$upper_maxwidth;
 		$current_total_width_left=$current_net_width*.60;
-		echo '<p onclick="gen_Proc.showIt(\''.$data.'_show\');" class="click  smaller style_comment_view pos">Add Yours</p>';
+		echo '<p onclick="gen_Proc.toggleClass2(\'#'.$data.'_show\',\'hide\');" class="click  smaller style_comment_view pos">Add Yours</p>';
 		forms::form_open('','onsubmit="return gen_Proc.funcPass({funct:\'validateEntered\',pass:{idVal:\'comment_name_'.$this->blog_id.'\',ref:\'name\'}},{funct:\'validateEntered\',pass:{idVal:\'comment_text_'.$this->blog_id.'\',ref:\'comment textarea\'}});"');
 		echo '<div id="'.$data.'_show" class="hide" style="background:white;color:#444; padding:5px; margin:4px; border: solid 3px #e9967a"><!--leave comment-->';
 		printer::printx('<p class="tiny nopostemail">Email addresses will not be posted</p>
-		<p class="floatleft smaller" style="background:white;color:red;">Your Name:&nbsp;&nbsp;</p>
-		 <input  style="color:red;background:white;" type="text" name="comment_name['.$this->blog_id.']" id="comment_name_'.$this->blog_id.'"  maxlength="35" value=""> ');
+		<p class="floatleft smaller" style="background:white;color:#555;">Your Name:&nbsp;&nbsp;</p>
+		 <input  style="background:white;color:#555;" type="text" name="comment_name['.$this->blog_id.']" id="comment_name_'.$this->blog_id.'"  maxlength="35" value=""> ');
 		printer::pclear(7);
 		printer::printx('
-		<p class="floatleft smaller" style="background:white;color:red;">Your Email:&nbsp;&nbsp;</p>
+		<p class="floatleft smaller" style="background:white;color:#555;">Your Email:&nbsp;&nbsp;</p>
 		 <input style="color:red;background:white;" type="text" name="comment_email['.$this->blog_id.']" id="comment_email_'.$this->blog_id.'"  maxlength="35" value=""> ');
 		printer::pclear(7);
-		printer::printx('<p class="floatleft smaller" style="background:white;color:red;float:left; margin-left:2px;">'.$this->comment.':</p>'); 
+		printer::printx('<p class="floatleft smaller" style="background:white;color:#555;float:left; margin-left:2px;">'.$this->comment.':</p>'); 
 		printer::pclear(7);
-		printer::printx('<textarea   id="comment_text_'.$this->blog_id.'" class="width100 editbackground editfont fs1'.$this->column_lev_color.'" name="comment_text['.$this->blog_id.']" rows="3"    onkeyup="gen_Proc.autoGrowFieldScroll(this);"></textarea>');
-		echo '</div><!--class hide-->';
+		printer::printx('<textarea style="background:white;color:#555;" id="comment_text_'.$this->blog_id.'" class="width100  fs1'.$this->column_lev_color.'" name="comment_text['.$this->blog_id.']" rows="3"    onkeyup="gen_Proc.autoGrowFieldScroll(this);"></textarea>');
 		forms::form_close('','Add '.$this->comment,'feedback_submit');
-		 if ($this->blog_options[$this->blog_comment_display_index]!=='display_comment')
+		echo '</div><!--class hide-->';
+		
+           if ($this->blog_options[$this->blog_comment_display_index]!=='display_comment')
 			$this->show_close('Leave '.$this->comment.'');
 		}//!edit and leave feedback	 
 	if ($count>0 || ($this->edit&&$accept_count>0)){
@@ -5880,7 +2418,7 @@ function edit_form_head(){   if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__ME
      echo'<form id="mainform" action="'.Sys::Self.'" ' .$this->form_load.' method="post" '.$this->onsubmit.'><!--mainform begin-->';
 	}
 	
-function display_state(){ 
+function display_state(){
 	#note: display property and advanced styles use css #id to override normal styles which use distinct classnames
 	$css_id=($this->is_column)?$this->col_dataCss:$this->dataCss;
 	$max_name=($this->is_column)?$this->col_name.'_col_options['.$this->display_max_index.']':$this->data.'_blog_options['.$this->display_max_index.']';
@@ -5889,11 +2427,11 @@ function display_state(){
 	$msg='Select a min-width or max-width or both at which to display:none this '.$type;
 	$val_max=($this->is_column)?$this->col_options[$this->display_max_index]:$this->blog_options[$this->display_max_index];
 	$val_min=($this->is_column)?$this->col_options[$this->display_min_index]:$this->blog_options[$this->display_min_index];
-	$this->show_more('Display '.$type.' Off &amp; Scroll Height Visibility',$msg,'','','800');
+	$this->show_more('Display @media Off ',$msg,'','','800');
 	$this->print_redwrap('Display state');
-     printer::print_tip('Control dipslay based on <b>@media queries</b>  or <b>scroll height methods</b>');
+     printer::print_tip('Control display based on <b>@media queries</b>  or <b>scroll height methods</b>');
      printer::print_wrap('display media method');
-	printer::print_tip('<b>Use @media quieries</b> to optionally set a maximum and/or minimum with at which will initate a display:none for this post in webpage mode only. <br> Note: Display Property for RWD grid mode may also be responsively Turned off using 0 grid units (ie %) for particular break pts.');
+	printer::print_tip('<b>Use @media queries</b> to optionally set a maximum and/or minimum width at which will initate a display:none for this post in webpage mode only. <br> Note: Display Property for RWD grid mode may also be responsively Turned off using 0 grid units (ie %) for particular break pts. <b>Flex elements will not respond</b>');
 	$displayoff_maxpx=($val_max>199&&$val_max<2001)?$val_max:'none';
 	$displayoff_minpx=($val_min>199&&$val_min<3001)?$val_min:'none';
 	$mediacss=$css='';
@@ -5944,7 +2482,6 @@ function display_state(){
      printer::printx('<p ><input type="checkbox" name="'.$min_name.'" value="0">Remove min-width</p>');
      echo '</div><!--wrap min width-->';
      printer::close_print_wrap('display media method');
-     $this->scroll_height_fade();
      $this->submit_button(); 
           printer::pclear();
      $this->close_print_wrap('Display state');
@@ -5952,14 +2489,778 @@ function display_state(){
      printer::pclear();
      }//end display 
 
- 
+     
+function display_px_scroll(){
+     self::$xyz++;   
+      #this is for all posts including nested columns
+      $options=($this->is_column)?$this->col_options[$this->col_display_state_px_index]:$this->blog_options[$this->blog_display_state_px_index]; 
+     $options=explode('@@',$options);
+     $px_options='display_max,display_min,display_fade_px,display_fade_choice,display_fade_mode,display_basis,display_speed';
+	$px_options=explode(',',$px_options);
+	$c_opts=count($px_options);
+      foreach($px_options as $key =>$index){
+		${$index.'_index'}=$key;
+		}
+     $repeats=3*$c_opts;
+     $cb_data=($this->blog_type==='nested_column')?$this->col_dataCss:$this->dataCss;
+     $this->show_more('Display Scroll Px');
+     printer::print_wrap('display scroll');
+	for ($i=0;$i<$repeats; $i++){ 
+		if (!array_key_exists($i,$options))$options[$i]=0;
+		} 
+     for ($i=0; $i<3; $i++){
+          $k=$i * $c_opts ;//
+          if ($i>0){
+               $this->show_more('Additional @Media Controlled');
+               printer::print_wrap('Additional display');
+               }
+          $this->submit_button();
+          $element_arr=array('self','id','Closest Matching Previous Class','Closest Matching Next Class');
+          printer::print_tip('Use both maxwidth and minwidth for  multiple selected @media widths. Uses Jquery window.width.');
+              $basis=($options[$display_basis_index+$k]==='on')?$options[$display_basis_index+$k]:'off'; 
+          $display_max=(is_numeric($options[$display_max_index+$k])&&$options[$display_max_index+$k]>0&&$options[$display_max_index+$k]<=4000)?$options[$display_max_index+$k]:'none';
+         $display_min=(is_numeric($options[$display_min_index+$k])&&$options[$display_min_index+$k]>0&&$options[$display_min_index+$k]<=4000)?$options[$display_min_index+$k]:'none';
+         $display_speed=(is_numeric($options[$display_speed_index+$k])&&$options[$display_speed_index+$k]>=.1&&$options[$display_speed_index+$k]<=3)?$options[$display_speed_index+$k]:1;
+          $fadepx=($options[$display_fade_px_index+$k]>0&&$options[$display_fade_px_index+$k]<=750)?$options[$display_fade_px_index+$k]:'0';
+          $fadechoice=($options[$display_fade_choice_index+$k]==='fadein'||$options[$display_fade_choice_index+$k]==='fadeout')?$options[$display_fade_choice_index+$k]:'fadein';
+          $fademode=($options[$display_fade_mode_index+$k]==='display')?$options[$display_fade_mode_index+$k]:'visible';
+          
+           
+          $display_name=($this->is_column)?$this->col_name.'_col_options['.$this->col_display_state_px_index.']':$this->data.'_blog_options['.$this->blog_display_state_px_index.']';
+          $speed_name=$display_name.'['.($display_speed_index+$k).']';
+          $max_name=$display_name.'['.($display_max_index+$k).']';
+          $min_name=$display_name.'['.($display_min_index+$k).']';
+          $fade_px_name=$display_name.'['.($display_fade_px_index+$k).']';
+          $basis_name=$display_name.'['.($display_basis_index+$k).']';
+          $mode_name=$display_name.'['.($display_fade_mode_index+$k).']';
+          $value_name=$display_name.'['.($display_fade_px_index+$k).']';
+          $choice_name=$display_name.'['.($display_fade_choice_index+$k).']';
+          $type=($this->blog_type==='nested_column')?'nested column':'post';
+          $id=($this->blog_type==='nested_column')?$this->col_id:$this->blog_id;
+          printer::print_wrap1('max @media');
+          printer::alert('specify @media max-width option');
+          $this->mod_spacing($max_name,$display_max,100,4000,1,'px','none');
+          printer::close_print_wrap1('max @media');
+          printer::print_wrap1('min @media',$this->column_lev_color);
+          printer::alert('specify @media min-width option');
+          $this->mod_spacing($min_name,$display_min,100,4000,1,'px','none');
+          printer::close_print_wrap1('min @media');
+          printer::print_wrap1('scroll height fade');
+          
+          #######################
+          $checked1=($basis!=='on')?'checked="checked"':'';
+          $checked2=($basis==='on')?'checked="checked"':''; 
+          printer::alert('<input type="radio" name="'.$basis_name.'" value="off" '.$checked1.'>Turn Off');
+          printer::alert('<input type="radio" name="'.$basis_name.'" value="on" '.$checked2.'> Turn On'); 
+          printer::close_print_wrap1('scroll height fade');
+          ################
+          $checked1=($fadechoice!=='fadeout')?'checked="checked"':'';
+          $checked2=($fadechoice==='fadeout')?'checked="checked"':'';
+          printer::print_wrap1('fade in or out display');
+          printer::alert('<input type="radio" name="'.$choice_name.'" value="fadein" '.$checked1.'>Choose fadein to initially hide this '.$type.' till specified scroll height is surpassed then make display/visible');
+          printer::alert('<input type="radio" name="'.$choice_name.'" value="fadeout" '.$checked2.'>Choose fadeout to initially display this '.$type.' till specified scroll height is surpassed then hide');
+          printer::close_print_wrap1('fade in or out display');
+          $checked1=($fademode!=='display')?'checked="checked"':'';
+          $checked2=($fademode==='display')?'checked="checked"':'';
+          printer::print_wrap1('vis/display');
+          printer::print_tip('Visibility:hidden changes the opacity &amp; visibility properties. display:none is emulated by additionally including absolute positioning on the element so it removes the occupied space as well. If the post types/nested columns to fade is already using <b>absolute  positioning</b> use the visibility option so that top left parameters are preserved!');
+          printer::alert('<input type="radio" name="'.$mode_name.'" value="visible" '.$checked1.'>Use Visibility:hidden (Preserves spacing affects visiblity only. Use if this '.$type.' to fade in/out is <b>absolutely positioned already</b> to preserve additional settings: top/left etc.)');
+          printer::alert('<input type="radio" name="'.$mode_name.'" value="display" '.$checked2.'>Emulate Display:none (Removes/Puts Back Spacing and Visibility)');
+          printer::close_print_wrap1('vis/display');
 
+          printer::print_wrap1('duration');
+          printer::alert('Specify fade-in fade-out duration option in seconds');
+          $this->mod_spacing($speed_name,$display_speed,.1,3,.1,'sec');
+          printer::close_print_wrap1('duration');
+          
+          printer::print_wrap1('choose display fade px');
+          printer::print_tip('Set the scroll height for the Visibility/display Transition');
+          $this->mod_spacing($value_name,$fadepx,1,750,1,'px'); 
+          printer::close_print_wrap1('choose display fade px'); 
+          if ($basis==='on'){
+               $ms=$display_speed * 1000;
+               if ($fademode==='visible')
+                    $this->css.='
+               .'.$cb_data.'.visibleTransitionOn,.'.$cb_data.'.visibleTransitionOff { 
+       -webkit-transition: opacity '.$ms.'ms, visibility '.$ms.'ms;
+       transition: opacity '.$ms.'ms, visibility '.$ms.'ms;}
+       ';
+               else $this->css.='
+               .'.$cb_data.'.displayTransitionOff,.'.$cb_data.'.displayTransitionOn  {
+  -webkit-transition: opacity '.$ms.'ms, visibility '.$ms.'ms;
+  transition: opacity '.$ms.'ms, visibility '.$ms.'ms;
+     }
+       ';
+               $minheight='500px';
+               if($fadechoice==='fadein'){ 
+                    if ($fademode!=='visible'){ 
+                         $inout='displayTransitionOn';
+                         $rev_inout='displayTransitionOff';
+                         $initclass='displayOff';
+                         }
+                         
+                    else{ 
+                         $inout='visibleTransitionOn';
+                         $rev_inout='visibleTransitionOff';
+                         $initclass='visibleOff';
+                         }
+                    }
+               else {
+                    $initclass='';
+                    if ($fademode!=='visible'){ 
+                         $inout='displayTransitionOff';
+                         $rev_inout='displayTransitionOn';
+                         }
+                         
+                    else{ 
+                         $inout='visibleTransitionOff';
+                         $rev_inout='visibleTransitionOn';
+                         }
+                    }
+            
+     
+               $initaddclass= ($fadechoice==='fadein')?"jQuery('.$cb_data').addClass('$initclass');":'';
+               $display_max=($display_max==='none')?10000 : $display_max;
+               $display_min=($display_min==='none')?100 : $display_min;
+               $timer='fadethis_scroll_'.self::$xyz++;  
+                    $this->script.= <<<eol
+               
+               
+               // display px scroll $type for $cb_data
+               if (gen_Proc.vpw <= $display_max && gen_Proc.vpw >= $display_min){
+               $initaddclass                    
+               jQuery('body').css('min-height','$minheight');
+               var $timer='';
+               jQuery(window).on('scroll resize', function(){
+                    clearTimeout($timer);
+                    $timer = setTimeout(function(){ //this will limit no of scroll events responding
+                   
+                         if (jQuery(this).scrollTop() >= $fadepx) {   
+                              jQuery('.$cb_data').addClass('$inout').removeClass('$initclass').removeClass('$rev_inout');  
+                              }
+                         else if(jQuery(this).scrollTop() < $fadepx) {
+                              jQuery('.$cb_data').addClass('$rev_inout').removeClass('$inout');    
+                              }
+                              
+                         },40);
+                    });
+               }//if media
+eol;
+               }//if basis
+     
+          if ($i>0){ 
+               $this->submit_button();
+               printer::close_print_wrap('Additional display');
+               $this->show_close('Additional Media Conrolled Choices');
+               }    
+          }//for loop
+      $this->submit_button();
+      printer::close_print_wrap('display scroll');
+      $this->show_close('Choose Display Scroll Visibility');
+      }//end display       
+     
+function column_vertical_align(){
+		$this->show_more('Vertical Alignment');
+	$this->print_redwrap('Adjust default Vertical');
+     printer::print_tip('Flex Box Settings if enabled in parent column will override these Vertical settings according to flex container align-item settings and flex-item align-self setting');
+	printer::print_tip('By Default center floated Nested Columns (display:inline-block) will Vertically Top Align with Other Posts within the Parent Column. Affects non-flex mode columns. Change that Default Here '); 
+	printer::alert('Column Vertical Positioning Choice','','left editcolor editbackground editfont');
+	$current_vert_val=($this->col_options[$this->col_vert_pos_index]!=='middle'&&$this->col_options[$this->col_vert_pos_index]!=='bottom')?'top':$this->col_options[$this->col_vert_pos_index];
+	forms::form_dropdown(array('top','middle','bottom'),'','','',$this->col_name.'_col_options['.$this->col_vert_pos_index.']',$current_vert_val,false,'editcolor editbackground editfont left');
+	$this->css.=$css="\n.". $this->col_dataCss.'{vertical-align:'.$current_vert_val.'}';
+     
+     $this->show_more('Style info','','info italic smaller');
+     printer::print_wrap1('techinfo');
+     printer::print_info('Current setting Css: '.$css.' in '.$this->roots.Cfg::Style_dir.$this->pagename.'.css');
+     $msg='Vertical Positioning applied to col main div.';
+     printer::print_info($msg);
+     printer::close_print_wrap1('techinfo');
+     $this->show_close('Tech info');
+	printer::close_print_wrap('Adjust default Vertical'); 
+	$this->show_close('Adjust default Vertical Positioning');
+		}
+     
+ //this will be combined with display_scroll     
+function fadethis_scroll(){
+	static $inc=20000;  $inc++;
+      #this is for all posts including nested columns
+     $display_arr=array('none','fadethis-slide-left','fadethis-slide-right','fadethis-slide-top','fadethis-slide-bottom','@media_force_off');
+     $options=($this->is_column)?$this->col_options[$this->col_display_fadethis_animate_index]:$this->blog_options[$this->blog_display_fadethis_animate_index]; 
+	$options=explode('@@',$options);
+	$c_opts=count(explode(',',Cfg::Display_options));
+     $repeats=4*$c_opts;
+     $cb_data=($this->blog_type==='nested_column')?$this->col_dataCss:$this->dataCss;
+     $this->show_more('Animated fadeThis');
+     printer::print_wrap('display scroll');
+     printer::print_info('Reversible Scrolling Animation from FadeThis@lwiesel <a href="https://github.com/lwiesel/jquery-fadethis" class="ekblue underline cursor" target="blank">see on github</a>');
+	printer::print_tip('For use on default position static elements');
+	for ($i=0;$i<$repeats; $i++){ 
+		if (!array_key_exists($i,$options))$options[$i]=0;
+		}
+     $script='';
+	$listen=false;//set to true if additional media query && ie absolute 
+     for ($i=0; $i<4; $i++){
+          $k=$i * $c_opts ;//
+     if ($i>0){
+          $this->show_more('Additional @Media Controlled');
+          printer::print_wrap('Additional display');
+          }
+     $this->submit_button();
+     //display_fade_px,display_fade_type,display_fade_mode,display_basis,display_speed';
+     printer::print_tip('Use both maxwidth and minwidth for  multiple selected @media widths. Uses Jquery window.width.');
+     $display_max=(is_numeric($options[$this->display_max_index+$k])&&$options[$this->display_max_index+$k]>0&&$options[$this->display_max_index+$k]<=4000)?$options[$this->display_max_index+$k]:'none';
+     $display_min=(is_numeric($options[$this->display_min_index+$k])&&$options[$this->display_min_index+$k]>0&&$options[$this->display_min_index+$k]<=4000)?$options[$this->display_min_index+$k]:'none';
+     $display_speed=(is_numeric($options[$this->display_speed_index+$k])&&$options[$this->display_speed_index+$k]>=.1&&$options[$this->display_speed_index+$k]<=3)?$options[$this->display_speed_index+$k]:'1';
+     $display_reverse=($options[$this->display_reverse_index+$k]==='untrue')?false:true;
+     $display_distance=(is_numeric($options[$this->display_distance_index+$k])&&$options[$this->display_distance_index+$k]>=0&&$options[$this->display_distance_index+$k]<=200)?$options[$this->display_distance_index+$k]:'50';
+     $display_offset=(is_numeric($options[$this->display_offset_index+$k])&&$options[$this->display_offset_index+$k]>=-100&&$options[$this->display_offset_index+$k]<=1000)?$options[$this->display_offset_index+$k]:'0';
+	$fade_choice=(!empty($options[$this->display_fade_choice_index+$k])&&in_array($options[$this->display_fade_choice_index+$k],$display_arr))?$options[$this->display_fade_choice_index+$k]:'none';
+     $display_name=($this->is_column)?$this->col_name.'_col_options['.$this->col_display_fadethis_animate_index.']':$this->data.'_blog_options['.$this->blog_display_fadethis_animate_index.']';
+     $max_name=$display_name.'['.($this->display_max_index+$k).']';
+     $min_name=$display_name.'['.($this->display_min_index+$k).']';
+     $speed_name=$display_name.'['.($this->display_speed_index+$k).']';
+     $distance_name=$display_name.'['.($this->display_distance_index+$k).']';
+     $reverse_name=$display_name.'['.($this->display_reverse_index+$k).']';
+     $offset_name=$display_name.'['.($this->display_offset_index+$k).']';
+     $choice_name=$display_name.'['.($this->display_fade_choice_index+$k).']';
+	 $type=($this->blog_type==='nested_column')?'nested column':'post';
+     $id=($this->blog_type==='nested_column')?$this->col_id:$this->blog_id;
+     printer::print_wrap1('max @media');
+     printer::alert('specify @media max-width option');
+     $this->mod_spacing($max_name,$display_max,100,4000,1,'px','none');
+     printer::close_print_wrap1('max @media');
+     printer::print_wrap1('min @media',$this->column_lev_color);
+     printer::alert('specify @media min-width option');
+     $this->mod_spacing($min_name,$display_min,100,4000,1,'px','none');
+     printer::close_print_wrap1('min @media');
+     printer::print_wrap1('fade in or out display');
+	printer::print_tip('For responsive resizing turning off active setting @media query use @media Force off instead of none');
+     printer::alert('Choose Fade effect / None  / @media Force off');
+     forms::form_dropdown($display_arr,'','','',$choice_name,$fade_choice,false,'maroon whitebackground left'); 
+     printer::close_print_wrap1('fade in or out display'); 
+     printer::print_wrap1('duration');
+     printer::alert('Specify fade-in fade-out duration option in seconds');
+     $this->mod_spacing($speed_name,$display_speed,.1,3,.1,'sec','none');
+     printer::close_print_wrap1('duration');
+     printer::print_wrap1('percent');
+     printer::print_tip('Choose fade slide distance.  Use 0 to fade in place.  ');
+     $this->mod_spacing($distance_name,$display_distance,0,200,1,'px'); 
+     printer::close_print_wrap1('percent');
+     printer::print_wrap1('offset');
+     printer::print_tip('Choose offset. Shorter height elements work will with negative values whereas larger values work with greater height elements. Uses 0 by default.');
+     $this->mod_spacing($offset_name,$display_offset,-100,1000,1,'px'); 
+     $final_offset=( $display_offset < 0 )? abs($display_offset) : -$display_offset;
+	printer::close_print_wrap1('offset');
+     printer::print_wrap('reverse');
+     $checked1=($display_reverse)?'checked="checked"':'';
+     $checked2=(!$display_reverse)?'checked="checked"':'';
+     printer::alert('<input type="radio" name="'.$reverse_name.'" value="true" '.$checked1.'>Reverse Fading Effect on Scroll up');
+     printer::alert('<input type="radio" name="'.$reverse_name.'" value="untrue" '.$checked2.'>Turn Reverse Off');
+     printer::close_print_wrap('reverse');
+     $display_speed=$display_speed*1000;
+     $reverse=($display_reverse)?',"reverse":true':',"reverse":false';
+     $display_max=($display_max==='none')?10000 : $display_max;
+     $display_min=($display_min==='none')?100 : $display_min;
+     if ($fade_choice!=='none'){
+		if ($i>0)$listen=true;
+		$this->handle_script_edit('fadethis/jquery.fadethis.js','fadeThis_header_once','header_script_once');
+$script.= <<<eol
+     if (gen_Proc.vpw <= $display_max && gen_Proc.vpw >= $display_min){
+			var baseName='fadethis-slide-';
+		if (jQuery('.$cb_data').hasClass(baseName + "right")) {
+				jQuery('.$cb_data').css("left",'auto');
+			 } else if (jQuery('.$cb_data').hasClass(baseName + "left")) {
+				jQuery('.$cb_data').css("right",'auto');
+			 } else if (jQuery('.$cb_data').hasClass(baseName + "top")) {
+				jQuery('.$cb_data').css("bottom",'auto');
+			 } else if (jQuery('.$cb_data').hasClass(baseName + "bottom")) {
+				jQuery('.$cb_data').css("top",'auto');
+			 } 
+           
+		jQuery('.$cb_data').attr('class', function(i, c){
+			return c.replace(/(^|\s)fadethis-slide-\S+/g, '');
+			});
+		jQuery('.$cb_data').addClass('$fade_choice');
+		jQuery('.$cb_data').data('fadethis-id',jQuery('.$cb_data').attr('id'));//make post level compatible with class level fadeThis using fadethis-id
+		if ('$fade_choice'!=='@media_force_off')
+			jQuery('.$cb_data').fadeThis({"speed": $display_speed, "distance": $display_distance,"offset": $final_offset $reverse});
+		else{
+			jQuery('.$cb_data').fadeThis({"forceOff":true});
+			}
+		}//if media
+		
+eol;
+              }
+          if ($i>0){ 
+               $this->submit_button();
+               printer::close_print_wrap('Additional display');
+               $this->show_close('Additional Media Controlled Choices');
+               }
+               
+          }//for loop
+     if (!empty($script)){
+		
+		$this->handle_script_edit("
+		
+		//fadeThis $type for .$cb_data 
+			$script",'post_anim_scroll','script');
+		if ($listen) {//we have multiple media query controled fadeThis and if window resizes we re-initate fadeThis according to current width
+$resize_script= <<<eol
+	
+	
+	//fadeThis  resize $type for .$cb_data";
+	$script
+	
+eol;
+			$this->handle_script_edit($resize_script,'post_anim_scroll','onresizescript');
+			}
+		}
+      $this->submit_button();
+      printer::close_print_wrap('display scroll');
+      $this->show_close('Choose Display Scroll Visibility');
+     }//end display  
+
+function parallax_stellar(){
+	static $n=0; $n++;
+     if (!$this->edit)return;
+     //this implementation of stellar.js is geared to affect elements in reponsive non-px required mode 
+      //background_images also avail
+      
+     $scrollArr=array('scroll','position','margin','transform');
+     $stellararr=array('max','min','stellaron','speed','offset','scrollProperty','horizScroll','vertScroll','responsive','scrollparent','para_back','para_elem','hide_elems','position');
+     foreach($stellararr as $key =>$index){
+		${$index.'_index'}=$key;
+		}
+     $options=($this->is_column)?$this->col_options[$this->col_parallax_stellar_index]:$this->blog_options[$this->blog_parallax_stellar_index]; 
+	$options=explode('@@',$options);
+	$c_opts=count($stellararr);
+     $repeats=4*$c_opts;
+     $this->show_more('Stellar Parallax');
+     printer::print_wrap('parallax scroll');
+     printer::print_info('Parallax Implementation of stellar.js @markdalgleish  <a href="https://github.com/markdalgleish/stellar.js/" class="underline ekblue cursor" target="_blank">Checkout Stellar Project on GitHub</a>');
+     $this->show_more('Info on Responsive Implementation','','editbackground editcolor italic smaller underline');
+     printer::print_wrap('parallax info');
+     printer::print_tip(' Here is one way to easily add a  parallax effect responsively (without the recommend px units) using Stellar.js for parallaxElements. Parallax Background images are also enabled <br>Limited options thus far presented for easy implementation of non px required usages. The default options as set here are for :<br>positionProperty: transform  which keeps the initial visible elements as they appear naturally. <br>positionProperty: position will change the display state property prior to scrolling and top spacing of subsequent elements would need to be implemented.<br>
+     Using stellar vertical offset for vertical effects was effectivey used to offset the initial in-view position of an absolute  positioned element. Additional tweaking of the px units used to offset may be necessary depending on the viewers view-port screen.<br>
+     <br><br>
+     By default a 500px view screen size is implemented as full mobile implementation has not been enabled here.');
+     $cb_data=($this->is_column)?$this->col_dataCss:$this->dataCss;
+     printer::close_print_wrap('parallax info');
+     $this->show_close('Info on Responsive Implementation');
+	for ($i=0;$i<$repeats; $i++){ 
+		if (!array_key_exists($i,$options))$options[$i]=0;
+		}
+     $script='';
+	$listen=false;
+     for ($i=0; $i<4; $i++){
+          $k=$i * $c_opts ;//
+          if ($i>0){
+               $this->show_more('Additional @Media Controlled');
+               printer::print_wrap('Additional parallax');
+               }
+          $this->submit_button();
+          printer::print_tip('Use both maxwidth and minwidth for  multiple selected @media widths. Uses Jquery window.width.');
+          $max=(is_numeric($options[$max_index+$k])&&$options[$max_index+$k]>100&&$options[$max_index+$k]<=4000)?$options[$max_index+$k]:'none';
+          $min=(is_numeric($options[$min_index+$k])&&$options[$min_index+$k]>=100&&$options[$min_index+$k]<=4000)?$options[$min_index+$k]:'none';
+          $speed=(is_numeric($options[$speed_index+$k])&&$options[$speed_index+$k]>=.2&&$options[$speed_index+$k]<=2)?$options[$speed_index+$k]:1; 
+          //full options shown not all used!
+          $stellaron=($options[$stellaron_index+$k]==='stellar_on'||$options[$stellaron_index+$k]==='stellar_force_off')?$options[$stellaron_index+$k]:'stellar_off';  
+          $hide_elems=($options[$hide_elems_index+$k]==='hide')?false:true;
+          $para_elem=($options[$para_elem_index+$k]==='elemoff')?false:true;
+          $para_back=($options[$para_back_index+$k]==='stellarbackon')?true:false;
+          $position=($options[$para_back_index+$k]==='position')?'position':'transform';
+          $vertScroll=($options[$vertScroll_index+$k]==='vertoff')?false:true;
+          $responsive=($options[$responsive_index+$k]==='responsiveoff')?false:true;
+          $horizScroll=($options[$horizScroll_index+$k]==='horiztrue')?true:false;
+          //$scrollProperty=($options[$scrollProperty_index+$k]==='untrue')?false:true;
+          $offset=(is_numeric($options[$offset_index+$k])&&$options[$offset_index+$k]>=-1000&&$options[$offset_index+$k]<=2000)?$options[$offset_index+$k]:0;
+          $name=($this->is_column)?$this->col_name.'_col_options['.$this->col_parallax_stellar_index.']':$this->data.'_blog_options['.$this->blog_parallax_stellar_index.']';
+          $max_name=$name.'['.($max_index+$k).']';
+          $min_name=$name.'['.($min_index+$k).']';
+          $hide_elems_name=$name.'['.($hide_elems_index+$k).']';
+          $para_elem_name=$name.'['.($para_elem_index+$k).']';
+          $speed_name=$name.'['.($speed_index+$k).']';
+          
+          $stellaron_name=$name.'['.($stellaron_index+$k).']';
+          $para_back_name=$name.'['.($para_back_index+$k).']';
+          $vertScroll_name=$name.'['.($vertScroll_index+$k).']';
+          $responsive_name=$name.'['.($responsive_index+$k).']';
+          $horizScroll_name=$name.'['.($horizScroll_index+$k).']';
+          $offset_name=$name.'['.($offset_index+$k).']';
+          $scrollProperty_name=$name.'['.($scrollProperty_index+$k).']';
+          $type=($this->is_column)?'column':'post';
+          $id=($this->is_column)?$this->col_id:$this->blog_id;
+          printer::print_wrap1('enable para');
+          $checked1=($stellaron==='stellar_on')?'checked="checked"':'';
+          $checked3=($stellaron==='stellar_force_off')?'checked="checked"':'';
+		$checked2=($stellaron!=='stellar_on'&&$stellaron!=='stellar_force_off')?'checked="checked"':'';
+          printer::alert('<input type="radio" name="'.$stellaron_name.'" '.$checked1.' value="stellar_on" '.$checked1.'>Turn On Parallax');
+          printer::alert('<input type="radio" name="'.$stellaron_name.'" '.$checked2.' value="stellar_off" '.$checked2.'>Off Parallax');
+          printer::alert('<input type="radio" name="'.$stellaron_name.'" '.$checked3.' value="stellar_force_off" '.$checked3.'>Force Off Parallax at particlar @media width if turned on @ different width then resized.');
+          printer::close_print_wrap1('off para');
+          printer::print_wrap1('ele mode');
+          $checked1=(!$para_back)?'checked="checked"':'';
+          $checked2=($para_back)?'checked="checked"':'';
+          printer::alert('<input type="radio" name="'.$para_back_name.'" '.$checked1.' value="stellarbackoff" '.$checked1.'>Use Element Mode');
+          printer::alert('<input type="radio" name="'.$para_back_name.'" '.$checked2.' value="stellarbackon" '.$checked2.'>Use Background Mode');
+          printer::close_print_wrap1('ele mode');
+          printer::print_wrap1('speed');
+          printer::alert('Scroll ratio: 2 means 2x scroll speed etc. ');
+          $this->mod_spacing($speed_name,$speed,.2,2,.05,'&nbsp;ratio');
+          printer::close_print_wrap1('speed');
+          printer::print_wrap1('offset');
+          printer::print_tip('Choose offset distance to correct for initial scroll distance of elemnt for correct in-view timing.  Uses 0 by default.');
+		$this->mod_spacing($offset_name,$offset,-1000,2000,1,'px'); 
+          printer::close_print_wrap1('offset');
+          /*
+		 * Currently using transform which won't interfere with positioned elements after they are forced off.  We can sue use custom css var to set inital css values positioned @mediaa width and then retrieved and implemented to get around this and allow positioned elements to be selected by so far no limitatins using transform property other than if initial transform values to element were required...
+		 * 
+           printer::print_wrap('position');
+          $checked1=($position!=='position')?'checked="checked"':'';
+          $checked2=(!$position==='position')?'checked="checked"':'';
+          
+          printer::alert('<input type="radio" name="'.$position_name.'" value="transform" '.$checked1.'>Use Transform property');
+          printer::alert('<input type="radio" name="'.$position_name.'" value="position" '.$checked2.'>Use position property');
+          
+          printer::close_print_wrap('position');*/
+		printer::print_wrap1('max @media');
+          printer::alert('specify @media max-width option');
+          $this->mod_spacing($max_name,$max,100,4000,1,'px','none');
+          printer::close_print_wrap1('max @media');
+          printer::print_wrap1('min @media',$this->column_lev_color);
+          //printer::print_warnlight('By default min-width is set at 500px due to scrolling limits on mobile devices causing jitters');
+          printer::alert('specify @media min-width option');
+          $this->mod_spacing($min_name,$min,0,4000,1,'px','none');
+          printer::close_print_wrap1('min @media');
+          $max=($max==='none')?10000 : $max;
+          $min=($min==='none')?100 : $min;
+		//replace initial height if we select to force off stellar @media width following a resizing..
+          if ($stellaron !=='stellar_off' && $i < 1){
+			//$once="jQuery('body').attr('data-stellar-offset-parent','true');";//if activated it using body for offset parent else nearest relative or abs parent or body whichever closest..
+			//$this->handle_script_edit($once,'initiate_script_once','initiate_script_once');          
+			$once='
+			
+			//stellar parallax initialize function
+			setTimeout(function(){
+				jQuery(window).stellar({//using window have not gotten initiation by element to work which would be more advantageous 
+					horizontalScrolling: false,
+					horizontalOffset: 0,
+					responsive:false,//timing 
+					positionProperty: "transform",
+					hideDistantElements: false
+					});
+				},25);//delay for more consistent ie abs positioning post over image ie images loading height involved.. ie alternatively  setting the image height in percent works but height might not respond correctly on resizing window
+				';//
+			$this->handle_script_edit($once,'stellar_initiate_script_once','initiate_script_once');
+			$this->handle_script_edit('stellar/jquery.stellar.min.js','stellar_header_once','header_script_once');
+               $msg = "//stellar.js  parallax Element   for $cb_data";
+			$script.="
+	
+	$msg
+	"; 
+               } 
+          $attr=($para_back)?'data-stellar-background-ratio':'data-stellar-ratio';
+          $attr2=($para_back)?'stellar-background-ratio':'stellar-ratio';
+          if ($stellaron==='stellar_on' ){
+               $this->css.='
+               .'.$cb_data.'.webmode{visibility:hidden;}';
+			}
+			
+     if ($stellaron==='stellar_on'||$stellaron==='stellar_force_off'){  
+			if ($i>0)	$listen=true;
+$script.= <<<eol
+          
+     jQuery('.$cb_data').css('visibility','visible'); 
+     if (gen_Proc.vpw <= $max && gen_Proc.vpw >= $min){ 
+          var speed=$speed;
+          var offset=$offset;  
+          if ( '$stellaron' === 'stellar_on' ){ 
+                jQuery('.$cb_data').attr('$attr',$speed);
+			 
+			 jQuery('.$cb_data').data({'stellar-vertical-offset':$offset,'$attr2':$speed});
+			}
+		else { 
+			jQuery('.$cb_data').data('$attr2',null).removeAttr('$attr').css('transform','');
+			} 
+          }//if media
+eol;
+               }//if valid turnon selections          
+                    
+               if ($i>0){ 
+                    $this->submit_button();
+                    printer::close_print_wrap('Additional parallax');
+                    $this->show_close('Additional Media Conrolled Choices');
+                    }
+          }//for loop
+     if (!empty($script)){
+		$this->handle_script_edit("$script",' parallax_gen_script','script');
+		if ($listen){//make resize ready 
+		 
+$resize_script= <<<eol
+	
+	$script
+eol;
+			$this->handle_script_edit($resize_script,'settings_parallax','onresizescript');
+			$resize_script= <<<eol
+
+//stellar parallax refresh on resize
+jQuery(window).data('plugin_stellar').refresh({
+		horizontalScrolling: false,
+		horizontalOffset: 0,
+		responsive:false,
+		positionProperty: "transform",
+		hideDistantElements: false
+		});		
+eol;
+			$this->handle_script_edit($resize_script,'settings_parallax_resize_once','onresizescriptonce'); 
+			}//$listen=true;
+		}//!empty script
+	
+	$this->submit_button();
+      printer::close_print_wrap('parallax stellar');
+      $this->show_close('Parallax stellar');
+      }//end parallax
+	 
+function masonry(){ 
+	$masonarr=array('mason','max','min');
+	foreach($masonarr as $key =>$index){
+		${$index.'_index'}=$key;
+		}
+	$options=$this->col_options[$this->col_enable_masonry_index]; 
+	$options=explode('@@',$options);
+	for ($i=0; $i < count($masonarr); $i++){
+		if (!array_key_exists($i,$options)){
+			$options[$i]=0;
+			}
+		}
+	if (!$this->prime){
+		$checked1=($options[$mason_index]!=='masonry')?'checked="checked"':'';
+		$checked2=($options[$mason_index]==='masonry')?'checked="checked"':'';
+		$this->show_more('Masonry Option');
+		$this->print_redwrap('wrap masonry','maroon');
+	if ($this->column_use_flex_array[$this->column_level])printer::print_warn('Note: Flex Box Container enabled and masonry assist currently overrides various Flex Box features.  ie. the two are not fully compatible.');
+		$msg='Optionally enable Masonry to Assist in grid layout of Posts (including a nested column) directly within this column. Masonry will work in conjunction with your post width settings and alternative width settings. Post Float settings should be set to float left or float right. Float center may also be used but appropriate margin percents will need to be included as masonry otherwise overlooks the centering. Masonry will override Flex Box functionality';
+		printer::print_tip($msg);
+		$this->show_more('Style info','','info italic smaller');
+		printer::print_wrap1('techinfo');
+		$msg='Info: Masonry is a javascript open source Git Hub project by Desandro. When activated, the parent column recieves the class name of grid and the posts directly within this parent column receive the classname of grid-item. Both inline javascript and external file javascript then control the grid-like behavior of the child posts within the parent column. Masonry works in conjunction with width settings as outlined previously.'; 
+		printer::print_info($msg);
+		printer::close_print_wrap1('techinfo');
+		$this->show_close('Style info');
+		$name=$this->col_name.'_col_options['.$this->col_enable_masonry_index.']['.$mason_index.']';
+		$max_name=$this->col_name.'_col_options['.$this->col_enable_masonry_index.']['.$max_index.']';
+		$min_name=$this->col_name.'_col_options['.$this->col_enable_masonry_index.']['.$min_index.']';
+		printer::print_tip('Masonry if enabled may change the order of your posts to get the best fit');
+		printer::print_tip('The width of the first post in a masonry column will set the grid width for all other posts. Best results often using widest post in first position');
+		printer::printx('<p><input type="radio" '.$checked1.' value="nomasonry" name="'.$name.'">No Masonry</p>');
+		printer::printx('<p><input type="radio" '.$checked2.' value="masonry" name="'.$name.'">Enable Post Masonry Assist</p>');
+		printer::print_wrap1('max @media');
+		printer::print_tip('By default masonry if initiated above will work at all view screen widths, but you can optionally choose a @media width range to activate masonry here');
+		printer::print_tip('Please note masonry will set its own right and left margins having  a minimum of about 20px whereas top and bottom margins are set in the post styles.');
+		printer::alert('specify @media max-width option');
+		$max=(is_numeric($options[$max_index])&&$options[$max_index]>0&&$options[$max_index]<=4000)?$options[$max_index]:10000;
+		$min=(is_numeric($options[$min_index])&&$options[$min_index]>0&&$options[$min_index]<=4000)?$options[$min_index]:0;
+		$this->mod_spacing($max_name,$max,100,4000,1,'px','none');
+		printer::close_print_wrap1('max @media');
+		printer::print_wrap1('min @media',$this->column_lev_color);
+		printer::alert('specify @media min-width option');
+		$this->mod_spacing($min_name,$min,100,4000,1,'px','none');
+		printer::close_print_wrap1('min @media');
+		$this->submit_button();
+		$this->close_print_wrap('wrap masonry' );
+		$this->show_close('Masonry Option');
+		$masonryClass='gridcol_'.$this->col_id;
+          $mclass=".$masonryClass";
+		if ($options[$mason_index]==='masonry'){
+			$this->css.="
+		.$this->col_dataCss { opacity:0;}";
+			$this->handle_script_edit('/masonry/masonry.js','masonry_header_once','header_script_once');
+			$this->handle_script_edit('imagesLoaded/imagesLoaded.js','imagesLoaded_header_once','header_script_once');
+			$script= <<<eol
+if (gen_Proc.vpw <= $max && gen_Proc.vpw >= $min){			
+	var mopts={
+		gutter: 20,
+		itemSelector: '.grid-item_$this->col_id' 
+		}
+	
+	jQuery('.$this->col_dataCss').removeAttr('style');
+     jQuery('.$this->col_dataCss').addClass('$masonryClass');
+	$('$mclass').imagesLoaded().always( function( instance ) {
+		setTimeout( function(){
+			new Masonry( '$mclass', {
+				mopts
+				});
+			jQuery('$mclass').masonry(mopts); //initiating twice
+			
+			}, 130);
+		setTimeout( function(){
+			jQuery('.$this->col_dataCss').css('opacity','1');
+			}, 500);	
+		});
+	}
+else { 
+	jQuery('.$this->col_dataCss > .grid-item_$this->col_id').removeAttr('style');
+	jQuery('.$this->col_dataCss').removeAttr('style');
+     jQuery('.$this->col_dataCss').css('opacity','1');
+	}
+eol;
+			$this->handle_script_edit("
+				//masonry $masonryClass  $this->col_dataCss
+				$script
+				",'col_masonry_active','script');//
+			$resize_script= <<<eol
+	
+	
+	//masonry  resize col for $this->col_dataCss
+	jQuery('.$this->col_dataCss').css({'opacity':'0',
+	'visibility':'hidden'});
+	$script
+eol;
+			$this->handle_script_edit($resize_script,'col_masonry_resize','onresizescript');
+			}//masonry but not edit\
+		}
+	else{
+		$this->show_more('Primary Column Masonry Info');
+		printer::print_tip('Masonry enabling not available in Primary Column because the masonry enabling column needs to be wrapped itself by a column. Simply create a nested a column in the primary column and posts within will be masonry enabled when you enable the masonry option in the nested column. Any primary column can easily become a nested column by checking the box to create a new primary column under the add primary option, submit,  then choose to <b>move</b> the  old primary column entering its id. Thats it, you can then enable masonry mode in that column.'); 
+		$this->show_close('Primary Column Masonry Info'); 
+		}
+	}//end masonry
+		
+function sticky_scroll(){
+     if (!$this->edit)return;
+     //this is an implementation of AndrewHenderson/jSticky
+     $stickyarr=array('max','min','stickyon','offset','stopper','zIndex','stuck');
+     foreach($stickyarr as $key =>$index){
+		${$index.'_index'}=$key;
+		}
+     $options=($this->is_column)?$this->col_options[$this->col_sticky_index]:$this->blog_options[$this->blog_sticky_index]; 
+	$options=explode('@@',$options);
+	$c_opts=count($stickyarr);
+     $repeats=4*$c_opts;
+	$cb_data=($this->is_column)?$this->col_dataCss:$this->dataCss;
+     $this->show_more('Position Sticky Scroll');
+     printer::print_wrap('sticky scroll');
+     printer::print_wrap('sticky info');
+     printer::print_info('Implementation of AndrewHenderson <a class="cursor ekblue underline" target="_blank" href="https://github.com/AndrewHenderson/jSticky">see GitHub jSticky Project</a>');
+     printer::print_tip('By default, this  element will Stick to the top of the viewport when scrolled to vertically.<br><br>Use Media Controlled Values to turn/off effect and taylor further options:
+     ');
+     printer::close_print_wrap('sticky info');
+  for ($i=0;$i<$repeats; $i++){ 
+		if (!array_key_exists($i,$options))$options[$i]=0;
+		}
+     $script='';
+     for ($i=0; $i<2; $i++){
+          $k=$i * $c_opts ;//
+          if ($i>0){
+               $this->show_more('Additional @Media Controlled');
+               printer::print_wrap('Additional sticky');
+               }
+          $this->submit_button();
+          printer::print_tip('Use both maxwidth and minwidth for  multiple selected @media widths. Uses Jquery window.width.');
+          $max=(is_numeric($options[$max_index+$k])&&$options[$max_index+$k]>0&&$options[$max_index+$k]<=4000)?$options[$max_index+$k]:'none';
+          $min=(is_numeric($options[$min_index+$k])&&$options[$min_index+$k]>0&&$options[$min_index+$k]<=4000)?$options[$min_index+$k]:'none';
+           //full options shown not all used!
+          $stickyon=($options[$stickyon_index+$k]==='stickyon')?true:false;
+          $stopper=(!empty($options[$stopper_index+$k]))?$options[$stopper_index+$k]:false;
+          $stuck=(!empty($options[$stuck_index+$k]))?$options[$stuck_index+$k]:false;
+          $zIndex=(is_numeric($options[$zIndex_index+$k])&&$options[$zIndex_index+$k]>-1001&&$options[$zIndex_index+$k]<=5000)?$options[$zIndex_index+$k]:'100';
+          $offset=(is_numeric($options[$offset_index+$k])&&$options[$offset_index+$k]>-100&&$options[$offset_index+$k]<=1000)?$options[$offset_index+$k]:0;
+          $name=($this->is_column)?$this->col_name.'_col_options['.$this->col_sticky_index.']':$this->data.'_blog_options['.$this->blog_sticky_index.']';
+          $max_name=$name.'['.($max_index+$k).']';
+          $min_name=$name.'['.($min_index+$k).']';
+          $zIndex_name=$name.'['.($zIndex_index+$k).']';
+          $stopper_name=$name.'['.($stopper_index+$k).']';
+          $stuck_name=$name.'['.($stuck_index+$k).']'; 
+          $stickyon_name=$name.'['.($stickyon_index+$k).']';
+          $offset_name=$name.'['.($offset_index+$k).']';
+          $type=($this->is_column)?'column':'post';
+          $id=($this->is_column)?$this->col_id:$this->blog_id;
+          printer::print_wrap1('enable stick');
+          $checked1=($stickyon)?'checked="checked"':'';
+          $checked2=(!$stickyon)?'checked="checked"':'';
+          printer::alert('<input type="radio" name="'.$stickyon_name.'" '.$checked1.' value="stickyon" '.$checked1.'>Turn On Sticky');
+          printer::alert('<input type="radio" name="'.$stickyon_name.'" '.$checked2.' value="stickyoff" '.$checked2.'>Off Sticky');
+          printer::close_print_wrap1('off stick');
+          printer::print_wrap1('max @media');
+          printer::alert('specify @media max-width option');
+          $this->mod_spacing($max_name,$max,100,4000,1,'px','none');
+          printer::close_print_wrap1('max @media');
+          printer::print_wrap1('min @media',$this->column_lev_color);
+          printer::alert('specify @media min-width option');
+          $this->mod_spacing($min_name,$min,100,4000,1,'px','none');
+          printer::close_print_wrap1('min @media');
+          printer::print_wrap1('offset');
+          printer::print_tip('Choose offset distance. For initial in-view elements with non-static positioning visible non-static elements Uses 0 by default.');
+          $this->mod_spacing($offset_name,$offset,-100,1000,1,'px'); 
+          printer::close_print_wrap1('offset');
+          printer::print_wrap1('zIndex');
+          printer::print_tip('Choose zIndex for when @pagetop. ');
+          $this->mod_spacing($zIndex_name,$zIndex,-100,5000,5,'px'); 
+          printer::close_print_wrap1('zIndex');
+          printer::print_wrap1('stuck');
+          $this->show_more('Info to Style the stuck @ pagetop element','','italic editcolor editbackground smaller');
+          printer::print_wrap1('stuck2'); 
+          printer::print_tip('To  customize the styling of this element differently when "stuck" @ the top the page optionally enter a classname beginning with a letter which will automaticaly be added to this element when fixed @ top of page. You can then set styles for  the classname using page/col custom classes. <b>Class name only. Begin with Letter ie. col1, ie do not use selector prefix (. or # )</b><br><br> To style the class added for all post types use its parent columns special class styling under setting (for nested columns be sure to use its parent column!). Alternatively use advanced styles and add classname to suffix. See video on advanced styles / or check out other videos such as creating a page from the ground up which show the tecnique.');
+          printer::close_print_wrap1('stuck2');
+          $this->show_close('Info for Stuck');
+          printer::alert('<input type="text" name="'.$stuck_name.'" value="'.$stuck.'" size="15">Optionally Enter Class name for custom styling of stuck element @ pagetop'); 
+          printer::close_print_wrap1('stuck');
+          printer::print_wrap1('stopper'); 
+          $this->show_more('Info to Unstuck the stuck @ pagetop element','','italic editcolor editbackground smaller');
+          printer::print_wrap1('stopper2'); 
+          printer::print_tip('There are two different choices for releasing and allowing scrolling of this element after it has been stuck to the top of this page.<br><br>1. Enter the id or class selector of a stopper element which is an element further down the page. When the stopper element approaches the page top this element will release and scroll out of view. <b>Use full selector for class or id ie. #customid  or .customclass</b><br><br>
+2. Simply use a numeric value to indicate how far down the page to scroll before the elemnt is released in px.  ie: 400');
+          printer::close_print_wrap1('stopper2');
+          $this->show_close('Info for Stopper');
+          printer::alert('<input type="text" name="'.$stopper_name.'" value="'.$stopper.'" size="15">Add stopper numeric px or classname/id selector if you wish re-enable scrolling of "stuck @ top" element when stopper element appears. '); 
+          printer::close_print_wrap1('stopper');
+         
+          $max=($max==='none')?10000 : $max;
+          $min=($min==='none')?100 : $min;
+          if ($stickyon && $i < 1){
+			$this->handle_script_edit('jsticky/jquery.jsticky.js','jsSticky_header_once','header_script_once');  
+               $msg = "$type sticky Element on   for $cb_data";
+               }
+          else $msg='';
+          if ($stickyon){
+			$this->css.='
+			.'.$cb_data.'{transition-property:static;}';//set default current transition-pproperty will change to aboslute if position property is set and jsticky will dynamically detect.  transtion property is being used as custom css property for position state detection
+               echo "
+               <!--$this->pagename.js  @ jSticky $cb_data-->";
+     
+               $script.= <<<eol
+          
+     //<!--jSticky  post $cb_data-->
+     if (gen_Proc.vpw <= $max && gen_Proc.vpw >= $min){
+         jQuery('.$cb_data').sticky({
+               topSpacing: $offset, // Space between element and top of the viewport
+               zIndex: $zIndex, // z-index
+               stopper: "$stopper", // Id, class, or number value
+               stickyClass: '$stuck' // Class applied to element when it's stuck
+               });
+          }//if media
+eol;
+               }//if valid speed and turnon selections          
+                    
+               if ($i>0){ 
+                    $this->submit_button();
+                    printer::close_print_wrap('Additional sticky');
+                    $this->show_close('Additional Media Conrolled Choices');
+                    }
+          }//for loop
+     if (!empty($script))$this->handle_script_edit($script,'sticky_sticky','script');
+      $this->submit_button();
+      printer::close_print_wrap('sticky sticky');
+      $this->show_close('Parallax sticky');
+      }//end sticky
+      
+      
 function preanimation(){ 
 	$max_duration=10;
 	$max_delay=20;
 	$max_repeat=15;
 	$max_height=100;
-	$max_width=2000;
+	$max_width=3000;
 	$min_width=200;
 	$max_prior_delay=30;
 	$default_animate_height=80;
@@ -5967,14 +3268,17 @@ function preanimation(){
 	$id_ref=($this->is_column)?$this->col_dataCss:$this->dataCss;
 	$animation_arr=explode(',',Cfg::Animation_types);
 	$col_level=($this->is_column)?$this->column_level:$this->column_level;
-	$options=($this->is_column)?$this->col_options[$this->col_animation_index]:$this->blog_options[$this->blog_animation_index]; 
-	$options=explode('@@',$options);
+	$options=($this->is_column)?$this->col_options[$this->col_animation_index]:$this->blog_options[$this->blog_animation_index];
+    $options=explode('@@',$options);
 	$c_opts=count(explode(',',Cfg::Animation_options));
 	for ($i=0;$i<$c_opts; $i++){
 		if (!array_key_exists($i,$options))$options[$i]=0;
 		}
-	$animate_type=(in_array($options[$this->animate_type_index],$animation_arr,true))?$options[$this->animate_type_index]:'none';   
+	$animate_type=(!empty($options[$this->animate_type_index])&&in_array($options[$this->animate_type_index],$animation_arr,true))?$options[$this->animate_type_index]:'none';  
 	if ($animate_type==='none')return array('none','','','');
+     echo "
+     <!--$this->pagename.js expresedit @ animation script generated $id_ref-->
+     ";
      $animate_height=($options[$this->animate_height_index]==='none'||(is_numeric($options[$this->animate_height_index])&&$options[$this->animate_height_index]>0&&$options[$this->animate_height_index]<=$max_height))?$options[$this->animate_height_index]:$default_animate_height; 
 	$animate_duration=(is_numeric($options[$this->animate_duration_index])&&$options[$this->animate_duration_index]>=.05&&$options[$this->animate_duration_index]<=$max_duration)?$options[$this->animate_duration_index]:1; 
 	$animate_width=(is_numeric($options[$this->animate_width_index])&&$options[$this->animate_width_index]>=$min_width&&$options[$this->animate_width_index]<=$max_width)?$options[$this->animate_width_index]:0;
@@ -5992,6 +3296,10 @@ function preanimation(){
      $inittotaldelay=(($animate_repeats*$animate_duration)+$animate_after_delay+$animate_prior_delay)*1000;
      $followupdelay=1000*$animate_after_duration*$animate_after_repeats;
 	$fulltotaldelay=$followupdelay+$inittotaldelay;
+      $script="
+      
+      //Post Animation $animate_type ExpressEdit @ danedan $id_ref;";
+	
      #the following is not a follow up animation but a followup element when an element id is given  or prev sibling chosen and has completed for a subsequent element to start
 	#followup animate is setup below
 	#the mutational observer  determines when the initiating requirement of finishing a animation has completed by monitoring when the the attribute data-status=finish has been added to the element which when finished starts the animation of the current element. The mutational obsver futher adds the  class activ-anim to current posttype thus initiating the new animation. Affects those current elments which are dependend on sibling  parent or id completions 
@@ -6018,28 +3326,28 @@ function preanimation(){
           $lock=$java='';
           }
           if($animate_sibling==='prev'){
-			$target='var obj_id=$("#'.$id_ref.'").prevAll("div:first").attr("id");
+			$target='var obj_id=jQuery("#'.$id_ref.'").prevAll("div:first").attr("id");
 			 var target=document.getElementById(obj_id);';
 			}
 		elseif($animate_sibling==='next'){
-			$target='var obj_id=$("#'.$id_ref.'").nextAll("div:first").attr("id");
+			$target='var obj_id=jQuery("#'.$id_ref.'").nextAll("div:first").attr("id");
 			 var target=document.getElementById(obj_id);';
 			}
 		elseif($animate_sibling==='parent'){
-			$target='var obj_id=$("#'.$id_ref.'").parent("div:first").attr("id");
+			$target='var obj_id=jQuery("#'.$id_ref.'").parent("div:first").attr("id");
 			 var target=document.getElementById(obj_id);';
 			}
 		else {
 			 $target='var target = document.getElementById("'.$active_element_follow.'")';
 			}
 		$animateJava='
-		$(document).ready(function(){
 		'
 		.$target.' 
-		var observer = new MutationObserver(function(mutations) { 
-			mutations.forEach(function(mutation) { 
-			if (mutation.attributeName==="data-status"&&target.getAttribute("data-status")==="finished"){
-			     $("#'.$id_ref.'").addClass("active-anim");
+		var observer = new MutationObserver(function(mutations) {
+			mutations.forEach(function(mutation) {
+			//target.getAttribute("data-status")  );
+			if (mutation.attributeName==="data-status"){
+			     jQuery("#'.$id_ref.'").addClass("active-anim");
                     '.$lock.'
                     '.$java.'
 				observer.disconnect();
@@ -6048,18 +3356,15 @@ function preanimation(){
 		}); 
 	var config = { attributes: true }; 
 	observer.observe(target, config);
-      });
 		';
-     
-     echo '<script>'
-	    .$animateJava.'
-	    </script>';
+     $script.= '
+          '.$animateJava.'
+	    ';
 	    }//end if
 	//here we set up followup animation!!
 	elseif (($animate_after_type!=='none'||$animate_lock>0)&&$animate_repeats!=='infinite'){//secondary animation  present
 		$animateJava='
-		$(document).ready(function(){
-			$("#'.$id_ref.'").one(animationStart,function(){';
+			jQuery("#'.$id_ref.'").one(animationStart,function(){';
 			$lock_timing=$animate_after_duration*$animate_after_repeats;
 			$java=($animate_lock>0)?'
 				gen_Proc.animateLockReady(\''.$id_ref.'\',\''.$lock_timing.'\');':'';
@@ -6067,187 +3372,50 @@ function preanimation(){
 				gen_Proc.animateFollow(\''.$id_ref.'\',\''.$animate_type.'\',\''.$animate_after_type.'\','.$inittotaldelay.','.($followupdelay).',\''.$animate_final_display.'\');':'';
 		$closeJava='
 			});
-		});	
 		';
-	    echo '<script>'
-	    .$animateJava.'
+	    $script.= '
+         '.$animateJava.'
 	    '.$java.'
 	    '.$afterJava.'
-	    '.$closeJava.'
-	    </script>';
+	    '.$closeJava;
 	    }//end if animate type
 	elseif ($animate_repeats!=='infinite'){//no secondary animation
 		$animateJava='
-		$(document).ready(function(){
-			$("#'.$id_ref.'").one(animationStart,function(){  
+			jQuery("#'.$id_ref.'").one(animationStart,function(){  
 			gen_Proc.animateFinish(\''.$id_ref.'\','.($inittotaldelay).',\''.$animate_final_display.'\');
 			});
-		});	
 		';
-	    echo '<script>'
-	    .$animateJava.'
-	    </script>';  
-	    }//end if
-         
+	   $script.= '
+         '.$animateJava;  
+	    }//end if 
+     if ($this->edit&&$animate_type!=='none'){
+          $this->handle_script_edit($script,'animate_post','script');
+          }  
 	return array($animate_type,$animate_height,$animate_lock,$aef); 
 	}//end preanimation
- 
-function animation(){ 
-	$max_duration=10;
-	$max_delay=20;
-	$max_repeat=15;
-	$max_height=100;
-	$max_width=2000;
-	$min_width=200;
-	$max_prior_delay=30;
-	$default_animate_height=80;
-	$max_animate_lock=4;
-	$msg='Configure Animation type and Optionally change default settings here!';
-	$col_level=($this->is_column)?$this->column_level:$this->column_level;
-	$anim_data=($this->is_column)?$this->col_dataCss:$this->dataCss;
-	$anim_name=($this->is_column)?$this->col_name.'_col_options['.$this->col_animation_index.']':$this->data.'_blog_options['.$this->blog_animation_index.']';
-	$check_anim_name=($this->is_column)?$this->col_name.'_col_options':$this->data.'_blog_options';
-	$check_anim_index=($this->is_column)?$this->col_animation_index:$this->blog_animation_index;
-	$type=($this->is_column)?'Column':'Post';
-	$id_ref=($this->is_column)?$this->col_dataCss:$this->dataCss;
-	$animation_arr=explode(',',Cfg::Animation_types); 
-	$this->show_more($type.' Animations','','','',300);
-	$this->print_redwrap('wrap animations',true);
-     $this->submit_button();
-	$options=($this->is_column)?$this->col_options[$this->col_animation_index]:$this->blog_options[$this->blog_animation_index]; 
-	$options=explode('@@',$options);
-	$c_opts=count(explode(',',Cfg::Animation_options));
-	for ($i=0;$i<$c_opts; $i++){
-		if (!array_key_exists($i,$options))$options[$i]=0;
-		} 
-	$animate_type=(in_array($options[$this->animate_type_index],$animation_arr,true))?$options[$this->animate_type_index]:'none';  
-	$animate_visibility=($options[$this->animate_visibility_index]==='hidden')?'hidden':(($options[$this->animate_visibility_index]==='nodisplay')?'nodisplay':'visible'); 
-	$animate_sibling=($options[$this->animate_sibling_index]==='prev'||$options[$this->animate_sibling_index]==='next'||$options[$this->animate_sibling_index]==='parent')?$options[$this->animate_sibling_index]:'inactive'; 
-	$animate_alternate=($options[$this->animate_alternate_index]==='alternate')?true:false;
-	$animate_repeats=($options[$this->animate_repeats_index]==='infinite'||(is_numeric($options[$this->animate_repeats_index])&&($options[$this->animate_repeats_index]>0&&$options[$this->animate_repeats_index]<=$max_repeat)))?$options[$this->animate_repeats_index]:'1'; 
-	$animate_duration=(is_numeric($options[$this->animate_duration_index])&&$options[$this->animate_duration_index]>=.05&&$options[$this->animate_duration_index]<=$max_duration)?$options[$this->animate_duration_index]:1; 
-	$animate_prior_delay=(is_numeric($options[$this->animate_prior_delay_index])&&$options[$this->animate_prior_delay_index]>=0&&$options[$this->animate_prior_delay_index]<=$max_prior_delay)?$options[$this->animate_prior_delay_index]:0; 
-	$animate_height=($options[$this->animate_height_index]==='none'||(is_numeric($options[$this->animate_height_index])&&$options[$this->animate_height_index]>0&&$options[$this->animate_height_index]<=$max_height))?$options[$this->animate_height_index]:$default_animate_height; 
-	$animate_width=(is_numeric($options[$this->animate_width_index])&&$options[$this->animate_width_index]>=$min_width&&$options[$this->animate_width_index]<=$max_width)?$options[$this->animate_width_index]:'none';
-	$animate_after_type=(in_array($options[$this->animate_after_type_index],$animation_arr,true))?$options[$this->animate_after_type_index]:'none';
-	$animate_after_delay=(is_numeric($options[$this->animate_after_delay_index])&&$options[$this->animate_after_delay_index]<$max_delay)?$options[$this->animate_after_delay_index]:1;
-	$animate_after_repeats=($options[$this->animate_after_repeats_index]==='infinite'||(is_numeric($options[$this->animate_after_repeats_index])&&($options[$this->animate_after_repeats_index]>0&&$options[$this->animate_after_repeats_index]<=$max_repeat)))?$options[$this->animate_after_repeats_index]:'1'; 
-	$animate_after_duration=(is_numeric($options[$this->animate_after_duration_index])&&$options[$this->animate_after_duration_index]>=.1&&$options[$this->animate_after_duration_index]<=$max_duration)?$options[$this->animate_after_duration_index]:1;
-	$animate_final_display=($options[$this->animate_final_display_index]==='displaynone')?'displaynone':(($options[$this->animate_final_display_index]==='visibleoff')?'visibleoff':'visible');
-	$animate_lock=(is_numeric($options[$this->animate_lock_index])&&$options[$this->animate_lock_index]<=$max_animate_lock)?$options[$this->animate_lock_index]:0;
-	$animate_complete_id=$options[$this->animate_complete_id_index];
-	$active_element_follow=(array_key_exists($animate_complete_id,$this->sibling_id_arr))?$this->sibling_id_arr[$animate_complete_id]:''; 
-	(!empty($animate_complete_id)&&empty($active_element_follow))&&printer::alert_neg("Animate Chosen Id to Activate this Animation does not refer to a previous post or column id :   $animate_complete_id  @ col level $col_level");
- 	$inittotaldelay=(($animate_repeats*$animate_duration)+$animate_after_delay+$animate_prior_delay)*1000;
-     $followupdelay=1000*$animate_after_duration*$animate_after_repeats;
-	$fulltotaldelay=$followupdelay+$inittotaldelay;
-     $css='';
-     if ($animate_type!=='none'){
-		if (!empty($animate_width)&&is_numeric($animate_width)) {#all goes within min-width specification
-			$this->css.=$css.='
-			@media screen and (min-width:'.$animate_width.'px){   
-				'; $css.='<br>';
-			}
-		if ($animate_visibility ==='hidden'){
-			$this->css.=$css.='
-			.'.$id_ref.'{visibility:hidden;}
-			.'.$id_ref.'.active-anim.in-view{visibility:visible;}
-			'; 
-			$this->editoverridecss.='
-			html div#'.$id_ref.'{visibility:visible;}
-			html div.'.$id_ref.' textarea{visibility:visible;} 
-			';
-			} 
-		if ($animate_visibility ==='nodisplay'){
-			$this->css.=$css.='
-			.'.$id_ref.'{display:none;}
-			.'.$id_ref.'.active-anim.in-view{display:'.$this->display_edit_data.';}
-			';
-			} 
-			 
-		$alternate_css=($animate_alternate)?
-		'-webkit-animation-direction: alternate;
-			animation-direction: alternate;':'';
-		$animate_repeats=($animate_alternate)?$animate_repeats*2:$animate_repeats;	
-		$this->css.=$css.='
-		#'.$id_ref.'.'.$animate_type.'.in-view.active-anim{
-		 -webkit-animation-name: '.$animate_type.';
-		animation-name: '.$animate_type.'; 
-		animation-duration: '.$animate_duration.'s;
-		-webkit-animation-duration: '.$animate_duration.'s;
-		-moz-animation-duration:'.$animate_duration.'s;
-		animation-iteration-count: '.$animate_repeats.';
-		-webkit-animation-iteration-count: '.$animate_repeats.';
-		-moz-animation-iteration-count: '.$animate_repeats.';
-		-webkit-animation-delay: '.$animate_prior_delay.'s;
-		-moz-animation-delay: '.$animate_prior_delay.'s;
-		animation-delay: '.$animate_prior_delay.'s;
-		'.$alternate_css.'
-		}
-		';
-         
-		if ($animate_after_type!=='none'){
-               $this->css.=$css.='
-		#'.$id_ref.'.'.$animate_after_type.'.in-view.active-anim {
-		 -webkit-animation-name: '.$animate_after_type.';
-		animation-name: '.$animate_after_type.';
-		animation-duration: '.$animate_after_duration.'s;
-		-webkit-animation-duration: '.$animate_after_duration.'s;
-		-moz-animation-duration:'.$animate_after_duration.'s;
-		animation-iteration-count: '.$animate_after_repeats.';
-		-webkit-animation-iteration-count: '.$animate_after_repeats.';
-		-moz-animation-iteration-count: '.$animate_after_repeats.';
-		}
-		';//visibility:visible;
-			}//endif animate_after_type
-		if ($animate_final_display==='visibleoff'){
-               $this->css.=$css.='
-		#'.$id_ref.'.fadeOut.in-view.active-anim {
-	-webkit-animation-name: fadeOut;
-	animation-name: fadeOut;
-	animation-duration: 1s;
-	-webkit-animation-duration: 1s;
-	-moz-animation-duration:1s;
-	}
-	';
-               }//endif animate_after_type
-		if (!empty($animate_width)&&is_numeric($animate_width)) {
-			$this->css.=$css.='
-			}';//close bracket for @media css
-			}
-		}//if animate_type !==none
-      $this->show_more('Style info','','info italic smaller');
-     printer::print_wrap1('techinfo');
-     printer::print_info('Current setting Css: '.$css);
-     $msg='Curent Css shown here is specific for main div id '.$id_ref.'. The general animation css in the animate.css file is modified from the daneden git hub open source project. Aditionally javascript is used to help program timings of animations and is pieced together from various discussions found on stackoverflow.com, etc.';
-     printer::print_info($msg);
-     printer::close_print_wrap1('techinfo');
-     $this->show_close('Style info');
-	$this->show_more('Control Initial visibility');	
-	$this->print_redwrap('anim visibility'); 
-	$checked1=($animate_visibility==='hidden')? 'checked="checked"':'';
-	$checked2=($animate_visibility==='nodisplay')?'checked="checked"':'';
-	$checked3=($animate_visibility!=='hidden'&&$animate_visibility!=='nodisplay')?'checked="checked"':''; 
-	printer::print_tip('By default '.$type.'s initial visibility is set to be visible prior to animatation start. In certain circumstances it may be advantageous to insure an initial visibility to hidden which hides visibilty but the original space remains until animation opacity css fadeIn is activated. You can also choose to display none which hides the element and removes its space until activated for animation<br>');
-	printer::alert('<p class="editbackground editfont highlight" title="Set initial visibility to hidden to insure that the '.$type.' is hidden prior to scroll activation of animation;uses css (visibily:hidden) property"><input type="radio" '.$checked1.' name="'.$anim_name.'['.$this->animate_visibility_index.']" value="hidden">Insure Non visibility of Initial State<p>');
-	printer::alertx('<p class="editbackground editfont highlight" title="Set '.$type.' initial visibility to visibile"><input type="radio"  name="'.$anim_name.'['.$this->animate_visibility_index.']" value="nodisplay" '.$checked2.'>Use No Display No space State<p>');
-	printer::alertx('<p class="editbackground editfont highlight" title="Set '.$type.' initial visibility to visibile"><input type="radio"  name="'.$anim_name.'['.$this->animate_visibility_index.']" value="visible" '.$checked3.'>Use Normal Visible Display State<p>');	 
-	printer::pclear(5); 
-	printer::close_print_wrap('anim visibility');
-	$this->show_close('Control Initial visibility');	
-	##################################
-	$this->show_more('Enable '.$type.' Initial Animation','','',' ','800');
-	$this->print_redwrap('inital wrap animate ',true);
-	$this->print_wrap('animate type','editbackground editfont Os3salmon fsmaqua');
-	printer::print_tip('Choose an Initial Animation Type Here. See below to optionally choose a follow-up animation type');
-	printer::alert('Select animation type here:');
-	echo '
-	<!--animate.css -http://daneden.me/animate-->
-	<select class="editcolor editbackground editfont" name="'.$anim_name.'['.$this->animate_type_index.']">
-		<option value="'.$animate_type.'" selected="selected">'.$animate_type.'</option>
-		<option value="none">None</option>
-          <option value="skewSubtle">skewSubtle</option>	
-        <optgroup label="Fading Entrances">
+
+
+function animation_option(){
+     echo '
+     <option value="none">None</option>
+          <option value="skewSubtle">skewSubtle</option>
+         <optgroup label="Scale Effects">
+	     <option value="hoverScale05">Hover Scale-05 (1.05x)</option>
+	     <option value="hoverScale1">Hover Scale-1 (1.1x)</option>
+	     <option value="hoverScale2">Hover Scale-2 (1.2x)</option>
+	     <option value="hoverScale3">Hover Scale-3 (1.3x)</option>
+	     <option value="hoverScale4">Hover Scale-4 (1.4x)</option>
+	     <option value="hoverScale5">Hover Scale-5 (1.5x)</option>
+	     <option value="transformScale3">Transform Scale-3 (.3x -> 1x)</option>
+	     <option value="transformScale5">Transform Scale-5 (.5x -> 1x)</option>
+	     <option value="transformScale7">Transform Scale-7 (.7x -> 1x)</option>
+	     <option value="transformScale8">Transform Scale-8 (.8x -> 1x)</option>
+	     <option value="transformScale9">Transform Scale-9 (.9x -> 1x)</option>
+	     <option value="transformScale11">Transform Scale-11 (1.1x -> 1x)</option>
+	     <option value="transformScale12">Transform Scale-12 (1.2x -> 1x)</option>
+	     <option value="transformScale15">Transform Scale-15 (1.5x -> 1x)</option>
+		</optgroup>
+	   <optgroup label="Fading Entrances">
           <option value="fadeIn">fadeIn</option>
           <option value="fadeInDownSubtle">fadeInDownSubtle</option>
           <option value="fadeInDown">fadeInDown</option>
@@ -6274,7 +3442,12 @@ function animation(){
           <option value="fadeOutUp">fadeOutUp</option>
           <option value="fadeOutUpBig">fadeOutUpBig</option>
         </optgroup>
-
+	   <optgroup label="Fading-Sliding Entrances with Scale">
+		<option value="fadeInDownSubtleScale">fadeInDownSubtleScale</option>
+		<option value="fadeInUpSubtleScale">fadeInUpSubtleScale</option>
+		<option value="fadeInLeftSubtleScale">fadeInLeftSubtleScale</option>
+		<option value="fadeInRightSubtleScale">fadeInRightSubtleScale</option>
+	   </optgroup>
         <optgroup label="Sliding Entrances">
           <option value="slideInUpSubtle">slideInUpSubtle</option>
           <option value="slideInUp">slideInUp</option>
@@ -6373,9 +3546,250 @@ function animation(){
           <option value="jackInTheBox">jackInTheBox</option>
           <option value="rollIn">rollIn</option>
           <option value="rollOut">rollOut</option>
-        </optgroup>
-      </select>';
-	 printer::close_print_wrap('animate type');
+        </optgroup>';
+        }//end funct
+        
+function animation(){ 
+	$max_duration=10;
+	$max_delay=20;
+	$max_repeat=15;
+	$max_height=100;
+	$max_width=3000;
+	$min_width=200;
+	$max_prior_delay=30;
+	$default_animate_height=80;
+	$max_animate_lock=4;
+	$msg='Configure Animation type and Optionally change default settings here!';
+	$col_level=($this->is_column)?$this->column_level:$this->column_level;
+	$anim_data=($this->is_column)?$this->col_dataCss:$this->dataCss;
+	$anim_name=($this->is_column)?$this->col_name.'_col_options['.$this->col_animation_index.']':$this->data.'_blog_options['.$this->blog_animation_index.']';
+	$type=($this->is_column)?'Column':'Post';
+	$id_ref=($this->is_column)?$this->col_dataCss:$this->dataCss;
+	$animation_arr=explode(',',Cfg::Animation_types); 
+	$this->show_more($type.' Animations','','','',300);
+	$this->print_redwrap('wrap animations',true);
+     $this->submit_button();
+	$options=($this->is_column)?$this->col_options[$this->col_animation_index]:$this->blog_options[$this->blog_animation_index]; 
+	$options=explode('@@',$options);
+	$c_opts=count(explode(',',Cfg::Animation_options));
+	for ($i=0;$i<$c_opts; $i++){
+		if (!array_key_exists($i,$options))$options[$i]=0;
+		} 
+	$animate_type=(in_array($options[$this->animate_type_index],$animation_arr,true))?$options[$this->animate_type_index]:'none';  
+	$animate_visibility=($options[$this->animate_visibility_index]==='hidden')?'hidden':(($options[$this->animate_visibility_index]==='nodisplay')?'nodisplay':'visible');  
+	$animate_sibling=($options[$this->animate_sibling_index]==='prev'||$options[$this->animate_sibling_index]==='next'||$options[$this->animate_sibling_index]==='parent')?$options[$this->animate_sibling_index]:'inactive'; 
+	$animate_alternate=($options[$this->animate_alternate_index]==='alternate')?true:false;
+	$animate_repeats=($options[$this->animate_repeats_index]==='infinite'||(is_numeric($options[$this->animate_repeats_index])&&($options[$this->animate_repeats_index]>0&&$options[$this->animate_repeats_index]<=$max_repeat)))?$options[$this->animate_repeats_index]:'1'; 
+	$animate_duration=(is_numeric($options[$this->animate_duration_index])&&$options[$this->animate_duration_index]>=.05&&$options[$this->animate_duration_index]<=$max_duration)?$options[$this->animate_duration_index]:1; 
+	$animate_prior_delay=(is_numeric($options[$this->animate_prior_delay_index])&&$options[$this->animate_prior_delay_index]>=0&&$options[$this->animate_prior_delay_index]<=$max_prior_delay)?$options[$this->animate_prior_delay_index]:0; 
+	$animate_height=($options[$this->animate_height_index]==='none'||(is_numeric($options[$this->animate_height_index])&&$options[$this->animate_height_index]>0&&$options[$this->animate_height_index]<=$max_height))?$options[$this->animate_height_index]:$default_animate_height; 
+	$animate_width=(is_numeric($options[$this->animate_width_index])&&$options[$this->animate_width_index]>=$min_width&&$options[$this->animate_width_index]<=$max_width)?$options[$this->animate_width_index]:'none';
+	$animate_after_type=(in_array($options[$this->animate_after_type_index],$animation_arr,true))?$options[$this->animate_after_type_index]:'none';
+	$animate_after_delay=(is_numeric($options[$this->animate_after_delay_index])&&$options[$this->animate_after_delay_index]<$max_delay)?$options[$this->animate_after_delay_index]:1;
+	$animate_after_repeats=($options[$this->animate_after_repeats_index]==='infinite'||(is_numeric($options[$this->animate_after_repeats_index])&&($options[$this->animate_after_repeats_index]>0&&$options[$this->animate_after_repeats_index]<=$max_repeat)))?$options[$this->animate_after_repeats_index]:'1'; 
+	$animate_after_duration=(is_numeric($options[$this->animate_after_duration_index])&&$options[$this->animate_after_duration_index]>=.1&&$options[$this->animate_after_duration_index]<=$max_duration)?$options[$this->animate_after_duration_index]:1;
+	$animate_final_display=($options[$this->animate_final_display_index]==='displaynone')?'displaynone':(($options[$this->animate_final_display_index]==='visibleoff')?'visibleoff':'visible');
+	$animate_lock=(is_numeric($options[$this->animate_lock_index])&&$options[$this->animate_lock_index]<=$max_animate_lock)?$options[$this->animate_lock_index]:0;
+	$animate_complete_id=$options[$this->animate_complete_id_index];
+	$active_element_follow=(array_key_exists($animate_complete_id,$this->sibling_id_arr))?$this->sibling_id_arr[$animate_complete_id]:''; 
+	(!empty($animate_complete_id)&&empty($active_element_follow))&&printer::alert_neg("Animate Chosen Id to Activate this Animation does not refer to a previous post or column id :   $animate_complete_id  @ col level $col_level");
+ 	$inittotaldelay=(($animate_repeats*$animate_duration)+$animate_after_delay+$animate_prior_delay)*1000;
+     $followupdelay=1000*$animate_after_duration*$animate_after_repeats;
+	$fulltotaldelay=$followupdelay+$inittotaldelay;
+     $css='';
+     if ($animate_type!=='none'){
+		if (!empty($animate_width)&&is_numeric($animate_width)) {#all goes within min-width specification
+			$css.='
+			@media screen and (min-width:'.$animate_width.'px){   
+				';  
+			}
+		if ($animate_visibility ==='hidden'){
+			$css.='
+			.'.$id_ref.'{visibility:hidden;}
+			.'.$id_ref.'.active-anim.in-view{visibility:visible;}
+			'; 
+			$this->editoverridecss.='
+			html div#'.$id_ref.'{visibility:visible;}
+			html div.'.$id_ref.' textarea{visibility:visible;} 
+			';
+			} 
+		if ($animate_visibility ==='nodisplay'){
+			$css.='
+			.'.$id_ref.'{display:none;}
+			.'.$id_ref.'.active-anim.in-view{display:'.$this->display_edit_data.';}
+			';
+			} 
+		
+		$alternate_css=($animate_alternate)?
+		'-webkit-animation-direction: alternate;
+			animation-direction: alternate;':'';
+		$animate_repeats=($animate_alternate)?$animate_repeats*2:$animate_repeats;	
+		$css.='
+		#'.$id_ref.'.in-view.active-anim{
+		 -webkit-animation-name: '.$animate_type.';
+		animation-name: '.$animate_type.'; 
+		animation-duration: '.$animate_duration.'s;
+		-webkit-animation-duration: '.$animate_duration.'s;
+		-moz-animation-duration:'.$animate_duration.'s;
+		animation-iteration-count: '.$animate_repeats.';
+		-webkit-animation-iteration-count: '.$animate_repeats.';
+		-moz-animation-iteration-count: '.$animate_repeats.';
+		-webkit-animation-delay: '.$animate_prior_delay.'s;
+		-moz-animation-delay: '.$animate_prior_delay.'s;
+		animation-delay: '.$animate_prior_delay.'s;
+		'.$alternate_css.'
+		}
+		';
+           
+     
+          if ($animate_after_type!=='none'){
+               $css.='
+		#'.$id_ref.'.'.$animate_after_type.'.in-view.active-anim {
+		 -webkit-animation-name: '.$animate_after_type.';
+		animation-name: '.$animate_after_type.';
+		animation-duration: '.$animate_after_duration.'s;
+		-webkit-animation-duration: '.$animate_after_duration.'s;
+		-moz-animation-duration:'.$animate_after_duration.'s;
+		animation-iteration-count: '.$animate_after_repeats.';
+		-webkit-animation-iteration-count: '.$animate_after_repeats.';
+		-moz-animation-iteration-count: '.$animate_after_repeats.';
+		}
+		';//visibility:visible;
+			}//endif animate_after_type
+		if ($animate_final_display==='visibleoff'){
+               $css.='
+		#'.$id_ref.'.fadeOut.in-view.active-anim {
+	-webkit-animation-name: fadeOut;
+	animation-name: fadeOut;
+	animation-duration: 1s;
+	-webkit-animation-duration: 1s;
+	-moz-animation-duration:1s;
+	}
+	';
+               }//endif animate_after_type
+		if (!empty($animate_width)&&is_numeric($animate_width)) {
+			$css.='
+			}';//close bracket for @media css
+			}
+		}//if animate_type !==none the whole deal
+     for ($i=1; $i <4; $i++){//animation_max3,animation_min3,animation_type3
+          ${'animate_visibility'.$i}=($options[$this->{'animate_visibility'.$i.'_index'}]==='hidden')?'hidden':(($options[$this->{'animate_visibility'.$i.'_index'}]==='nodisplay')?'nodisplay':'visible'); 
+          ${'animate_type'.$i}=(in_array($options[$this->{'animate_type'.$i.'_index'}],$animation_arr,true))?$options[$this->{'animate_type'.$i.'_index'}]:'none';
+          ${'animate_max'.$i}=(is_numeric($options[$this->{'animate_max'.$i.'_index'}])&&$options[$this->{'animate_max'.$i.'_index'}]>=$min_width&&$options[$this->{'animate_max'.$i.'_index'}]<=$max_width)?$options[$this->{'animate_max'.$i.'_index'}]:'none';
+          ${'animate_min'.$i}=(is_numeric($options[$this->{'animate_min'.$i.'_index'}])&&$options[$this->{'animate_min'.$i.'_index'}]>=$min_width&&$options[$this->{'animate_min'.$i.'_index'}]<=$max_width)?$options[$this->{'animate_min'.$i.'_index'}]:'none';
+          if ($animate_type!=='none'&&${'animate_type'.$i}!=='none'){ 
+               if (${'animate_max'.$i} !=='none'||${'animate_min'.$i} !=='none'){
+                    $max=(${'animate_max'.$i} !=='none')?' and (max-width:'.${'animate_max'.$i}.'px)':'';
+                    if (${'animate_max'.$i} !=='none'||${'animate_min'.$i} !=='none'){
+                         $min=(${'animate_min'.$i} !=='none')?' and (min-width:'.${'animate_min'.$i}.'px)':'';
+                    $addcss='';
+                         if (${'animate_visibility'.$i} ==='hidden'){
+                              $addcss.='
+                              #'.$id_ref.'{visibility:hidden;}
+                              #'.$id_ref.'.active-anim.in-view{visibility:visible;}
+                              '; 
+                              $this->editoverridecss.='
+                              html div#'.$id_ref.'{visibility:visible!important;}
+                              html div#'.$id_ref.' textarea{visibility:visible!important;} 
+                              ';  
+                              } 
+                         if (${'animate_visibility'.$i} ==='nodisplay'){
+                              $addcss.='
+                              #'.$id_ref.'{display:none;}
+                              .'.$id_ref.'.active-anim.in-view{display:'.$this->display_edit_data.';}
+                              ';
+                              } //if no display
+                    $css.=' 
+@media screen '.$max.$min.'{  
+		#'.$id_ref.'.in-view.active-anim{
+		 -webkit-animation-name: '.${'animate_type'.$i}.';
+		animation-name: '.${'animate_type'.$i}.';}
+          '.$addcss.'
+               }';
+                         }//if
+                    }//if
+               }//if
+          }//end for
+     $this->show_more('Style info','','info italic smaller');
+     printer::print_wrap1('techinfo');
+     printer::print_info('Current setting Css: '.$css); 
+     $this->css.=$css;
+     $msg='Curent Css shown here is specific for main div id '.$id_ref.'. The general animation css in the animate.css file is adapted from the daneden git hub open source project.';
+     printer::print_info($msg);
+     printer::close_print_wrap1('techinfo');
+     $this->show_close('Style info');
+	$this->show_more('Control Initial visibility');	
+	$this->print_redwrap('anim visibility'); 
+	$checked1=($animate_visibility==='hidden')? 'checked="checked"':'';
+	$checked2=($animate_visibility==='nodisplay')?'checked="checked"':'';
+	$checked3=($animate_visibility!=='hidden'&&$animate_visibility!=='nodisplay')?'checked="checked"':''; 
+	printer::print_tip('Initial visibility is naturally set at visible prior to animation start. For fading in and other types it may be advantageous to insure an initial visibility to hidden which hides visibilty but the original space remains until animation opacity css fadeIn is activated. Alternatively choose to display none which hides the element and removes its space until activated for animation<br>');
+	printer::alert('<p class="editbackground editfont highlight" title="Set initial visibility to hidden to insure that the '.$type.' is hidden prior to scroll activation of animation;uses css (visibily:hidden) property"><input type="radio" '.$checked1.' name="'.$anim_name.'['.$this->animate_visibility_index.']" value="hidden">Insure Non visibility of Initial State<p>');
+     printer::print_warn('No Display will not effect flex-item use non visible instead');
+	printer::alertx('<p class="editbackground editfont highlight" title="Set '.$type.' initial display to display:none;"><input type="radio"  name="'.$anim_name.'['.$this->animate_visibility_index.']" value="nodisplay" '.$checked2.'>Use No Display No space State. <p>');
+	printer::alertx('<p class="editbackground editfont highlight" title="No display change"><input type="radio"  name="'.$anim_name.'['.$this->animate_visibility_index.']" value="visible" '.$checked3.'>Use Normal Visible Display State<p>');	 
+	printer::pclear(5); 
+	printer::close_print_wrap('anim visibility');
+	$this->show_close('Control Initial visibility');	
+	##################################
+	$this->show_more('Enable '.$type.' Animation','','',' ','800');
+	$this->print_redwrap('inital wrap animate ',true);
+     printer::print_info('Animation effects utilize Danedan animate.css  colection:<a class="cursor underline" target="_blank" href="https://daneden.github.io/animate.css/"> see Project on GitHub</a>');
+     printer::print_tip('Use animation effects as simple animations, or add in followup animations, and/or chain link animation series');
+	printer::print_wrap('animate type','editbackground editfont Os3salmon fsmaqua');
+	printer::print_tip('Choose an Initial Animation Type Here  and optional media query controlled initial animation types. See below to optionally choose a follow-up animation type');
+	printer::alert('Select animation type here:');
+	echo '
+	<!--animate.css -http://daneden.me/animate-->
+	<select class="editcolor editbackground editfont" name="'.$anim_name.'['.$this->animate_type_index.']">
+		<option value="'.$animate_type.'" selected="selected">'.$animate_type.'</option>';
+	$this->animation_option();	
+      echo '</select>';
+      $this->close_print_wrap('animate type');
+      $this->show_more('Add upto 3 @media query Animation Tweaks');
+      printer::print_wrap('additional animate type','editbackground editfont Os3salmon fsmaqua');
+	printer::print_tip('Choose up to 3 media query controlled max/min  to change the Animation Types here.');
+     
+     for ($i=1; $i<4; $i++){
+          printer::print_wrap('for loop animate type');
+          printer::print_tip('Set #'.$i);
+          printer::print_wrap1('for loop maxwidth');
+          printer::alert('@media max-width');
+          $this->mod_spacing($anim_name.'['.$this->{'animate_max'.$i.'_index'}.']',${'animate_max'.$i},$min_width,$max_width,1,'px','none');
+	     
+          printer::close_print_wrap1('for loop maxwidth');
+          printer::print_wrap1('for loop minwidth');
+          printer::alert('@media min-width');
+          $this->mod_spacing($anim_name.'['.$this->{'animate_min'.$i.'_index'}.']',${'animate_min'.$i},$min_width,$max_width,1,'px','none');
+	 
+          printer::close_print_wrap1('for loop minwidth');
+          printer::pclear(5);
+          printer::print_wrap('anim visibility'); 
+          $checked1=(${'animate_visibility'.$i}==='hidden')? 'checked="checked"':'';
+          $checked2=(${'animate_visibility'.$i}==='nodisplay')?'checked="checked"':'';
+          $checked3=(${'animate_visibility'.$i}!=='hidden'&&${'animate_visibility'.$i}!=='nodisplay')?'checked="checked"':''; 
+          printer::print_tip('If media query is selected for additional animation types then also chose initial display state again.');  
+	##############33
+	printer::alert('<p class="editbackground editfont highlight" title="Set initial visibility to hidden to insure that the '.$type.' is hidden prior to scroll activation of animation;uses css (visibily:hidden) property"><input type="radio" '.$checked1.' name="'.$anim_name.'['.$this->{'animate_visibility'.$i.'_index'}.']" value="hidden">Insure Non visibility of Initial State<p>');
+     printer::print_warn('No Display will not effect flex-item use non visible instead');
+	printer::alertx('<p class="editbackground editfont highlight" title="Set '.$type.' initial display to display:none;"><input type="radio"  name="'.$anim_name.'['.$this->{'animate_visibility'.$i.'_index'}.']" value="nodisplay" '.$checked2.'>Use No Display No space State<p>');
+	printer::alertx('<p class="editbackground editfont highlight" title="No display change"><input type="radio"  name="'.$anim_name.'['.$this->{'animate_visibility'.$i.'_index'}.']" value="visible" '.$checked3.'>Use Normal Visible Display State<p>');
+      
+          printer::pclear(5); 
+          printer::close_print_wrap('anim visibility'); 
+          printer::print_wrap1('for loop type');
+          printer::alert('Select animation type here:');
+          echo '
+          <!--animate.css -http://daneden.me/animate-->
+          <select class="editcolor editbackground editfont" name="'.$anim_name.'['.$this->{'animate_type'.$i.'_index'}.']">
+               <option value="'.${'animate_type'.$i}.'" selected="selected">'.${'animate_type'.$i}.'</option>';
+          $this->animation_option();	
+           echo '</select>';
+          printer::close_print_wrap1('for loop type');
+           printer::close_print_wrap('for loop animate type');
+          }//end for loop
+	 printer::close_print_wrap('additional animate type');
+      $this->show_close('@media query tweak Animation Type');
 	/*
 	 animate_type_index
 	 animate_visibility_index
@@ -6398,21 +3812,12 @@ function animation(){
 	$checked2=($animate_alternate==='alternate')?'':'checked="checked"';
 	printer::print_tip('Choose to alternate reverse an animation here (animate:alternate). The animation will go forward then immediately reverse for each iteration. if chosen the animate repeats setting will automatically be doubled to account for the reverse cycle.  Note: the reverse animations will not pause between the alternating animations. For example, to fade-in an animation pause three seconds and fade-out, follow a fade-in animation with the enable followup option to fade-out animation choice and choose a followup delay option of 3 seconds');
 	printer::alert('<p class="editbackground editfont editcolor"><input type="radio" '.$checked1.' name="'.$anim_name.'['.$this->animate_alternate_index.']" value="alternate">Reverse repeat this animation<p>');
-	printer::alertx('<p class="editbackground editfont editcolor" title="Set '.$type.' initial alternate to visibile"><input type="radio"  name="'.$anim_name.'['.$this->animate_alternate_index.']" value="0" '.$checked2.'>No Reversing<p>');	 	
+	printer::alertx('<p class="editbackground editfont editcolor" title="Set '.$type.' initial alternate to visible"><input type="radio"  name="'.$anim_name.'['.$this->animate_alternate_index.']" value="0" '.$checked2.'>No Reversing<p>');	 	
 	printer::pclear(5);
 	printer::close_print_wrap('anim alternate');
      ####################################-animate_complete_id
 	$this->print_wrap('anim complete_id','editbackground editfont Os3salmon fsmaqua');
-	 /*if (isset($_POST[$check_anim_name][$check_anim_index][$this->animate_complete_id_index])){
-		$table=($type==='Column')?$this->master_col_table:$this->master_post_table;
-		$idn=($type==='Column')?'col_id':'blog_id';
-		$bid=substr($animate_complete_id,1);
-		$count=$this->mysqlinst->count_field($table,$idn,'',false,"where $idn=$bid");
-		 if ($count < 1){
-			$msg="Error as no id exists for $bid in $type record. Please Review you ID choice for ".$options[$this->animate_complete_id_index];
-			$this->message[]=$msg;
-			} 
-		} old requirement*/
+	 
 	printer::print_warn('When using id or sibling activation for  series of animations be sure to remove the in view activation option below choosing the none option for uniterrupted animation flow of each animation in the series.<br><input type="checkbox" value="none" name="'.$anim_name.'['.$this->animate_height_index.']">Turn off any in view requirement for this post');
      printer::print_tip('Delay this animation until another animation completes and this one is within the scrolling parameter you specified. Enter the id ie. p## for the animated post or c## for animated column that you wish to complete before this animation begins. Set to 0 remove this option');
 	printer::alert('Enter the id of the animated post or column you wish to complete before this animation starts:<input type="text" value="'.$animate_complete_id.'" name="'.$anim_name.'['.$this->animate_complete_id_index.']">');
@@ -6499,131 +3904,9 @@ function animation(){
 	echo '
 	<!--animate.css -http://daneden.me/animate-->
 	<select class="editcolor editbackground editfont" name="'.$anim_name.'['.$this->animate_after_type_index.']">
-		<option value="'.$animate_after_type.'" selected="selected">'.$animate_after_type.'</option>
-		<option value="none">None</option>
-          <option value="skewSubtle">skewSubtle</option>
-         <optgroup label="Fading Entrances">
-          <option value="fadeIn">fadeIn</option>
-          <option value="fadeInDownSubtle">fadeInDownSubtle</option>
-          <option value="fadeInDown">fadeInDown</option>
-          <option value="fadeInDownBig">fadeInDownBig</option>
-          <option value="fadeInLeft">fadeInLeft</option>
-          <option value="fadeInLeftBig">fadeInLeftBig</option>
-          <option value="fadeInRight">fadeInRight</option>
-          <option value="fadeInRightBig">fadeInRightBig</option>
-          <option value="fadeInUpSubtle">fadeInUpSubtle</option>
-          <option value="fadeInUp">fadeInUp</option>
-          <option value="fadeInUpBig">fadeInUpBig</option>
-        </optgroup>
-
-        <optgroup label="Fading Exits">
-          <option value="fadeOut">fadeOut</option>
-          <option value="fadeOutDownSubtle">fadeOutDownSubtle</option>
-          <option value="fadeOutDown">fadeOutDown</option>
-          <option value="fadeOutDownBig">fadeOutDownBig</option>
-          <option value="fadeOutLeft">fadeOutLeft</option>
-          <option value="fadeOutLeftBig">fadeOutLeftBig</option>
-          <option value="fadeOutRight">fadeOutRight</option>
-          <option value="fadeOutRightBig">fadeOutRightBig</option>
-          <option value="fadeOutUpSubtle">fadeOutUpSubtle</option>
-          <option value="fadeOutUp">fadeOutUp</option>
-          <option value="fadeOutUpBig">fadeOutUpBig</option>
-        </optgroup>
-
-        <optgroup label="Sliding Entrances">
-          <option value="slideInUpSubtle">slideInUpSubtle</option>
-          <option value="slideInUp">slideInUp</option>
-          <option value="slideInDownSubtle">slideInDownSubtle</option>
-          <option value="slideInDown">slideInDown</option>
-          <option value="slideInLeftSubtle">slideInLeftSubtle</option>
-          <option value="slideInLeft">slideInLeft</option>
-          <option value="slideInRightSubtle">slideInRightSubtle</option>
-          <option value="slideInRight">slideInRight</option>         
-        </optgroup>
-     
-      <optgroup label="Sliding Exits">
-          <option value="slideOutUp">slideOutUp</option>
-          <option value="slideOutDown">slideOutDown</option>
-          <option value="slideOutLeft">slideOutLeft</option>
-          <option value="slideOutRight">slideOutRight</option>          
-        </optgroup>
-        
-     <optgroup label="Attention Seekers">
-          <option value="bounce">bounce</option>
-          <option value="flash">flash</option>
-          <option value="pulse">pulse</option>
-          <option value="rubberBand">rubberBand</option>
-          <option value="shake">shake</option>
-          <option value="swing">swing</option>
-          <option value="tada">tada</option>
-          <option value="wobble">wobble</option>
-          <option value="jello">jello</option>
-        </optgroup>
-
-        <optgroup label="Bouncing Entrances">
-          <option value="bounceIn">bounceIn</option>
-          <option value="bounceInDown">bounceInDown</option>
-          <option value="bounceInLeft">bounceInLeft</option>
-          <option value="bounceInRight">bounceInRight</option>
-          <option value="bounceInUp">bounceInUp</option>
-        </optgroup>
-
-        <optgroup label="Bouncing Exits">
-          <option value="bounceOut">bounceOut</option>
-          <option value="bounceOutDown">bounceOutDown</option>
-          <option value="bounceOutLeft">bounceOutLeft</option>
-          <option value="bounceOutRight">bounceOutRight</option>
-          <option value="bounceOutUp">bounceOutUp</option>
-        </optgroup>
-
-        <optgroup label="Flippers">
-          <option value="flip">flip</option>
-          <option value="flipInX">flipInX</option>
-          <option value="flipInY">flipInY</option>
-          <option value="flipOutX">flipOutX</option>
-          <option value="flipOutY">flipOutY</option>
-        </optgroup>
-
-        <optgroup label="Lightspeed">
-          <option value="lightSpeedIn">lightSpeedIn</option>
-          <option value="lightSpeedOut">lightSpeedOut</option>
-        </optgroup>
-
-        <optgroup label="Rotating Entrances">
-          <option value="rotateIn">rotateIn</option>
-          <option value="rotateInDownLeft">rotateInDownLeft</option>
-          <option value="rotateInDownRight">rotateInDownRight</option>
-          <option value="rotateInUpLeft">rotateInUpLeft</option>
-          <option value="rotateInUpRight">rotateInUpRight</option>
-        </optgroup>
-
-        <optgroup label="Rotating Exits">
-          <option value="rotateOut">rotateOut</option>
-          <option value="rotateOutDownLeft">rotateOutDownLeft</option>
-          <option value="rotateOutDownRight">rotateOutDownRight</option>
-          <option value="rotateOutUpLeft">rotateOutUpLeft</option>
-          <option value="rotateOutUpRight">rotateOutUpRight</option>
-        </optgroup>
-
-        </optgroup>
-       
-        
-        <optgroup label="Zoom Entrances">
-          <option value="zoomIn">zoomIn</option>
-          <option value="zoomInDown">zoomInDown</option>
-          <option value="zoomInLeft">zoomInLeft</option>
-          <option value="zoomInRight">zoomInRight</option>
-          <option value="zoomInUp">zoomInUp</option>
-        </optgroup>
-        
-        <optgroup label="Zoom Exits">
-          <option value="zoomOut">zoomOut</option>
-          <option value="zoomOutDown">zoomOutDown</option>
-          <option value="zoomOutLeft">zoomOutLeft</option>
-          <option value="zoomOutRight">zoomOutRight</option>
-          <option value="zoomOutUp">zoomOutUp</option>
-        </optgroup>
-      </select>';
+		<option value="'.$animate_after_type.'" selected="selected">'.$animate_after_type.'</option>';
+	$this->animation_option();
+      echo '</select>';
 	 printer::close_print_wrap('animate after_type');
 	printer::pclear(5);
 	############## 
@@ -6671,7 +3954,48 @@ function animation(){
 	printer::close_print_wrap('wrap  _animations');
 	$this->show_close('animations'); 
 	}//end func animation
+
+
+#handlecss #css 
+function handle_css_edit($key,$value='',$type='css'){ 
+	if (!array_key_exists($key,$this->css_page_array))$this->css_page_array[$key]=array();
 	
+	if  ($value==='cssgen'){ //individual to post/col/page
+		$this->css_page_array[$key][]=array('css',$this->css); 
+		$this->css='';
+		}
+	elseif ($type==='css'){ 
+		if (strlen($this->mediacss)>50)
+			$this->css_page_array[$key][]=array('css',"/* $key has scaling media css rules in  currentpage *_media.css */");
+		 $this->css_page_array[$key][]=array('css',$this->css);
+		$this->css_page_array[$key][]=array('mediacss',$this->mediacss);
+		
+		$this->css_page_array[$key][]=array('editoverridecss',$this->editoverridecss);
+		$this->editoverridecss=$this->css=$this->mediacss='';
+		}
+	else { 
+		$this->css_page_array[$this->key][]=array($type,$value);
+		}
+	}
+
+
+function handle_script_edit($script,$subkey,$arrType){
+     if (!$this->edit||(!$this->col_primary&&!$this->blog_pub)||($this->is_blog&&!$this->blog_pub))return;
+     #here we make sure any page with clone will have latest script direct from the clones original so any updates are curent even when the editpages that contain the clone are not updated!
+     #this will be done for cloned posts/columns by passing the array key reference of the original to populate the scripts from the master array containing all key and value of scripts.  To populate final page specific scripts utilizes function script_handle_webmode called in the header of webmode pages
+     #master script array stays current by deleted all keys associated with the page when in editmode for that page before repopulating with the new page entrees to account for any deleted/moved posts/columns
+     if ($this->is_clone&&!$this->clone_local_style)return; 
+	if (strpos($arrType,'once')===false)
+		$this->{$arrType}.=$script;
+	else
+		$this->{$arrType}[]=$script;
+		//subkey index prevents index over-write
+	if (!array_key_exists($this->key,$this->scriptArr))$this->scriptArr[$this->key]=array();
+     $this->scriptArr[$this->key][]=array($arrType,$script);//this will go to master script array in update_arrays 
+         // }	
+     }//end function
+    
+     
 function border_calc($styles,$image=false){
      if (!$image){
           $this->left_border_info='';
@@ -6841,6 +4165,13 @@ function track_font_em($styles){
           }
     }
 
+    
+function calc_alt_percent(){
+	
+	
+	
+	}
+	
 function alt_width_calc($styles){
      $this->width_info='';
      $this->width_percent=false;
@@ -6944,12 +4275,13 @@ function nested_column(){
 	} 
 	
 function blog_import_export_options(){
+     if ($this->is_clone)return;
 	$this->show_more('Import/Export Styles &amp; Configurations Option');
 	$this->print_redwrap('import/export',true);
      $this->submit_button();
-	echo '<div class="'.$this->column_lev_color.' fsminfo  editbackground editfont left "><!--import-->Import to this post only all styles and certain configuration from another '.$this->blog_type.' post from any page. <b>Will Not change configurations for main width, Rwd Grid settings, height, and alternative RWD settings, unless you check the additional box below  to import these also,  or these can be changed separately below. Will not change basic data such as Image Names and caption data, feedback, text, etc.</b> Post types must match.';
+	echo '<div class="'.$this->column_lev_color.' fsminfo  editbackground editfont left "><!--import-->Import to this post only all styles and certain configuration from another '.$this->blog_type.' post from any page. <b>Will Not change configurations for main width, Rwd Grid settings, flexbox, height, and alternative RWD settings, unless you check the additional box below  to import these also,  or these can be changed separately below. Will not change basic data such as Image Names and caption data, feedback, text, etc.</b> Post types must match.';
 	printer::printx( '<p class="editcolor editbackground editfont" title="Be Sure to Use the Post Id Which Begins with a P ie P42.  Do Not Use the  Post# which simply refer to the Post Display Order Within the Column. Post Ids and #s are displayed at the top of each post"><input class="editcolor editbackground editfont" name="post_configcopy['.$this->blog_id.']" size="8" maxlength="8" type="text">Enter the  <span class="info">Post Id</span> <span class="red">(Not Post#) </span>that you wish to Copy Configurations and Styles to this post</p>');
-	printer::printx( '<p class="editcolor editbackground editfont"><input class="editcolor editbackground editfont" name="post_allconfigcopy['.$this->blog_id.']"   type="checkbox" value="'.$this->blog_id.'">Copy Include <b> All Width and RWD Configs</b> to this post also.</p>');
+	printer::printx( '<p class="editcolor editbackground editfont"><input class="editcolor editbackground editfont" name="post_allconfigcopy['.$this->blog_id.']"   type="checkbox" value="'.$this->blog_id.'">Copy Include <b> All Width, Float &amp; RWD Configs</b> to this post also.</p>');
 	echo '</div>'; 
 	echo '<div class="'.$this->column_lev_color.' fsminfo  editbackground editfont left "><!--export-->Export styles and configuration (<b>Will Not change configurations for width,Rwd Grid settings, or float settings, or click the additional option just below to includes these also. Alternatively, these can be changed separately below.  Will not change basic data such as Image Names and caption data, feedback, text, etc.</b>) from this '.$this->blog_type.' post to any other '.$this->blog_type.' post that is directly within this Column Post types must match.';
 	printer::printx( '<p class="editcolor editbackground editfont" 	><input class="editcolor editbackground editfont" name="post_configexport['.$this->blog_id.']"   type="checkbox" value="'.$this->blog_id.'">Export these Styles and Configs to '.$this->blog_type.' posts within this column</p>');
@@ -6958,22 +4290,17 @@ function blog_import_export_options(){
 	//$this->show_more('Or choose individual Configuration to Export/Import');
      //$this->print_redwrap('individual port options'); 
      printer::print_tip('Styles may exported/imported by using that option located at the bottom of every grouping of particular style options. Here we import/export other configuration options on indiviudal basis.');
-	echo '<div class="'.$this->column_lev_color.' fsminfo  editbackground editfont left "><!--import-->Import RWD Grid percentage selections to this post from another post from any page that has the same Grid Break Points set in the page options. Field: <span class="info" title="blog_gridspace_right, blog_gridspace_left, blog_grid_width">Info</span>';
-	printer::printx( '<p class="editcolor editbackground editfont" title="Be Sure to Use the Post Id Which Begins with a P ie P42.  Do Not Use the  Post# which simply refer to the Post Display Order Within the Column. Post Ids and #s are displayed at the top of each post"><input class="editcolor editbackground editfont" name="post_rwdcopy['.$this->blog_id.']" size="8" maxlength="8" type="text">Enter the  <span class="info">Post Id</span> <span class="red">(Not Post#) </span>that you wish to copy Post RWD grid break point percentages</p>');
-	printer::printx( '<p class="editcolor editbackground editfont" 	><input class="editcolor editbackground editfont" name="post_allconfigcopy['.$this->blog_id.']"   type="checkbox" value="'.$this->blog_id.'">Also Include Importing <b> All  Width, Float &amp; RWD Configs</b> to this post</p>'); 
-	echo '</div>'; 
-	echo '<div class="'.$this->column_lev_color.' fsminfo  editbackground editfont left "><!--export-->Export RWD Grid percentage settings and width mode choice from this  post to any other non nested column post that is directly within this Column.';
-	printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="post_rwdexport['.$this->blog_id.']"  type="checkbox" value="'.$this->blog_id.'">Export this Posts RWD Grid settings to other posts within this column</p>');
-	printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="post_col_rwdexport['.$this->blog_id.']"  type="checkbox" value="'.$this->blog_id.'">Also include RWD Grid export to Nested Columns directly in same parent </p>');
-	echo '</div><!--export-->';
-	#######################################################
-	echo '<div class="'.$this->column_lev_color.' fsminfo  editbackground editfont left "><!--export-->Export the Alt RWD Percentage and width mode settings from this nested column to nested columns that are directly within this same parent Column. Field: blog_width_mode';
-	printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="post_widthmodeexport['.$this->blog_id.']"  type="checkbox" value="'.$this->blog_id.'">Export the Alt RWD Percentage setting of this column to all posts directly in this parent column</p>');
 	
-	printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="post_col_widthmodeexport['.$this->blog_id.']"  type="checkbox" value="'.$this->blog_id.'">Also include Alt RWD Percentage settings export to Nested Columns directly in same parent </p>');
-	echo '</div><!--export-->';
-	######################################################
-	echo '<div class="'.$this->column_lev_color.' fsminfo  editbackground editfont left "><!--export-->Export the Main Width value (affects posts in non-rwd grid mode) from this post to posts that are directly within this Column. Field: blog_width';
+	
+	echo '</div>'; 
+	
+	#######################################################
+	printer::print_wrap('alt widthunits');
+		printer::print_tip('<b>Alt min max width Units</b> (ie percentage,rem,em,vw) available under the Additional individual field choices to import or export from field blog_options');
+	printer::close_print_wrap('alt widthunits');
+		#######################################################
+	
+	echo '<div class="'.$this->column_lev_color.' fsminfo  editbackground editfont left "><!--export-->Export the Main Width value including max-width, percentage, and Alt RWD Percentage from this post to posts that are directly within this Column. Field: blog_width';
 	printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="post_widthexport['.$this->blog_id.']"  type="checkbox" value="'.$this->blog_id.'">Export the Main width value of this post to all posts directly in this column</p>'); 
 	printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="post_col_widthexport['.$this->blog_id.']"  type="checkbox" value="'.$this->blog_id.'">Also include Width value export to Nested Columns directly in same parent Field: col_width</p>');
 	echo '</div><!--export-->';
@@ -6993,6 +4320,13 @@ function blog_import_export_options(){
 	printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="post_floatexport['.$this->blog_id.']"  type="checkbox" value="'.$this->blog_id.'">Export the Float setting of this post to all posts directly in this column. Field: blog_float</p>');
 	printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="post_col_floatexport['.$this->blog_id.']"  type="checkbox" value="'.$this->blog_id.'">Also include Float setting export to Nested Columns directly in same parent </p>');
 	echo '</div><!--export-->';
+	printer::print_tip('Original RWD Grid with set page wide break points');
+	echo '<div class="'.$this->column_lev_color.' fsminfo  editbackground editfont left "><!--export-->Export RWD Grid percentage settings and width mode choice from this  post to any other non nested column post that is directly within this Column.';
+	printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="post_rwdexport['.$this->blog_id.']"  type="checkbox" value="'.$this->blog_id.'">Export this Posts RWD Grid settings to other posts within this column</p>');
+	printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="post_col_rwdexport['.$this->blog_id.']"  type="checkbox" value="'.$this->blog_id.'">Also include RWD Grid export to Nested Columns directly in same parent </p>');
+	echo '</div><!--export-->';
+	echo '<div class="'.$this->column_lev_color.' fsminfo  editbackground editfont left "><!--import-->Import RWD Grid percentage selections to this post from another post from any page that has the same Grid Break Points set in the page options. Field: <span class="info" title="blog_gridspace_right, blog_gridspace_left, blog_grid_width">Info</span>';
+	printer::printx( '<p class="editcolor editbackground editfont" title="Be Sure to Use the Post Id Which Begins with a P ie P42.  Do Not Use the  Post# which simply refer to the Post Display Order Within the Column. Post Ids and #s are displayed at the top of each post"><input class="editcolor editbackground editfont" name="post_rwdcopy['.$this->blog_id.']" size="8" maxlength="8" type="text">Enter the  <span class="info">Post Id</span> <span class="red">(Not Post#) </span>that you wish to copy Post RWD grid break point percentages</p>');
      ##########
 	printer::print_wrap('blog option Port');
      printer::print_tip('Additional individual field choices to import or export from field blog_options');
@@ -7003,11 +4337,11 @@ function blog_import_export_options(){
     // $this->show_close('Or choose individual Configuration to Export/Import');
      //printer::close_print_wrap('individual port options');
      ########## 
-	$this->show_more('Inter-Database Export/Import Configs/Settings');
+	$this->show_more('Inter-Database Export/Import Entire Post Data Style Configs');
 	$dir= (is_dir(Sys::Common_dir))?Sys::Common_dir:Sys::Home_pub;
 	$dir=rtrim($dir,'/').'/';
 	$this->print_redwrap('interdatabase');
-	printer::print_tip('If you are running multiple datbases you can export/import all configs/Styles of this post to/from another database.  First Choose export dump data from donor post. Data will dump from database to file. Navigate to new webpage and post you wish to import data, and it will automatically import the file and update that database. File will dump to the common_dir if it exists otherwise the home directory.  Currently to import the file or export data the system will use/look-for the file: <span class="red">'.$dir.'lastpostdump.dat</span>'); 
+	printer::print_tip('If you are running multiple databases you can export/import all  data &amp; configs/Styles of this post to/from another database.  First Choose export dump data from donor post. Data will dump from database to file. Navigate to new webpage and post you wish to import data, and it will automatically import the file and update that database. File will dump to the common_dir if it exists otherwise the home directory.  Currently to import the file or export data the system will use/look-for the file: <span class="red">'.$dir.'lastpostdump.dat</span>'); 
 				    
 	printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="post_configexportdump['.$this->blog_id.']"   type="checkbox" value="'.$this->blog_id.'">Export Dump these Styles and Config Settings to file.</p>');
 	printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="post_configimportdump['.$this->blog_id.']"   type="checkbox" value="'.$this->blog_id.'">Import Grab Style and Cofigure Settings from file '.$dir.'lastpostdump.dat</p>');
@@ -7118,25 +4452,27 @@ function mod_spacing($name,$size,$range1=0,$range2=300,$increment=5,$unit='px',$
      $init=(is_numeric($size))?$size:0; 
      $ornone=($none==='none')?' Or Check none':'';
      printer::single_custom_wrap('mod width','fs1info editbackground editcolor');
-     $convert= ($size>0&&$unit2 !== '' && $factor !=='1') ?'  &nbsp;'.(round($size*$factor,2)).$unit2:'';  
+     $convert= ($unit2 !== '' && $factor !=='1') ?'  &nbsp;'.(round($size*$factor,2)).$unit2:'';  
      printer::print_tip2($msg.' <b>Currently: '.$size.$showunit.$convert.'</b> &nbsp;&nbsp;&nbsp; Use 0 to Remove'.$ornone ,.7);
-     $none=($none==='none')?' <input id="slider-checkbox_'.$inc.'" type="checkbox"  '.$checked.'  name="'.$name.'"  value="none"> Choose None':'';
+     $nomsg=($none==='none')?' <input id="slider-checkbox_'.$inc.'" type="checkbox"  '.$checked.' onchange="edit_Proc.allowThis(this);" name="'.$name.'"  value="none"  > Choose None':'';
 	echo '
      <div id="toggle_'.$inc.'" class="clear editbackground editfont editcolor"  style="display:none;"><!--toggle hide mod_spacing-->';
 	echo '<p style="height:5px">';for ($i=0; $i<60;  $i++)echo '&nbsp; &nbsp;'; echo '</p><!--mod spacer -->';//fillspacing avail for larger slider
      echo '
 	<div class="clear editfont tip2"> <!--mod_spacing choose-->
     Choose:  
- <input style="visibility:hidden;" data-max="'.$range2.'" data-min=".'.$range1.'" id="slider-input_'.$inc.'" type="text" value="'.$size.'" name="'.$name.'">
+ <input style="visibility:hidden;" data-max="'.$range2.'" data-min="'.$range1.'" id="slider-input_'.$inc.'" type="text" value="'.$size.'" name="'.$name.'">
  <div id="slider-update_'.$inc.'"  ></div>
-<p class="pt10"><span id="slider-update-value_'.$inc.'"></span>'.$none.'</p>
+<p class="pt10"><span id="slider-update-value_'.$inc.'"></span>'.$nomsg.'</p>
 <p class="pt5"></p></div><!--mod_spacing choose-->
 </div><!--toggle hide mod_spacing-->';
      echo <<<eol
-<p id="button-create-slide_$inc" class="clear tip2 cursor radius5 fsmgrey floatleft grey" onclick="gen_Proc.toggleIt('toggle_$inc');setTimeout(function(){initnoUiSlider($inc,$range1,$range2,'$init',$increment,'$unit',$factor,'$unit2')},100);">Initiate Slider</p>
+<p id="button-create-slide_$inc" class="clear tip2 cursor radius5 fsmgrey floatleft grey" onclick="gen_Proc.openIt('toggle_$inc');setTimeout(function(){initnoUiSlider($inc,$range1,$range2,'$init',$increment,'$unit',$factor,'$unit2')},100);">Initiate Slider</p>
 <p id="button-refine-slide_$inc" class="cursor tip2 fsmgrey floatleft grey hide" onclick="updateSliderRange($inc);document.getElementById('button-reinit-slide_$inc').classList.remove('hide');">Refine Slider Choice</p> 
 <p id="button-reinit-slide_$inc" class="cursor tip2 fsmgrey floatleft grey hide" onclick="initnoUiSlider($inc,$range1,$range2,'$size',$increment,'$unit',$factor,'$unit2',true);"><b>Full Range</b></p>
 eol;
+
+	if($none==='auto')printer::alert('<input type="checkbox" name="'.$name.'" value="auto">Choose value auto');
      printer::close_single_wrap('mod width'); 
    }
    
@@ -7162,7 +4498,7 @@ function edit_form_end($value='SUBMIT ALL CHANGES'){  if (Sys::Methods) Sys::Deb
           echo '<input type="hidden" name="submitted" value="true" >';
           echo <<<eol
      <script>
-      \$(function() {
+      jQuery(function() {
             // document.getElementById('autosubmit').submit();
      });
      </script>
@@ -7170,10 +4506,74 @@ function edit_form_end($value='SUBMIT ALL CHANGES'){  if (Sys::Methods) Sys::Deb
 eol;
           }
 	}
+function page_parallax_css(){
+     $this->show_more('Enable Parallax');
+	printer::print_wrap('Enable Parallax');
+     printer::print_tip('Turn on page parallax Option Here.  Utilizes The Keith Clarks Css method which "Limits the effect to relatively modern browsers also narrows the scope to reasonably modern mobile/tablet hardware, so there s a realistic chance of the effect being performant." <br> You can Optionaly choose a view screen min-width in which to enable the parallax effect.');
      
+     printer::print_tip('Enter classname <b>parallax</b> into  column options Add Custom classnames option. Then in posts/nested columns within add classname option <b>para_back</b> and <b>para_base</b> for parallax effect correpondeing to Keith Clarks classes for parallax__layer parallax__layer--back and parallax__layer parallax__layer--base. Although para_group also available (ie. parallax__group) it hasnt seemed to produce positive effect.');
+     $parallax_min=(!empty($this->page_options[$this->page_parallax_minwidth_index])&&$this->page_options[$this->page_parallax_minwidth_index]>299)?$this->page_options[$this->page_parallax_minwidth_index]:'0';
+     $checked1=($this->page_options[$this->page_parallax_index]==='turnon')?'checked="checked"':''; 
+	$checked2=($this->page_options[$this->page_parallax_index]!=='turnon')?'checked="checked"':''; 
+	printer::alert('<input type="radio" value="turnon" '.$checked1.' name="page_options['.$this->page_parallax_index.']">Parallax On<br>');
+	printer::alert('<input type="radio" value="disabled" '.$checked2.' name="page_options['.$this->page_parallax_index.']">Parallax Off');
+     printer::pclear(5);
+     printer::alert('Set Parallax Min-Width view screen size:');
+	$this->mod_spacing('page_options['.$this->page_parallax_minwidth_index.']',$parallax_min,300,1400,1,'px','none');
+	printer::pclear();
+     if ($this->page_options[$this->page_parallax_index]==='turnon'){
+         if (!empty($paralax_min))
+               $this->pagecss.='
+          @media screen and (min-width: 40em) {';
+          $this->pagecss.='
+          @supports ((perspective: 1px) and (not (-webkit-overflow-scrolling: touch))) {
+          
+     .parallax{
+        perspective: 1px;
+      -webkit-perspective-origin: 100vw 50%;
+      -moz-perspective-origin: 100vw 50%;
+      -ms-perspective-origin: 100vw 50%;
+      perspective-origin: 100vw 50%;
+        height: 100vh;
+        overflow-x: hidden;
+        overflow-y: auto;
+          }
+ 
+     .para_back{
+          position: absolute;
+          top:0;
+          right:0;
+          bottom:0;
+          left:0;
+          transform: translateZ(-0.85px)scale(1.85);
+          -webkit-transform-origin-y: 100% 100% 0px;
+          -moz-transform-origin: 100% 100% 0px;
+          -ms-transform-origin: 100% 100% 0px;
+          transform-origin: 100% 100% 0px;
+          }
+     .para_base{
+          position: absolute;
+          top:0;
+          right:0;
+          bottom:0;
+          left:0;
+          transform: translateZ(0px);
+          }
+     .para_group{
+               position: relative;
+               height: 100vh;
+               transform-style: preserve-3d;
+               }';
+          if (!empty($paralax_min))
+               $this->pagecss.='
+          }';
+          }
+	printer::close_print_wrap('Enable Parallax');
+	$this->show_close('Enable Parallax');
+     }
 function editor_appearance(){
-     echo '<div class="inline floatleft"><!-- float buttons-->';
-     $this->show_more('Edit Mode Style','asis',$this->column_lev_color.' smallest  editbackground editfont button'.$this->column_lev_color);
+     echo '<div class="floatbutton"><!-- float buttons-->';
+     $this->show_more('EditMode Style','asis',$this->column_lev_color.' smallest  editbackground editfont button'.$this->column_lev_color);
 	$this->print_wrap('editor appearance');
 	$this->show_more('Configure Editor Colors','noback');
 	$this->print_redwrap('Editor colorWrap',true);
@@ -7191,9 +4591,9 @@ function editor_appearance(){
 		$page_color_value_property='page_light_editor_value';
 		$editorref='Light';
 		}
-	printer::alertx('<p class="smaller  editcolor left editbackground editfont" style="padding: 4px 4px 4px 5px; border-width: 3px 0px 3px 0px;  border-style:solid; border-color: #'. $this->page_options[$this->page_darkeditor_color_index].';cursor:pointer;background:#'.$this->page_options[$this->page_darkeditor_background_index].';color:#'.$this->page_options[$this->page_darkeditor_color_index].';">  #<input onclick="jscolor.installByClassName(\'darkeditorbackcolor\');" style="cursor:pointer;background:#'.$this->page_options[$this->page_darkeditor_background_index].';color:#'.$this->page_options[$this->page_darkeditor_color_index].';" type="text"  name="page_options['.$this->page_darkeditor_background_index.']"   value="'.$this->page_options[$this->page_darkeditor_background_index].'" size="6" maxlength="6" class="darkeditorbackcolor {refine:false}">Change  Background Color of Dark Theme Editor</p>');
+	printer::alertx('<p class="smaller  editcolor left editbackground editfont" style="padding: 4px 4px 4px 5px; border-width: 3px 0px 3px 0px;  border-style:solid; border-color: #'. $this->page_options[$this->page_darkeditor_color_index].';cursor:pointer;background:#'.$this->page_options[$this->page_darkeditor_background_index].';color:#'.$this->page_options[$this->page_darkeditor_color_index].';">  #<input onclick="jscolor.installByClassName(\'darkeditorbackcolor\');" style="cursor:pointer;background:#'.$this->page_options[$this->page_darkeditor_background_index].';color:#'.$this->page_options[$this->page_darkeditor_color_index].';" type="text"  name="page_options['.$this->page_darkeditor_background_index.']"   value="'.$this->page_options[$this->page_darkeditor_background_index].'" size="6" maxlength="6" class="darkeditorbackcolor {refine:false}">Change Background Color of Dark Theme Editor</p>');
 	printer::pclear(3);
-	printer::alertx('<p class="fs1'.$this->page_options[$this->page_darkeditor_color_index].' smaller  editcolor left editbackground editfont" style="padding: 4px 4px 4px 5px; border-width: 3px 0px 3px 0px;  border-style:solid; border-color: #'. $this->page_options[$this->page_darkeditor_color_index].'; cursor:pointer;background:#'.$this->page_options[$this->page_darkeditor_background_index].';color:#'.$this->page_options[$this->page_darkeditor_color_index].';">  #<input onclick="jscolor.installByClassName(\'darkeditorcolor\');" style="cursor:pointer;background:#'.$this->page_options[$this->page_darkeditor_background_index].';color:#'.$this->page_options[$this->page_darkeditor_color_index].';" type="text"  name="page_options['.$this->page_darkeditor_color_index.']"   value="'.$this->page_options[$this->page_darkeditor_color_index].'" size="6" maxlength="6" class="darkeditorcolor {refine:false}">Change Editor Misc. Text Colors of Dark Theme </p>');
+	printer::alertx('<p class="fs1color smaller  editcolor left editbackground editfont" style="padding: 4px 4px 4px 5px; border-width: 3px 0px 3px 0px;  border-style:solid; border-color: #'. $this->page_options[$this->page_darkeditor_color_index].'; cursor:pointer;background:#'.$this->page_options[$this->page_darkeditor_background_index].';color:#'.$this->page_options[$this->page_darkeditor_color_index].';">  #<input onclick="jscolor.installByClassName(\'darkeditorcolor\');" style="cursor:pointer;background:#'.$this->page_options[$this->page_darkeditor_background_index].';color:#'.$this->page_options[$this->page_darkeditor_color_index].';" type="text"  name="page_options['.$this->page_darkeditor_color_index.']"   value="'.$this->page_options[$this->page_darkeditor_color_index].'" size="6" maxlength="6" class="darkeditorcolor {refine:false}">Change Editor Misc. Text Colors of Dark Theme </p>');
 	
 	printer::pclear(3);
 	printer::alertx('<p class=" smaller  editcolor left editfont" style="padding: 4px 4px 4px 5px; border-width: 3px 0px 3px 0px;  border-style:solid; border-color: #'. $this->page_options[$this->page_lighteditor_color_index].';cursor:pointer;background:#'.$this->page_options[$this->page_lighteditor_background_index].';color:#'.$this->page_options[$this->page_lighteditor_color_index].';"> #<input onclick="jscolor.installByClassName(\'lighteditorbackcolor\');" style="cursor:pointer;background:#'.$this->page_options[$this->page_lighteditor_background_index].';color:#'.$this->page_options[$this->page_lighteditor_color_index].';" type="text"  name="page_options['.$this->page_lighteditor_background_index.']"   value="'.$this->page_options[$this->page_lighteditor_background_index].'" size="6" maxlength="6" class="lighteditorbackcolor {refine:false}">Change Background Color of Editor Light Theme </p>');
@@ -7279,7 +4679,7 @@ printer::alertx('<p class="smaller  editcolor left editbackground editfont" styl
 	printer::printx('<p>Change the Default editor font family style</p>');
 	$this->font_family('page_options',$this->page_editor_fontfamily_index,'',true);
 	$this->edit_font_family=(!empty($this->page_options[$this->page_editor_fontfamily_index])&&strpos($this->page_options[$this->page_editor_fontfamily_index],'=>')!==false)? str_replace('=>',',',$this->page_options[$this->page_editor_fontfamily_index]):  str_replace('=>',',',$this->edit_font_family);
-	$this->edit_font_family=str_replace(';','!important;',$this->edit_font_family);  
+	//$this->edit_font_family=str_replace(';','!important;',$this->edit_font_family);  
 	$this->close_print_wrap('editor font family');
      $this->show_close('Configure Editor Font Family');
      printer::pclear();
@@ -7297,12 +4697,14 @@ printer::alertx('<p class="smaller  editcolor left editbackground editfont" styl
 	    </select></p>';
 	if (!empty($this->page_options[$this->page_editor_bordersize_index])&&is_numeric($this->page_options[$this->page_editor_bordersize_index]))  $this->edit_border_size=$this->page_options[$this->page_editor_bordersize_index];
 	$this->close_print_wrap('editor border size');
-	$this->show_close('Configure Editor Font');$this->show_more('Configure Editor Font Size','noback','','Choose the font size style of the Editor Only');
+	$this->show_close('Configure Editor Font');
+	$this->show_more('Configure Editor Font Size','noback','','Choose the font size style of the Editor font size');
 	$this->print_wrap('editor font size');
 	printer::printx('<p>Change the Default editor font size</p>');
      $this->pelement=' .editfont';
+	$this->page_options[$this->page_editor_fontsize_index]=(!empty($this->page_options[$this->page_editor_fontsize_index]))?$this->page_options[$this->page_editor_fontsize_index]:'16';
 	$this->font_size('page_options',$this->page_editor_fontsize_index,'',$this->pelement);
-	if (!empty($this->page_options[$this->page_editor_fontsize_index])&&is_numeric($this->page_options[$this->page_editor_fontsize_index]))  $this->edit_font_size=$this->page_options[$this->page_editor_fontsize_index];
+	$this->edit_font_size=(!empty($this->page_options[$this->page_editor_fontsize_index])&&is_numeric($this->page_options[$this->page_editor_fontsize_index]))?  $this->page_options[$this->page_editor_fontsize_index]:'16'; 
 	$this->close_print_wrap('editor font size');
      $this->show_close('Configure Editor Font');
      $this->close_print_wrap('editor appearance');
@@ -7311,30 +4713,41 @@ printer::alertx('<p class="smaller  editcolor left editbackground editfont" styl
      }#end editor_appear
    
 function configure_editor(){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-     $this->rem_root=($this->page_options[$this->page_rem_unit_index]>=3&&$this->page_options[$this->page_rem_unit_index]<=100)?$this->page_options[$this->page_rem_unit_index]:16;//initialize before editor font choice 
+     $this->rem_root=($this->page_options[$this->page_rem_unit_index]>=3&&$this->page_options[$this->page_rem_unit_index]<=100)?$this->page_options[$this->page_rem_unit_index]:$this->default_rem;//initialize before editor font choice 
 	$this->current_font_size=$page_rem_unit=$this->rem_root; 
      $page_mod_percent=(is_numeric($this->page_options[$this->page_mod_percent_index])&&$this->page_options[$this->page_mod_percent_index]<=400&&$this->page_options[$this->page_mod_percent_index]>=25)? $this->page_options[$this->page_mod_percent_index]: 100; 
-	$page_width_scale_upper=(!empty($this->page_options[$this->page_width_scale_upper_index])&&is_numeric($this->page_options[$this->page_width_scale_upper_index])&&$this->page_options[$this->page_width_scale_upper_index]<=Cfg::Col_maxwidth&&$this->page_options[$this->page_width_scale_upper_index]>=500)?$this->page_options[$this->page_width_scale_upper_index]:'none';
-	$page_width_scale_lower=(!empty($this->page_options[$this->page_width_scale_lower_index])&&is_numeric($this->page_options[$this->page_width_scale_lower_index])&&$this->page_options[$this->page_width_scale_lower_index]<Cfg::Col_maxwidth*.75)?$this->page_options[$this->page_width_scale_lower_index]:'none';
+     $page_rem_scale_enable=($this->page_options[$this->page_rem_scale_enable_index]!=='page_rem_scale_disable')?true:false;
+	$page_rem_scale_upper=(!empty($this->page_options[$this->page_rem_scale_upper_index])&&is_numeric($this->page_options[$this->page_rem_scale_upper_index])&&$this->page_options[$this->page_rem_scale_upper_index]<=Cfg::Col_maxwidth&&$this->page_options[$this->page_rem_scale_upper_index]>=300)?$this->page_options[$this->page_rem_scale_upper_index]:'none';
+	$page_rem_scale_lower=(!empty($this->page_options[$this->page_rem_scale_lower_index])&&is_numeric($this->page_options[$this->page_rem_scale_lower_index])&&$this->page_options[$this->page_rem_scale_lower_index]<Cfg::Col_maxwidth*.75)?$this->page_options[$this->page_rem_scale_lower_index]:'none';
      //$this->current_font_em_px=$page_rem_unit;  
      $this->show_more('Enable viewport Responsive rem units');
 	$this->print_redwrap('Enable viewport Responsive rem units');
-     printer::alert('Current full value: '.$page_rem_unit.'px');
+     printer::alert('Current 1 rem full value: '.$page_rem_unit.'px');
 	$this->show_more('Tweak default rem value');
      printer::print_redwrap('Tweak rem');
-     printer::print_info('Original default rem unit value is 16px');
-     printer::alert('Current full value: '.$page_rem_unit.'px');
-     printer::print_tip('Scaling rem is done below this. However here you can tweak up or down the overal value of scaled or unscaled rem units when a global rem value change is called for');//
+     printer::print_info('Original default rem unit value is '.$this->default_rem.'px');
+     printer::alert('Current 1 rem full value: '.$page_rem_unit.'px');
+     printer::print_tip('However here you can tweak up or down the overal value of scaled or unscaled rem units when a global rem value change is called for');//			
      $this->mod_spacing('page_options['.$this->page_rem_unit_index.']',$page_rem_unit,4,100,.1,'px');
      printer::close_print_wrap('Tweak rem');
      $this->show_close('Tweak default rem value');
+	printer::pspace(5);
+	$this->show_more('Rem Scale Info','','highlight italic small');
+     printer::print_wrap('rem info');
      printer::print_tip2('Under any spacing or font-size choice you can choose to make a px choice scale responsively, ie smallerize according to the users viewport size, or you can choose other units such as %, em, rem, or vw. Both em and rem units can simlarly be set up to responsizely scale.  Here you can setup rem responsive unit sizing proportional to the viewport sizes over which you wish the rem unit to decreasingly respond in size in a one to one proportion.  However, there is also an option below to modify this one to one relationship if desired');
-     
-	printer::print_tip('Enter both an upper and lower viewport range over which the use of rem  scaling is to take place and the system will automatically generate the necessary media queries linked to the hml tag which sets up rem units.  The result of specifying your minimum and maximum range will be a more appropriately scaled rem unit when scaling is required.  For best results the upper size limit should be the size of a viewport which begins to compress your content or more generally no greater than the width of the primary column. Lower end generally between 300-350px for lower screen size mobile devices. <b>Find an overview of the various scaling unit options under the Scale Units Overview &amp; Some Basic Pointers on the editor system option just above.</b>'); 
+	printer::print_tip('Enter both an upper and lower viewport range over which the use of rem  scaling is to take place and the system will automatically generate the necessary media queries linked to the hml tag which sets up rem units.  The result of specifying your minimum and maximum range will be a more appropriately scaled rem unit when scaling is required.  For best results the upper size limit should be the size of a viewport which begins to compress your content or more generally no greater than the width of the primary column. Lower end need to be 75px or more less than Upper setting. <b>Find an overview of the various scaling unit options under the Scale Units Overview &amp; Some Basic Pointers on the editor system option just above.</b>');
+	printer::close_print_wrap('rem info');
+     $this->show_close('Rem Scale Info'); 
+	printer::pspace(5);
+	
+	if ($page_rem_scale_enable)
+		printer::alert('<input type="checkbox" name="page_options['.$this->page_rem_scale_enable_index.']" value="page_rem_scale_disable">Disable Rem Scaling');
+	else printer::alert('<input type="checkbox" name="page_options['.$this->page_rem_scale_enable_index.']" value="page_rem_scale_enable">Enable Rem Scaling ');
+	printer::pspace(10);	
      printer::alert('Enter Viewport Upper Begin Scale Width:');
-	$this->mod_spacing('page_options['.$this->page_width_scale_upper_index.']',$page_width_scale_upper,500,Cfg::Col_maxwidth,1,'px','none');
+	$this->mod_spacing('page_options['.$this->page_rem_scale_upper_index.']',$page_rem_scale_upper,300,Cfg::Col_maxwidth,1,'px','none');
      printer::alert('Enter Viewport Lower End Scale Width:'); 
-	$this->mod_spacing('page_options['.$this->page_width_scale_lower_index.']',$page_width_scale_lower,100,Cfg::Col_maxwidth*.75,1,'px','none');
+	$this->mod_spacing('page_options['.$this->page_rem_scale_lower_index.']',$page_rem_scale_lower,100,Cfg::Col_maxwidth*.75,1,'px','none');
 	#REM #rem
 	
      $this->show_more('REM Mod Percent','','smaller editfont editcolor editbackground floatleft');
@@ -7344,12 +4757,12 @@ function configure_editor(){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__MET
 	$this->mod_spacing('page_options['.$this->page_mod_percent_index.']',$page_mod_percent,24,400,.1,'%','none',$msgjava);
 	$this->close_print_wrap('mod page percent');
 	$this->show_close('Page Mod Percent');
-     if (is_numeric($page_width_scale_upper)&&is_numeric($page_width_scale_lower)&&(($page_width_scale_upper-$page_width_scale_lower)>75)){
+     if ($page_rem_scale_enable&&is_numeric($page_rem_scale_upper)&&is_numeric($page_rem_scale_lower)&&(($page_rem_scale_upper-$page_rem_scale_lower)>75)){
           $this->terminal_em_scale=$this->current_em_scale=true;
           $this->rem_scale=true;
           $initrem=$page_rem_unit; #using  px;  
           #$initrem=$page_rem_unit/16*100; #using 100%  
-          $this->scale_render(0,$initrem,$page_mod_percent,'auto','html','font-size',$page_width_scale_upper,$page_width_scale_lower,'px');
+          $this->scale_render(0,$initrem,$page_mod_percent,'auto','html','font-size',$page_rem_scale_upper,$page_rem_scale_lower,'px');
           }
      else  $this->pagecss.='
 html {font-size:'.$page_rem_unit.'px}';//set default rem unit size
@@ -7357,11 +4770,12 @@ html {font-size:'.$page_rem_unit.'px}';//set default rem unit size
      $this->submit_button();
 	printer::close_print_wrap('Enable viewport Responsive rem units');
 	$this->show_close('Enable viewport Responsive rem units');
+     //$this->page_parallax_css();//not enabled experimental
 	$this->show_more('Configure Setting Defaults','noback');
 	$this->print_redwrap('settings defaults wrap',true); 
-	$this->page_width=($this->page_width >99 && $this->page_width < Cfg::Col_maxwidth)?$this->page_width:1280;
-	echo'<div class="floatleft editbackground editfont fsminfo editcolor" ><!--page width-->Set Default  Primary Column Width:';
-     printer::print_tip('Optionally Set the  maximum Page Content Width which limits the width of Columns and Posts within Columns. Consistent width between pages lead to consistent navigation transtions. Wil also set the width in circumstances of cloned nested columns to a primary column position in a new page. Default page width: '.Cfg::Page_width);
+	$this->page_width=($this->page_width >99 && $this->page_width < Cfg::Col_maxwidth)?$this->page_width:Cfg::Page_width;
+	echo'<div class="floatleft editbackground editfont fsminfo editcolor" ><!--page width-->Set Default Primary Column Width:';
+     printer::print_tip('Optionally Set a max-width Width for primary columns which sets the max-width of primary columns in the absence of a column-setting.  Consistent width between pages lead to consistent navigation transitions. Will also set the width in circumstances of cloned nested columns to a primary column position in a new page. Overriden by other Width choices made in the primary column.  Default page width: '.Cfg::Page_width);
 	$this->mod_spacing('page_width',$this->page_width,100,Cfg::Col_maxwidth,1,'px');
 	echo'</div><!-- page width-->';
 	printer::pclear(5);
@@ -7382,7 +4796,7 @@ html {font-size:'.$page_rem_unit.'px}';//set default rem unit size
 	$this->mod_spacing('page_options['.$this->page_max_expand_image_index.']',$maxplus,300,2800,1,'px');
 	echo'</div><!--expand image-->';
 	printer::pclear(5);
-     $quality=(!empty($this->page_options[$this->page_image_quality_index])&&$this->page_options[$this->page_image_quality_index]>10&&$this->page_options[$this->page_image_quality_index]<101)?$this->page_options[$this->page_image_quality_index]:Cfg::Pic_quality;
+     $this->page_image_quality=$quality=(!empty($this->page_options[$this->page_image_quality_index])&&$this->page_options[$this->page_image_quality_index]>10&&$this->page_options[$this->page_image_quality_index]<101)?$this->page_options[$this->page_image_quality_index]:Cfg::Pic_quality;
      echo'<div class="floatleft editbackground editfont fsminfo " title=""  ><!--quality image-->';
 	printer::print_tip('By Default Page Images will have a Default Quality factor  with 100 being the highest and 10 the lowest. The higher the image quality the larger the filesize and the slower the download speed. Change the Default value  in the Page Configuration options which will effect all uploaded images on the site that are not specifically configured for this value in the post type: image, slideshow, or gallery configurations');
      printer::alert('Change Current Image Quality setting:');

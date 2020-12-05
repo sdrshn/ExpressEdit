@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.4
+#ExpressEdit 3.01
 class catch_exceptions extends Exception{
 function __construct() {
     if (Sys::Debug) echo ' begin exceptions construct';

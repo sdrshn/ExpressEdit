@@ -1,8 +1,8 @@
 <?php
-#ExpressEdit 2.0.4
+#ExpressEdit 3.01
 /*
 ExpressEdit is an integrated Theme Creation CMS
-	Copyright (c) 2018  Brian Hayes expressedit.org  
+	Copyright (c) 2018   expressedit.org  
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@ class gallery_master  {
 	protected $highslide_background='fff';
 	protected $high_back_cap='fff';
 	protected $highslide_image='fff';
-	public  $gall_topbot_pad=12; 
+	public $gall_topbot_pad=12; 
 	protected $highslide_show_control='true';
 	public $instruct=array();
 	public $preload='';
@@ -577,7 +577,7 @@ function gallery_display(){
 				$minWidth='min-width:'.$minwidcalc.'px;';
 				if ($minwidcalc > 300 ){//unlikely
 					static $iminc=0; $iminc++;
-					$this->imagecss.='
+					$this->css.='
 					@media screen and (max-width: '.($minwidcalc).'px){  
 					#'.$this->dataCss.' minReg_'.$iminc.'{min-width:200px;} 
 					}
@@ -950,11 +950,8 @@ function edit_display($title=false,$subtitle=false,$description=false){  if (Sys
 		printer::pclear(15);
 		}
 	else {//not master gall
-		printer::pclear(15);
-		echo '<div class="fsminfo Os5ekblue marginauto"><!--gallery master edit-->';
-		printer::printx('<p class="'.$this->column_lev_color.' bold  editfont">Edit Image Order, Add &amp; Delete Images, and Add/Change Image Caption</p>');
-		printer::pclear();
-		$this->show_more('Rearrange Images Here','','','','full','','float:left;',true);
+		printer::pclear(5);
+		$this->show_more('Rearrange Images','','','','full','','float:left;',true);
 		echo '<div class="editbackground editcolors fsminfo"><!--rearrange images wrap  regular-->';
 		print'<p class="'.$this->column_lev_color.' large fsminfo floatleft left editbackground editfont">Drag the image box to sort the image order. </p>';
 		printer::pclear(5);
@@ -974,7 +971,7 @@ function edit_display($title=false,$subtitle=false,$description=false){  if (Sys
 		echo '</div><!--rearrange images wrap  regular-->';
 		$this->show_close('Rearrange Images Here');
 		printer::pclear(5); 
-		$this->show_more('Edit Individual Image Captions or Delete an Image Here','','','',900,'','float:left;',true);
+		$this->show_more('Edit Captions &amp; Delete an Image Here','','','',900,'','float:left;',true);
 		echo '<div class="editbackground editfont editcolors fsminfo"><!--edit image captions wrap outer regular-->';
 		printer::print_tip('For longer captions Slippry is recommended over Photoswipe as Photoswipe displays captions and photos within the present screen size, thus minimizing the photo to fit with long captions');
 		printer::pclear(5);

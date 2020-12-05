@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.4
+#ExpressEdit 3.01
 class session {
 public  $session_check=''; 
 public $token; 
@@ -43,8 +43,8 @@ static function session_check($check) {
 	} 
    
 function create_token() {
-     $this->token = md5(uniqid(rand(), true));//microtime(); date("dMYHis");//
-     $_SESSION[Cfg::Owner.'token'] =$this->sess_token= $this->token;  //make new token session for security form submissions
+     $token = md5(uniqid(rand(), true));//microtime(); date("dMYHis");//
+     $_SESSION[Cfg::Owner.'token'] =$this->sess_token= $token;  //make new token session for security form submissions
      }//end function token
 
 static function session_batch_create($sess_name,$allon_arr='',$prefix=''){//creates session onload and sets return value to true  if request value is present

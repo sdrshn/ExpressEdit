@@ -1,8 +1,8 @@
 <?php
-#ExpressEdit 2.0.4
+#ExpressEdit 3.01
 /*
 ExpressEdit is an integrated Theme Creation CMS
-	Copyright (c) 2018  Brian Hayes expressedit.org  
+	Copyright (c) 2018   expressedit.org  
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -110,7 +110,7 @@ eol;
 		$clear=($this->topcontrol)?40:70; 
 		echo '
 		 <div class="expand-menu-icon"><a '.$class.' href="'.$this->returnto.'"><div class="xbar1"></div><div class="xbar2"></div><div class="xbar3"></div></a></div>'; 
-		printer::pclear($clear);
+		printer::wmclear($clear);
 		}
      $close_display= ($this->new_page_effect)?'':' style="display:none;"';
      echo '<div class="slippry_wrapper'.$this->heightclass.'">
@@ -135,7 +135,7 @@ eol;
 <a class="close" href="'.$this->returnto.'" title="Close Backto Gallery"><span>Close</span>
 </a></li>
 </ul></div>';
-          printer::pclear(10);     
+          printer::wmclear(10);     
           }
 			  
      echo '
@@ -328,10 +328,10 @@ eol;
 				$image_width=check_data::key_up($this->page_cache_arr,$maxed_width,'val',$this->page_width);
 				$image_dir=Cfg::Response_dir_prefix.$image_width.'/';
 				}
-			printer::pclear();
+			printer::wmclear();
 			} //arra key exists
 		}//if next gall 
-	printer::pclear();
+	printer::wmclear();
 	if ($this->gall_display !=='slippry'){ 
 		echo '
 	    <script type="text/javascript">
@@ -340,7 +340,7 @@ eol;
           echo '
 	    </div><!--end gall preview-->
 	    </div>';
-          printer::pclear();
+          printer::wmclear();
           }
 	}//end show preview
      

@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.4
+#ExpressEdit 3.01
 class request {
 static   function print_request() { if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
 	   $my_message=NL.'Request Data: ';

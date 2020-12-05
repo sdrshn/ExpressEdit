@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.4
+#ExpressEdit 3.01
 class image {
     private $pagetest=false;
 ##Please send adittiional  info  on origins of this script if known
@@ -110,7 +110,7 @@ static function image_resize($file,$maxWidth=0,$maxHeight=0,$maxWidHeight=0,$sto
           }
      ini_set('memory_limit','400M');
      ini_set('max_execution_time', 300);
-     if(Sys::Edit&&Cfg::Development)echo printer::alert_pos("Image Resize in progress: $final_path$file",.8);;
+     if(Sys::Edit&&strpos($storage_path,'tiny')===false&&Cfg::Development)echo printer::alert_pos("Image Resize in progress: $final_path$file",.8);
      $maxPlus=0;//using maxwidHeight instead for gallery 
      if (!extension_loaded('gd')) { // it's not loaded
           if (!function_exists('dl') || !dl('gd.so')){// and we can't load it either
@@ -188,7 +188,7 @@ static function image_resize($file,$maxWidth=0,$maxHeight=0,$maxWidHeight=0,$sto
           // If neither are specified but the color is, we aren't going to be resizing at 
      else {  
 		if (!$maxWidth && !$maxHeight)  {
-			$msg='alert : no height or width or maxWidHeight specified ';
+			$msg='alert : no height or width or maxWidHeight specified on line '.__line__.' in file: '.__file__;
 			mail::alert($msg);
 			$_SESSION[Cfg::Owner.'update_msg'][]=printer::alert_neg($msg,.8,true);
 			return $msg;
@@ -341,6 +341,16 @@ static function image_resize($file,$maxWidth=0,$maxHeight=0,$maxWidHeight=0,$sto
                   }  
               imagedestroy($dst); 
               return array($tnWidth, $tnHeight, $file);
+              break;
+          case 'file_noreturn':
+              static $countit=0; $countit++;
+              $outputFunction($dst, $file_final ,$quality);
+              if (!is_file($file_final)){
+                  $msg=' The uploaded image is too small or otherwise cannot produce the new resized image required '.$file_final;
+                  }
+               else $msg='';
+              imagedestroy($dst); 
+              return $msg;
               break;
           case 'return': 
               ob_start();

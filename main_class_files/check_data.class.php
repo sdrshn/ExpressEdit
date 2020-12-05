@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.4
+#ExpressEdit 3.01
 class check_data {
      
 static function checkIP($ip) {
@@ -25,7 +25,17 @@ static function checkIP($ip) {
          return false;
           }
      }
- 
+
+static function check_filename($filename){
+	//$file = preg_replace('/[^a-zA-Z0-9_\-\. ]/','',$filename);
+	$file = preg_replace('/[<>|\:&;,]/','',$filename);
+	if ($file !== $filename){
+		echo NL. "$filename is origin and $file";
+		return false;
+		}
+	return true;
+	}
+	
 static function check_gallery_master($method,$line,$file,$tablename,$return_list=false){ 
 	$mysqlinst = mysql::instance();
 	$mysqlinst->dbconnect();
@@ -64,7 +74,7 @@ static function key_up($array, $value, $return='val',$maxval=''){
      $maxval='';
      $arr=$array;
      $arr=(is_array($arr))?$arr:explode(',',$arr);
-     $prev=0;
+     $prev=reset($arr);
      if ($return==='val'){
           sort($arr);
           foreach($arr as $key => $keyval){
@@ -179,7 +189,7 @@ static function return_posts($where='where blog_order=10',$remove_data='',$print
 	$tables=self::return_refs($method,$line,$file,Cfg::Master_post_table,"blog_table",$where,$remove_data,$print,$db);
 	return $tables;
 	}
-static function noexpand($filename){ 
+static function noexpand($filename){//checking for animate gifts... 
     if (!is_file($filename))return true;
     $path_parts = pathinfo($filename);  
     $ext=(array_key_exists('extension',$path_parts))?strtolower($path_parts['extension']):'';
@@ -189,7 +199,8 @@ static function noexpand($filename){
     $file = file_get_contents($filename);
     $animated=preg_match('#(\x00\x21\xF9\x04.{4}\x00\x2C.*){2,}#s', $file);
     if ($animated==1) return true;
-    else return false;    
+    else return false;
+    //if no expand return true....
     }
     
 static function return_pages($method,$line,$file,$where='',$remove_data='',$print=false,$db=Sys::Dbname){
@@ -205,7 +216,8 @@ static function return_page_filenames($method,$line,$file,$where='',$remove_data
 static function return_all($method,$line,$file,$remove_data='',$print=false,$db=Sys::Dbname){
 	$tables1=self::return_refs($method,$line,$file,Cfg::Master_page_table,"page_ref",'',$remove_data,$print,$db);
 	$tables2=self::return_refs($method,$line,$file,Cfg::Master_post_table,"blog_table",'where blog_order=10',$remove_data,$print,$db);
-	$return_tables=array_merge($tables1,$tables2);
+	$tables3=self::return_refs($method,$line,$file,Cfg::Columns_table,"col_table",'',$remove_data,$print,$db);
+	$return_tables=array_unique(array_merge($tables1,$tables2,$tables3));
 	return $return_tables; 
 	}
      

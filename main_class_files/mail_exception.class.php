@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.4
+#ExpressEdit 3.01
 class mail_exception extends Exception{
 function exception_message () {if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
 	$usr=users::instance();

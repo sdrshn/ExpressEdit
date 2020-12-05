@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.4
+#ExpressEdit 3.01
 class addgallerypiccore {
 function __construct(){ 
      $table_list=check_data::return_all(__METHOD__,__LINE__,__FILE__) ;  
@@ -23,6 +23,7 @@ function __construct(){
      //these have different purposes before and after submitting 
      $addgall=request::check_request_data('addgall');// for standalone new gallery page....
      $css=Cfg_loc::Root_dir.Cfg::Style_dir.$pgtbn;
+	$sess=session::instance();
      if (!$addtbn){
           if (!empty($tbn)){  
                if (check_data::check_array($tbn,$table_list)){$tablename=$tbn; }#this checks to see if tbn is valid table
@@ -159,7 +160,7 @@ function __construct(){
      printer::pclear(20);
      printer::alertx('<p class="left">'.$msg2.'</p>');
      echo'<p class="left"><input type="hidden" name="MAX_FILE_SIZE" value="'.($maxbytes).'"></p>
-     <fieldset><legend class="info left">File must be a .jpg .png  sor .gif</legend>';
+     <fieldset><legend class="info left">File must be a .jpg .png or .gif</legend>';
     $this->show_more('Upload Filesize Limit: '.$maxup.'Mb','','info pt5 pb5 pl10 floatleft');
      printer::print_wrap('wrap filesize table'); 
 		echo '

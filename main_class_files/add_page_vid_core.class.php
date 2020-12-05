@@ -1,5 +1,5 @@
 <?php
-#ExpressEdit 2.0.4
+#ExpressEdit 3.01
 class add_page_vid_core {
 function __construct(){
 	$id_ref=request::check_request_data('id_ref');
@@ -12,6 +12,7 @@ function __construct(){
 	$width=request::check_request_num('www'); 
 	$f=request::check_request_data('fff');
 	$masterpost=request::check_request_data('masterpost');
+	$sess=session::instance();
 	if (!empty($f)){   
 		$vidinfo=$f;
 		}

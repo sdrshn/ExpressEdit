@@ -72,12 +72,12 @@ function autoloading($file){
      foreach(array('Cfg_master','Cfg','file_generate') as $incfile){echo $incfile;
           new $incfile();
           }
-     printer::alert('The following common_files will be auto regenerated if missing and configurations will be updated');
+     printer::alert('The following common_files including site_master.class.php will be auto regenerated if missing and configurations will be updated');
       
      file_generate::config_gen_init();//this is done first in case...  for primordial file generation of config files....
      new Sys();
      file_generate::config_gen_edit();
-     file_generate::file_folder_generate(); 
+     file_generate::file_folder_generate(true); 
      file_generate::editMaster_generate();
      file_generate::class_local_gen();
      $pagetables=check_data::return_pages(__METHOD__,__LINE__,__FILE__,""); #set to   remove expand,highslide, and data tables
