@@ -4036,7 +4036,7 @@ function mailing_list($data,$style_list,$global=false,$mod_msg="Edit styling",$b
 		printer::print_wrap('wrap submit');
 		printer::print_tip('Style the Submit Button');
 	    $msg='<b>Style the submit button.</b>';
-	    $this->edit_styles_close($data,'blog_data12','html .'.$this->dataCss .' .submit.wide','width_special,width_max_special,width_min_special,width_media_unit,float,background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,margin_right,font_family,font_size,font_media_unit,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform',$msg);
+	    $this->edit_styles_close($data,'blog_data12','html .'.$this->dataCss .' input.submit','width_special,width_max_special,width_min_special,width_media_unit,float,background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,margin_right,font_family,font_size,font_media_unit,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform',$msg);
 		printer::close_print_wrap('wrap submit');
 		printer::print_wrap('wrap top');
 	    printer::print_tip('Style the  contact form containing prompts &amp; input fields but not the input boxes directly');
@@ -4100,7 +4100,7 @@ function contact_form($data,$style_list,$global=false,$mod_msg="Edit styling",$b
 			$blog_data1[$key]=$val;
 			}
 		}
-	$blog_tiny_data4=(preg_match(Cfg::Preg_email,$this->blog_tiny_data4))?$this->blog_tiny_data4:'bbb';	
+	$blog_tiny_data4=(preg_match(Cfg::Preg_color,$this->blog_tiny_data4))?$this->blog_tiny_data4:'bbb';	
 	$this->blog_data1=implode(',',$blog_data1);
 	$this->blog_data2=preg_replace('/\s/','',$this->blog_data2);
 	$this->blog_data3=preg_replace('/\s/','',$this->blog_data3);
@@ -4166,7 +4166,7 @@ function contact_form($data,$style_list,$global=false,$mod_msg="Edit styling",$b
 		($this->edit)&&printer::alert_conf('Valid Robot Image not chosen',$color,.5);
 		printer::alert('<input type="hidden" value="no contact status" name="contact_status_check">');
 		}
-	echo '<input class="submit wide" type="submit" value="'.$blog_data1[9].'" name="submit">
+	echo '<input class="submit" type="submit" value="'.$blog_data1[9].'" name="submit">
 	</div><!--contactbottomtable-->
 	</div><!--contacttop_bot-->';
 	 #### END of webpage FORM Begin: edit default form fields and prompts
@@ -4317,7 +4317,7 @@ function contact_form($data,$style_list,$global=false,$mod_msg="Edit styling",$b
 		$msg='<b>Input Boxes</b> Styling &amp; Width/Float Config';
 		$this->edit_styles_close($data,'blog_data7','html .'.$this->dataCss .' input.wide','width_special,width_max_special,width_min_special,width_media_unit,float,background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,margin_right,font_family,font_size,font_media_unit,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform',$msg);
 		$msg='<b>TextArea</b> Styling &amp; Width/Float Config';
-		$this->edit_styles_close($data,'blog_data8','html #message'.$data,'width_special,width_max_special,width_min_special,width_media_unit,float,background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,margin_right,font_family,font_size,font_media_unit,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform',$msg);
+		$this->edit_styles_close($data,'blog_data8','html #message'.$data,'width_special,width_max_special,width_min_special,width_media_unit,float,background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,margin_right,font_family,font_size,font_media_unit,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform',$msg,'','Note a default max-width:93vw is applied to textareas and a max-width can be applied below to override this');
 		printer::print_wrap('wrap promptcolor');
 		printer::print_tip('Prompts presented internal to the input box will assume styles presented in box but you can differentially add a font color here');
 		printer::alertx('<p class="left editbackground editfont editcolor">Change Font Color of Internal Box Prompt Text for input/textarea boxes with internal Prompt chosen: #<input onclick=" window.jscolor(this);" style="cursor:pointer;background:#'.$this->editor_background.';color:#'.$this->editor_color.';" type="text" name="'.$data.'_blog_tiny_data4" id="'.$this->data.'maillist" value="'.$this->blog_tiny_data4.'" size="6" maxlength="6" class="jscolor {refine:false}"><span style="font-size: 1.1em; color:#'.Cfg::Info_color.';" id="'.$data.'maillistcolorinstruct"></span></p>');
@@ -4361,7 +4361,7 @@ function contact_form($data,$style_list,$global=false,$mod_msg="Edit styling",$b
 		printer::print_wrap('wrap submit');
 		printer::print_tip('Style the Submit Button');
 	    $msg='<b>Style the submit button.</b>';
-	    $this->edit_styles_close($data,'blog_data13','html .'.$this->dataCss .' .submit','width_special,width_max_special,width_min_special,width_media_unit,float,background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,margin_right,font_family,font_size,font_media_unit,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform',$msg);
+	    $this->edit_styles_close($data,'blog_data13','html .'.$this->dataCss .' input.submit','width_special,width_max_special,width_min_special,width_media_unit,float,background,padding_all,padding_top,padding_bottom,padding_left,padding_right,margin_all,margin_top,margin_bottom,margin_left,margin_right,font_family,font_size,font_media_unit,font_weight,text_align,font_color,text_shadow,line_height,letter_spacing,italics_font,small_caps,text_underline,borders,box_shadow,outlines,radius_corner,transform',$msg);
 		printer::close_print_wrap('wrap submit');
 		printer::close_print_wrap('configure emails styles');
 		$this->show_close('Configure Emails and Style Input boxes');
@@ -4924,7 +4924,7 @@ function nav_menu($data,$dir_menu_id,$text) {//blog_data6 available
      jQuery( '.$this->dataCss .nav_gen li:has(ul)' ).doubleTapToGo();//selects li elements with submenus
      jQuery('.$this->dataCss .nav_gen li.show_icon .aShow').click(function(){
           gen_Proc.toggleClass('#$this->dataCss .ulTop','menuRespond','menuRespond2','transitionEase',500);
-          gen_Proc.toggleHasClass('#$this->dataCss .ulTop','menuRespond','iconOpen');
+          gen_Proc.toggleHasClass('#$this->dataCss',' .ulTop','.menuRespond','iconOpen');
           });
 eol;
 	
@@ -5544,6 +5544,7 @@ eol;
      }
    
    $this->css.= '
+   
 .bar1, .bar2, .bar3 {
   width: 1em;
   height: .1em;
@@ -5552,6 +5553,8 @@ eol;
 	border-radius: .1em .1em .1em .1em; 
   transition: 0.4s;
    }
+   .'.$this->dataCss.'.iconOpen .ulTop{
+   padding-top: '.($icon_width*10).'px;}
 .'.$this->dataCss.' .show_icon{
    font-size: '.($icon_width*16).'px;
    }

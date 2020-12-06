@@ -1571,26 +1571,27 @@ function edit_styles_close($element,$style_field,$css_classname,$show_list='',$m
 		 mail::alert($msgx);
 		return; 
 		}  
-	 if ($this->is_page|| ($this->is_blog&&!$this->is_clone)||($this->is_column&&!$this->is_clone||$this->clone_local_style)){
+	 if ($this->is_page|| ($this->is_blog&&!$this->is_clone)||($this->is_column&&!$this->is_clone)||$this->clone_local_style){ 
 		$globalstyle=($this->is_blog&&$this->blog_global_style==='global')?$this->column_lev_color.' floatleft border9 borderinfo shadowoff editbackground editfont glowbutton'.$this->column_lev_color:'';
           $show_option='buffer_'.self::$styleinc;
 		$this->show_more($mod_msg,$show_option,$globalstyle,'',550,'','',$mainstyle);#mainshow
 		$this->print_redwrap('mainstyle wrap',true);
-          if (isset($this->render_view_css)&&is_array($this->render_view_css)&&count($this->render_view_css)>0){
-			if ($this->is_page){
-				$type='page';
-				$id=$this->page_id;
-				}
-			elseif ($this->is_column){
-				$type='col';
-				$id=$this->col_id; 
-				}
-			else {
-				$type='blog';
-				$id=$this->blog_id; 
-				}
-			$this->submit_button();
-               $this->display_parse_style($type,$style_field,$id,$show_list);
+	
+		if ($this->is_page){
+			$type='page';
+			$id=$this->page_id;
+			}
+		elseif ($this->is_column){
+			$type='col';
+			$id=$this->col_id; 
+			}
+		else {
+			$type='blog';
+			$id=$this->blog_id; 
+			}
+		$this->submit_button();
+		$this->display_parse_style($type,$style_field,$id,$show_list);
+		if (isset($this->render_view_css)&&is_array($this->render_view_css)&&count($this->render_view_css)>0){ 
 			$this->show_more('Page Level Tag and Class Styles','','highlight tiny editbackground editfont floatleft','Style text through the use of tags and classes with Styles set in page options');
 			printer::array_print($this->render_view_css); 
 			$this->show_close('View Current Tag and Class Styles');

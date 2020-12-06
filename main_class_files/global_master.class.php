@@ -237,7 +237,7 @@ class global_master extends global_edit_master{
 #__con   #cons  
 function __construct($edit=false,  $return=false){
      if($return)return; 
-     //$this->header_script_webmode.=','.$this->pagename.'.js';
+     $this->header_script_webmode.=','.$this->pagename.'.js';
 	$this->viewport_current_width=process_data::get_viewport(); 
 	$this->color_arr_long=explode(',',Cfg::Light_editor_color_order);//default value
 	$this->deltatime=time::instance(); (Sys::Deltatime)&&$this->deltatime->delta_log('global construct delta'); 
@@ -4204,9 +4204,10 @@ function render_highslide(){
 	static $enter=0; $enter++; if ($enter >1)return;
 	$scriptdir=Cfg_loc::Root_dir.Cfg::Script_dir.'highslide/highslide-with-gallery.js';
 	$graphicsdir=Cfg_loc::Root_dir."scripts/highslide/graphics/";
+	if ($this->edit) 
+		$this->handle_script_edit('highslide/highslide-with-gallery.js','highslide','header_script_once');
 echo <<<eol
-
-<script  src="$scriptdir"></script> 
+ 
 <script >
 hs.graphicsDir = '$graphicsdir';
 //  expand images utilize   highslide.com  Torstein Hønsi
@@ -4316,15 +4317,14 @@ function render_header_open(){ if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__
      $this->header_script=array_merge($this->header_script,$this->header_script_once);
 	if (!empty($this->header_script)){  
 		$this->header_script=(!is_array($this->header_script))?explode(',',$this->header_script):$this->header_script;
-		 foreach ($this->header_script as $var){
+		foreach ($this->header_script as $var){
 	   	if (!empty($var)){
 			    echo ' 
 			    <script  src="'.$this->roots.Cfg::Script_dir.$var.$this->rand.'"></script> ';
 			    }
 			}
 		 }
-	if (!empty($this->header_script_webmode)){ //call before header script function ie. for animate class to initiate animated.. this is list of js files to download..
-          
+	if (!$this->edit&&!empty($this->header_script_webmode)){ //call before header script function ie. for animate class to initiate animated.. this is list of js files to download..
 		$this->header_script_webmode=(!is_array($this->header_script_webmode))?explode(',',$this->header_script_webmode):$this->header_script_webmode;    
 		 foreach ($this->header_script_webmode as $var){
                if (!empty($var)&&is_file($this->roots.Cfg::Script_dir.$var)){
@@ -4473,11 +4473,10 @@ function handle_script_render(){
 			$collect=array_merge($collect,$arr);
 			}
 		}
-	else $collect=array();
-	
+	else $collect=array(); 
 	if ($count>0&&count($collect)>0){
 		foreach($clone_list_id as $key){
-			if (array_key_exists($key,$collect)){
+			if (array_key_exists($key,$collect)){  
 				$array=$collect[$key]; 
 				foreach ($array as $arr){// all $array indexes are valid and collected
 					if (strpos($arr[0],'once')!==false)
@@ -4486,7 +4485,7 @@ function handle_script_render(){
 						${$arr[0]}.=$arr[1];
 					}
 				}
-			else mail::mininfo('Missing cloned script in '.__function__.' for id='.$key);
+			//else mail::mininfo('Missing cloned script in '.__function__.' for id='.$key. ' in page: '.$this->pagename);
 			}
 		}
      $this->header_script_once=array_unique($header_script_once);
@@ -4545,7 +4544,7 @@ jQuery("document").ready(function(jQuery){
 eol;
      
 	file_put_contents($this->roots.Cfg::Script_dir.$this->pagename.'.js',$script);
-	$this->header_script_once[]=$this->pagename.'.js';
+	//$this->header_script_once[]=$this->pagename.'.js';
 	file_put_contents(Cfg_loc::Root_dir.Cfg::Data_dir.Cfg::Page_info_dir.'header_script_once_complete'.$this->pagename.'.dat',serialize($this->header_script_once));
      }
      
@@ -4636,7 +4635,7 @@ function update_db($dbname=''){
      #cancel out else return for updating newly added db fields. Will not return restoring backups or viewing external theme db to insure new fields added to older db.
      // else return;
      ####################
-     if (!$this->edit&&!Cfg::EditmodeDb_update)return;
+     if (!$this->edit||!Cfg::EditmodeDb_update)return;
      $this->express[]=printer::alert_neu('Database fields being updated mode',1,1); 
      
      $columns_array=array('col_id'=>'key','col_table_base'=>'tinytext','col_table'=>'tinytext','col_num'=>'tinyint(4)','col_primary'=>'tinyint(1)','col_options'=>'text','col_clone_target'=>'tinytext','col_status'=>'tinytext','col_gridspace_right'=>'tinytext','col_gridspace_left'=>'tinytext','col_flex_box'=>'tinytext','col_grid_width'=>'tinytext','col_grid_clone'=>'tinytext','col_style'=>'text','col_style2'=>'text','col_temp'=>'tinytext','col_grp_bor_style'=>'text','col_comment_style'=>'text','col_date_style'=>'text','col_comment_date_style'=>'text','col_comment_view_style'=>'text','col_clone_target_base'=>'tinytext','col_hr'=>'tinytext','col_update'=>'tinytext','col_width'=>'tinytext','col_tcol_num'=>'decimal(5,1)','token'=>'tinytext','col_time'=>'tinytext','col_class1'=>'text','col_class2'=>'text','col_class3'=>'text','col_class4'=>'text','col_class5'=>'text','col_style3'=>'text');
@@ -5361,7 +5360,7 @@ function css_grid($bp_arr,$gu){
 	@media screen and (min-width: '.($bp_arr[0]+1).'px){';
 		$this->css.=(in_array('wid-bp-max'.$bp_arr[0].'-0-'.$gu,$this->grid_class_selected_wid_array,true))?'
 			.wid-bp-max'.$bp_arr[0].'-0-'.$gu.'{display:none}
-			':'';
+			':'}';
 		for($i=1; $i<$gu; $i++){
 			$this->css.=(in_array('wid-bp-max'.$bp_arr[0].'-'.$i.'-'.$gu,$this->grid_class_selected_wid_array,true))?'
 			.wid-bp-max'.$bp_arr[0].'-'.$i.'-'.$gu.'{width:'.round(($i*$punit),3).'%;}
@@ -5380,7 +5379,6 @@ function css_grid($bp_arr,$gu){
 			.wid-bp-max'.$bp_arr[0].'-'.$gu.'-'.$gu.'{width:'.$width100.'%;}
 			 
 			':'}';
-			 
 		$max=count($bp_arr);
 		for ($bc=0; $bc<$max; $bc++){
 			$bp=$bp_arr[$bc];
@@ -5520,7 +5518,7 @@ function css_initiate(){
     body{font-size:16px;height:100%;margin-right:0px;margin-left:0px;}
     .show_arrow{opacity:.7; font-size:.6em;}
     .fixed{position:fixed;top:0;}
-    textarea {color:inherit;font-family:inherit; font-size:inherit;font-weight:inherit;background:inherit;} 
+    textarea {max-width:93vw; color:inherit;font-family:inherit; font-size:inherit;font-weight:inherit;background:inherit;} 
     .nav ul,.nav li{
          list-style: none;list-style-type:none; }
     /* tables still need  cellspacing="0"  in the markup */

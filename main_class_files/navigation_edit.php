@@ -447,8 +447,7 @@ if ($count>0){
 	echo '
 	 <div class="white editfont"  style=" width:700px; float:left;   border:3px solid '.Cfg::RedAlert_color.';  padding: 10px 30px 60px 30px;">
 	<form  enctype="multipart/form-data" action="'.$postreturn.'" method="post" onSubmit="return edit_Proc.beforeSubmit()" >';
-	
-	printer::alertx('><p class="info editbackground floatleft fsminfo left " title="Each Menu has its id and this post will use Menu ID#'.$dir_menu_id.'">Editing Menu Id'.$dir_menu_id.' </p>');
+	printer::alertx('<p class="info editbackground floatleft fsminfo left " title="Each Menu has its id and this post will use Menu ID#'.$dir_menu_id.'">Editing Menu Id'.$dir_menu_id.' </p>');
 	printer::pclear(5);
 	
      printer::pclear();
@@ -535,11 +534,11 @@ if ($count>0){
           $count3=$mysqlinst->count_field($master_gall_table,'galleryname','',false,"where gall_ref='$dir_gall_table'");
           $msg=($count2>0)?'AND The Next Sub-Menu Link under this  Dropdown Menu will assume this position':'';
           if ($dir_filename==='index'){
-               printer::print_warn('YOU CANNOT DELETE THE OPENING/HOME PAGE. CHOOSE A NEW OPENING/HOME PAGE ABOVE FIRST',1);
+               printer::print_warn('This is the OPENING/HOME PAGE.',1);
                }
-          else {
-               printer::alertx('<p class="editbackground  whitecolor floatleft fs2white"><input type="checkbox" name="nav_delete[]"   value= "'.$dir_menu_id.'_'.$dir_menu_order.'_'.$dir_sub_menu_order.'">Delete this Main Menu Link '. $msg.'</p>');
-               } // not index page
+           
+               printer::alertx('<p class="editbackground  whitecolor floatleft fs2white"><input type="checkbox" onclick="return gen_Proc.confirm_click(\'Caution: You are about to delete the home page. Confirm to proceed\');" name="nav_delete[]"   value= "'.$dir_menu_id.'_'.$dir_menu_order.'_'.$dir_sub_menu_order.'">Delete this Main Menu Link '. $msg.'</p>');
+                // not index page
           printer::pclear(2);
           if ($count2 > 0){
                echo '<fieldset class="borderridge black border6 "><!--submenu border--> <legend class="black">Begin Sub Menu Link(s)</legend>'; 

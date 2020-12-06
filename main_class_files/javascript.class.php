@@ -1048,11 +1048,11 @@ var gen_Proc = {
 			}
 		},
 	toggleHasClass   : function (ele, ele2, classN, classN2) { 
-          if (jQuery(ele+'.'+classN).length){  
-               jQuery(ele2).addClass(classN2) 
+          if (jQuery(ele+ele2).length && !jQuery(ele+'.'+classN2).length){
+               jQuery(ele).addClass(classN2) 
                }
           else {
-               jQuery(ele2).removeClass(classN2) 
+               jQuery(ele).removeClass(classN2) ;
                }
 		},
 	toggleTweak   : function (ele, classN, ele2, tweak, tweak2, timeout) { 

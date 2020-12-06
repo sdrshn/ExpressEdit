@@ -2196,7 +2196,8 @@ function page_import_export_options(){
      echo '</div><!--import page defaults-->';
      printer::pclear(); 
      echo '<div class="fsmcolor Os3darkslategray editbackground editfont left "><!--export-->Export All Page Settings ('.$page_configs.') from this Page to all other Pages';
-     printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="page_opts_export['.$this->page_ref.']"  type="checkbox" value="'.$this->page_ref.'">Export These Page Level Settings to other Pages</p>'); 
+     printer::printx( '<p class="editcolor editbackground editfont" ><input class="editcolor editbackground editfont" name="page_opts_export['.$this->page_ref.']"  type="checkbox" value="'.$this->page_ref.'">Export These Page Level Settings to other Pages</p>');
+	printer::alert_neu('Maintenance mode generatation of edit pages may be used to bulk refresh page level styling changes so that changes to page configuration are generated on each page if necessary. Use the Generate all Css,Page Flat Files, etc. for all Edit Mode Pages in Iframes option',.9);
      echo '</div><!--export-->';
      printer::pclear();
      echo '<div class="fsmcolor Os3darkslategray editbackground editfont left "><!--import-->Import Page Width from another page. ';

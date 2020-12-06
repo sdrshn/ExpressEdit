@@ -392,7 +392,7 @@ function media_min_width($style,$val){if (Sys::Methods) Sys::Debug(__LINE__,__FI
      }    
      
 function width($style,$val){if (Sys::Methods) Sys::Debug(__LINE__,__FILE__,__METHOD__);
-	$this->show_more('Choose Values #1,#2 max-width, percent');
+	$this->show_more('Choose Values #1,#2 max-width Or percent');
 	printer::print_wrap('main blog width');
      echo'  <div class="floatleft">'; 
 	$maxspace=$this->column_net_width[$this->column_level];
@@ -2155,7 +2155,7 @@ eol;
 	##################################
 	$this->print_wrap('anim duration','editbackground editfont Os3salmon fsmaqua'); 
 	printer::print_tip('By default animation duration is 1 second. <br>');
-	printer::alert('Change initial animationpeed:');
+	printer::alert('Change initial animation speed:');
 	$this->mod_spacing($anim_name.'['.$animate_duration_index.']',$animate_duration,.05,$max_duration,.05,'sec');
 	printer::close_print_wrap('anim duration'); 	
 	printer::pclear(5);
@@ -3784,7 +3784,6 @@ function position(){
 			}
 		$stickyon=(array_key_exists($stickyon_index,$stickyoptions)&&$stickyoptions[$stickyon_index]==='stickyon')?true:false;
 		$important=($stickyon && $vert_val > 0)?' !important':'';
-		print_r($stickyoptions);  
 		###########
           $final_vert_val=($vertpass!=='none')?$vertpass.':'.$vert_val.$important.';':'';
           printer::alertx('</div>');
@@ -3805,7 +3804,7 @@ function position(){
                printer::close_print_wrap('additional positon media wrap #'.$i);
                $this->show_close('Add additional @media query controlled option tweak for position/option options'); 
                } 
-          if (!empty($mediaopen)&&$pos_type!=='none'){
+          if (!empty($mediaopen)&&$pos_type!=='none'&&$pos_type!=='static'){
 			$mediacss='
           '.$mediaopen.'{
 		 .'.$css_id.'{'
@@ -3817,7 +3816,7 @@ function position(){
                $mediacss=' 
                .'.$css_id.'{position:static;}';
                }
-          elseif (!empty($pos_zindex_style.$pos_vert_style.$pos_horiz_style.$final_horiz_val.$final_vert_val)) {
+          elseif ($pos_type!=='none' && $pos_type!=='static' && !empty($pos_zindex_style.$pos_vert_style.$pos_horiz_style.$final_horiz_val.$final_vert_val)) {
                $mediacss=' 
                .'.$css_id.'{'.$pos_css.'
                '.$pos_zindex_style.$pos_vert_style.$pos_horiz_style.$final_horiz_val.$final_vert_val.'transition-property:jsPosCheck-'.$pos_type.';}';
