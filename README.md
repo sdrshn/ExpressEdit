@@ -43,7 +43,7 @@ Easily customize functions that survive updates!<br>
 Page Importer between database built on same system<br> <br> <br> 
 
 
-<b> open source inclusions include:</b><br>
+<b>system utilizes open source projects including the following:</b><br>
 <b>In Webmode</b>
 slick slider: Ken Wheeler<br>
 slippry: Daniel Eden<br>
