@@ -5327,7 +5327,7 @@ function initiate_jsexpressedit( ){
      $pid=$this->data.'_blog_text_arrayed';
      echo '<div id="editorHtml_'.$this->blog_id.'" class="altEditorHtml"></div>
     <div  class="altEdOptionShow" style="display:none;" onclick="gen_Proc.adjustLeftMargin(\'editorHtml_'.$this->blog_id.'\');jsExpressEdit.parseTextarea(\''.$pid.'\',\''.$this->blog_id.'\');">';//
-     echo '<p class="altEdActivateButton">Parse<br>Editor</p></div>';
+     echo '<p class="altEdActivateButton">jsEE<br>Editor</p></div>';
      }
 
 }//end class     
