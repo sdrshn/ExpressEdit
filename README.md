@@ -43,7 +43,8 @@ Easily customize functions that survive updates!<br>
 Page Importer between database built on same system<br> <br> <br> 
 
 
-<b>webmode rendering open source inclusions include:</b><br>
+<b> open source inclusions include:</b><br>
+<b>In Webmode</b>
 slick slider: Ken Wheeler<br>
 slippry: Daniel Eden<br>
 photoswipe:Dmitry Semenov<br>
@@ -51,9 +52,8 @@ masonry:  David DeSandro<br>
 parallex: Mark Dalgleish<br>
 fadeThis: L Wiesel
 
-
-Special thanks to Open Source Plugins Utilized Including:<br>
-<b>editor only:</b> <br>
+<br>
+<b>Editor Mode:</b> <br>
 jscolor: Jan Odvarko, color selector<br>
 tool-man: Tim Taylor Consulting, drag-drop sorting<br>
 tiny-mce: by Ephox<br>
