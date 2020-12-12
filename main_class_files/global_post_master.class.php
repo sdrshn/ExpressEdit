@@ -4421,7 +4421,7 @@ static function email_scrubber(&$value,$key,$deactivate) {
 	 } // End of email_scrubber() function.
 
 
-function contact_mail_process($data,$contact_arr,$noname=false){  printer::vert_print($_POST);
+function contact_mail_process($data,$contact_arr,$noname=false){  
 	$deactivate=(empty($contact_arr[8])||$contact_arr[8]==='none')?0:1;
 	$iplookup=mail::iplookup();
 	$preamble=$contact_arr[5];
@@ -4452,7 +4452,7 @@ function contact_mail_process($data,$contact_arr,$noname=false){  printer::vert_
 		$this->clean_name=$clean_name=$this->scrubbed['name_'.$data];
 		$this->clean_subject=$this->subject=$clean_subject=$this->scrubbed['subject_'.$data];
 		$this->clean_message=$clean_message=$this->scrubbed['message'.$data];
-		$body = "Do Not Reply Directly with this email".NL.$preamble."<br>Reply to: $clean_email".NL." Subject: $clean_subject".NL." From: $clean_email".NL.$iplookup.NL."$clean_name has sent you a message: ".NL.NL .$clean_message.NL;
+		$body = "Do Not Reply Directly with this email".NL.$preamble."<br>Reply to: $clean_email".NL." Subject: $clean_subject".NL." From: $clean_email".NL."$clean_name has sent you a message: ".NL.NL .$clean_message.NL.NL.'more Mail Info:'.NL.$iplookup;
 		$this->body =NL. wordwrap($body, Cfg::Wordwrap);
 	  // Send the email:
 		if (Sys::Loc){
@@ -4490,11 +4490,9 @@ function contact_mail_process($data,$contact_arr,$noname=false){  printer::vert_
 				}#end seo check 
 			if (Sys::Web){
 				$usr=new users();
-				$this->body = NL. ' Browser info is '
-				.$usr->get('OS').NL.
-				$usr->get('ip'). " is address".NL.
-				' emailed to owner/admin: '.Cfg::Owner.' using: '.$mailstring .NL
-				. $this->body; 
+				$this->body = ' email sent to : '.$mailstring.NL. $this->body.NL. ' Browser info is '.$usr->get('OS').NL.
+				$usr->get('ip'). " is address";
+				 
 				if(!isset($_POST['contact_status_check'])||(isset($_POST['contact_status_check'])&&$_POST['contact_status_check']!=='yhuman'&&$_POST['contact_status_check']!=='no contact status')){
 					printer::alertx('<p style="background:red;color:white">Seriously, Choose Your Status!</p>');
 					
